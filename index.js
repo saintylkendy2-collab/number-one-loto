@@ -44,10 +44,45 @@ const data = req.body.data;
 
 res.send(`
 <html>
-<body style="font-size:24px;">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+font-family: monospace;
+text-align: center;
+padding: 10px;
+}
+
+.ticket {
+width: 300px;
+margin: auto;
+border: 1px dashed black;
+padding: 10px;
+}
+
+pre {
+font-size: 18px;
+text-align: left;
+}
+
+button {
+width: 100%;
+padding: 14px;
+font-size: 18px;
+margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+<div class="ticket">
+<h3>NUMBER ONE LOTO</h3>
 <pre>${data}</pre>
-<br>
-<a href="/">BACK</a>
+<p>Bon chans 🍀</p>
+</div>
+
+<button onclick="window.print()">PRINT</button>
+<button onclick="window.location.href='/'">BACK</button>
 </body>
 </html>
 `);

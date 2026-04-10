@@ -1,0 +1,11 @@
+{
+  "NOC100": {
+    "nom": "MAMA",
+    "password": "1234"
+  },
+  "NOC101": {
+    "nom": "Gaga",
+    "groupe": "",
+    "password": "1234"
+  }
+}

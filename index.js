@@ -81,84 +81,59 @@ res.send(`
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
 font-family: monospace;
-background: #f2f2f2;
-text-align: center;
-padding: 15px;
-}
-
-.ticket {
-width: 320px;
-margin: auto;
-background: white;
-border: 2px dashed black;
-padding: 15px;
-color: black;
+width: 58mm;
+margin: 0;
+padding: 5px;
+font-size: 12px;
 }
 
 .title {
-font-size: 22px;
+text-align: center;
 font-weight: bold;
-margin-bottom: 10px;
+font-size: 14px;
 }
 
 .meta {
-font-size: 14px;
-margin-bottom: 10px;
+text-align: center;
+font-size: 10px;
+margin-bottom: 5px;
 }
 
-pre {
-text-align: left;
-font-size: 20px;
-line-height: 1.5;
-white-space: pre-wrap;
-margin: 0;
+.line {
+display: flex;
+justify-content: space-between;
 }
 
 .total {
-margin-top: 12px;
-font-size: 20px;
-font-weight: bold;
 border-top: 1px dashed black;
-padding-top: 10px;
-}
-
-.footer {
-margin-top: 12px;
-font-size: 16px;
-}
-
-button {
-width: 320px;
-max-width: 100%;
-padding: 14px;
-font-size: 18px;
-margin-top: 12px;
-border: none;
-border-radius: 8px;
-background: #1e73ff;
-color: white;
-}
-
-.back-btn {
-background: #666;
+margin-top: 5px;
+padding-top: 5px;
+text-align: center;
+font-weight: bold;
 }
 </style>
 </head>
-<body>
-<div class="ticket">
-<div class="title">NUMBER ONE LOTO</div>
-<div class="meta">Dat: ${dateStr} | Lè: ${timeStr}</div>
-<pre>${formattedLines.join("\n")}</pre>
-<div class="total">TOTAL: ${total} G</div>
-<div class="footer">Bon chans 🍀</div>
-</div>
 
-<button onclick="window.print()">PRINT</button>
-<button class="back-btn" onclick="window.location.href='/'">BACK</button>
+<body>
+
+<div class="title">NUMBER ONE LOTO</div>
+<div class="meta">${dateStr} ${timeStr}</div>
+
+${formattedLines.map(l => {
+const p = l.split(" ");
+return `<div class="line">
+<span>${p[0]} ${p[1]}</span>
+<span>${p[2]} ${p[3]}</span>
+</div>`;
+}).join("")}
+
+<div class="total">TOTAL: ${total} G</div>
+
+<div style="text-align:center;">Bon chans 🍀</div>
+
 </body>
 </html>
 `);

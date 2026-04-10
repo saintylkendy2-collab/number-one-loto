@@ -84,56 +84,35 @@ res.send(`
 <style>
 body {
 font-family: monospace;
-width: 58mm;
-margin: 0;
-padding: 5px;
 font-size: 12px;
+margin: 0;
+padding: 4px;
+width: 58mm;
 }
 
-.title {
-text-align: center;
-font-weight: bold;
-font-size: 14px;
+pre {
+margin: 0;
+white-space: pre-wrap;
+word-break: break-word;
 }
 
-.meta {
-text-align: center;
-font-size: 10px;
-margin-bottom: 5px;
-}
-
-.line {
-display: flex;
-justify-content: space-between;
-}
-
-.total {
-border-top: 1px dashed black;
-margin-top: 5px;
-padding-top: 5px;
-text-align: center;
-font-weight: bold;
+button {
+display: none;
 }
 </style>
 </head>
-
 <body>
+<pre>
+NUMBER ONE LOTO
+Dat: ${dateStr} Le: ${timeStr}
 
-<div class="title">NUMBER ONE LOTO</div>
-<div class="meta">${dateStr} ${timeStr}</div>
+${formattedLines.join("\n")}
 
-${formattedLines.map(l => {
-const p = l.split(" ");
-return `<div class="line">
-<span>${p[0]} ${p[1]}</span>
-<span>${p[2]} ${p[3]}</span>
-</div>`;
-}).join("")}
+----------------------
+TOTAL: ${total} G
 
-<div class="total">TOTAL: ${total} G</div>
-
-<div style="text-align:center;">Bon chans 🍀</div>
-
+Bon chans
+</pre>
 </body>
 </html>
 `);

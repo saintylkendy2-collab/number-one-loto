@@ -331,34 +331,41 @@ font-weight: 600;
 <div>0</div>
 <div>0.00</div>
 </div>
-
+<div class="display-bar">
+<div id="numeroDisplay"></div>
+<div id="loterieDisplay"></div>
+<div id="montantDisplay"></div>
+</div>
 <div class="tabs">
-<div class="tab active">Numero</div>
-<div class="tab">Loterie</div>
-<div class="tab">Montant</div>
+<div class="tab active" id="tabNumero" onclick="setField('numero')">Numero</div>
+<div class="tab" id="tabLoterie" onclick="setField('loterie')">Loterie</div>
+<div class="tab" id="tabMontant" onclick="setField('montant')">Montant</div>
 </div>
 
 <div class="keypad">
-<div class="key">+</div>
-<div class="key">1</div>
-<div class="key">2</div>
-<div class="key">3</div>
 
-<div class="key">-</div>
-<div class="key">4</div>
-<div class="key">5</div>
-<div class="key">6</div>
+<div class="key" onclick="pressKey('+')">+</div>
+<div class="key" onclick="pressKey('1')">1</div>
+<div class="key" onclick="pressKey('2')">2</div>
+<div class="key" onclick="pressKey('3')">3</div>
 
-<div class="key">/</div>
-<div class="key">7</div>
-<div class="key">8</div>
-<div class="key">9</div>
+<div class="key" onclick="pressKey('-')">-</div>
+<div class="key" onclick="pressKey('4')">4</div>
+<div class="key" onclick="pressKey('5')">5</div>
+<div class="key" onclick="pressKey('6')">6</div>
 
-<div class="key">.</div>
-<div class="key">⌫</div>
-<div class="key">0</div>
-<div class="key ok">✓</div>
+<div class="key" onclick="pressKey('/')">/</div>
+<div class="key" onclick="pressKey('7')">7</div>
+<div class="key" onclick="pressKey('8')">8</div>
+<div class="key" onclick="pressKey('9')">9</div>
+
+<div class="key" onclick="pressKey('.')">.</div>
+<div class="key" onclick="backspace()">⌫</div>
+<div class="key" onclick="pressKey('0')">0</div>
+<div class="key" onclick="validate()">✅</div>
+
 </div>
+
 
 <div class="bottom-nav">
 <div class="bottom-item active">
@@ -383,6 +390,73 @@ font-weight: 600;
 </div>
 </div>
 </div>
+<script>
+alert("JS ap mache ✅");
+
+// aktif field
+let activeField = "numero";
+
+// valè yo
+let numero = "";
+let loterie = "";
+let montant = "";
+
+// chanje tab
+function setField(field) {
+activeField = field;
+}
+
+// lè peze bouton
+function pressKey(val) {
+if (activeField === "numero") {
+numero += val;
+document.getElementById("numeroDisplay").innerText = numero;
+}
+else if (activeField === "loterie") {
+loterie = val;
+document.getElementById("loterieDisplay").innerText = loterie;
+}
+else if (activeField === "montant") {
+montant += val;
+document.getElementById("montantDisplay").innerText = montant;
+}
+}
+
+// bouton efase
+function backspace() {
+if (activeField === "numero") {
+numero = numero.slice(0, -1);
+document.getElementById("numeroDisplay").innerText = numero;
+}
+else if (activeField === "montant") {
+montant = montant.slice(0, -1);
+document.getElementById("montantDisplay").innerText = montant;
+}
+}
+
+// bouton ✅
+function validate() {
+if (activeField === "numero") {
+activeField = "loterie";
+}
+else if (activeField === "loterie") {
+activeField = "montant";
+}
+else if (activeField === "montant") {
+alert("Ajouté: " + numero + " / " + loterie + " / " + montant);
+
+// reset
+numero = "";
+loterie = "";
+montant = "";
+activeField = "numero";
+
+document.getElementById("numeroDisplay").innerText = "";
+document.getElementById("loterieDisplay").innerText = "";
+document.getElementById("montantDisplay").innerText = "";
+}
+}
+</script>
 </body>
 </html>
 `);

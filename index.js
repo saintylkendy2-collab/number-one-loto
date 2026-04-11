@@ -85,12 +85,13 @@ margin-bottom: 10px;
 `);
 });
 app.post("/login", (req, res) => {
-const { id, password } = req.body;
+const id = req.body.id;
+const password = req.body.password;
 
 if (id === "NOC100" && password === "1234") {
-return res.redirect("/dashboard");
+res.redirect("/dashboard");
 } else {
-return res.send("ID ou mot de passe incorrect");
+res.send("Identifiant ou mot de passe incorrect ❌");
 }
 });
 app.post("/print", (req, res) => {

@@ -173,7 +173,218 @@ Bon chans
 `);
 });
 app.get("/dashboard", (req, res) => {
-res.send("<h2>Bienvenue Vendeur ✅</h2>");
+res.send(`
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendeur</title>
+<style>
+* {
+box-sizing: border-box;
+}
+
+body {
+margin: 0;
+font-family: Arial, sans-serif;
+background: #efeff4;
+}
+
+.topbar {
+height: 64px;
+background: #2f55e7;
+color: white;
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 0 16px;
+font-size: 18px;
+font-weight: 600;
+}
+
+.topbar .left,
+.topbar .right {
+width: 40px;
+text-align: center;
+font-size: 26px;
+}
+
+.topbar .title {
+flex: 1;
+text-align: left;
+padding-left: 10px;
+}
+
+.content {
+height: calc(100vh - 64px);
+display: flex;
+flex-direction: column;
+}
+
+.empty-zone {
+flex: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #9b9b9b;
+font-size: 22px;
+font-weight: 600;
+}
+
+.summary-bar {
+height: 38px;
+background: #dfe1fa;
+display: grid;
+grid-template-columns: 1fr 1fr;
+align-items: center;
+text-align: center;
+font-size: 22px;
+font-weight: 700;
+color: #222;
+}
+
+.tabs {
+height: 48px;
+background: #f3f3f3;
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+align-items: end;
+text-align: center;
+font-size: 18px;
+color: #777;
+border-top: 1px solid #ddd;
+}
+
+.tab {
+padding-bottom: 8px;
+border-bottom: 3px solid transparent;
+}
+
+.tab.active {
+color: #666;
+border-bottom-color: #2f55e7;
+font-weight: 600;
+}
+
+.keypad {
+background: white;
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+grid-auto-rows: 68px;
+border-top: 1px solid #cfcfcf;
+}
+
+.key {
+border: 1px solid #cfcfcf;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 28px;
+background: linear-gradient(#f7f7f7, #e7e7e7);
+}
+
+.key.ok {
+background: linear-gradient(#dfe8ef, #c8d2dc);
+}
+
+.bottom-nav {
+height: 74px;
+background: #f5f5f8;
+border-top: 1px solid #d7d7d7;
+display: grid;
+grid-template-columns: repeat(5, 1fr);
+align-items: center;
+text-align: center;
+font-size: 14px;
+color: #9a9a9a;
+}
+
+.bottom-item {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 4px;
+}
+
+.bottom-item .icon {
+font-size: 22px;
+}
+
+.bottom-item.active {
+color: #7d73e6;
+font-weight: 600;
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+<div class="left">☰</div>
+<div class="title">Vendeur</div>
+<div class="right">⋮</div>
+</div>
+
+<div class="content">
+<div class="empty-zone">Pas de jeux</div>
+
+<div class="summary-bar">
+<div>0</div>
+<div>0.00</div>
+</div>
+
+<div class="tabs">
+<div class="tab active">Numero</div>
+<div class="tab">Loterie</div>
+<div class="tab">Montant</div>
+</div>
+
+<div class="keypad">
+<div class="key">+</div>
+<div class="key">1</div>
+<div class="key">2</div>
+
+<div class="key">3</div>
+<div class="key">4</div>
+<div class="key">5</div>
+
+<div class="key">6</div>
+<div class="key">7</div>
+<div class="key">8</div>
+
+<div class="key">9</div>
+<div class="key">.</div>
+<div class="key">0</div>
+
+<div class="key">⌫</div>
+<div class="key ok">✓</div>
+<div class="key">/</div>
+</div>
+
+<div class="bottom-nav">
+<div class="bottom-item active">
+<div class="icon">🎟️</div>
+<div>Billets</div>
+</div>
+<div class="bottom-item">
+<div class="icon">📄</div>
+<div>Copier</div>
+</div>
+<div class="bottom-item">
+<div class="icon">💵</div>
+<div>Payer</div>
+</div>
+<div class="bottom-item">
+<div class="icon">🖨️</div>
+<div>Rapports</div>
+</div>
+<div class="bottom-item">
+<div class="icon">☷</div>
+<div>Menu</div>
+</div>
+</div>
+</div>
+</body>
+</html>
+`);
 });
 app.listen(3000, () => {
 console.log("Server ap mache sou http://localhost:3000");

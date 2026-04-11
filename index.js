@@ -9,31 +9,77 @@ res.send(`
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Vendeur</title>
+
 <style>
 body {
-font-size: 22px;
-padding: 20px;
+margin: 0;
+font-family: Arial, sans-serif;
+background: #f2f2f2;
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100vh;
+}
+
+.container {
+width: 90%;
+max-width: 380px;
+background: white;
+padding: 25px;
+border-radius: 12px;
+box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 text-align: center;
 }
 
-input, button, textarea {
+h1 {
+margin-bottom: 25px;
+font-size: 24px;
+}
+
+input {
+width: 100%;
+padding: 15px;
+margin-bottom: 15px;
+font-size: 18px;
+border-radius: 8px;
+border: 1px solid #ccc;
+}
+
+button {
 width: 100%;
 padding: 16px;
 font-size: 20px;
-margin-top: 10px;
+border: none;
+border-radius: 8px;
+background: #1e73ff;
+color: white;
+}
+
+button:active {
+background: #155cd1;
+}
+
+.error {
+color: red;
+margin-bottom: 10px;
 }
 </style>
 </head>
-<body>
-<h2>NUMBER ONE LOTO</h2>
 
-<form method="POST" action="/print">
-<textarea name="data" rows="10" placeholder="Egzanp:
-BOR 58 250
-BOR 85 100
-MAR 25*36 15"></textarea>
-<button type="submit">GENERATE</button>
+<body>
+
+<div class="container">
+<h1>Connexion Vendeur</h1>
+
+<form method="POST" action="/login">
+<input type="text" name="id" placeholder="ID vendeur" required>
+<input type="password" name="password" placeholder="Mot de passe" required>
+
+<button type="submit">CONNEXION</button>
 </form>
+</div>
+
 </body>
 </html>
 `);

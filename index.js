@@ -223,6 +223,7 @@ flex-direction: column;
 
 .empty-zone {
 flex: 1;
+min-height: 320px;
 display: flex;
 align-items: center;
 justify-content: center;
@@ -269,8 +270,8 @@ font-weight: 600;
 .keypad {
 background: white;
 display: grid;
-grid-template-columns: repeat(3, 1fr);
-grid-auto-rows: 68px;
+grid-template-columns: repeat(4, 1fr);
+grid-template-rows: repeat(4, 68px);
 border-top: 1px solid #cfcfcf;
 }
 
@@ -341,22 +342,22 @@ font-weight: 600;
 <div class="key">+</div>
 <div class="key">1</div>
 <div class="key">2</div>
-
 <div class="key">3</div>
+
+<div class="key">-</div>
 <div class="key">4</div>
 <div class="key">5</div>
-
 <div class="key">6</div>
+
+<div class="key">/</div>
 <div class="key">7</div>
 <div class="key">8</div>
-
 <div class="key">9</div>
-<div class="key">.</div>
-<div class="key">0</div>
 
+<div class="key">.</div>
 <div class="key">⌫</div>
+<div class="key">0</div>
 <div class="key ok">✓</div>
-<div class="key">/</div>
 </div>
 
 <div class="bottom-nav">

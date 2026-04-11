@@ -171,7 +171,9 @@ Bon chans
 </html>
 `);
 });
-
+app.get("/dashboard", (req, res) => {
+res.send("<h2>Bienvenue Vendeur ✅</h2>");
+});
 app.listen(3000, () => {
 console.log("Server ap mache sou http://localhost:3000");
 });

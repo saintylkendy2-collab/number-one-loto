@@ -266,10 +266,8 @@ border-bottom: 1px solid #d9d9d9;
 .display-loterie {
 grid-column: 1 / 4;
 grid-row: 1;
-padding: 4px 10px 0 10px;
+padding: 6px 10px;
 font-size: 14px;
-text-align: left;
-color: #111;
 }
 
 .display-numero {
@@ -277,25 +275,14 @@ grid-column: 1;
 grid-row: 2;
 font-size: 26px;
 font-weight: bold;
-line-height: 44px;
 padding-left: 10px;
-color: #000;
-}
-
-.display-middle {
-grid-column: 2;
-grid-row: 2;
 }
 
 .display-montant {
 grid-column: 3;
 grid-row: 2;
 text-align: right;
-line-height: 44px;
 padding-right: 10px;
-font-size: 20px;
-font-weight: 700;
-color: #111;
 }
 
 

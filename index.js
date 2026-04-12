@@ -458,6 +458,29 @@ color: white;
 background: #e53935;
 color: white;
 }
+.loterie-item {
+padding: 15px;
+font-size: 18px;
+border-bottom: 1px solid #eee;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.loterie-item.active {
+background: #e6e6ff;
+font-weight: bold;
+color: #4a4aff;
+}
+
+.checkmark {
+font-size: 18px;
+color: #4a4aff;
+}
+.loterie-list {
+max-height: 300px;
+overflow-y: auto;
+}
 </style>
 </head>
 <body>
@@ -561,9 +584,8 @@ openLoterieModal();
 document.getElementById("tabMontant").classList.add("active");
 }
 }
-// function renderLoterieList() {
-// ...
-// }
+function renderLoterieList() {
+
 
 function confirmLoterie() {
 if (!selectedLoterie) return;
@@ -635,52 +657,72 @@ setField("numero");
 }
 }
 const loterieOptions = [
-"TENNESSE MORNING",
-"TEXAS MORNING",
-"TEXAS EVENING",
-"GEORGIA MIDDAY",
-"FLORIDA MIDDAY",
-"NEW YORK MIDDAY",
-"GEORGIA EVENING",
-"TENNESSE EVENING",
-"FLORIDA EVENING",
-"NEW YORK EVENING",
-"GEORGIA NIGHT"
+{ name: "TENNESSE MORNING", time: "10:00 AM" },
+{ name: "TEXAS MORNING", time: "11:00 AM" },
+{ name: "TEXAS EVENING", time: "6:00 PM" },
+{ name: "GEORGIA MIDDAY", time: "12:30 PM" },
+{ name: "FLORIDA MIDDAY", time: "1:00 PM" },
+{ name: "NEW YORK MIDDAY", time: "2:30 PM" },
+{ name: "GEORGIA EVENING", time: "6:50 PM" },
+{ name: "TENNESSE EVENING", time: "7:00 PM" },
+{ name: "FLORIDA EVENING", time: "9:30 PM" },
+{ name: "NEW YORK EVENING", time: "10:25 PM" },
+{ name: "GEORGIA NIGHT", time: "11:15 PM" }
 ];
 
-let selectedLoterie = "";
+let selectedLoteries = [];
 
 
 function renderLoterieList() {
 const list = document.getElementById("loterieList");
 list.innerHTML = "";
 
-loterieOptions.forEach(name => {
+loterieOptions.forEach(item => {
 const div = document.createElement("div");
 div.className = "loterie-item";
 
-if (selectedLoterie === name) {
+if (selectedLoteries.includes(item.name)) {
 div.classList.add("active");
 }
 
 const span1 = document.createElement("span");
-span1.textContent = name;
+span1.textContent = item.name;
 
-const span2 = document.createElement("span");
-span2.textContent = (selectedLoterie === name ? "✓" : "");
+const spanTime = document.createElement("span");
+spanTime.textContent = item.time;
+spanTime.style.fontSize = "14px";
+spanTime.style.color = "gray";
+
+const check = document.createElement("span");
+if (selectedLoteries.includes(item.name)) {
+check.textContent = "✔";
+check.className = "checkmark";
+} else {
+check.textContent = "";
+}
+
+const rightBox = document.createElement("div");
+rightBox.style.display = "flex";
+rightBox.style.alignItems = "center";
+rightBox.style.gap = "10px";
+rightBox.appendChild(spanTime);
+rightBox.appendChild(check);
 
 div.appendChild(span1);
-div.appendChild(span2);
+div.appendChild(rightBox);
 
 div.onclick = () => {
-selectedLoterie = name;
+if (selectedLoteries.includes(item.name)) {
+selectedLoteries = selectedLoteries.filter(l => l !== item.name);
+} else {
+selectedLoteries.push(item.name);
+}
 renderLoterieList();
 };
 
 list.appendChild(div);
 });
 }
-
 
 
 
@@ -697,9 +739,15 @@ document.getElementById("loterieModal").style.display = "none";
 }
 
 function confirmLoterie() {
-if (!selectedLoterie) return;
+if (selectedLoteries.length === 0) return;
 
-loterie = selectedLoterie;
+loterie = selectedLoteries.join(", ");
+document.getElementById("loterieLabel").textContent = loterie;
+
+closeLoterieModal();
+setField("montant");
+}
+
 document.getElementById("loterieLabel").textContent = loterie;
 
 closeLoterieModal();

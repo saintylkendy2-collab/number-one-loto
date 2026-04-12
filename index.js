@@ -385,17 +385,16 @@ font-weight: 600;
 <div id="ticketTotal">0.00</div>
 </div>
 
-<div class="display-bar">
-<div id="loterieDisplay" class="display-loterie"></div>
-<div id="numeroDisplay" class="display-numero"></div>
-<div class="display-middle"></div>
-<div id="montantDisplay" class="display-montant"></div>
-</div>
-
 <div class="tabs">
-<div class="tab active" id="tabNumero" onclick="setField('numero')">Numero</div>
-<div class="tab" id="tabLoterie" onclick="setField('loterie')">Loterie</div>
-<div class="tab" id="tabMontant" onclick="setField('montant')">Montant</div>
+<div class="tab active" id="tabNumero" onclick="setField('numero')">
+<span id="numeroLabel">Numero</span>
+</div>
+<div class="tab" id="tabLoterie" onclick="setField('loterie')">
+<span id="loterieLabel">Loterie</span>
+</div>
+<div class="tab" id="tabMontant" onclick="setField('montant')">
+<span id="montantLabel">Montant</span>
+</div>
 </div>
 <div class="keypad">
 
@@ -472,26 +471,26 @@ document.getElementById("tabMontant").classList.add("active");
 function pressKey(val) {
 if (activeField === "numero") {
 numero += val;
-document.getElementById("numeroDisplay").textContent = numero;
+document.getElementById("numeroLabel").textContent = numero || "Numero";
 } else if (activeField === "loterie") {
 loterie += val;
-document.getElementById("loterieDisplay").textContent = loterie;
+document.getElementById("loterieLabel").textContent = loterie || "Loterie";
 } else if (activeField === "montant") {
 montant += val;
-document.getElementById("montantDisplay").textContent = montant;
+document.getElementById("montantLabel").textContent = montant || "Montant";
 }
 }
 
 function backspace() {
 if (activeField === "numero") {
 numero = numero.slice(0, -1);
-document.getElementById("numeroDisplay").textContent = numero;
+document.getElementById("numeroLabel").textContent = numero || "Numero";
 } else if (activeField === "loterie") {
 loterie = loterie.slice(0, -1);
-document.getElementById("loterieDisplay").textContent = loterie;
+document.getElementById("loterieLabel").textContent = loterie || "Loterie";
 } else if (activeField === "montant") {
 montant = montant.slice(0, -1);
-document.getElementById("montantDisplay").textContent = montant;
+document.getElementById("montantLabel").textContent = montant || "Montant";
 }
 }
 
@@ -507,9 +506,9 @@ numero = "";
 loterie = "";
 montant = "";
 
-document.getElementById("numeroDisplay").textContent = "";
-document.getElementById("loterieDisplay").textContent = "";
-document.getElementById("montantDisplay").textContent = "";
+document.getElementById("numeroLabel").textContent = "Numero";
+document.getElementById("loterieLabel").textContent = "Loterie";
+document.getElementById("montantLabel").textContent = "Montant";
 
 setField("numero");
 }

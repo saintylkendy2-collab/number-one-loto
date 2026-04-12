@@ -259,17 +259,16 @@ padding-right: 14px;
 background: #f2f2f2;
 display: grid;
 grid-template-columns: 1fr 1fr 1fr;
-grid-template-rows: auto auto;
+grid-template-rows: 32px 44px;
 border-bottom: 1px solid #d9d9d9;
 }
 
 .display-loterie {
 grid-column: 1 / 4;
-padding: 8px 12px;
+padding: 6px 12px 0 12px;
 font-size: 18px;
 text-align: left;
 color: #111;
-min-height: 24px;
 }
 
 .display-numero {
@@ -277,7 +276,7 @@ grid-column: 1;
 text-align: center;
 font-size: 28px;
 font-weight: 800;
-padding: 8px 0;
+line-height: 44px;
 color: #000;
 }
 
@@ -291,10 +290,53 @@ text-align: right;
 padding-right: 10px;
 font-size: 20px;
 font-weight: 700;
+line-height: 44px;
 color: #111;
 }
+.display-bar {
+background: #f2f2f2;
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+grid-template-rows: 32px 44px;
+border-bottom: 1px solid #d9d9d9;
+}
+
+.display-loterie {
+grid-column: 1 / 4;
+padding: 6px 12px 0 12px;
+font-size: 18px;
+text-align: left;
+color: #111;
+}
+
+.display-numero {
+grid-column: 1;
+text-align: center;
+font-size: 28px;
+font-weight: 800;
+line-height: 44px;
+color: #000;
+}
+
+.display-middle {
+grid-column: 2;
+}
+
+.display-montant {
+grid-column: 3;
+text-align: right;
+padding-right: 10px;
+font-size: 20px;
+font-weight: 700;
+line-height: 44px;
+color: #111;
+}
+
+
+
+
 .tabs {
-height: 48px;
+height: 52px;
 background: #f3f3f3;
 display: grid;
 grid-template-columns: 1fr 1fr 1fr;
@@ -302,11 +344,13 @@ align-items: end;
 text-align: center;
 font-size: 18px;
 color: #777;
-border-bottom: 1px solid #d9d9d9;
+border-top: 1px solid #ddd;
+border-bottom: 1px solid #ddd;
 }
 
 .tab {
-padding-bottom: 8px;
+padding-bottom: 10px;
+border-bottom: 3px solid transparent;
 }
 
 .tab.active {
@@ -385,6 +429,7 @@ font-weight: 600;
 <div id="numeroDisplay" class="display-numero"></div>
 <div class="display-middle"></div>
 <div id="montantDisplay" class="display-montant"></div>
+</div>
 <div class="tabs">
 <div class="tab active" id="tabNumero" onclick="setField('numero')">Numero</div>
 <div class="tab" id="tabLoterie" onclick="setField('loterie')">Loterie</div>

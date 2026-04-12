@@ -650,17 +650,6 @@ const loterieOptions = [
 
 let selectedLoterie = "";
 
-function renderLoterieList() {
-const list = document.getElementById("loterieList");
-list.innerHTML = "";
-
-loterieOptions.forEach(name => {
-const div = document.createElement("div");
-div.className = "loterie-item";
-
-if (selectedLoterie === name) {
-div.classList.add("active");
-}
 
 function renderLoterieList() {
 const list = document.getElementById("loterieList");

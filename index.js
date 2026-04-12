@@ -369,8 +369,8 @@ color: #111;
 .display-numero {
 grid-column: 1;
 text-align: center;
-font-size: 28px; /* 👈 ogmante sa */
-font-weight: 800; /* 👈 fè li pi bold */
+font-size: 28px;
+font-weight: 800;
 padding: 8px 0;
 color: #000;
 }

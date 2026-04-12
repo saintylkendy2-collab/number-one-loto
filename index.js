@@ -294,18 +294,16 @@ align-items: end;
 text-align: center;
 font-size: 18px;
 color: #777;
-border-top: 1px solid #ddd;
+border-bottom: 1px solid #d9d9d9;
 }
 
 .tab {
 padding-bottom: 8px;
-border-bottom: 3px solid transparent;
 }
 
 .tab.active {
-color: #666;
-border-bottom-color: #2f55e7;
-font-weight: 600;
+color: #222;
+border-bottom: 3px solid #3f5be8;
 }
 
 .keypad {

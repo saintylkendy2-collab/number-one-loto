@@ -380,7 +380,11 @@ font-weight: 600;
 <div class="display-middle"></div>
 <div id="montantDisplay" class="display-montant"></div>
 </div>
-
+<div class="tabs">
+<div class="tab active" onclick="setField('numero')">Numero</div>
+<div class="tab" onclick="setField('loterie')">Loterie</div>
+<div class="tab" onclick="setField('montant')">Montant</div>
+</div>
 <div class="keypad">
 
 <div class="key" onclick="pressKey('+')">+</div>

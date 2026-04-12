@@ -277,6 +277,8 @@ color: #000;
 
 #numeroLabel {
 font-size: 36px;
+font-weight: bold;
+}
 
 .display-middle {
 grid-column: 2;

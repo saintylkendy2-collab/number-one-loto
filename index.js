@@ -584,7 +584,9 @@ openLoterieModal();
 document.getElementById("tabMontant").classList.add("active");
 }
 }
-
+// function renderLoterieList() {
+// ...
+// }
 
 
 function confirmLoterie() {

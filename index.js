@@ -267,6 +267,9 @@ border-bottom: 1px solid #d9d9d9;
 grid-column: 1 / 4;
 padding: 8px 12px;
 font-size: 18px;
+text-align: left;
+color: #111;
+min-height: 24px;
 }
 
 .display-numero {
@@ -274,6 +277,8 @@ grid-column: 1;
 text-align: center;
 font-size: 28px;
 font-weight: 800;
+padding: 8px 0;
+color: #000;
 }
 
 .display-middle {
@@ -284,6 +289,9 @@ grid-column: 2;
 grid-column: 3;
 text-align: right;
 padding-right: 10px;
+font-size: 20px;
+font-weight: 700;
+color: #111;
 }
 .tabs {
 height: 48px;
@@ -377,11 +385,10 @@ font-weight: 600;
 <div id="numeroDisplay" class="display-numero"></div>
 <div class="display-middle"></div>
 <div id="montantDisplay" class="display-montant"></div>
-</div>
 <div class="tabs">
-<div class="tab active" onclick="setField('numero')">Numero</div>
-<div class="tab" onclick="setField('loterie')">Loterie</div>
-<div class="tab" onclick="setField('montant')">Montant</div>
+<div class="tab active" id="tabNumero" onclick="setField('numero')">Numero</div>
+<div class="tab" id="tabLoterie" onclick="setField('loterie')">Loterie</div>
+<div class="tab" id="tabMontant" onclick="setField('montant')">Montant</div>
 </div>
 <div class="keypad">
 
@@ -491,9 +498,9 @@ loterie = "";
 montant = "";
 activeField = "numero";
 
-document.getElementById("numeroDisplay").innerText = "";
-document.getElementById("loterieDisplay").innerText = "";
-document.getElementById("montantDisplay").innerText = "";
+document.getElementById("loterieDisplay").innerText = "NEW YORK EVENING";
+document.getElementById("numeroDisplay").innerText = "4442";
+document.getElementById("montantDisplay").innerText = "50.00";
 }
 }
 </script>

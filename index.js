@@ -295,7 +295,7 @@ color: #111;
 }
 
 #montantLabel {
-font-size: 36px;
+font-size: 24px;
 font-weight: bold;
 }
 

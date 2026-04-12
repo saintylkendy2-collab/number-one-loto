@@ -259,15 +259,17 @@ padding-right: 14px;
 background: #f2f2f2;
 display: grid;
 grid-template-columns: 1fr 1fr 1fr;
-grid-template-rows: 32px 44px;
+grid-template-rows: 28px 44px;
 border-bottom: 1px solid #d9d9d9;
 }
 
 .display-loterie {
 grid-column: 1 / 4;
 grid-row: 1;
-padding: 6px 10px;
+padding: 4px 10px 0 10px;
 font-size: 14px;
+text-align: left;
+color: #111;
 }
 
 .display-numero {
@@ -275,18 +277,25 @@ grid-column: 1;
 grid-row: 2;
 font-size: 26px;
 font-weight: bold;
+line-height: 44px;
 padding-left: 10px;
+color: #000;
 }
 
 .display-middle {
 grid-column: 2;
+grid-row: 2;
 }
 
 .display-montant {
 grid-column: 3;
 grid-row: 2;
 text-align: right;
+line-height: 44px;
 padding-right: 10px;
+font-size: 20px;
+font-weight: 700;
+color: #111;
 }
 
 
@@ -387,6 +396,7 @@ font-weight: 600;
 <div class="display-middle"></div>
 <div id="montantDisplay" class="display-montant"></div>
 </div>
+
 <div class="tabs">
 <div class="tab active" id="tabNumero" onclick="setField('numero')">Numero</div>
 <div class="tab" id="tabLoterie" onclick="setField('loterie')">Loterie</div>
@@ -450,24 +460,19 @@ let numero = "";
 let loterie = "";
 let montant = "";
 
-// chanje tab
 function setField(field) {
 activeField = field;
-}
 
-// lè peze bouton
-function pressKey(val) {
-if (activeField === "numero") {
-numero += val;
-document.getElementById("numeroDisplay").innerText = numero;
-}
-else if (activeField === "loterie") {
-loterie = val;
-document.getElementById("loterieDisplay").innerText = loterie;
-}
-else if (activeField === "montant") {
-montant += val;
-document.getElementById("montantDisplay").innerText = montant;
+document.getElementById("tabNumero").classList.remove("active");
+document.getElementById("tabLoterie").classList.remove("active");
+document.getElementById("tabMontant").classList.remove("active");
+
+if (field === "numero") {
+document.getElementById("tabNumero").classList.add("active");
+} else if (field === "loterie") {
+document.getElementById("tabLoterie").classList.add("active");
+} else if (field === "montant") {
+document.getElementById("tabMontant").classList.add("active");
 }
 }
 

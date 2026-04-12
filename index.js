@@ -675,56 +675,6 @@ const loterieOptions = [
 let selectedLoteries = [];
 
 
-function renderLoterieList() {
-const list = document.getElementById("loterieList");
-list.innerHTML = "";
-
-loterieOptions.forEach(item => {
-const div = document.createElement("div");
-div.className = "loterie-item";
-
-if (selectedLoteries.includes(item.name)) {
-div.classList.add("active");
-}
-
-const span1 = document.createElement("span");
-span1.textContent = item.name;
-
-const spanTime = document.createElement("span");
-spanTime.textContent = item.time;
-spanTime.style.fontSize = "14px";
-spanTime.style.color = "gray";
-
-const check = document.createElement("span");
-if (selectedLoteries.includes(item.name)) {
-check.textContent = "✔";
-check.className = "checkmark";
-} else {
-check.textContent = "";
-}
-
-const rightBox = document.createElement("div");
-rightBox.style.display = "flex";
-rightBox.style.alignItems = "center";
-rightBox.style.gap = "10px";
-rightBox.appendChild(spanTime);
-rightBox.appendChild(check);
-
-div.appendChild(span1);
-div.appendChild(rightBox);
-
-div.onclick = () => {
-if (selectedLoteries.includes(item.name)) {
-selectedLoteries = selectedLoteries.filter(l => l !== item.name);
-} else {
-selectedLoteries.push(item.name);
-}
-renderLoterieList();
-};
-
-list.appendChild(div);
-});
-}
 
 
 

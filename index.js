@@ -327,66 +327,18 @@ font-weight: 600;
 <div class="content">
 <div class="empty-zone">Pas de jeux</div>
 
-.summary-bar {
-height: 38px;
-background: #dfe1fa;
-display: grid;
-grid-template-columns: 1fr 1fr 1fr;
-align-items: center;
-font-size: 22px;
-font-weight: 700;
-color: #222;
-}
+<div class="summary-bar">
+<div></div>
+<div id="ticketCount">0</div>
+<div id="ticketTotal">0.00</div>
+</div>
 
-.summary-bar div:nth-child(1) {
-text-align: left;
-}
-
-.summary-bar div:nth-child(2) {
-text-align: center;
-}
-
-.summary-bar div:nth-child(3) {
-text-align: right;
-padding-right: 14px;
-}
-.display-bar {
-background: #f2f2f2;
-display: grid;
-grid-template-columns: 1fr 1fr 1fr;
-grid-template-rows: auto auto;
-border-bottom: 1px solid #d9d9d9;
-}
-
-.display-loterie {
-grid-column: 1 / 4;
-padding: 8px 12px;
-font-size: 18px;
-text-align: left;
-color: #111;
-}
-
-.display-numero {
-grid-column: 1;
-text-align: center;
-font-size: 28px;
-font-weight: 800;
-padding: 8px 0;
-color: #000;
-}
-
-.display-middle {
-grid-column: 2;
-}
-
-.display-montant {
-grid-column: 3;
-text-align: center;
-font-size: 20px;
-font-weight: 700;
-padding: 8px 0;
-color: #111;
-}
+<div class="display-bar">
+<div id="loterieDisplay" class="display-loterie"></div>
+<div id="numeroDisplay" class="display-numero"></div>
+<div class="display-middle"></div>
+<div id="montantDisplay" class="display-montant"></div>
+</div>
 
 <div class="keypad">
 

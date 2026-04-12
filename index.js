@@ -243,6 +243,48 @@ font-weight: 700;
 color: #222;
 }
 
+.summary-bar div:nth-child(1) {
+text-align: left;
+}
+
+.summary-bar div:nth-child(2) {
+text-align: center;
+}
+
+.summary-bar div:nth-child(3) {
+text-align: right;
+padding-right: 14px;
+}
+.display-bar {
+background: #f2f2f2;
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+grid-template-rows: auto auto;
+border-bottom: 1px solid #d9d9d9;
+}
+
+.display-loterie {
+grid-column: 1 / 4;
+padding: 8px 12px;
+font-size: 18px;
+}
+
+.display-numero {
+grid-column: 1;
+text-align: center;
+font-size: 28px;
+font-weight: 800;
+}
+
+.display-middle {
+grid-column: 2;
+}
+
+.display-montant {
+grid-column: 3;
+text-align: right;
+padding-right: 10px;
+}
 .tabs {
 height: 48px;
 background: #f3f3f3;

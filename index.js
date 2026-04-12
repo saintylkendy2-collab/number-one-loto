@@ -373,6 +373,91 @@ font-size: 22px;
 color: #7d73e6;
 font-weight: 600;
 }
+/* MODAL BACKGROUND */
+.loterie-modal {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0,0,0,0.5);
+display: none;
+justify-content: center;
+align-items: center;
+z-index: 999;
+}
+
+/* BOX */
+.loterie-box {
+background: white;
+width: 90%;
+max-height: 80%;
+border-radius: 12px;
+overflow: hidden;
+display: flex;
+flex-direction: column;
+}
+
+/* LIST */
+.loterie-list {
+overflow-y: auto;
+flex: 1;
+}
+
+/* ITEM */
+.loterie-item {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 12px 15px;
+border-bottom: 1px solid #eee;
+font-size: 16px;
+}
+
+/* SELECTED */
+.loterie-item.active {
+background: #f2f1ff;
+color: #7d73e6;
+font-weight: 600;
+}
+
+/* CHECK ICON */
+.loterie-item .check {
+color: #7d73e6;
+font-size: 18px;
+}
+
+/* ACTION BUTTONS */
+.loterie-actions {
+display: flex;
+justify-content: space-around;
+padding: 10px;
+border-top: 1px solid #eee;
+}
+
+/* BUTTON BASE */
+.action-btn {
+border: none;
+border-radius: 50%;
+width: 45px;
+height: 45px;
+font-size: 18px;
+}
+
+/* COLORS */
+.cancel-btn {
+background: #ccc;
+}
+
+.confirm-btn {
+background: #7d73e6;
+color: white;
+}
+
+.close-btn {
+background: #e53935;
+color: white;
+}
 </style>
 </head>
 <body>
@@ -467,13 +552,39 @@ document.getElementById("tabMontant").classList.remove("active");
 
 if (field === "numero") {
 document.getElementById("tabNumero").classList.add("active");
+
 } else if (field === "loterie") {
 document.getElementById("tabLoterie").classList.add("active");
+openLoterieModal();
+
 } else if (field === "montant") {
 document.getElementById("tabMontant").classList.add("active");
 }
 }
+function confirmLoterie() {
+if (!selectedLoterie) return;
 
+loterie = selectedLoterie;
+document.getElementById("loterieLabel").textContent = loterie;
+
+closeLoterieModal();
+
+if (montant !== "") {
+alert("Ajouté: " + numero + " / " + loterie + " / " + montant);
+
+numero = "";
+loterie = "";
+montant = "";
+
+document.getElementById("numeroLabel").textContent = "Numero";
+document.getElementById("loterieLabel").textContent = "Loterie";
+document.getElementById("montantLabel").textContent = "Montant";
+
+setField("numero");
+} else {
+setField("montant");
+}
+}
 function pressKey(val) {
 if (activeField === "numero") {
 numero += val;
@@ -519,9 +630,79 @@ document.getElementById("montantLabel").textContent = "Montant";
 setField("numero");
 }
 }
+const loterieOptions = [
+"TENNESSE MORNING",
+"TEXAS MORNING",
+"TEXAS EVENING",
+"GEORGIA MIDDAY",
+"FLORIDA MIDDAY",
+"NEW YORK MIDDAY",
+"GEORGIA EVENING",
+"TENNESSE EVENING",
+"FLORIDA EVENING",
+"NEW YORK EVENING",
+"GEORGIA NIGHT"
+];
 
+let selectedLoterie = "";
+
+function renderLoterieList() {
+const list = document.getElementById("loterieList");
+
+list.innerHTML = "";
+
+loterieOptions.forEach(name => {
+const div = document.createElement("div");
+div.className = "loterie-item";
+
+if (selectedLoterie === name) {
+div.classList.add("active");
+}
+
+div.innerHTML = `
+<span>${name}</span>
+<span>${selectedLoterie === name ? "✔" : ""}</span>
+`;
+
+div.onclick = () => {
+selectedLoterie = name;
+renderLoterieList();
+};
+
+list.appendChild(div);
+});
+}
+
+function openLoterieModal() {
+renderLoterieList();
+document.getElementById("loterieModal").style.display = "flex";
+}
+
+function closeLoterieModal() {
+document.getElementById("loterieModal").style.display = "none";
+}
+
+function confirmLoterie() {
+if (!selectedLoterie) return;
+
+loterie = selectedLoterie;
+document.getElementById("loterieLabel").textContent = loterie;
+
+closeLoterieModal();
+}
 setField("numero");
 </script>
+<div id="loterieModal" class="loterie-modal">
+<div class="loterie-box">
+<div class="loterie-list" id="loterieList"></div>
+
+<div class="loterie-actions">
+<button class="action-btn cancel-btn" onclick="cancelLoterie()">🚫</button>
+<button class="action-btn confirm-btn" onclick="confirmLoterie()">✅</button>
+<button class="action-btn close-btn" onclick="closeLoterieModal()">✖️</button>
+</div>
+</div>
+</div>
 </body>
 </html>
 `);

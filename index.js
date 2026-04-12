@@ -561,8 +561,9 @@ openLoterieModal();
 document.getElementById("tabMontant").classList.add("active");
 }
 }
-function renderLoterieList() {
-const list = document.getElementById("loterieList");
+// function renderLoterieList() {
+// ...
+// }
 
 
 }

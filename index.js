@@ -571,6 +571,7 @@ list.innerHTML = loterieOptions.map(name => `
 </div>
 `).join("");
 }
+}
 function confirmLoterie() {
 if (!selectedLoterie) return;
 

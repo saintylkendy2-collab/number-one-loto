@@ -276,7 +276,7 @@ color: #000;
 }
 
 #numeroLabel {
-font-size: 36px;
+font-size: 28px;
 font-weight: bold;
 }
 

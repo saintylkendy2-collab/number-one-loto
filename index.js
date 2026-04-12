@@ -291,9 +291,7 @@ grid-row: 2;
 align-self: center;
 text-align: right;
 padding-right: 10px;
-#numeroLabel {
 font-size: 36px;
-}
 font-weight: 700;
 color: #111;
 }

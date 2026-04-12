@@ -327,20 +327,66 @@ font-weight: 600;
 <div class="content">
 <div class="empty-zone">Pas de jeux</div>
 
-<div class="summary-bar">
-<div>0</div>
-<div>0.00</div>
-</div>
-<div class="display-bar">
-<div id="numeroDisplay"></div>
-<div id="loterieDisplay"></div>
-<div id="montantDisplay"></div>
-</div>
-<div class="tabs">
-<div class="tab active" id="tabNumero" onclick="setField('numero')">Numero</div>
-<div class="tab" id="tabLoterie" onclick="setField('loterie')">Loterie</div>
-<div class="tab" id="tabMontant" onclick="setField('montant')">Montant</div>
-</div>
+.summary-bar {
+height: 38px;
+background: #dfe1fa;
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+align-items: center;
+font-size: 22px;
+font-weight: 700;
+color: #222;
+}
+
+.summary-bar div:nth-child(1) {
+text-align: left;
+}
+
+.summary-bar div:nth-child(2) {
+text-align: center;
+}
+
+.summary-bar div:nth-child(3) {
+text-align: right;
+padding-right: 14px;
+}
+.display-bar {
+background: #f2f2f2;
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+grid-template-rows: auto auto;
+border-bottom: 1px solid #d9d9d9;
+}
+
+.display-loterie {
+grid-column: 1 / 4;
+padding: 8px 12px;
+font-size: 18px;
+text-align: left;
+color: #111;
+}
+
+.display-numero {
+grid-column: 1;
+text-align: center;
+font-size: 28px; /* 👈 ogmante sa */
+font-weight: 800; /* 👈 fè li pi bold */
+padding: 8px 0;
+color: #000;
+}
+
+.display-middle {
+grid-column: 2;
+}
+
+.display-montant {
+grid-column: 3;
+text-align: center;
+font-size: 20px;
+font-weight: 700;
+padding: 8px 0;
+color: #111;
+}
 
 <div class="keypad">
 
@@ -391,7 +437,6 @@ font-weight: 600;
 </div>
 </div>
 <script>
-alert("JS ap mache ✅");
 
 // aktif field
 let activeField = "numero";

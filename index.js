@@ -564,13 +564,7 @@ document.getElementById("tabMontant").classList.add("active");
 function renderLoterieList() {
 const list = document.getElementById("loterieList");
 
-list.innerHTML = loterieOptions.map(name => 
-<div class="loterie-item ${selectedLoterie === name ? "active" : ""}" onclick="selectLoterie('${name}')">
-<div class="loterie-check">${selectedLoterie === name ? "✓" : ""}</div>
-<div class="loterie-name">${name}</div>
-</div>
-`).join("");
-}
+
 }
 function confirmLoterie() {
 if (!selectedLoterie) return;

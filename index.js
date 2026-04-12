@@ -543,9 +543,9 @@ loterie = "";
 montant = "";
 activeField = "numero";
 
-document.getElementById("loterieDisplay").innerText = "NEW YORK EVENING";
-document.getElementById("numeroDisplay").innerText = "4442";
-document.getElementById("montantDisplay").innerText = "50.00";
+document.getElementById("loterieDisplay").innerText = "";
+document.getElementById("numeroDisplay").innerText = "";
+document.getElementById("montantDisplay").innerText = ""
 }
 }
 </script>

@@ -265,12 +265,14 @@ border-bottom: 1px solid #d9d9d9;
 
 .display-loterie {
 grid-column: 1 / 4;
+grid-row: 1;
 padding: 6px 10px;
 font-size: 14px;
 }
 
 .display-numero {
 grid-column: 1;
+grid-row: 2;
 font-size: 26px;
 font-weight: bold;
 padding-left: 10px;
@@ -282,6 +284,7 @@ grid-column: 2;
 
 .display-montant {
 grid-column: 3;
+grid-row: 2;
 text-align: right;
 padding-right: 10px;
 }

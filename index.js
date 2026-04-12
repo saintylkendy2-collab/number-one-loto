@@ -271,9 +271,9 @@ display: none;
 grid-column: 1;
 grid-row: 2;
 align-self: center;
-font-size: 36px;
+#numeroLabel {
+font-size: 28px;
 font-weight: bold;
-padding-left: 10px;
 color: #000;
 }
 

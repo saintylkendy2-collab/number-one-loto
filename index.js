@@ -259,30 +259,43 @@ padding-right: 14px;
 background: #f2f2f2;
 display: grid;
 grid-template-columns: 1fr 1fr 1fr;
-grid-template-rows: 28px 44px;
+grid-template-rows: 20px 56px;
 border-bottom: 1px solid #d9d9d9;
 }
 
 .display-loterie {
 grid-column: 1 / 4;
 grid-row: 1;
-padding: 6px 10px;
+padding: 2px 10px 0 10px;
 font-size: 14px;
+text-align: left;
+color: #111;
 }
 
 .display-numero {
 grid-column: 1;
 grid-row: 2;
+align-self: end;
 font-size: 26px;
 font-weight: bold;
-padding-left: 10px;
+padding: 0 0 8px 10px;
+color: #000;
+}
+
+.display-middle {
+grid-column: 2;
+grid-row: 2;
 }
 
 .display-montant {
 grid-column: 3;
 grid-row: 2;
+align-self: end;
 text-align: right;
-padding-right: 10px;
+font-size: 20px;
+font-weight: 700;
+padding: 0 10px 8px 0;
+color: #111;
 }
 
 

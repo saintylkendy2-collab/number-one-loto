@@ -565,8 +565,6 @@ document.getElementById("tabMontant").classList.add("active");
 // ...
 // }
 
-
-}
 function confirmLoterie() {
 if (!selectedLoterie) return;
 
@@ -664,18 +662,7 @@ div.className = "loterie-item";
 if (selectedLoterie === name) {
 div.classList.add("active");
 }
-
-div.innerHTML = `
-<span>${name}</span>
-<span>${selectedLoterie === name ? "✔" : ""}</span>
-`;
-
-div.onclick = () => {
-selectedLoterie = name;
-renderLoterieList();
-};
-
-list.appendChild(div);
+ild(div);
 });
 }
 

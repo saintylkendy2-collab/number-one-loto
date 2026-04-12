@@ -265,19 +265,15 @@ border-bottom: 1px solid #d9d9d9;
 
 .display-loterie {
 grid-column: 1 / 4;
-padding: 6px 12px 0 12px;
-font-size: 18px;
-text-align: left;
-color: #111;
+padding: 6px 10px;
+font-size: 14px;
 }
 
 .display-numero {
 grid-column: 1;
-text-align: center;
-font-size: 28px;
-font-weight: 800;
-line-height: 44px;
-color: #000;
+font-size: 26px;
+font-weight: bold;
+padding-left: 10px;
 }
 
 .display-middle {
@@ -288,48 +284,6 @@ grid-column: 2;
 grid-column: 3;
 text-align: right;
 padding-right: 10px;
-font-size: 20px;
-font-weight: 700;
-line-height: 44px;
-color: #111;
-}
-.display-bar {
-background: #f2f2f2;
-display: grid;
-grid-template-columns: 1fr 1fr 1fr;
-grid-template-rows: 32px 44px;
-border-bottom: 1px solid #d9d9d9;
-}
-
-.display-loterie {
-grid-column: 1 / 4;
-padding: 6px 12px 0 12px;
-font-size: 18px;
-text-align: left;
-color: #111;
-}
-
-.display-numero {
-grid-column: 1;
-text-align: center;
-font-size: 28px;
-font-weight: 800;
-line-height: 44px;
-color: #000;
-}
-
-.display-middle {
-grid-column: 2;
-}
-
-.display-montant {
-grid-column: 3;
-text-align: right;
-padding-right: 10px;
-font-size: 20px;
-font-weight: 700;
-line-height: 44px;
-color: #111;
 }
 
 

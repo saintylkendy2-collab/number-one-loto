@@ -439,10 +439,8 @@ font-weight: 600;
 </div>
 <script>
 
-// aktif field
 let activeField = "numero";
 
-// valè yo
 let numero = "";
 let loterie = "";
 let montant = "";
@@ -463,40 +461,53 @@ document.getElementById("tabMontant").classList.add("active");
 }
 }
 
-// bouton efase
+function pressKey(val) {
+if (activeField === "numero") {
+numero += val;
+document.getElementById("numeroDisplay").textContent = numero;
+} else if (activeField === "loterie") {
+loterie += val;
+document.getElementById("loterieDisplay").textContent = loterie;
+} else if (activeField === "montant") {
+montant += val;
+document.getElementById("montantDisplay").textContent = montant;
+}
+}
+
 function backspace() {
 if (activeField === "numero") {
 numero = numero.slice(0, -1);
-document.getElementById("numeroDisplay").innerText = numero;
-}
-else if (activeField === "montant") {
+document.getElementById("numeroDisplay").textContent = numero;
+} else if (activeField === "loterie") {
+loterie = loterie.slice(0, -1);
+document.getElementById("loterieDisplay").textContent = loterie;
+} else if (activeField === "montant") {
 montant = montant.slice(0, -1);
-document.getElementById("montantDisplay").innerText = montant;
+document.getElementById("montantDisplay").textContent = montant;
 }
 }
 
-// bouton ✅
 function validate() {
 if (activeField === "numero") {
-activeField = "loterie";
-}
-else if (activeField === "loterie") {
-activeField = "montant";
-}
-else if (activeField === "montant") {
+setField("loterie");
+} else if (activeField === "loterie") {
+setField("montant");
+} else if (activeField === "montant") {
 alert("Ajouté: " + numero + " / " + loterie + " / " + montant);
 
-// reset
 numero = "";
 loterie = "";
 montant = "";
-activeField = "numero";
 
-document.getElementById("loterieDisplay").innerText = "";
-document.getElementById("numeroDisplay").innerText = "";
-document.getElementById("montantDisplay").innerText = ""
+document.getElementById("numeroDisplay").textContent = "";
+document.getElementById("loterieDisplay").textContent = "";
+document.getElementById("montantDisplay").textContent = "";
+
+setField("numero");
 }
 }
+
+setField("numero");
 </script>
 </body>
 </html>

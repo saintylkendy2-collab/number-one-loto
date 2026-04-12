@@ -291,7 +291,7 @@ grid-row: 2;
 align-self: center;
 text-align: right;
 padding-right: 10px;
-font-size: 36px;
+font-size: 80px;
 font-weight: 700;
 color: #111;
 }

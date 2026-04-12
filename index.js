@@ -652,7 +652,6 @@ let selectedLoterie = "";
 
 function renderLoterieList() {
 const list = document.getElementById("loterieList");
-
 list.innerHTML = "";
 
 loterieOptions.forEach(name => {
@@ -662,9 +661,58 @@ div.className = "loterie-item";
 if (selectedLoterie === name) {
 div.classList.add("active");
 }
-ild(div);
+
+function renderLoterieList() {
+const list = document.getElementById("loterieList");
+list.innerHTML = "";
+
+loterieOptions.forEach(name => {
+const div = document.createElement("div");
+div.className = "loterie-item";
+
+if (selectedLoterie === name) {
+div.classList.add("active");
+}
+
+const span1 = document.createElement("span");
+span1.textContent = name;
+
+const span2 = document.createElement("span");
+span2.textContent = (selectedLoterie === name ? "✓" : "");
+
+div.appendChild(span1);
+div.appendChild(span2);
+
+div.onclick = () => {
+selectedLoterie = name;
+renderLoterieList();
+};
+
+list.appendChild(div);
 });
 }
+
+
+
+<
+
+div.onclick = () => {
+selectedLoterie = name;
+renderLoterieList();
+};
+
+list.appendChild(div);
+});
+}
+
+div.onclick = () => {
+selectedLoterie = name;
+renderLoterieList();
+};
+
+list.appendChild(div);
+});
+
 
 function openLoterieModal() {
 renderLoterieList();

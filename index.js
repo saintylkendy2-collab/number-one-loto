@@ -454,12 +454,19 @@ document.getElementById("tabNumero").classList.remove("active");
 document.getElementById("tabLoterie").classList.remove("active");
 document.getElementById("tabMontant").classList.remove("active");
 
-if (field === "numero") {
-document.getElementById("tabNumero").classList.add("active");
-} else if (field === "loterie") {
-document.getElementById("tabLoterie").classList.add("active");
-} else if (field === "montant") {
-document.getElementById("tabMontant").classList.add("active");
+function pressKey(val) {
+if (activeField === "numero") {
+const el = document.getElementById("numeroDisplay");
+el.innerText = (el.innerText || "") + val;
+numero = el.innerText;
+}
+else if (activeField === "loterie") {
+loterie += val;
+document.getElementById("loterieDisplay").innerText = loterie;
+}
+else if (activeField === "montant") {
+montant += val;
+document.getElementById("montantDisplay").innerText = montant;
 }
 }
 

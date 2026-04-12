@@ -276,7 +276,7 @@ color: #000;
 }
 
 #numeroLabel {
-font-size: 26px;
+font-size: 24px;
 font-weight: bold;
 }
 
@@ -291,7 +291,9 @@ grid-row: 2;
 align-self: center;
 text-align: right;
 padding-right: 10px;
-font-size: 20px;
+#numeroLabel {
+font-size: 36px;
+}
 font-weight: 700;
 color: #111;
 }

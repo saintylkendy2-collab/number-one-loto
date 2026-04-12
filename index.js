@@ -694,24 +694,8 @@ list.appendChild(div);
 
 
 
-<
 
-div.onclick = () => {
-selectedLoterie = name;
-renderLoterieList();
-};
 
-list.appendChild(div);
-});
-}
-
-div.onclick = () => {
-selectedLoterie = name;
-renderLoterieList();
-};
-
-list.appendChild(div);
-});
 
 
 function openLoterieModal() {
@@ -732,7 +716,6 @@ document.getElementById("loterieLabel").textContent = loterie;
 closeLoterieModal();
 }
 setField("numero");
-document.getElementById("numeroLabel").textContent = "TEST";
 </script>
 <div id="loterieModal" class="loterie-modal">
 <div class="loterie-box">
@@ -745,6 +728,7 @@ document.getElementById("numeroLabel").textContent = "TEST";
 </div>
 </div>
 </div>
+</script>
 </body>
 </html>
 `);

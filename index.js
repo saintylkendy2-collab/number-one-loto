@@ -600,17 +600,7 @@ closeLoterieModal();
 if (montant !== "") {
 alert("Ajouté: " + numero + " / " + loterie + " / " + montant);
 
-numero = "";
-loterie = "";
-montant = "";
 
-document.getElementById("numeroLabel").textContent = "Numero";
-document.getElementById("loterieLabel").textContent = "Loterie";
-document.getElementById("montantLabel").textContent = "Montant";
-
-setField("numero");
-} else {
-setField("montant");
 }
 }
 function pressKey(val) {

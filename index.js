@@ -592,7 +592,7 @@ function confirmLoterie() {
 if (selectedLoteries.length === 0) return;
 
 loterie = selectedLoteries.join(", ");
-document.querySelector(".empty-zone").textContent = loterie;
+document.querySelector("#selectedLoteriesLine").textContent = loterie;
 
 closeLoterieModal();
 setField("montant");

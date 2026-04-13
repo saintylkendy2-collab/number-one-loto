@@ -728,7 +728,7 @@ function confirmLoterie() {
 if (selectedLoteries.length === 0) return;
 
 loterie = selectedLoteries.join(", ");
-document.getElementById("loterieLabel").textContent = loterie;
+document.querySelector(".empty-zone").textContent = loterie || "Pas de jeux";
 
 closeLoterieModal();
 setField("montant");

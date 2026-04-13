@@ -604,7 +604,8 @@ numero += val;
 document.getElementById("numeroLabel").textContent = numero || "Numero";
 } else if (activeField === "loterie") {
 loterie += val;
-document.getElementById("loterieLabel").textContent = loterie || "Loterie";
+document.querySelector(".empty-zone").textContent = loterie || "Pas de jeux";
+
 } else if (activeField === "montant") {
 montant += val;
 document.getElementById("montantLabel").textContent = montant || "Montant";

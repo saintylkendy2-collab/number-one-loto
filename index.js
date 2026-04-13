@@ -588,16 +588,14 @@ document.getElementById("tabMontant").classList.add("active");
 
 
 function confirmLoterie() {
-if (!selectedLoterie) return;
+if (selectedLoteries.length === 0) return;
 
-loterie = selectedLoterie;
+loterie = selectedLoteries.join(", ");
 document.getElementById("loterieLabel").textContent = loterie;
 
 closeLoterieModal();
-
-if (montant !== "") {
-alert("Ajouté: " + numero + " / " + loterie + " / " + montant);
-
+setField("montant");
+}
 
 }
 }

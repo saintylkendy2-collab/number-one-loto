@@ -587,18 +587,6 @@ document.getElementById("tabMontant").classList.add("active");
 
 
 
-function confirmLoterie() {
-if (!selectedLoterie) return;
-
-loterie = selectedLoterie;
-document.getElementById("loterieLabel").textContent = loterie;
-
-closeLoterieModal();
-
-if (montant !== "") {
-alert("Ajouté: " + numero + " / " + loterie + " / " + montant);
-}
-}
 
 }
 }

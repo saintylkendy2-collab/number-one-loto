@@ -754,7 +754,6 @@ setField("numero");
 </div>
 </div>
 </div>
-</script>
 </body>
 </html>
 `);

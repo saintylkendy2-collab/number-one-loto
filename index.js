@@ -637,7 +637,7 @@ loterie = "";
 montant = "";
 
 document.getElementById("numeroLabel").textContent = "Numero";
-document.getElementById("loterieLabel").textContent = "Loterie";
+document.querySelector(".empty-zone").textContent = loterie || "Pas de jeux";
 document.getElementById("montantLabel").textContent = "Montant";
 
 setField("numero");

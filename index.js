@@ -499,7 +499,7 @@ overflow-y: auto;
 <div id="ticketCount">0</div>
 <div id="ticketTotal">0.00</div>
 </div>
-
+<div id="selectedLoteriesLine" class="selected-loteries-line"></div>
 <div class="tabs">
 <div class="tab active" id="tabNumero" onclick="setField('numero')">
 <span id="numeroLabel">Numero</span>

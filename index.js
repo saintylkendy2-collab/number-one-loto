@@ -225,7 +225,7 @@ flex-direction: column;
 flex: 1;
 min-height: 320px;
 display: flex;
-align-items: center;
+align-items: flex-end;
 justify-content: center;
 color: #9b9b9b;
 font-size: 22px;

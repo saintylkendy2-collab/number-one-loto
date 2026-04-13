@@ -617,7 +617,7 @@ numero = numero.slice(0, -1);
 document.getElementById("numeroLabel").textContent = numero || "Numero";
 } else if (activeField === "loterie") {
 loterie = loterie.slice(0, -1);
-document.getElementById("loterieLabel").textContent = loterie || "Loterie";
+document.querySelector(".empty-zone").textContent = loterie || "Pas de jeux";
 } else if (activeField === "montant") {
 montant = montant.slice(0, -1);
 document.getElementById("montantLabel").textContent = montant || "Montant";

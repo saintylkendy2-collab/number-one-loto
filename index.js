@@ -616,8 +616,7 @@ if (activeField === "numero") {
 numero += val;
 document.getElementById("numeroLabel").textContent = numero || "Numero";
 } else if (activeField === "loterie") {
-loterie += val;
-document.querySelector(".empty-zone").textContent = loterie || "Pas de jeux";
+return;
 } else if (activeField === "montant") {
 montant += val;
 document.getElementById("montantLabel").textContent = montant || "Montant";

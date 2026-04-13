@@ -737,11 +737,7 @@ closeLoterieModal();
 setField("montant");
 }
 
-document.getElementById("loterieLabel").textContent = loterie;
 
-closeLoterieModal();
-}
-setField("numero");
 </script>
 <div id="loterieModal" class="loterie-modal">
 <div class="loterie-box">

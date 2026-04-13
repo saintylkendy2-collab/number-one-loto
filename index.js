@@ -593,6 +593,7 @@ if (selectedLoteries.length === 0) return;
 
 const loterie = selectedLoteries.join(", ");
 document.getElementById("selectedLoteriesLine").textContent = loterie;
+document.querySelector(".empty-zone").textContent = "Pas de jeux";
 
 
 closeLoterieModal();

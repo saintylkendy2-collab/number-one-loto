@@ -591,7 +591,7 @@ document.getElementById("tabMontant").classList.add("active");
 function confirmLoterie() {
 if (selectedLoteries.length === 0) return;
 
-loterie = selectedLoteries.join(", ");
+const loterie = selectedLoteries.join(", ");
 document.querySelector("#selectedLoteriesLine").textContent = loterie;
 
 closeLoterieModal();

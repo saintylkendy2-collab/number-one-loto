@@ -230,6 +230,7 @@ justify-content: center;
 color: #9b9b9b;
 font-size: 22px;
 font-weight: 600;
+padding-bottom: 10px;
 }
 
 .summary-bar {

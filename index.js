@@ -587,9 +587,17 @@ document.getElementById("tabMontant").classList.add("active");
 
 
 
+function confirmLoterie() {
+if (selectedLoteries.length === 0) return;
 
+loterie = selectedLoteries.join(", ");
+document.getElementById("loterieLabel").textContent = loterie;
+
+closeLoterieModal();
+setField("montant");
 }
-}
+
+
 function pressKey(val) {
 if (activeField === "numero") {
 numero += val;

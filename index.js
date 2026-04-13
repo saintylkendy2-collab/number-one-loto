@@ -482,6 +482,16 @@ color: #4a4aff;
 max-height: 300px;
 overflow-y: auto;
 }
+.selected-loteries-line {
+min-height: 38px;
+padding: 6px 10px;
+box-sizing: border-box;
+font-size: 15px;
+line-height: 1.2;
+color: #222;
+background: #f0f0f0;
+word-break: break-word;
+}
 </style>
 </head>
 <body>
@@ -593,7 +603,7 @@ if (selectedLoteries.length === 0) return;
 
 const loterie = selectedLoteries.join(", ");
 document.getElementById("selectedLoteriesLine").textContent = loterie;
-document.querySelector(".empty-zone").textContent = "Pas de jeux";
+
 
 
 closeLoterieModal();

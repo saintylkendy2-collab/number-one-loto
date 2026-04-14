@@ -557,7 +557,7 @@ word-break: break-word;
 <div class="key" onclick="pressKey('.')">.</div>
 <div class="key" onclick="backspace()">⌫</div>
 <div class="key" onclick="pressKey('0')">0</div>
-<div class="key" onclick="validate()">✅</div>
+<div class="key" onclick="handleCheck()">✅</div>
 
 </div>
 
@@ -611,7 +611,31 @@ openLoterieModal();
 document.getElementById("tabMontant").classList.add("active");
 }
 }
+function setField(field) {
+...
+}
 
+function handleCheck() {
+if (activeField === "numero") {
+if (!numero || numero.trim() === "") return;
+setField("loterie");
+return;
+}
+
+if (activeField === "loterie") {
+return;
+}
+
+if (activeField === "montant") {
+if (!montant || montant.trim() === "") return;
+alert("Montant valide");
+return;
+}
+}
+
+function confirmLoterie() {
+...
+}
 
 
 function confirmLoterie() {

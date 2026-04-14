@@ -505,6 +505,18 @@ color: #222;
 background: #f0f0f0;
 word-break: break-word;
 }
+.tickets-list {
+display: none;
+background: #fff;
+}
+
+.ticket-row {
+display: flex;
+justify-content: space-between;
+padding: 6px 10px;
+border-bottom: 1px solid #ddd;
+font-weight: 600;
+}
 </style>
 </head>
 <body>
@@ -517,7 +529,7 @@ word-break: break-word;
 <div class="content">
 
 <div class="empty-zone">Pas de jeux</div>
-
+<div id="ticketsList" class="tickets-list"></div>
 <div class="summary-bar">
 <div></div>
 <div id="ticketCount">0</div>
@@ -758,8 +770,53 @@ list.appendChild(div);
 
 
 
+function renderJeux() {
+const emptyZone = document.querySelector(".empty-zone");
+const ticketsList = document.getElementById("ticketsList");
 
+if (!jeux || jeux.length === 0) {
+emptyZone.style.display = "flex";
+ticketsList.style.display = "none";
+ticketsList.innerHTML = "";
+return;
+}
 
+emptyZone.style.display = "none";
+ticketsList.style.display = "block";
+ticketsList.innerHTML = "";
+
+for (let i = 0; i < jeux.length; i++) {
+const row = document.createElement("div");
+row.className = "ticket-row";
+
+const col1 = document.createElement("span");
+col1.textContent = jeux[i].numero;
+
+const col2 = document.createElement("span");
+col2.textContent = jeux[i].loterie;
+
+const col3 = document.createElement("span");
+col3.textContent = jeux[i].montant.toFixed(2);
+
+row.appendChild(col1);
+row.appendChild(col2);
+row.appendChild(col3);
+
+ticketsList.appendChild(row);
+}
+}
+
+function addJeu() {
+if (!numero || !loterie || !montant) return;
+
+jeux.push({
+numero: numero,
+loterie: loterie,
+montant: parseFloat(montant)
+});
+
+renderJeux();
+}
 </script>
 <div id="loterieModal" class="loterie-modal">
 <div class="loterie-box">

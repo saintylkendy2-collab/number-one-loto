@@ -677,12 +677,6 @@ montant = montant.slice(0, -1);
 document.getElementById("montantLabel").textContent = montant || "Montant";
 }
 }
-
-
-
-
-}
-}
 const loterieOptions = [
 { name: "TENNESSE MORNING", time: "10:00 AM" },
 { name: "TEXAS MORNING", time: "11:00 AM" },

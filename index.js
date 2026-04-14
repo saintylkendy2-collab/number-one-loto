@@ -235,12 +235,14 @@ padding-bottom: 0;
 .selected-loteries-line {
 color: #000;
 font-weight: 700;
+font-size: 19px;
 }
 
 .selected-loteries-line div,
 .selected-loteries-line span {
 color: #000;
 font-weight: 700;
+font-size: 19px;
 }
 
 

@@ -638,13 +638,35 @@ document.getElementById("montantLabel").textContent = montant || "Montant";
 }
 
 function validate() {
+
+// Si sou numero
 if (activeField === "numero") {
+
+// Pa gen loterie → ouvri loterie
 if (!loterie || loterie.trim() === "") {
-activeField = "loterie";
 setField("loterie");
-} else {
-activeField = "montant";
+return;
+}
+
+// Gen loterie deja → ale montant
 setField("montant");
+return;
+}
+
+// Si sou montant → ou ka valide jwèt la
+if (activeField === "montant") {
+
+console.log("Jeu prêt:", numero, loterie, montant);
+
+// Reset pou nouvo jwèt
+numero = "";
+montant = "";
+
+document.getElementById("numeroLabel").textContent = "Numero";
+document.getElementById("montantLabel").textContent = "Montant";
+
+setField("numero");
+}
 }
 
 

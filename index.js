@@ -656,19 +656,20 @@ document.getElementById("montantLabel").textContent = montant || "Montant";
 
 function validate() {
 if (activeField === "numero") {
-if (!numero || numero.length < 2) return;
+if (!numero || numero.trim() === "") return;
+
 setField("loterie");
 return;
 }
 
 if (activeField === "loterie") {
-if (!loterie || loterie.trim() === "") return;
-setField("montant");
 return;
 }
 
 if (activeField === "montant") {
-alert("validate montant mache");
+if (!montant || montant.trim() === "") return;
+
+alert("Montant valide");
 return;
 }
 }
@@ -759,10 +760,7 @@ document.getElementById("loterieModal").style.display = "flex";
 
 function closeLoterieModal() {
 document.getElementById("loterieModal").style.display = "none";
-activeField = "numero";
-setField("numero");
 }
-
 
 
 </script>

@@ -588,16 +588,12 @@ word-break: break-word;
 <script>
 
 let activeField = "numero";
-
 let numero = "";
 let loterie = "";
 let montant = "";
 
 function setField(field) {
-alert("setField -> " + field);
 activeField = field;
-...
-}
 
 document.getElementById("tabNumero").classList.remove("active");
 document.getElementById("tabLoterie").classList.remove("active");
@@ -605,45 +601,54 @@ document.getElementById("tabMontant").classList.remove("active");
 
 if (field === "numero") {
 document.getElementById("tabNumero").classList.add("active");
+return;
+}
 
-} else if (field === "loterie") {
+if (field === "loterie") {
 document.getElementById("tabLoterie").classList.add("active");
 openLoterieModal();
+return;
+}
 
-} else if (field === "montant") {
+if (field === "montant") {
 document.getElementById("tabMontant").classList.add("active");
+return;
 }
 }
 
 function handleCheck() {
-alert("li klike");
+if (activeField === "numero") {
+if (!numero || numero.trim() === "") return;
+setField("loterie");
+return;
 }
 
-
-
-function confirmLoterie() {
-if (selectedLoteries.length === 0) return;
-
-loterie = selectedLoteries.join(", ");
-document.getElementById("selectedLoteriesLine").textContent = loterie;
-
-document.getElementById("loterieModal").style.display = "none";
-setField("montant");
+if (activeField === "loterie") {
+return;
 }
 
-
-
-
+if (activeField === "montant") {
+if (!montant || montant.trim() === "") return;
+alert("Montant valide");
+return;
+}
+}
 
 function pressKey(val) {
 if (activeField === "numero") {
 numero += val;
 document.getElementById("numeroLabel").textContent = numero || "Numero";
-} else if (activeField === "loterie") {
 return;
-} else if (activeField === "montant") {
+}
+
+if (activeField === "loterie") {
+return;
+}
+
+if (activeField === "montant") {
 montant += val;
 document.getElementById("montantLabel").textContent = montant || "Montant";
+return;
 }
 }
 
@@ -651,14 +656,36 @@ function backspace() {
 if (activeField === "numero") {
 numero = numero.slice(0, -1);
 document.getElementById("numeroLabel").textContent = numero || "Numero";
-
-} else if (activeField === "loterie") {
 return;
+}
 
-} else if (activeField === "montant") {
+if (activeField === "loterie") {
+return;
+}
+
+if (activeField === "montant") {
 montant = montant.slice(0, -1);
 document.getElementById("montantLabel").textContent = montant || "Montant";
+return;
 }
+}
+
+function confirmLoterie() {
+if (!selectedLoteries || selectedLoteries.length === 0) return;
+
+loterie = selectedLoteries.join(", ");
+document.getElementById("selectedLoteriesLine").textContent = loterie;
+document.getElementById("loterieModal").style.display = "none";
+setField("montant");
+}
+
+function openLoterieModal() {
+renderLoterieList();
+document.getElementById("loterieModal").style.display = "flex";
+}
+
+function closeLoterieModal() {
+document.getElementById("loterieModal").style.display = "none";
 }
 const loterieOptions = [
 { name: "TENNESSE MORNING", time: "10:00 AM" },
@@ -731,15 +758,6 @@ list.appendChild(div);
 
 
 
-
-function openLoterieModal() {
-renderLoterieList();
-document.getElementById("loterieModal").style.display = "flex";
-}
-
-function closeLoterieModal() {
-document.getElementById("loterieModal").style.display = "none";
-}
 
 
 </script>

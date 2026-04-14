@@ -570,7 +570,7 @@ font-weight: 600;
 <div class="key" onclick="pressKey('.')">.</div>
 <div class="key" onclick="backspace()">⌫</div>
 <div class="key" onclick="pressKey('0')">0</div>
-<div class="key" onclick="handleCheck(); addJeu();">✅</div>
+<div class="key" onclick="addJeu()">ENTER</div>
 
 </div>
 

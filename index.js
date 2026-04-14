@@ -647,27 +647,6 @@ setField("loterie");
 activeField = "montant";
 setField("montant");
 }
-return;
-}
-
-if (activeField === "loterie") {
-activeField = "montant";
-setField("montant");
-return;
-}
-
-if (activeField === "montant") {
-saveBet(); // oswa fonksyon ki anrejistre jwèt la
-numero = "";
-loterie = "";
-montant = "";
-document.getElementById("numeroLabel").textContent = "";
-document.querySelector(".empty-zone").textContent = "";
-document.getElementById("montantLabel").textContent = "";
-activeField = "numero";
-setField("numero");
-}
-}
 numero = "";
 loterie = "";
 montant = "";

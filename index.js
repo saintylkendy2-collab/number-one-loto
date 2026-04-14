@@ -646,10 +646,6 @@ setField("loterie");
 activeField = "montant";
 setField("montant");
 }
-} else if (activeField === "montant") {
-// mete lojik pou ajoute jwèt la la
-}
-}
 
 
 numero = "";

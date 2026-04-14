@@ -746,7 +746,8 @@ loterie = selectedLoteries.join(", ");
 document.querySelector(".empty-zone").textContent = loterie || "Pas de jeux";
 
 closeLoterieModal();
-setField("montant");
+activeField = "numero";
+setField("numero");
 }
 
 

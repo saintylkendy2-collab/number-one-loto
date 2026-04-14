@@ -601,13 +601,15 @@ document.getElementById("tabMontant").classList.add("active");
 function confirmLoterie() {
 if (selectedLoteries.length === 0) return;
 
-const loterie = selectedLoteries.join(", ");
+loterie = selectedLoteries.join(", ");
+
 document.getElementById("selectedLoteriesLine").textContent = loterie;
-
-
+document.querySelector(".empty-zone").textContent = loterie;
 
 closeLoterieModal();
-setField("montant");
+
+activeField = "numero";
+setField("numero");
 }
 
 
@@ -627,10 +629,10 @@ function backspace() {
 if (activeField === "numero") {
 numero = numero.slice(0, -1);
 document.getElementById("numeroLabel").textContent = numero || "Numero";
+
 } else if (activeField === "loterie") {
 return;
-}
-document.querySelector(".empty-zone").textContent = loterie || "Pas de jeux";
+
 } else if (activeField === "montant") {
 montant = montant.slice(0, -1);
 document.getElementById("montantLabel").textContent = montant || "Montant";

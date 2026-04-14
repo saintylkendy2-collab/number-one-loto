@@ -616,22 +616,18 @@ return;
 }
 }
 
-function handleCheck() {
-if (activeField === "numero") {
-if (!numero || numero.trim() === "") return;
-setField("loterie");
-return;
-}
-
-if (activeField === "loterie") {
-return;
-}
-
 if (activeField === "montant") {
 if (!montant || montant.trim() === "") return;
+
+jeux.push({
+numero: numero,
+loterie: loterie,
+montant: parseFloat(montant)
+});
+
+renderJeux();
 alert("Montant valide");
 return;
-}
 }
 
 function pressKey(val) {

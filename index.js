@@ -647,6 +647,12 @@ activeField = "montant";
 setField("montant");
 }
 
+} else if (activeField === "montant") {
+activeField = "numero";
+setField("numero");
+}
+}
+
 
 numero = "";
 loterie = "";

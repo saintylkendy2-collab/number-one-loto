@@ -232,17 +232,7 @@ font-size: 22px;
 font-weight: 600;
 padding-bottom: 0;
 }
-.tickets-list {
-padding: 10px;
-}
 
-.ticket-item {
-display: flex;
-justify-content: space-between;
-padding: 6px 0;
-border-bottom: 1px solid #ddd;
-font-weight: 600;
-}
 .selected-loteries-line {
 color: #000 !important;
 font-weight: 700 !important;

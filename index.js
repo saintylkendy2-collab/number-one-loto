@@ -604,11 +604,10 @@ if (selectedLoteries.length === 0) return;
 loterie = selectedLoteries.join(", ");
 document.getElementById("selectedLoteriesLine").textContent = loterie;
 
-closeLoterieModal();
-
-// Sèlman sa ase
+document.getElementById("loterieModal").style.display = "none";
 setField("montant");
 }
+
 
 
 
@@ -642,13 +641,18 @@ document.getElementById("montantLabel").textContent = montant || "Montant";
 function validate() {
 if (activeField === "numero") {
 if (!loterie || loterie.trim() === "") {
-setField("loterie");
+openLoterieModal();
+return;
 } else {
 setField("montant");
-}
+return;
 }
 }
 
+if (activeField === "montant") {
+return;
+}
+}
 
 
 numero = "";

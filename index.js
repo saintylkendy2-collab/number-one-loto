@@ -640,8 +640,10 @@ document.getElementById("montantLabel").textContent = montant || "Montant";
 function validate() {
 if (activeField === "numero") {
 if (!loterie || loterie.trim() === "") {
+activeField = "loterie";
 setField("loterie");
 } else {
+activeField = "montant";
 setField("montant");
 }
 }

@@ -616,23 +616,7 @@ document.getElementById("tabMontant").classList.add("active");
 }
 
 function handleCheck() {
-alert("check " + activeField);
-
-if (activeField === "numero") {
-if (!numero || numero.trim() === "") return;
-setField("loterie");
-return;
-}
-
-if (activeField === "loterie") {
-return;
-}
-
-if (activeField === "montant") {
-if (!montant || montant.trim() === "") return;
-alert("Montant valide");
-return;
-}
+alert("li klike");
 }
 
 

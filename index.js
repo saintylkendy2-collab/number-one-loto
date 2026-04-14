@@ -684,7 +684,6 @@ document.getElementById("numeroLabel").textContent = "Numero";
 document.querySelector(".empty-zone").textContent = loterie || "Pas de jeux";
 document.getElementById("montantLabel").textContent = "Montant";
 
-setField("numero");
 }
 }
 const loterieOptions = [

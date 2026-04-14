@@ -518,13 +518,12 @@ word-break: break-word;
 <div class="content">
 <div class="empty-zone">Pas de jeux</div>
 
-
 <div class="summary-bar">
-<div></div>
 <div id="ticketCount">0</div>
 <div id="ticketTotal">0.00</div>
 </div>
 </div>
+
 <div id="selectedLoteriesLine" class="selected-loteries-line"></div>
 <div class="tabs">
 <div class="tab active" id="tabNumero" onclick="setField('numero')">

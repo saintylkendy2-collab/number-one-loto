@@ -758,6 +758,6 @@ document.getElementById("loterieModal").style.display = "none";
 </html>
 `);
 });
-app.listen(3000, () => {
-console.log("Server ap mache sou http://localhost:3000");
+app.listen(3000, "0.0.0.0", () => {
+console.log("Server ap mache sou rezo a");
 });

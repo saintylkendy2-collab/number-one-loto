@@ -515,10 +515,10 @@ word-break: break-word;
 </div>
 
 <div class="content">
+
 <div class="empty-zone">Pas de jeux</div>
 
 <div class="summary-bar">
-<div></div>
 <div id="ticketCount">0</div>
 <div id="ticketTotal">0.00</div>
 </div>
@@ -532,8 +532,8 @@ word-break: break-word;
 <div class="keypad">
 ...
 </div>
-</div>
 
+</div>
 <div class="key" onclick="pressKey('+')">+</div>
 <div class="key" onclick="pressKey('1')">1</div>
 <div class="key" onclick="pressKey('2')">2</div>

@@ -530,10 +530,6 @@ word-break: break-word;
 </div>
 
 <div class="keypad">
-...
-</div>
-
-</div>
 <div class="key" onclick="pressKey('+')">+</div>
 <div class="key" onclick="pressKey('1')">1</div>
 <div class="key" onclick="pressKey('2')">2</div>

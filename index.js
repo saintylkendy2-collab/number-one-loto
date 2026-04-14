@@ -591,7 +591,7 @@ let activeField = "numero";
 let numero = "";
 let loterie = "";
 let montant = "";
-
+let jeux = [];
 function setField(field) {
 activeField = field;
 
@@ -617,22 +617,35 @@ return;
 }
 
 function handleCheck() {
-if (activeField === "numero") {
-if (!numero || numero.trim() === "") return;
-setField("loterie");
-return;
-}
-
-if (activeField === "loterie") {
-return;
-}
-
 if (activeField === "montant") {
 if (!montant || montant.trim() === "") return;
-alert("Montant valide");
+
+// AJOUTE JEU
+jeux.push({
+numero: numero,
+loterie: loterie,
+montant: parseFloat(montant)
+});
+
+// AFFICHAGE ANLÈ
+const zone = document.querySelector(".empty-zone");
+
+let html = "";
+
+for (let i = 0; i < jeux.length; i++) {
+html +=
+"<div style='display:flex; justify-content:space-between; padding:6px 10px; border-bottom:1px solid #ddd;'>" +
+"<span>" + jeux[i].numero + "</span>" +
+"<span>" + jeux[i].loterie + "</span>" +
+"<span>" + jeux[i].montant.toFixed(2) + "</span>" +
+"</div>";
+}
+
+zone.innerHTML = html;
+
 return;
 }
-}
+
 
 function pressKey(val) {
 if (activeField === "numero") {

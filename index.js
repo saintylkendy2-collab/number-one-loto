@@ -519,6 +519,7 @@ word-break: break-word;
 <div class="empty-zone">Pas de jeux</div>
 
 <div class="summary-bar">
+</div></div>
 <div id="ticketCount">0</div>
 <div id="ticketTotal">0.00</div>
 </div>

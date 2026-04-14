@@ -594,7 +594,10 @@ let loterie = "";
 let montant = "";
 
 function setField(field) {
+alert("setField -> " + field);
 activeField = field;
+...
+}
 
 document.getElementById("tabNumero").classList.remove("active");
 document.getElementById("tabLoterie").classList.remove("active");
@@ -611,11 +614,10 @@ openLoterieModal();
 document.getElementById("tabMontant").classList.add("active");
 }
 }
-function setField(field) {
-...
-}
 
 function handleCheck() {
+alert("check " + activeField);
+
 if (activeField === "numero") {
 if (!numero || numero.trim() === "") return;
 setField("loterie");
@@ -633,9 +635,6 @@ return;
 }
 }
 
-function confirmLoterie() {
-...
-}
 
 
 function confirmLoterie() {

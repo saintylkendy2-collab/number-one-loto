@@ -639,20 +639,13 @@ document.getElementById("montantLabel").textContent = montant || "Montant";
 }
 
 function validate() {
-
 if (activeField === "numero") {
-
-// si pa gen loterie → ouvri modal
 if (!loterie || loterie.trim() === "") {
-openLoterieModal();
-}
-// si gen loterie deja → ale montant
-else {
+activeField = "loterie";
+setField("loterie");
+} else {
+activeField = "montant";
 setField("montant");
-}
-
-}
-
 }
 
 numero = "";

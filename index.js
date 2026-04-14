@@ -678,25 +678,7 @@ document.getElementById("montantLabel").textContent = montant || "Montant";
 }
 }
 
-function validate() {
-if (activeField === "numero") {
-if (!numero || numero.trim() === "") return;
 
-setField("loterie");
-return;
-}
-
-if (activeField === "loterie") {
-return;
-}
-
-if (activeField === "montant") {
-if (!montant || montant.trim() === "") return;
-
-alert("Montant valide");
-return;
-}
-}
 
 document.getElementById("numeroLabel").textContent = "Numero";
 document.querySelector(".empty-zone").textContent = loterie || "Pas de jeux";

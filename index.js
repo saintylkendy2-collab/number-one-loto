@@ -233,16 +233,16 @@ font-weight: 600;
 padding-bottom: 0;
 }
 .selected-loteries-line {
-color: #000;
-font-weight: 700;
-font-size: 19px;
+color: #000 !important;
+font-weight: 700 !important;
+font-size: 19px !important;
 }
 
 .selected-loteries-line div,
 .selected-loteries-line span {
-color: #000;
-font-weight: 700;
-font-size: 19px;
+color: #000 !important;
+font-weight: 700 !important;
+font-size: 19px !important;
 }
 
 

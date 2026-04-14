@@ -656,16 +656,22 @@ document.getElementById("montantLabel").textContent = montant || "Montant";
 
 function validate() {
 if (activeField === "numero") {
-if (!loterie || loterie.trim() === "") {
-activeField = "loterie";
+if (!numero || numero.length < 2) return;
 setField("loterie");
-} else {
-activeField = "montant";
-setField("montant");
+return;
 }
-numero = "";
-loterie = "";
-montant = "";
+
+if (activeField === "loterie") {
+if (!loterie || loterie.trim() === "") return;
+setField("montant");
+return;
+}
+
+if (activeField === "montant") {
+alert("validate montant mache");
+return;
+}
+}
 
 document.getElementById("numeroLabel").textContent = "Numero";
 document.querySelector(".empty-zone").textContent = loterie || "Pas de jeux";

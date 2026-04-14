@@ -519,6 +519,7 @@ word-break: break-word;
 <div class="empty-zone">Pas de jeux</div>
 
 <div class="summary-bar">
+<div></div>
 <div id="ticketCount">0</div>
 <div id="ticketTotal">0.00</div>
 </div>
@@ -526,7 +527,15 @@ word-break: break-word;
 <div id="selectedLoteriesLine" class="selected-loteries-line"></div>
 
 <div class="tabs">
-...
+<div class="tab active" id="tabNumero" onclick="setField('numero')">
+<span id="numeroLabel">Numero</span>
+</div>
+<div class="tab" id="tabLoterie" onclick="setField('loterie')">
+<span id="loterieLabel">Loterie</span>
+</div>
+<div class="tab" id="tabMontant" onclick="setField('montant')">
+<span id="montantLabel">Montant</span>
+</div>
 </div>
 
 <div class="keypad">

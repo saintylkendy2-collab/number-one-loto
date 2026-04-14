@@ -533,7 +533,6 @@ word-break: break-word;
 <div class="tab" id="tabMontant" onclick="setField('montant')">
 <span id="montantLabel">Montant</span>
 </div>
-</div>
 <div class="keypad">
 
 <div class="key" onclick="pressKey('+')">+</div>

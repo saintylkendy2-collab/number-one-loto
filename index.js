@@ -528,7 +528,6 @@ word-break: break-word;
 <div class="content">
 <div class="empty-zone">Pas de jeux</div>
 
-<div id="ticketsList" class="tickets-list"></div>
 
 <div class="summary-bar">
 <div></div>
@@ -666,57 +665,13 @@ document.getElementById("montantLabel").textContent = montant || "Montant";
 }
 
 function validate() {
-if (!numero || numero.length < 2) return;
-if (!montant) return;
-
-let type = "";
-let displayNumero = numero;
-
-// DETERMINE TYPE JEU
-if (numero.length === 2) {
-type = "Borlette";
-} else if (numero.length === 3) {
-type = "L3";
-} else if (numero.length === 4) {
-type = "Mariage";
-displayNumero = numero.slice(0,2) + "*" + numero.slice(2);
-} else if (numero.length === 5) {
-type = "L5";
-}
-
-// AJOUTE NAN LIST
-const container = document.getElementById("ticketsList");
-
-const div = document.createElement("div");
-div.className = "ticket-item";
-div.innerHTML =
-"<span>" + type + "</span>" +
-"<span>" + displayNumero + "</span>" +
-"<span>" + parseFloat(montant).toFixed(2) + "</span>";
-
-
-container.appendChild(div);
-
-// UPDATE COUNT
-let countEl = document.getElementById("ticketCount");
-let totalEl = document.getElementById("ticketTotal");
-
-let currentCount = parseInt(countEl.textContent) || 0;
-countEl.textContent = currentCount + 1;
-
-// UPDATE TOTAL
-let currentTotal = parseFloat(totalEl.textContent) || 0;
-currentTotal += parseFloat(montant);
-totalEl.textContent = currentTotal.toFixed(2);
-
-// RESET
-numero = "";
-montant = "";
-
-document.getElementById("numeroLabel").textContent = "Numero";
-document.getElementById("montantLabel").textContent = "Montant";
-
-setField("numero");
+if (activeField === "numero") {
+if (!loterie || loterie.trim() === "") {
+activeField = "loterie";
+setField("loterie");
+} else {
+activeField = "montant";
+setField("montant");
 }
 numero = "";
 loterie = "";

@@ -232,7 +232,6 @@ font-size: 22px;
 font-weight: 600;
 padding-bottom: 0;
 }
-
 .selected-loteries-line {
 color: #000 !important;
 font-weight: 700 !important;

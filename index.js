@@ -225,13 +225,24 @@ flex-direction: column;
 flex: 1;
 min-height: 320px;
 display: flex;
-align-items: flex-end;
+align-items: center;
 justify-content: center;
 color: #9b9b9b;
 font-size: 22px;
 font-weight: 600;
-padding-bottom: 10px;
+padding-bottom: 0;
 }
+.selected-loteries-line {
+color: #000;
+font-weight: 700;
+}
+
+.selected-loteries-line div,
+.selected-loteries-line span {
+color: #000;
+font-weight: 700;
+}
+
 
 .summary-bar {
 height: 38px;

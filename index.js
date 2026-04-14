@@ -739,16 +739,6 @@ activeField = "numero";
 setField("numero");
 }
 
-function confirmLoterie() {
-if (selectedLoteries.length === 0) return;
-
-loterie = selectedLoteries.join(", ");
-document.querySelector(".empty-zone").textContent = loterie || "Pas de jeux";
-
-closeLoterieModal();
-activeField = "numero";
-setField("numero");
-}
 
 
 </script>

@@ -605,9 +605,11 @@ loterie = selectedLoteries.join(", ");
 document.getElementById("selectedLoteriesLine").textContent = loterie;
 
 closeLoterieModal();
-activeField = "montant";
+
+// Sèlman sa ase
 setField("montant");
 }
+
 
 
 
@@ -638,34 +640,12 @@ document.getElementById("montantLabel").textContent = montant || "Montant";
 }
 
 function validate() {
-
-// Si sou numero
 if (activeField === "numero") {
-
-// Pa gen loterie → ouvri loterie
 if (!loterie || loterie.trim() === "") {
 setField("loterie");
-return;
-}
-
-// Gen loterie deja → ale montant
+} else {
 setField("montant");
-return;
 }
-
-// Si sou montant → ou ka valide jwèt la
-if (activeField === "montant") {
-
-console.log("Jeu prêt:", numero, loterie, montant);
-
-// Reset pou nouvo jwèt
-numero = "";
-montant = "";
-
-document.getElementById("numeroLabel").textContent = "Numero";
-document.getElementById("montantLabel").textContent = "Montant";
-
-setField("numero");
 }
 }
 

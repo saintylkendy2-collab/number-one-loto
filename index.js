@@ -639,21 +639,21 @@ document.getElementById("montantLabel").textContent = montant || "Montant";
 }
 
 function validate() {
+
 if (activeField === "numero") {
+
+// si pa gen loterie → ouvri modal
 if (!loterie || loterie.trim() === "") {
 openLoterieModal();
-return;
-} else {
+}
+// si gen loterie deja → ale montant
+else {
 setField("montant");
-return;
-}
 }
 
-if (activeField === "montant") {
-return;
-}
 }
 
+}
 
 numero = "";
 loterie = "";

@@ -531,6 +531,7 @@ font-weight: 600;
 <div class="empty-zone">Pas de jeux</div>
 <div id="ticketsList" class="tickets-list"></div>
 <div class="summary-bar">
+<button onclick="addJeu()">TEST AJOUTE</button>
 <div></div>
 <div id="ticketCount">0</div>
 <div id="ticketTotal">0.00</div>

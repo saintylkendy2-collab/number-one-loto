@@ -602,15 +602,13 @@ function confirmLoterie() {
 if (selectedLoteries.length === 0) return;
 
 loterie = selectedLoteries.join(", ");
-
 document.getElementById("selectedLoteriesLine").textContent = loterie;
-document.querySelector(".empty-zone").textContent = loterie;
 
 closeLoterieModal();
-
-activeField = "numero";
-setField("numero");
+activeField = "montant";
+setField("montant");
 }
+
 
 
 function pressKey(val) {
@@ -641,11 +639,18 @@ document.getElementById("montantLabel").textContent = montant || "Montant";
 
 function validate() {
 if (activeField === "numero") {
+if (!loterie || loterie.trim() === "") {
+activeField = "loterie";
 setField("loterie");
-} else if (activeField === "loterie") {
+} else {
+activeField = "montant";
 setField("montant");
+}
 } else if (activeField === "montant") {
-alert("Ajouté: " + numero + " / " + loterie + " / " + montant);
+// mete lojik pou ajoute jwèt la la
+}
+}
+
 
 numero = "";
 loterie = "";

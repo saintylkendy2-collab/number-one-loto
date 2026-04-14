@@ -628,7 +628,8 @@ if (activeField === "numero") {
 numero = numero.slice(0, -1);
 document.getElementById("numeroLabel").textContent = numero || "Numero";
 } else if (activeField === "loterie") {
-loterie = loterie.slice(0, -1);
+return;
+}
 document.querySelector(".empty-zone").textContent = loterie || "Pas de jeux";
 } else if (activeField === "montant") {
 montant = montant.slice(0, -1);
@@ -734,6 +735,8 @@ document.getElementById("loterieModal").style.display = "flex";
 
 function closeLoterieModal() {
 document.getElementById("loterieModal").style.display = "none";
+activeField = "numero";
+setField("numero");
 }
 
 function confirmLoterie() {

@@ -616,6 +616,7 @@ return;
 }
 }
 
+function handleCheck() {
 if (activeField === "montant") {
 if (!montant || montant.trim() === "") return;
 

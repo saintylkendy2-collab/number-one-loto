@@ -646,8 +646,7 @@ setField("loterie");
 activeField = "montant";
 setField("montant");
 }
-}
-}
+
 
 
 numero = "";

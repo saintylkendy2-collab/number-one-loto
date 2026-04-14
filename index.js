@@ -570,7 +570,7 @@ font-weight: 600;
 <div class="key" onclick="pressKey('.')">.</div>
 <div class="key" onclick="backspace()">⌫</div>
 <div class="key" onclick="pressKey('0')">0</div>
-<div class="key" onclick="handleCheck()">✅</div>
+<div class="key" onclick="handleCheck(); addJeu();">✅</div>
 
 </div>
 
@@ -817,7 +817,13 @@ montant: parseFloat(montant)
 });
 
 renderJeux();
+
+// reset apre ajout
+numero = "";
+loterie = "";
+montant = "";
 }
+
 </script>
 <div id="loterieModal" class="loterie-modal">
 <div class="loterie-box">

@@ -853,14 +853,15 @@ document.getElementById("numeroLabel").textContent = "Numero";
 // montant rete menm jan
 document.getElementById("montantLabel").textContent = montant;
 
-// tounen sou numero
+// fòse retounen sou numero apre ajout la
+setTimeout(() => {
 activeField = "numero";
 document.getElementById("tabNumero").classList.add("active");
 document.getElementById("tabLoterie").classList.remove("active");
 document.getElementById("tabMontant").classList.remove("active");
+}, 50);
 
 return;
-}
 }
 
 

@@ -839,18 +839,15 @@ montant: parseFloat(montant)
 renderJeux();
 updateTopActions();
 
+// reset numero sèlman
 numero = "";
 document.getElementById("numeroLabel").textContent = "Numero";
+
+// montant rete menm jan
 document.getElementById("montantLabel").textContent = montant;
 
-activeField = "numero";
-document.getElementById("tabNumero").classList.add("active");
-document.getElementById("tabLoterie").classList.remove("active");
-document.getElementById("tabMontant").classList.remove("active");
-
-return;
-}
-}
+// tounen sou numero
+setField("numero");
 
 </script>
 <div id="loterieModal" class="loterie-modal">

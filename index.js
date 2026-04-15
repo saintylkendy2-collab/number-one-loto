@@ -501,6 +501,13 @@ document.getElementById("selectedLoteriesLine").textContent = selectedLoteries.l
 : "";
 }
 
+document.getElementById("activeLine").style.left = left;
+
+document.getElementById("selectedLoteriesLine").textContent = selectedLoteries.length
+? selectedLoteries.join(", ")
+: "";
+}
+
 function setField(field){
 activeField = field;
 updateFields();

@@ -384,7 +384,9 @@ border-right:1px solid #ddd;
 <div id="numeroLine" class="field active" onclick="setField('numero')">Numero</div>
 <div id="loterieLine" class="field" onclick="setField('loterie')">Loterie</div>
 <div id="montantLine" class="field" onclick="setField('montant')">Montant</div>
+<div id="activeLine" class="active-line"></div>
 </div>
+
 
 <div class="keypad">
 <div class="key" onclick="press('+')">+</div>

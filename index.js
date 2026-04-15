@@ -340,6 +340,8 @@ display:grid;
 grid-template-columns:repeat(4,1fr);
 grid-template-rows:repeat(4,1fr);
 border-top:1px solid #cacaca;
+margin-top: 5vh;
+padding-bottom: 10px;
 }
 .key{
 border:1px solid #cacaca;

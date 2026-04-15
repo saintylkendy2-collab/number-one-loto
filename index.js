@@ -3,470 +3,380 @@ const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-res.send(`
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login Vendeur</title>
-
-<style>
-body {
-margin: 0;
-font-family: Arial, sans-serif;
-background: #f2f2f2;
-display: flex;
-justify-content: center;
-align-items: center;
-height: 100vh;
-}
-
-.container {
-width: 90%;
-max-width: 380px;
-background: white;
-padding: 25px;
-border-radius: 12px;
-box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-text-align: center;
-}
-
-h1 {
-margin-bottom: 25px;
-font-size: 24px;
-}
-
-input {
-width: 100%;
-padding: 15px;
-margin-bottom: 15px;
-font-size: 18px;
-border-radius: 8px;
-border: 1px solid #ccc;
-}
-
-button {
-width: 100%;
-padding: 16px;
-font-size: 20px;
-border: none;
-border-radius: 8px;
-background: #1e73ff;
-color: white;
-}
-
-button:active {
-background: #155cd1;
-}
-
-.error {
-color: red;
-margin-bottom: 10px;
-}
-</style>
-</head>
-
-<body>
-
-<div class="container">
-<h1>Connexion Vendeur</h1>
-
-<form method="POST" action="/login">
-<input type="text" name="id" placeholder="ID vendeur" required>
-<input type="password" name="password" placeholder="Mot de passe" required>
-
-<button type="submit">CONNEXION</button>
-</form>
-</div>
-
-</body>
-</html>
-`);
-});
-app.post("/login", (req, res) => {
-const id = req.body.id;
-const password = req.body.password;
-
-if (id === "NOC100" && password === "1234") {
-res.redirect("/dashboard");
-} else {
-res.send("Identifiant ou mot de passe incorrect ❌");
-}
-});
-app.post("/print", (req, res) => {
-const raw = req.body.data || "";
-
-const lines = raw
-.split("\n")
-.map(line => line.trim())
-.filter(line => line.length > 0);
-
-let total = 0;
-
-const formattedLines = lines.map(line => {
-const parts = line.split(/\s+/);
-
-if (parts.length >= 3) {
-const type = parts[0].toUpperCase();
-const number = parts[1];
-const amount = parseInt(parts[2], 10) || 0;
-total += amount;
-return `${type.padEnd(4, " ")} ${number.padEnd(8, " ")} ${amount} G`;
-}
-
-if (parts.length === 2) {
-const number = parts[0];
-const amount = parseInt(parts[1], 10) || 0;
-total += amount;
-return `BOR ${number.padEnd(8, " ")} ${amount} G`;
-}
-
-return line;
-});
-
-const now = new Date();
-const dateStr = now.toLocaleDateString("fr-FR");
-const timeStr = now.toLocaleTimeString("fr-FR", {
-hour: "2-digit",
-minute: "2-digit"
-});
-
-res.send(`
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-body {
-font-family: monospace;
-font-size: 12px;
-margin: 0;
-padding: 4px;
-width: 58mm;
-}
-
-pre {
-margin: 0;
-white-space: pre-wrap;
-word-break: break-word;
-}
-
-button {
-display: none;
-}
-</style>
-</head>
-<body>
-<pre>
-NUMBER ONE LOTO
-Dat: ${dateStr} Le: ${timeStr}
-
-${formattedLines.join("\n")}
-
-----------------------
-TOTAL: ${total} G
-
-Bon chans
-</pre>
-</body>
-</html>
-`);
-});
 app.get("/dashboard", (req, res) => {
 res.send(`
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vendeur</title>
-
 <style>
-*{
-box-sizing:border-box;
-}
-
-html, body{
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{
 margin:0;
 padding:0;
 width:100%;
 height:100%;
-font-family:Arial, sans-serif;
-background:#efeff4;
 overflow:hidden;
+font-family:Arial,sans-serif;
+background:#efeff4;
 }
-
 body{
 display:flex;
 flex-direction:column;
+color:#111;
 }
-
-/* TOPBAR */
 .topbar{
 height:60px;
 min-height:60px;
-background:#2f4ea2;
+background:#3150a8;
 color:#fff;
-display:flex;
+display:grid;
+grid-template-columns:60px 1fr 110px;
 align-items:center;
-justify-content:space-between;
-padding:0 16px;
+padding:0 8px;
 font-size:20px;
 }
-
-.topbar .title{
-flex:1;
+.top-icon{
 text-align:center;
-font-size:24px;
+font-size:28px;
+cursor:pointer;
+user-select:none;
+}
+.top-title{
+text-align:center;
+font-size:26px;
 font-weight:600;
 }
-
-.topbar .side{
-width:60px;
+.top-right{
 display:flex;
+justify-content:flex-end;
 align-items:center;
-justify-content:center;
+gap:18px;
+padding-right:8px;
+font-size:28px;
 }
-
-/* MAIN */
 .main{
 flex:1;
 display:flex;
 flex-direction:column;
 min-height:0;
 }
-
-/* TICKETS ZONE */
-.tickets{
+.tickets-area{
 flex:1;
-min-height:120px;
-background:#efeff4;
+min-height:0;
 overflow:auto;
-display:flex;
-flex-direction:column;
+background:#efeff4;
 }
-
 .empty-zone{
-flex:1;
+height:100%;
+min-height:180px;
 display:flex;
 align-items:center;
 justify-content:center;
-color:#aaa;
-font-size:22px;
+color:#a8a8a8;
+font-size:24px;
+font-weight:600;
 }
-
-.ticket{
+.group-title{
+background:#dfe3fb;
+color:#555;
+font-weight:700;
+font-size:22px;
+padding:6px 12px;
+border-top:1px solid #d0d0d0;
+border-bottom:1px solid #d0d0d0;
+}
+.ticket-row{
 display:grid;
-grid-template-columns:1fr 1.4fr .8fr;
-gap:8px;
+grid-template-columns:1.3fr 1fr 1fr;
 align-items:center;
 background:#fff;
 border-bottom:1px solid #ddd;
-padding:8px 12px;
-font-size:22px;
-font-weight:600;
+min-height:48px;
+font-size:20px;
 }
-
-/* SUMMARY */
-.summary{
-height:42px;
-min-height:42px;
-background:#dfe3ff;
-display:flex;
+.ticket-row div{
+padding:8px 12px;
+}
+.ticket-row div:nth-child(2),
+.ticket-row div:nth-child(3){
+text-align:right;
+}
+.summary-bar{
+height:40px;
+min-height:40px;
+background:#dfe3fb;
+display:grid;
+grid-template-columns:1fr 1fr;
 align-items:center;
-justify-content:space-between;
-padding:0 16px;
-font-size:18px;
+padding:0 14px;
+font-size:20px;
 font-weight:700;
 }
-
-/* FIELDS */
+.summary-bar div:last-child{
+text-align:right;
+}
+.selected-loteries-line{
+min-height:42px;
+background:#f2f2f2;
+color:#444;
+display:flex;
+align-items:center;
+padding:0 12px;
+font-size:18px;
+border-top:1px solid #ddd;
+border-bottom:1px solid #ddd;
+overflow:hidden;
+white-space:nowrap;
+text-overflow:ellipsis;
+}
 .fields{
 height:56px;
 min-height:56px;
 display:grid;
 grid-template-columns:1fr 1fr 1fr;
+align-items:end;
 background:#f7f7f7;
-border-top:1px solid #ccc;
 }
-
 .field{
+height:100%;
 display:flex;
 align-items:flex-end;
 justify-content:center;
-padding:0 6px 10px 6px;
+padding:0 8px 10px 8px;
 font-size:18px;
-color:#888;
-border-bottom:3px solid #6b78ff;
-cursor:pointer;
-user-select:none;
+color:#8f8f8f;
+position:relative;
 overflow:hidden;
 white-space:nowrap;
 text-overflow:ellipsis;
+cursor:pointer;
+user-select:none;
 }
-
+.field::after{
+content:"";
+position:absolute;
+left:8px;
+right:8px;
+bottom:0;
+height:3px;
+background:#5a6df0;
+}
 .field.active{
 color:#111;
 font-weight:700;
 }
-
-/* KEYPAD */
-.keypad{
-display:grid;
-grid-template-columns:repeat(4, 1fr);
-grid-template-rows:repeat(4, minmax(64px, 11vh));
-background:#ddd;
-border-top:1px solid #cfcfcf;
+.field.active::before{
+content:"";
+position:absolute;
+left:42%;
+bottom:4px;
+width:2px;
+height:28px;
+background:#ff4f86;
+border-radius:2px;
 }
-
+.keypad{
+height:384px;
+min-height:384px;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+grid-template-rows:repeat(4,1fr);
+border-top:1px solid #cacaca;
+}
 .key{
+border:1px solid #cacaca;
 background:#f7f7f7;
-border:1px solid #c8c8c8;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:clamp(22px, 3vw, 34px);
+font-size:26px;
 color:#000;
+user-select:none;
 }
-
-.enter{
-background:#2e7d1a;
+.key.enter{
+background:#3d8d20;
 color:#fff;
-font-size:clamp(18px, 2.4vw, 28px);
+font-size:26px;
 font-weight:700;
 }
-
-/* BOTTOM NAV */
-.nav{
+.bottom-nav{
 height:58px;
 min-height:58px;
 background:#f3f1ff;
-border-top:1px solid #d3d3d3;
+border-top:1px solid #d8d8d8;
 display:grid;
-grid-template-columns:repeat(5, 1fr);
+grid-template-columns:repeat(5,1fr);
 align-items:center;
 text-align:center;
-font-size:14px;
+font-size:15px;
 }
-
-.nav .active{
-color:#7c6cf2;
+.bottom-nav .active{
+color:#7a6bf2;
 font-weight:700;
 }
-
-/* LOTERIE MODAL */
-.loterie-modal{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.35);
-display:none;
-align-items:center;
-justify-content:center;
-z-index:1000;
-}
-
-.loterie-box{
-width:min(420px, 92vw);
-max-height:70vh;
-overflow:auto;
-background:#fff;
-border-radius:10px;
-padding:12px;
-}
-
-.loterie-item{
-padding:14px 12px;
-border-bottom:1px solid #eee;
-font-size:18px;
-}
-
-.loterie-actions{
-display:flex;
-justify-content:flex-end;
-gap:10px;
-padding-top:10px;
-}
-
-.action-btn{
-padding:10px 14px;
-border:none;
-border-radius:8px;
-font-size:16px;
-}
-
-/* MENU */
-.menu{
+.drawer{
 position:fixed;
 top:0;
-left:-260px;
-width:260px;
+left:-280px;
+width:280px;
 height:100%;
 background:#fff;
+z-index:3000;
 transition:.25s;
-z-index:1100;
-padding-top:70px;
 box-shadow:2px 0 10px rgba(0,0,0,.15);
+padding-top:70px;
 }
-
-.menu.active{
-left:0;
-}
-
-.option{
+.drawer.open{left:0;}
+.drawer-item{
 padding:16px 18px;
 border-bottom:1px solid #eee;
 font-size:20px;
 }
-
-.popup{
+.options-sheet{
 position:fixed;
 left:0;
 right:0;
-bottom:-260px;
+bottom:-280px;
 background:#fff;
+z-index:3100;
 transition:.25s;
-z-index:1200;
-box-shadow:0 -2px 10px rgba(0,0,0,.15);
+box-shadow:0 -2px 12px rgba(0,0,0,.18);
 }
-
-.popup.active{
-bottom:0;
+.options-sheet.open{bottom:0;}
+.sheet-item{
+padding:18px;
+border-bottom:1px solid #eee;
+font-size:20px;
 }
-
-/* LAPTOP / LARGE SCREEN */
-@media (min-width: 900px){
+.overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.25);
+z-index:2900;
+display:none;
+}
+.overlay.show{display:block;}
+.loterie-modal{
+position:fixed;
+inset:0;
+z-index:4000;
+background:rgba(0,0,0,.35);
+display:none;
+align-items:center;
+justify-content:center;
+}
+.loterie-modal.show{display:flex;}
+.loterie-box{
+width:92%;
+max-width:460px;
+max-height:84vh;
+overflow:hidden;
+background:#fff;
+border-radius:10px;
+display:flex;
+flex-direction:column;
+}
+.loterie-list{
+overflow:auto;
+max-height:72vh;
+}
+.loterie-item{
+display:grid;
+grid-template-columns:54px 1fr auto;
+align-items:center;
+gap:10px;
+min-height:74px;
+padding:10px 12px;
+border-bottom:1px solid #ddd;
+}
+.loterie-check{
+width:44px;
+height:44px;
+border-radius:50%;
+background:#d9d9d9;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:26px;
+color:#fff;
+}
+.loterie-item.selected .loterie-check{
+background:#315af2;
+}
+.loterie-name{
+font-size:20px;
+font-weight:700;
+color:#222;
+}
+.loterie-time{
+font-size:16px;
+color:#6ec3ff;
+font-weight:700;
+}
+.loterie-sub{
+font-size:14px;
+color:#555;
+margin-top:4px;
+}
+.modal-actions{
+height:72px;
+min-height:72px;
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+align-items:center;
+justify-items:center;
+background:#f6f6f6;
+}
+.circle-btn{
+width:54px;
+height:54px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:28px;
+color:#fff;
+user-select:none;
+}
+.btn-clear{background:#5c638c;}
+.btn-ok{background:#23c7db;}
+.btn-close{background:#cfcfcf;color:#fff;}
+@media (min-width:900px){
 body{
 max-width:500px;
 margin:0 auto;
 border-left:1px solid #ddd;
 border-right:1px solid #ddd;
-background:#efeff4;
-}
-
-.keypad{
-grid-template-rows:repeat(4, 90px);
 }
 }
 </style>
 </head>
-
 <body>
 
+<div id="overlay" class="overlay" onclick="closeDrawer();closeOptions();"></div>
+
 <div class="topbar">
-<div class="side" onclick="toggleMenu()">☰</div>
-<div class="title">Vendeur</div>
-<div class="side" onclick="openOptions()">⋮</div>
+<div class="top-icon" onclick="toggleDrawer()">☰</div>
+<div class="top-title">Vendeur</div>
+<div class="top-right">
+<span onclick="openOptions()">⋮</span>
+</div>
 </div>
 
 <div class="main">
-<div id="tickets" class="tickets">
+<div id="ticketsArea" class="tickets-area">
 <div class="empty-zone">Pas de jeux</div>
 </div>
 
-<div class="summary">
-<div id="count">0</div>
-<div id="total">0.00</div>
+<div class="summary-bar">
+<div id="ticketCount">0</div>
+<div id="ticketTotal">0.00</div>
 </div>
+
+<div id="selectedLoteriesLine" class="selected-loteries-line"></div>
 
 <div class="fields">
 <div id="numeroLine" class="field active" onclick="setField('numero')">Numero</div>
@@ -491,12 +401,12 @@ grid-template-rows:repeat(4, 90px);
 <div class="key" onclick="press('9')">9</div>
 
 <div class="key" onclick="press('.')">.</div>
-<div class="key" onclick="back()">⌫</div>
+<div class="key" onclick="backspaceKey()">⌫</div>
 <div class="key" onclick="press('0')">0</div>
-<div class="key enter" onclick="enter()">ENTER</div>
+<div class="key enter" onclick="handleEnter()">ENTER</div>
 </div>
 
-<div class="nav">
+<div class="bottom-nav">
 <div class="active">Billets</div>
 <div>Copier</div>
 <div>Payer</div>
@@ -505,146 +415,293 @@ grid-template-rows:repeat(4, 90px);
 </div>
 </div>
 
-<div id="menu" class="menu">
-<div class="option">Tirages</div>
-<div class="option">Balance</div>
-<div class="option">Paramètres</div>
-<div class="option">Imprimante</div>
-<div class="option">Update</div>
-<div class="option">Sortir</div>
+<div id="drawer" class="drawer">
+<div class="drawer-item">Tirages</div>
+<div class="drawer-item">Balance</div>
+<div class="drawer-item">Paramètre</div>
+<div class="drawer-item">Imprimante</div>
+<div class="drawer-item">Update</div>
+<div class="drawer-item">Sortir</div>
 </div>
 
-<div id="options" class="popup">
-<div class="option" onclick="deleteAll()">Supprimer</div>
-<div class="option">Traiter le jeu</div>
-<div class="option">Processus local</div>
-<div class="option">Processus en ligne</div>
+<div id="optionsSheet" class="options-sheet">
+<div class="sheet-item" onclick="deleteAllGames()">Supprimer</div>
+<div class="sheet-item">Traiter le jeu</div>
+<div class="sheet-item">Processus local</div>
+<div class="sheet-item">Processus en ligne</div>
 </div>
 
 <div id="loterieModal" class="loterie-modal">
 <div class="loterie-box">
-<div class="loterie-item" onclick="chooseLoterie('Florida')">Florida</div>
-<div class="loterie-item" onclick="chooseLoterie('New York Evening')">New York Evening</div>
-<div class="loterie-item" onclick="chooseLoterie('Georgia Midday')">Georgia Midday</div>
-<div class="loterie-item" onclick="chooseLoterie('Georgia Evening')">Georgia Evening</div>
-<div class="loterie-item" onclick="chooseLoterie('Anguilla 10:00 AM')">Anguilla 10:00 AM</div>
-<div class="loterie-item" onclick="chooseLoterie('Anguilla 01:00 PM')">Anguilla 01:00 PM</div>
-
-<div class="loterie-actions">
-<button class="action-btn" onclick="closeLoterieModal()">Fermer</button>
+<div id="loterieList" class="loterie-list"></div>
+<div class="modal-actions">
+<div class="circle-btn btn-clear" onclick="clearLoteries()">🚫</div>
+<div class="circle-btn btn-ok" onclick="validateLoteries()">✓</div>
+<div class="circle-btn btn-close" onclick="closeLoterieModal()">✕</div>
 </div>
 </div>
 </div>
-
-</body>
-
 
 <script>
-let numero="";
-let loterie="Florida";
-let montant="";
-let active="numero";
-let jeux=[];
+var activeField = "numero";
+var numero = "";
+var montant = "";
+var jeux = [];
+var selectedLoteries = [];
 
-function press(v){
-if(active==="numero") numero+=v;
-if(active==="montant") montant+=v;
-update();
-}
+var loteries = [
+{ name: "LA PRIMERA DIA", sub: "20 minutes", time: "11:55 AM" },
+{ name: "LOTEDOM", sub: "20 minutes", time: "11:55 AM" },
+{ name: "LA SUERTE DIA", sub: "40 minutes", time: "12:15 PM" },
+{ name: "GEORGIA MIDDAY", sub: "50 minutes", time: "12:25 PM" },
+{ name: "KING LOTTERY DIA", sub: "50 minutes", time: "12:25 PM" },
+{ name: "ANGUILLA 01:00 PM", sub: "1 heure 15 minutes", time: "12:50 PM" },
+{ name: "REAL", sub: "1 heure 20 minutes", time: "12:55 PM" },
+{ name: "FLORIDA MIDDAY", sub: "1 heure 50 minutes", time: "1:25 PM" },
+{ name: "NEW YORK MIDDAY", sub: "2 heures 50 minutes", time: "2:25 PM" },
+{ name: "GANAMAS", sub: "2 heures 55 minutes", time: "2:30 PM" },
+{ name: "LA SUERTE NOCHE", sub: "6 heures 15 minutes", time: "5:50 PM" },
+{ name: "ANGUILLA 6:00 PM", sub: "6 heures 15 minutes", time: "5:50 PM" },
+{ name: "GEORGIA EVENING", sub: "7 heures 15 minutes", time: "6:50 PM" }
+];
 
-function back(){
-if(active==="numero") numero=numero.slice(0,-1);
-if(active==="montant") montant=montant.slice(0,-1);
-update();
-}
-
-function enter(){
-if(numero && montant){
-jeux.push({numero,loterie,montant});
-numero="";
-montant="";
-active="numero";
-render();
-}
-}
-
-function update(){
-document.getElementById("numeroLine").textContent=numero||"Numero";
-document.getElementById("loterieLine").textContent=loterie;
-document.getElementById("montantLine").textContent=montant||"Montant";
-
-document.querySelectorAll(".field").forEach(e=>e.classList.remove("active"));
-document.getElementById(active+"Line").classList.add("active");
-}
-
-function render(){
-let div=document.getElementById("tickets");
-let total=0;
-
-if(jeux.length===0){
-div.innerHTML="Pas de jeux";
-document.getElementById("count").textContent="0";
-document.getElementById("total").textContent="0.00";
-return;
-}
-
-div.innerHTML="";
-
-jeux.forEach((j,i)=>{
-let el=document.createElement("div");
-el.innerHTML=j.numero+" - "+j.loterie+" - "+j.montant;
-
-el.onclick=()=>{
-if(confirm("Supprimer ?")){
-jeux.splice(i,1);
-render();
-}
-};
-
-total+=parseFloat(j.montant)||0;
-div.appendChild(el);
-});
-
-document.getElementById("count").textContent=jeux.length;
-document.getElementById("total").textContent=total.toFixed(2);
-}
-function setField(field){
-active = field;
-
-if(field === "loterie"){
-openLoterieModal();
-}
-
-update();
-}
-
-function openLoterieModal(){
-document.getElementById("loterieModal").style.display = "flex";
-}
-
-function closeLoterieModal(){
-document.getElementById("loterieModal").style.display = "none";
-}
-
-function chooseLoterie(name){
-loterie = name;
-active = "montant";
-closeLoterieModal();
-update();
-}
-
-function update(){
+function updateFields(){
 document.getElementById("numeroLine").textContent = numero || "Numero";
-document.getElementById("loterieLine").textContent = loterie || "Loterie";
+document.getElementById("loterieLine").textContent = selectedLoteries.length ? "Loterie" : "Loterie";
 document.getElementById("montantLine").textContent = montant || "Montant";
 
 document.getElementById("numeroLine").classList.remove("active");
 document.getElementById("loterieLine").classList.remove("active");
 document.getElementById("montantLine").classList.remove("active");
 
-document.getElementById(active + "Line").classList.add("active");
+if(activeField === "numero") document.getElementById("numeroLine").classList.add("active");
+if(activeField === "loterie") document.getElementById("loterieLine").classList.add("active");
+if(activeField === "montant") document.getElementById("montantLine").classList.add("active");
+
+document.getElementById("selectedLoteriesLine").textContent = selectedLoteries.length
+? selectedLoteries.join(", ")
+: "";
 }
-update();
+
+function setField(field){
+activeField = field;
+updateFields();
+if(field === "loterie"){
+openLoterieModal();
+}
+}
+
+function press(val){
+if(activeField === "numero"){
+numero += String(val);
+}else if(activeField === "montant"){
+montant += String(val);
+}
+updateFields();
+}
+
+function backspaceKey(){
+if(activeField === "numero"){
+numero = numero.slice(0, -1);
+}else if(activeField === "montant"){
+montant = montant.slice(0, -1);
+}
+updateFields();
+}
+
+function handleEnter(){
+if(activeField === "numero"){
+if(!numero.trim()){
+return;
+}
+activeField = "loterie";
+updateFields();
+openLoterieModal();
+return;
+}
+
+if(activeField === "montant"){
+addGame();
+return;
+}
+
+if(activeField === "loterie"){
+openLoterieModal();
+}
+}
+
+function openLoterieModal(){
+document.getElementById("loterieModal").classList.add("show");
+renderLoterieList();
+}
+
+function closeLoterieModal(){
+document.getElementById("loterieModal").classList.remove("show");
+activeField = "numero";
+updateFields();
+}
+
+function toggleLoterie(name){
+var index = selectedLoteries.indexOf(name);
+if(index >= 0){
+selectedLoteries.splice(index, 1);
+}else{
+selectedLoteries.push(name);
+}
+renderLoterieList();
+updateFields();
+}
+
+function clearLoteries(){
+selectedLoteries = [];
+renderLoterieList();
+updateFields();
+}
+
+function validateLoteries(){
+closeLoterieModal();
+activeField = "numero";
+updateFields();
+}
+
+function renderLoterieList(){
+var list = document.getElementById("loterieList");
+list.innerHTML = "";
+
+loteries.forEach(function(item){
+var row = document.createElement("div");
+row.className = "loterie-item" + (selectedLoteries.indexOf(item.name) >= 0 ? " selected" : "");
+row.onclick = function(){
+toggleLoterie(item.name);
+};
+
+var left = document.createElement("div");
+left.className = "loterie-check";
+left.textContent = selectedLoteries.indexOf(item.name) >= 0 ? "✓" : "";
+
+var center = document.createElement("div");
+center.innerHTML =
+'<div class="loterie-name">' + item.name + '</div>' +
+'<div class="loterie-sub">' + item.sub + '</div>';
+
+var right = document.createElement("div");
+right.className = "loterie-time";
+right.textContent = item.time;
+
+row.appendChild(left);
+row.appendChild(center);
+row.appendChild(right);
+list.appendChild(row);
+});
+}
+
+function addGame(){
+if(!numero.trim()) return;
+if(!montant.trim()) return;
+if(selectedLoteries.length === 0) return;
+
+selectedLoteries.forEach(function(lot){
+jeux.push({
+type: "Borlette",
+numero: numero.trim(),
+loterie: lot,
+montant: parseFloat(montant) || 0
+});
+});
+
+numero = "";
+activeField = "numero";
+renderJeux();
+updateFields();
+}
+
+function renderJeux(){
+var area = document.getElementById("ticketsArea");
+
+if(jeux.length === 0){
+area.innerHTML = '<div class="empty-zone">Pas de jeux</div>';
+document.getElementById("ticketCount").textContent = "0";
+document.getElementById("ticketTotal").textContent = "0.00";
+return;
+}
+
+var total = 0;
+var count = jeux.length;
+var grouped = {};
+
+jeux.forEach(function(j){
+if(!grouped[j.loterie]) grouped[j.loterie] = [];
+grouped[j.loterie].push(j);
+total += Number(j.montant) || 0;
+});
+
+area.innerHTML = "";
+
+Object.keys(grouped).forEach(function(name){
+var title = document.createElement("div");
+title.className = "group-title";
+title.textContent = name;
+area.appendChild(title);
+
+grouped[name].forEach(function(j){
+var row = document.createElement("div");
+row.className = "ticket-row";
+row.innerHTML =
+"<div>" + j.type + "</div>" +
+"<div>" + j.numero + "</div>" +
+"<div>" + Number(j.montant).toFixed(2) + "</div>";
+
+row.onclick = function(){
+if(confirm("Supprimer ?")){
+var idx = jeux.indexOf(j);
+if(idx >= 0){
+jeux.splice(idx, 1);
+renderJeux();
+}
+}
+};
+
+area.appendChild(row);
+});
+});
+
+document.getElementById("ticketCount").textContent = String(count);
+document.getElementById("ticketTotal").textContent = total.toFixed(2);
+}
+
+function toggleDrawer(){
+var d = document.getElementById("drawer");
+var o = document.getElementById("overlay");
+d.classList.toggle("open");
+o.classList.toggle("show");
+closeOptions();
+}
+
+function closeDrawer(){
+document.getElementById("drawer").classList.remove("open");
+document.getElementById("overlay").classList.remove("show");
+}
+
+function openOptions(){
+document.getElementById("optionsSheet").classList.add("open");
+document.getElementById("overlay").classList.add("show");
+closeDrawer();
+}
+
+function closeOptions(){
+document.getElementById("optionsSheet").classList.remove("open");
+}
+
+function deleteAllGames(){
+jeux = [];
+closeOptions();
+document.getElementById("overlay").classList.remove("show");
+renderJeux();
+updateFields();
+}
+
+renderJeux();
+updateFields();
 </script>
 
 </body>

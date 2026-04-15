@@ -806,33 +806,36 @@ ticketsList.appendChild(row);
 
 function addJeu() {
 
-// 1️⃣ SI LI SOU NUMERO
+// SI LI SOU NUMERO
 if (activeField === "numero") {
 if (!numero || numero.trim() === "") return;
 
 const n = numero.trim();
-
-// limite 2 a 5 chif
 if (n.length < 2 || n.length > 5) return;
 
-// si gen loterie deja → ale sou montant
 if (loterie && loterie.trim() !== "") {
 activeField = "montant";
+document.getElementById("tabNumero").classList.remove("active");
+document.getElementById("tabLoterie").classList.remove("active");
+document.getElementById("tabMontant").classList.add("active");
 } else {
 activeField = "loterie";
+document.getElementById("tabNumero").classList.remove("active");
+document.getElementById("tabMontant").classList.remove("active");
+document.getElementById("tabLoterie").classList.add("active");
+openLoterieModal();
 }
 
 return;
 }
 
-// 2️⃣ SI LI SOU LOTERIE
+// SI LI SOU LOTERIE
 if (activeField === "loterie") {
-return; // w ap chwazi nan modal
+return;
 }
 
-// 3️⃣ SI LI SOU MONTANT → AJOUTE JEU
+// SI LI SOU MONTANT
 if (activeField === "montant") {
-
 if (!numero || !loterie || !montant) return;
 
 const n = numero.trim();
@@ -847,12 +850,15 @@ montant: parseFloat(montant)
 renderJeux();
 updateTopActions();
 
-// 🔁 RESET NUMERO SÈLMAN
+// reset numero sèlman
 numero = "";
 document.getElementById("numeroLabel").textContent = "Numero";
 
-// 🔁 RETOUNEN SOU NUMERO
+// retounen sou numero
 activeField = "numero";
+document.getElementById("tabNumero").classList.add("active");
+document.getElementById("tabLoterie").classList.remove("active");
+document.getElementById("tabMontant").classList.remove("active");
 
 return;
 }

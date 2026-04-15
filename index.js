@@ -183,35 +183,27 @@ left:1%;
 transition:left .2s ease;
 }
 .keypad{
-height:340px;
-min-height:340px;
+height:384px;
+min-height:384px;
 display:grid;
 grid-template-columns:repeat(4,1fr);
 grid-template-rows:repeat(4,1fr);
 border-top:1px solid #cacaca;
-margin-top:10px;
 }
-
 .key{
-height:100%;
 border:1px solid #cacaca;
 background:#f7f7f7;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:24px;
+font-size:26px;
 color:#000;
 user-select:none;
-cursor:pointer;
 }
-
-.key:active{
-background:#ddd;
-}
-
 .key.enter{
 background:#3d8d20;
 color:#fff;
+font-size:26px;
 font-weight:700;
 }
 

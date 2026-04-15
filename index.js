@@ -183,13 +183,14 @@ left:1%;
 transition:left .2s ease;
 }
 .keypad{
-height:384px;
-min-height:384px;
+height:340px;
+min-height:340px;
 display:grid;
 grid-template-columns:repeat(4,1fr);
 grid-template-rows:repeat(4,1fr);
 border-top:1px solid #cacaca;
 }
+
 .key{
 border:1px solid #cacaca;
 background:#f7f7f7;
@@ -200,15 +201,17 @@ font-size:26px;
 color:#000;
 user-select:none;
 }
+
 .key.enter{
 background:#3d8d20;
 color:#fff;
 font-size:26px;
 font-weight:700;
 }
+
 .bottom-nav{
-height:58px;
-min-height:58px;
+height:54px;
+min-height:54px;
 background:#f3f1ff;
 border-top:1px solid #d8d8d8;
 display:grid;
@@ -217,6 +220,7 @@ align-items:center;
 text-align:center;
 font-size:15px;
 }
+
 .bottom-nav .active{
 color:#7a6bf2;
 font-weight:700;

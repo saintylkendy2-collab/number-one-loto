@@ -853,7 +853,7 @@ document.getElementById("numeroLabel").textContent = "Numero";
 // montant rete menm jan
 document.getElementById("montantLabel").textContent = montant;
 
-// fòse retounen sou numero apre ajout la
+// retounen sou numero
 setTimeout(() => {
 activeField = "numero";
 document.getElementById("tabNumero").classList.add("active");

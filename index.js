@@ -805,26 +805,34 @@ ticketsList.appendChild(row);
 }
 
 function addJeu() {
+
+// 1️⃣ SI LI SOU NUMERO
 if (activeField === "numero") {
 if (!numero || numero.trim() === "") return;
 
 const n = numero.trim();
+
+// limite 2 a 5 chif
 if (n.length < 2 || n.length > 5) return;
 
+// si gen loterie deja → ale sou montant
 if (loterie && loterie.trim() !== "") {
-setField("montant");
+activeField = "montant";
 } else {
-setField("loterie");
-openLoterieModal();
+activeField = "loterie";
 }
+
 return;
 }
 
+// 2️⃣ SI LI SOU LOTERIE
 if (activeField === "loterie") {
-return;
+return; // w ap chwazi nan modal
 }
 
+// 3️⃣ SI LI SOU MONTANT → AJOUTE JEU
 if (activeField === "montant") {
+
 if (!numero || !loterie || !montant) return;
 
 const n = numero.trim();
@@ -839,10 +847,15 @@ montant: parseFloat(montant)
 renderJeux();
 updateTopActions();
 
+// 🔁 RESET NUMERO SÈLMAN
 numero = "";
 document.getElementById("numeroLabel").textContent = "Numero";
+
+// 🔁 RETOUNEN SOU NUMERO
 activeField = "numero";
+
 return;
+}
 }
 </script>
 <div id="loterieModal" class="loterie-modal">

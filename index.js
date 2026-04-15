@@ -605,9 +605,6 @@ let loterie = "";
 let montant = "";
 let jeux = [];
 function setField(field) {
-// BLOKE SI SE APRÈ ADD
-if (activeField === "numero" && field === "montant") return;
-
 activeField = field;
 
 document.getElementById("tabNumero").classList.remove("active");
@@ -616,17 +613,19 @@ document.getElementById("tabMontant").classList.remove("active");
 
 if (field === "numero") {
 document.getElementById("tabNumero").classList.add("active");
+return;
 }
 
 if (field === "loterie") {
 document.getElementById("tabLoterie").classList.add("active");
+return;
 }
 
 if (field === "montant") {
 document.getElementById("tabMontant").classList.add("active");
+return;
 }
 }
-
 function handleCheck() {
 if (activeField === "numero") {
 if (!numero || numero.trim() === "") return;

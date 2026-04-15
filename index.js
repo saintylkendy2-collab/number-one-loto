@@ -174,707 +174,263 @@ Bon chans
 });
 app.get("/dashboard", (req, res) => {
 res.send(`
+<!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vendeur</title>
+<title>POS</title>
+
 <style>
-* {
-box-sizing: border-box;
+body{
+margin:0;
+font-family:Arial;
+background:#f2f4f8;
 }
 
-body {
-margin: 0;
-font-family: Arial, sans-serif;
-background: #efeff4;
+/* TOPBAR */
+.topbar{
+background:#0b3c8c;
+color:white;
+display:flex;
+justify-content:space-between;
+padding:10px;
 }
 
-.topbar {
-height: 64px;
-background: #2f55e7;
-color: white;
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 0 16px;
-font-size: 18px;
-font-weight: 600;
+.icon{cursor:pointer;margin-left:10px}
+
+/* DISPLAY */
+.display{
+background:white;
+padding:15px;
 }
 
-.topbar .left,
-.topbar .right {
-width: 40px;
-text-align: center;
-font-size: 26px;
+.line{
+font-size:22px;
+margin:8px 0;
 }
 
-.topbar .title {
-flex: 1;
-text-align: left;
-padding-left: 10px;
-}
-
-.content {
-height: calc(100vh - 64px);
-display: flex;
-flex-direction: column;
-}
-
-.empty-zone {
-flex: 1;
-min-height: 320px;
-display: flex;
-align-items: center;
-justify-content: center;
-color: #9b9b9b;
-font-size: 22px;
-font-weight: 600;
-padding-bottom: 0;
-}
-.selected-loteries-line {
-color: #000 !important;
-font-weight: 700 !important;
-font-size: 19px !important;
-}
-
-.selected-loteries-line div,
-.selected-loteries-line span {
-color: #000 !important;
-font-weight: 700 !important;
-font-size: 19px !important;
-}
-
-
-.summary-bar {
-height: 38px;
-background: #dfe1fa;
-display: grid;
-grid-template-columns: 1fr 1fr 1fr;
-align-items: center;
-font-size: 22px;
-font-weight: 700;
-color: #222;
-}
-
-.summary-bar div:nth-child(1) {
-text-align: left;
-}
-
-.summary-bar div:nth-child(2) {
-text-align: center;
-}
-
-.summary-bar div:nth-child(3) {
-text-align: right;
-padding-right: 14px;
-}
-.display-bar {
-background: #f2f2f2;
-display: grid;
-grid-template-columns: 1fr 1fr 1fr;
-grid-template-rows: 0px 42px;
-border-bottom: 1px solid #d9d9d9;
-}
-
-.display-loterie {
-display: none;
-}
-
-.display-numero {
-grid-column: 1;
-grid-row: 2;
-align-self: center;
-padding-left: 10px;
-color: #000;
-}
-
-#numeroLabel {
-font-size: 24px;
-font-weight: bold;
-}
-
-.display-middle {
-grid-column: 2;
-grid-row: 2;
-}
-
-.display-montant {
-grid-column: 3;
-grid-row: 2;
-align-self: center;
-text-align: right;
-padding-right: 10px;
-color: #111;
-}
-
-#montantLabel {
-font-size: 24px;
-font-weight: bold;
-}
-
-
-
-
-.tabs {
-height: 52px;
-background: #f3f3f3;
-display: grid;
-grid-template-columns: 1fr 1fr 1fr;
-align-items: end;
-text-align: center;
-font-size: 18px;
-color: #777;
-border-top: 1px solid #ddd;
-border-bottom: 1px solid #ddd;
-}
-
-.tab {
-padding-bottom: 10px;
-border-bottom: 3px solid transparent;
-}
-
-.tab.active {
-color: #222;
-border-bottom: 3px solid #3f5be8;
-}
-
-.keypad {
-background: white;
-display: grid;
-grid-template-columns: repeat(4, 1fr);
-grid-template-rows: repeat(4, 68px);
-border-top: 1px solid #cfcfcf;
-}
-
-.key {
-border: 1px solid #cfcfcf;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 28px;
-background: linear-gradient(#f7f7f7, #e7e7e7);
-}
-
-.key.ok {
-background: linear-gradient(#dfe8ef, #c8d2dc);
-}
-
-.bottom-nav {
-height: 74px;
-background: #f5f5f8;
-border-top: 1px solid #d7d7d7;
-display: grid;
-grid-template-columns: repeat(5, 1fr);
-align-items: center;
-text-align: center;
-font-size: 14px;
-color: #9a9a9a;
-}
-
-.bottom-item {
-display: flex;
-flex-direction: column;
-align-items: center;
-gap: 4px;
-}
-
-.bottom-item .icon {
-font-size: 22px;
-}
-
-.bottom-item.active {
-color: #7d73e6;
-font-weight: 600;
-}
-/* MODAL BACKGROUND */
-.loterie-modal {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: rgba(0,0,0,0.5);
-display: none;
-justify-content: center;
-align-items: center;
-z-index: 999;
-}
-
-/* BOX */
-.loterie-box {
-background: white;
-width: 90%;
-max-height: 80%;
-border-radius: 12px;
-overflow: hidden;
-display: flex;
-flex-direction: column;
+.active{
+color:red;
 }
 
 /* LIST */
-.loterie-list {
-overflow-y: auto;
-flex: 1;
+.tickets{
+padding:10px;
 }
 
-/* ITEM */
-.loterie-item {
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 12px 15px;
-border-bottom: 1px solid #eee;
-font-size: 16px;
+.ticket{
+background:white;
+padding:10px;
+margin-bottom:5px;
+display:flex;
+justify-content:space-between;
 }
 
-/* SELECTED */
-.loterie-item.active {
-background: #f2f1ff;
-color: #7d73e6;
-font-weight: 600;
+/* KEYPAD */
+.keypad{
+position:fixed;
+bottom:0;
+width:100%;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:5px;
+padding:10px;
 }
 
-/* CHECK ICON */
-.loterie-item .check {
-color: #7d73e6;
-font-size: 18px;
+.key{
+background:white;
+padding:20px;
+text-align:center;
+font-size:22px;
+border-radius:5px;
 }
 
-/* ACTION BUTTONS */
-.loterie-actions {
-display: flex;
-justify-content: space-around;
-padding: 10px;
-border-top: 1px solid #eee;
+.enter{
+background:green;
+color:white;
 }
 
-/* BUTTON BASE */
-.action-btn {
-border: none;
-border-radius: 50%;
-width: 45px;
-height: 45px;
-font-size: 18px;
+/* MENU */
+.menu{
+position:fixed;
+left:-250px;
+top:0;
+width:250px;
+height:100%;
+background:white;
+transition:0.3s;
+padding:10px;
 }
 
-/* COLORS */
-.cancel-btn {
-background: #ccc;
+.menu.active{
+left:0;
 }
 
-.confirm-btn {
-background: #7d73e6;
-color: white;
+/* POPUP */
+.popup{
+position:fixed;
+bottom:-100%;
+width:100%;
+background:white;
+padding:15px;
+transition:0.3s;
 }
 
-.close-btn {
-background: #e53935;
-color: white;
-}
-.loterie-item {
-padding: 15px;
-font-size: 18px;
-border-bottom: 1px solid #eee;
-display: flex;
-justify-content: space-between;
-align-items: center;
+.popup.active{
+bottom:0;
 }
 
-.loterie-item.active {
-background: #e6e6ff;
-font-weight: bold;
-color: #4a4aff;
-}
-
-.checkmark {
-font-size: 18px;
-color: #4a4aff;
-}
-.loterie-list {
-max-height: 300px;
-overflow-y: auto;
-}
-.selected-loteries-line {
-min-height: 38px;
-padding: 6px 10px;
-box-sizing: border-box;
-font-size: 15px;
-line-height: 1.2;
-color: #222;
-background: #f0f0f0;
-word-break: break-word;
-}
-.tickets-list {
-display: none;
-background: #fff;
-}
-
-.ticket-row {
-display: flex;
-justify-content: space-between;
-padding: 6px 10px;
-border-bottom: 1px solid #ddd;
-font-weight: 600;
+.option{
+padding:15px;
+border-bottom:1px solid #ddd;
 }
 </style>
 </head>
+
 <body>
+
 <div class="topbar">
-<div class="left">☰</div>
-<div class="title">Vendeur</div>
-<div class="right">⋮</div>
+<div onclick="toggleMenu()">☰</div>
+<div>Vendeur</div>
+<div>
+<span class="icon" onclick="openPrint()">🖨️</span>
+<span class="icon" onclick="openOptions()">⋮</span>
+</div>
 </div>
 
-<div class="content">
-
-<div class="empty-zone">Pas de jeux</div>
-<div id="ticketsList" class="tickets-list"></div>
-<div class="summary-bar">
-<div></div>
-<div id="ticketCount">0</div>
-<div id="ticketTotal">0.00</div>
+<div class="display">
+<div id="numeroLine" class="line active">Numero</div>
+<div id="loterieLine" class="line">Loterie</div>
+<div id="montantLine" class="line">Montant</div>
 </div>
 
-<div id="selectedLoteriesLine" class="selected-loteries-line"></div>
-
-<div class="tabs">
-<div class="tab active" id="tabNumero" onclick="setField('numero')">
-<span id="numeroLabel">Numero</span>
-</div>
-<div class="tab" id="tabLoterie" onclick="setField('loterie')">
-<span id="loterieLabel">Loterie</span>
-</div>
-<div class="tab" id="tabMontant" onclick="setField('montant')">
-<span id="montantLabel">Montant</span>
-</div>
-</div>
+<div class="tickets" id="tickets"></div>
 
 <div class="keypad">
-<div class="key" onclick="pressKey('+')">+</div>
-<div class="key" onclick="pressKey('1')">1</div>
-<div class="key" onclick="pressKey('2')">2</div>
-<div class="key" onclick="pressKey('3')">3</div>
+<div class="key" onclick="press(1)">1</div>
+<div class="key" onclick="press(2)">2</div>
+<div class="key" onclick="press(3)">3</div>
 
-<div class="key" onclick="pressKey('-')">-</div>
-<div class="key" onclick="pressKey('4')">4</div>
-<div class="key" onclick="pressKey('5')">5</div>
-<div class="key" onclick="pressKey('6')">6</div>
+<div class="key" onclick="press(4)">4</div>
+<div class="key" onclick="press(5)">5</div>
+<div class="key" onclick="press(6)">6</div>
 
-<div class="key" onclick="pressKey('/')">/</div>
-<div class="key" onclick="pressKey('7')">7</div>
-<div class="key" onclick="pressKey('8')">8</div>
-<div class="key" onclick="pressKey('9')">9</div>
+<div class="key" onclick="press(7)">7</div>
+<div class="key" onclick="press(8)">8</div>
+<div class="key" onclick="press(9)">9</div>
 
-<div class="key" onclick="pressKey('.')">.</div>
-<div class="key" onclick="backspace()">⌫</div>
-<div class="key" onclick="pressKey('0')">0</div>
-<div class="key enter-key" onclick="addJeu()">ENTER</div>
-
+<div class="key" onclick="back()">⌫</div>
+<div class="key" onclick="press(0)">0</div>
+<div class="key enter" onclick="enter()">ENTER</div>
 </div>
 
+<div id="menu" class="menu">
+<div class="option">Tirages</div>
+<div class="option">Balance</div>
+<div class="option">Paramètres</div>
+<div class="option">Imprimante</div>
+<div class="option">Rapports</div>
+<div class="option">Copier</div>
+</div>
 
-<div class="bottom-nav">
-<div class="bottom-item active">
-<div class="icon">🎟️</div>
-<div>Billets</div>
+<div id="options" class="popup">
+<div class="option" onclick="deleteAll()">Supprimer tout</div>
+<div class="option">Traiter le jeu</div>
+<div class="option">Processus: Local</div>
 </div>
-<div class="bottom-item">
-<div class="icon">📄</div>
-<div>Copier</div>
-</div>
-<div class="bottom-item">
-<div class="icon">💵</div>
-<div>Payer</div>
-</div>
-<div class="bottom-item">
-<div class="icon">🖨️</div>
-<div>Rapports</div>
-</div>
-<div class="bottom-item">
-<div class="icon">☷</div>
-<div>Menu</div>
-</div>
-</div>
-</div>
+
 <script>
+let active="numero";
+let numero="";
+let loterie="Florida";
+let montant="";
+let jeux=[];
 
-let activeField = "numero";
-let numero = "";
-let loterie = "";
-let montant = "";
-let jeux = [];
-function setField(field) {
-activeField = field;
+function update(){
+document.getElementById("numeroLine").textContent=numero||"Numero";
+document.getElementById("loterieLine").textContent=loterie||"Loterie";
+document.getElementById("montantLine").textContent=montant||"Montant";
 
-document.getElementById("tabNumero").classList.remove("active");
-document.getElementById("tabLoterie").classList.remove("active");
-document.getElementById("tabMontant").classList.remove("active");
+document.getElementById("numeroLine").classList.remove("active");
+document.getElementById("loterieLine").classList.remove("active");
+document.getElementById("montantLine").classList.remove("active");
 
-if (field === "numero") {
-document.getElementById("tabNumero").classList.add("active");
+document.getElementById(active+"Line").classList.add("active");
+}
+
+function press(n){
+if(active==="numero"){numero+=n}
+if(active==="montant"){montant+=n}
+update();
+}
+
+function back(){
+if(active==="numero"){numero=numero.slice(0,-1)}
+if(active==="montant"){montant=montant.slice(0,-1)}
+update();
+}
+
+function enter(){
+if(active==="numero"){
+if(!numero)return;
+active="montant";
+update();
 return;
 }
 
-if (field === "loterie") {
-document.getElementById("tabLoterie").classList.add("active");
-return;
-}
+if(active==="montant"){
+if(!numero||!montant)return;
 
-if (field === "montant") {
-document.getElementById("tabMontant").classList.add("active");
-return;
-}
-}
-function handleCheck() {
-if (activeField === "numero") {
-if (!numero || numero.trim() === "") return;
-setField("loterie");
-return;
-}
+jeux.push({numero,loterie,montant});
+render();
 
-if (activeField === "loterie") {
-return;
-}
-
-if (activeField === "montant") {
-if (!montant || montant.trim() === "") return;
-alert("Montant valide");
-return;
-}
-}
-
-function pressKey(val) {
-if (activeField === "numero") {
-numero += val;
-document.getElementById("numeroLabel").textContent = numero || "Numero";
-return;
-}
-
-if (activeField === "loterie") {
-return;
-}
-
-if (activeField === "montant") {
-montant += val;
-document.getElementById("montantLabel").textContent = montant || "Montant";
+numero="";
+active="numero";
+update();
 return;
 }
 }
 
-function backspace() {
-if (activeField === "numero") {
-numero = numero.slice(0, -1);
-document.getElementById("numeroLabel").textContent = numero || "Numero";
-return;
+function render(){
+let div=document.getElementById("tickets");
+div.innerHTML="";
+
+jeux.forEach((j,i)=>{
+let el=document.createElement("div");
+el.className="ticket";
+el.innerHTML=j.numero+" - "+j.montant;
+
+el.onclick=()=>{
+if(confirm("Supprimer ?")){
+jeux.splice(i,1);
+render();
 }
-
-if (activeField === "loterie") {
-return;
-}
-
-if (activeField === "montant") {
-montant = montant.slice(0, -1);
-document.getElementById("montantLabel").textContent = montant || "Montant";
-return;
-}
-}
-
-function confirmLoterie() {
-if (!selectedLoteries || selectedLoteries.length === 0) return;
-
-loterie = selectedLoteries.join(", ");
-document.getElementById("selectedLoteriesLine").textContent = loterie;
-document.getElementById("loterieModal").style.display = "none";
-setField("montant");
-}
-
-function openLoterieModal() {
-renderLoterieList();
-document.getElementById("loterieModal").style.display = "flex";
-}
-
-function closeLoterieModal() {
-document.getElementById("loterieModal").style.display = "none";
-}
-const loterieOptions = [
-{ name: "TENNESSE MORNING", time: "10:00 AM" },
-{ name: "TEXAS MORNING", time: "11:00 AM" },
-{ name: "TEXAS EVENING", time: "6:00 PM" },
-{ name: "GEORGIA MIDDAY", time: "12:30 PM" },
-{ name: "FLORIDA MIDDAY", time: "1:00 PM" },
-{ name: "NEW YORK MIDDAY", time: "2:30 PM" },
-{ name: "GEORGIA EVENING", time: "6:50 PM" },
-{ name: "TENNESSE EVENING", time: "7:00 PM" },
-{ name: "FLORIDA EVENING", time: "9:30 PM" },
-{ name: "NEW YORK EVENING", time: "10:25 PM" },
-{ name: "GEORGIA NIGHT", time: "11:15 PM" }
-];
-
-let selectedLoteries = [];
-
-
-function renderLoterieList() {
-const list = document.getElementById("loterieList");
-list.innerHTML = "";
-
-loterieOptions.forEach(item => {
-const div = document.createElement("div");
-div.className = "loterie-item";
-
-if (selectedLoteries.includes(item.name)) {
-div.classList.add("active");
-}
-
-const span1 = document.createElement("span");
-span1.textContent = item.name;
-
-const spanTime = document.createElement("span");
-spanTime.textContent = item.time;
-spanTime.style.fontSize = "14px";
-spanTime.style.color = "gray";
-
-const check = document.createElement("span");
-if (selectedLoteries.includes(item.name)) {
-check.textContent = "✔";
-check.className = "checkmark";
-} else {
-check.textContent = "";
-}
-
-const rightBox = document.createElement("div");
-rightBox.style.display = "flex";
-rightBox.style.alignItems = "center";
-rightBox.style.gap = "10px";
-rightBox.appendChild(spanTime);
-rightBox.appendChild(check);
-
-div.appendChild(span1);
-div.appendChild(rightBox);
-
-div.onclick = () => {
-if (selectedLoteries.includes(item.name)) {
-selectedLoteries = selectedLoteries.filter(l => l !== item.name);
-} else {
-selectedLoteries.push(item.name);
-}
-renderLoterieList();
 };
 
-list.appendChild(div);
+div.appendChild(el);
 });
 }
 
-
-
-
-function renderJeux() {
-const emptyZone = document.querySelector(".empty-zone");
-const ticketsList = document.getElementById("ticketsList");
-
-if (!jeux || jeux.length === 0) {
-emptyZone.style.display = "flex";
-ticketsList.style.display = "none";
-ticketsList.innerHTML = "";
-return;
+function toggleMenu(){
+document.getElementById("menu").classList.toggle("active");
 }
 
-emptyZone.style.display = "none";
-ticketsList.style.display = "block";
-ticketsList.innerHTML = "";
-
-for (let i = 0; i < jeux.length; i++) {
-const row = document.createElement("div");
-row.className = "ticket-row";
-
-const col1 = document.createElement("span");
-col1.textContent = jeux[i].numero;
-
-const col2 = document.createElement("span");
-col2.textContent = jeux[i].loterie;
-
-const col3 = document.createElement("span");
-col3.textContent = jeux[i].montant.toFixed(2);
-
-row.appendChild(col1);
-row.appendChild(col2);
-row.appendChild(col3);
-
-ticketsList.appendChild(row);
-}
+function openOptions(){
+document.getElementById("options").classList.toggle("active");
 }
 
-function addJeu() {
-
-// SI LI SOU NUMERO
-if (activeField === "numero") {
-if (!numero || numero.trim() === "") return;
-
-const n = numero.trim();
-if (n.length < 2 || n.length > 5) return;
-
-if (loterie && loterie.trim() !== "") {
-activeField = "montant";
-document.getElementById("tabNumero").classList.remove("active");
-document.getElementById("tabLoterie").classList.remove("active");
-document.getElementById("tabMontant").classList.add("active");
-} else {
-activeField = "loterie";
-document.getElementById("tabNumero").classList.remove("active");
-document.getElementById("tabMontant").classList.remove("active");
-document.getElementById("tabLoterie").classList.add("active");
-openLoterieModal();
+function deleteAll(){
+jeux=[];
+render();
 }
 
-return;
+function openPrint(){
+window.print();
 }
 
-// SI LI SOU LOTERIE
-if (activeField === "loterie") {
-return;
-}
-
-// SI LI SOU MONTANT
-if (activeField === "montant") {
-if (!numero || !loterie || !montant) return;
-
-const n = numero.trim();
-if (n.length < 2 || n.length > 5) return;
-
-jeux.push({
-numero: numero,
-loterie: loterie,
-montant: parseFloat(montant)
-});
-
-renderJeux();
-updateTopActions();
-
-// reset numero sèlman
-numero = "";
-document.getElementById("numeroLabel").textContent = "Numero";
-
-// retounen sou numero
-activeField = "numero";
-document.getElementById("tabNumero").classList.add("active");
-document.getElementById("tabLoterie").classList.remove("active");
-document.getElementById("tabMontant").classList.remove("active");
-
-return;
-}
-}
+update();
 </script>
-<div id="loterieModal" class="loterie-modal">
-<div class="loterie-box">
-<div class="loterie-list" id="loterieList"></div>
 
-<div class="loterie-actions">
-<button class="action-btn cancel-btn" onclick="cancelLoterie()">🚫</button>
-<button class="action-btn confirm-btn" onclick="confirmLoterie()">✅</button>
-<button class="action-btn close-btn" onclick="closeLoterieModal()">✖️</button>
-</div>
-</div>
-</div>
 </body>
 </html>
 `);

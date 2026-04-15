@@ -181,108 +181,150 @@ res.send(`
 <title>POS</title>
 
 <style>
+*{
+box-sizing:border-box;
+}
+
 body{
 margin:0;
-font-family:Arial;
-background:#f2f4f8;
+font-family:Arial, sans-serif;
+background:#efeff4;
 }
 
-/* TOPBAR */
 .topbar{
-background:#0b3c8c;
-color:white;
+height:64px;
+background:#1f4aa8;
+color:#fff;
 display:flex;
+align-items:center;
 justify-content:space-between;
-padding:10px;
+padding:0 14px;
 }
 
-.icon{cursor:pointer;margin-left:10px}
+.topbar .left,
+.topbar .right{
+width:70px;
+display:flex;
+align-items:center;
+gap:12px;
+font-size:24px;
+}
 
-/* DISPLAY */
+.topbar .title{
+flex:1;
+text-align:center;
+font-size:24px;
+font-weight:600;
+}
+
 .display{
-background:white;
-padding:15px;
+padding:18px 16px 10px 16px;
+background:#efeff4;
 }
 
 .line{
-font-size:22px;
-margin:8px 0;
+font-size:28px;
+margin:14px 0;
+color:#111;
 }
 
 .active{
 color:red;
 }
 
-/* LIST */
 .tickets{
-padding:10px;
+background:#f3f4f8;
+min-height:280px;
+margin:6px 16px 0 16px;
+border-radius:2px;
+overflow:auto;
+}
+
+.empty-zone{
+height:280px;
+display:flex;
+align-items:center;
+justify-content:center;
+color:#999;
+font-size:26px;
+font-weight:600;
 }
 
 .ticket{
-background:white;
-padding:10px;
-margin-bottom:5px;
+background:#fff;
+border-bottom:1px solid #ddd;
+padding:10px 14px;
 display:flex;
 justify-content:space-between;
+font-size:24px;
 }
 
-/* KEYPAD */
 .keypad{
 position:fixed;
+left:0;
+right:0;
 bottom:0;
-width:100%;
+background:#efeff4;
+padding:8px 8px 12px 8px;
 display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:5px;
-padding:10px;
+grid-template-columns:repeat(3, 1fr);
+gap:8px;
 }
 
 .key{
-background:white;
-padding:20px;
-text-align:center;
-font-size:22px;
-border-radius:5px;
+background:#fff;
+border-radius:6px;
+min-height:92px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:30px;
+border:1px solid #e3e3e3;
 }
 
 .enter{
 background:green;
-color:white;
+color:#fff;
+font-size:26px;
+font-weight:600;
 }
 
-/* MENU */
 .menu{
 position:fixed;
-left:-250px;
 top:0;
-width:250px;
+left:-260px;
+width:260px;
 height:100%;
-background:white;
-transition:0.3s;
-padding:10px;
+background:#fff;
+transition:.25s;
+z-index:50;
+padding-top:70px;
+box-shadow:2px 0 10px rgba(0,0,0,.15);
 }
 
 .menu.active{
 left:0;
 }
 
-/* POPUP */
+.option{
+padding:16px 18px;
+border-bottom:1px solid #eee;
+font-size:22px;
+}
+
 .popup{
 position:fixed;
-bottom:-100%;
-width:100%;
-background:white;
-padding:15px;
-transition:0.3s;
+left:0;
+right:0;
+bottom:-260px;
+background:#fff;
+transition:.25s;
+z-index:60;
+box-shadow:0 -2px 10px rgba(0,0,0,.15);
 }
 
 .popup.active{
 bottom:0;
-}
-
-.option{
-padding:15px;
-border-bottom:1px solid #ddd;
 }
 </style>
 </head>
@@ -290,11 +332,13 @@ border-bottom:1px solid #ddd;
 <body>
 
 <div class="topbar">
-<div onclick="toggleMenu()">☰</div>
-<div>Vendeur</div>
-<div>
-<span class="icon" onclick="openPrint()">🖨️</span>
-<span class="icon" onclick="openOptions()">⋮</span>
+<div class="left">
+<span onclick="toggleMenu()">☰</span>
+</div>
+<div class="title">Vendeur</div>
+<div class="right">
+<span onclick="openPrint()">🖨️</span>
+<span onclick="openOptions()">⋮</span>
 </div>
 </div>
 
@@ -304,7 +348,10 @@ border-bottom:1px solid #ddd;
 <div id="montantLine" class="line">Montant</div>
 </div>
 
-<div class="tickets" id="tickets"></div>
+<div class="tickets" id="tickets">
+<div class="empty-zone" id="emptyZone">Pas de jeux</div>
+</div>
+
 
 <div class="keypad">
 <div class="key" onclick="press(1)">1</div>
@@ -392,17 +439,26 @@ return;
 }
 
 function render(){
-let div=document.getElementById("tickets");
-div.innerHTML="";
+let div = document.getElementById("tickets");
+div.innerHTML = "";
 
-jeux.forEach((j,i)=>{
-let el=document.createElement("div");
-el.className="ticket";
-el.innerHTML=j.numero+" - "+j.montant;
+if(jeux.length === 0){
+div.innerHTML = '<div class="empty-zone" id="emptyZone">Pas de jeux</div>';
+return;
+}
 
-el.onclick=()=>{
+jeux.forEach(function(j, i){
+let el = document.createElement("div");
+el.className = "ticket";
+
+el.innerHTML =
+"<span>" + j.numero + "</span>" +
+"<span>" + j.loterie + "</span>" +
+"<span>" + j.montant + "</span>";
+
+el.onclick = function(){
 if(confirm("Supprimer ?")){
-jeux.splice(i,1);
+jeux.splice(i, 1);
 render();
 }
 };
@@ -410,6 +466,7 @@ render();
 div.appendChild(el);
 });
 }
+
 
 function toggleMenu(){
 document.getElementById("menu").classList.toggle("active");

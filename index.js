@@ -471,16 +471,28 @@ var loteries = [
 
 function updateFields(){
 document.getElementById("numeroLine").textContent = numero || "Numero";
-document.getElementById("loterieLine").textContent = selectedLoteries.length ? "Loterie" : "Loterie";
+document.getElementById("loterieLine").textContent = "Loterie";
 document.getElementById("montantLine").textContent = montant || "Montant";
 
 document.getElementById("numeroLine").classList.remove("active");
 document.getElementById("loterieLine").classList.remove("active");
 document.getElementById("montantLine").classList.remove("active");
 
-if(activeField === "numero") document.getElementById("numeroLine").classList.add("active");
-if(activeField === "loterie") document.getElementById("loterieLine").classList.add("active");
-if(activeField === "montant") document.getElementById("montantLine").classList.add("active");
+var left = "1%";
+if(activeField === "numero"){
+document.getElementById("numeroLine").classList.add("active");
+left = "1%";
+}
+if(activeField === "loterie"){
+document.getElementById("loterieLine").classList.add("active");
+left = "34.5%";
+}
+if(activeField === "montant"){
+document.getElementById("montantLine").classList.add("active");
+left = "68%";
+}
+
+document.getElementById("activeLine").style.left = left;
 
 document.getElementById("selectedLoteriesLine").textContent = selectedLoteries.length
 ? selectedLoteries.join(", ")

@@ -206,16 +206,18 @@ height:calc(100vh - 60px - 58px - 384px);
 display:flex;
 flex-direction:column;
 overflow:hidden;
+background:#efeff4;
 }
 
 .tickets{
 flex:1;
+background:#efeff4;
 display:flex;
 align-items:center;
 justify-content:center;
 color:#aaa;
 font-size:22px;
-overflow:hidden;
+overflow:auto;
 }
 
 .summary{
@@ -230,24 +232,27 @@ font-weight:bold;
 }
 
 .fields{
-display:flex;
-border-top:1px solid #ccc;
+height:58px;
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+align-items:end;
 background:#f7f7f7;
+border-top:1px solid #ccc;
 }
 
 .field{
-flex:1;
 text-align:center;
-padding:10px 6px;
-border-bottom:3px solid transparent;
+padding:8px 6px 10px 6px;
+border-bottom:3px solid #6b78ff;
 font-size:18px;
 color:#888;
+cursor:pointer;
+user-select:none;
 }
 
 .field.active{
-border-bottom:3px solid #4b5cff;
-color:black;
-font-weight:bold;
+color:#111;
+font-weight:700;
 }
 
 .keypad{
@@ -263,6 +268,7 @@ background:#ddd;
 }
 
 .key{
+height:96px;
 border:1px solid #c8c8c8;
 display:flex;
 justify-content:center;
@@ -272,9 +278,9 @@ background:#f7f7f7;
 }
 
 .enter{
-background:linear-gradient(#dfe7ea, #cfd8dc);
-color:#111;
-font-size:34px;
+background:#2e7d1a;
+color:white;
+font-size:20px;
 font-weight:bold;
 }
 
@@ -290,6 +296,46 @@ justify-content:space-around;
 align-items:center;
 font-size:14px;
 border-top:1px solid #d3d3d3;
+}
+
+.loterie-modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.35);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:1000;
+}
+
+.loterie-box{
+width:90%;
+max-width:420px;
+max-height:70vh;
+overflow:auto;
+background:#fff;
+border-radius:10px;
+padding:12px;
+}
+
+.loterie-item{
+padding:14px 12px;
+border-bottom:1px solid #eee;
+font-size:18px;
+}
+
+.loterie-actions{
+display:flex;
+justify-content:flex-end;
+gap:10px;
+padding-top:10px;
+}
+
+.action-btn{
+padding:10px 14px;
+border:none;
+border-radius:8px;
+font-size:16px;
 }
 </style>
 </head>
@@ -311,9 +357,9 @@ border-top:1px solid #d3d3d3;
 </div>
 
 <div class="fields">
-<div id="numeroLine" class="field active">Numero</div>
-<div id="loterieLine" class="field">Loterie</div>
-<div id="montantLine" class="field">Montant</div>
+<div id="numeroLine" class="field active" onclick="setField('numero')">Numero</div>
+<div id="loterieLine" class="field" onclick="setField('loterie')">Loterie</div>
+<div id="montantLine" class="field" onclick="setField('montant')">Montant</div>
 </div>
 </div>
 
@@ -346,6 +392,22 @@ border-top:1px solid #d3d3d3;
 <div>Rapports</div>
 <div>Menu</div>
 </div>
+
+<div id="loterieModal" class="loterie-modal">
+<div class="loterie-box">
+<div class="loterie-item" onclick="chooseLoterie('Florida')">Florida</div>
+<div class="loterie-item" onclick="chooseLoterie('New York Evening')">New York Evening</div>
+<div class="loterie-item" onclick="chooseLoterie('Georgia Midday')">Georgia Midday</div>
+<div class="loterie-item" onclick="chooseLoterie('Georgia Evening')">Georgia Evening</div>
+<div class="loterie-item" onclick="chooseLoterie('Anguilla 10:00 AM')">Anguilla 10:00 AM</div>
+<div class="loterie-item" onclick="chooseLoterie('Anguilla 01:00 PM')">Anguilla 01:00 PM</div>
+
+<div class="loterie-actions">
+<button class="action-btn" onclick="closeLoterieModal()">Fermer</button>
+</div>
+</div>
+</div>
+
 
 <script>
 let numero="";
@@ -416,7 +478,42 @@ div.appendChild(el);
 document.getElementById("count").textContent=jeux.length;
 document.getElementById("total").textContent=total.toFixed(2);
 }
+function setField(field){
+active = field;
 
+if(field === "loterie"){
+openLoterieModal();
+}
+
+update();
+}
+
+function openLoterieModal(){
+document.getElementById("loterieModal").style.display = "flex";
+}
+
+function closeLoterieModal(){
+document.getElementById("loterieModal").style.display = "none";
+}
+
+function chooseLoterie(name){
+loterie = name;
+active = "montant";
+closeLoterieModal();
+update();
+}
+
+function update(){
+document.getElementById("numeroLine").textContent = numero || "Numero";
+document.getElementById("loterieLine").textContent = loterie || "Loterie";
+document.getElementById("montantLine").textContent = montant || "Montant";
+
+document.getElementById("numeroLine").classList.remove("active");
+document.getElementById("loterieLine").classList.remove("active");
+document.getElementById("montantLine").classList.remove("active");
+
+document.getElementById(active + "Line").classList.add("active");
+}
 update();
 </script>
 

@@ -182,72 +182,127 @@ res.send(`
 <title>Vendeur</title>
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:#efeff4;
-overflow:hidden;
-height:100vh;
+*{
+box-sizing:border-box;
 }
 
+html, body{
+margin:0;
+padding:0;
+width:100%;
+height:100%;
+font-family:Arial, sans-serif;
+background:#efeff4;
+overflow:hidden;
+}
+
+body{
+display:flex;
+flex-direction:column;
+}
+
+/* TOPBAR */
 .topbar{
 height:60px;
+min-height:60px;
 background:#2f4ea2;
-color:white;
+color:#fff;
 display:flex;
 align-items:center;
 justify-content:space-between;
-padding:0 15px;
+padding:0 16px;
 font-size:20px;
 }
 
-.display{
-height:calc(100vh - 60px - 58px - 384px);
-display:flex;
-flex-direction:column;
-overflow:hidden;
-background:#efeff4;
+.topbar .title{
+flex:1;
+text-align:center;
+font-size:24px;
+font-weight:600;
 }
 
+.topbar .side{
+width:60px;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+/* MAIN */
+.main{
+flex:1;
+display:flex;
+flex-direction:column;
+min-height:0;
+}
+
+/* TICKETS ZONE */
 .tickets{
 flex:1;
+min-height:120px;
 background:#efeff4;
+overflow:auto;
+display:flex;
+flex-direction:column;
+}
+
+.empty-zone{
+flex:1;
 display:flex;
 align-items:center;
 justify-content:center;
 color:#aaa;
 font-size:22px;
-overflow:auto;
 }
 
+.ticket{
+display:grid;
+grid-template-columns:1fr 1.4fr .8fr;
+gap:8px;
+align-items:center;
+background:#fff;
+border-bottom:1px solid #ddd;
+padding:8px 12px;
+font-size:22px;
+font-weight:600;
+}
+
+/* SUMMARY */
 .summary{
-height:40px;
+height:42px;
+min-height:42px;
 background:#dfe3ff;
 display:flex;
-justify-content:space-between;
-padding:0 15px;
 align-items:center;
-font-size:20px;
-font-weight:bold;
+justify-content:space-between;
+padding:0 16px;
+font-size:18px;
+font-weight:700;
 }
 
+/* FIELDS */
 .fields{
-height:58px;
+height:56px;
+min-height:56px;
 display:grid;
 grid-template-columns:1fr 1fr 1fr;
-align-items:end;
 background:#f7f7f7;
 border-top:1px solid #ccc;
 }
 
 .field{
-text-align:center;
-padding:8px 6px 10px 6px;
-border-bottom:3px solid #6b78ff;
+display:flex;
+align-items:flex-end;
+justify-content:center;
+padding:0 6px 10px 6px;
 font-size:18px;
 color:#888;
+border-bottom:3px solid #6b78ff;
 cursor:pointer;
 user-select:none;
+overflow:hidden;
+white-space:nowrap;
+text-overflow:ellipsis;
 }
 
 .field.active{
@@ -255,49 +310,51 @@ color:#111;
 font-weight:700;
 }
 
+/* KEYPAD */
 .keypad{
-position:fixed;
-bottom:58px;
-left:0;
-right:0;
-height:384px;
 display:grid;
-grid-template-columns:repeat(4,1fr);
-grid-template-rows:repeat(4,1fr);
+grid-template-columns:repeat(4, 1fr);
+grid-template-rows:repeat(4, minmax(64px, 11vh));
 background:#ddd;
+border-top:1px solid #cfcfcf;
 }
 
 .key{
-height:96px;
+background:#f7f7f7;
 border:1px solid #c8c8c8;
 display:flex;
-justify-content:center;
 align-items:center;
-font-size:26px;
-background:#f7f7f7;
+justify-content:center;
+font-size:clamp(22px, 3vw, 34px);
+color:#000;
 }
 
 .enter{
 background:#2e7d1a;
-color:white;
-font-size:20px;
-font-weight:bold;
+color:#fff;
+font-size:clamp(18px, 2.4vw, 28px);
+font-weight:700;
 }
 
+/* BOTTOM NAV */
 .nav{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
 height:58px;
+min-height:58px;
 background:#f3f1ff;
-display:flex;
-justify-content:space-around;
-align-items:center;
-font-size:14px;
 border-top:1px solid #d3d3d3;
+display:grid;
+grid-template-columns:repeat(5, 1fr);
+align-items:center;
+text-align:center;
+font-size:14px;
 }
 
+.nav .active{
+color:#7c6cf2;
+font-weight:700;
+}
+
+/* LOTERIE MODAL */
 .loterie-modal{
 position:fixed;
 inset:0;
@@ -309,8 +366,7 @@ z-index:1000;
 }
 
 .loterie-box{
-width:90%;
-max-width:420px;
+width:min(420px, 92vw);
 max-height:70vh;
 overflow:auto;
 background:#fff;
@@ -337,19 +393,75 @@ border:none;
 border-radius:8px;
 font-size:16px;
 }
+
+/* MENU */
+.menu{
+position:fixed;
+top:0;
+left:-260px;
+width:260px;
+height:100%;
+background:#fff;
+transition:.25s;
+z-index:1100;
+padding-top:70px;
+box-shadow:2px 0 10px rgba(0,0,0,.15);
+}
+
+.menu.active{
+left:0;
+}
+
+.option{
+padding:16px 18px;
+border-bottom:1px solid #eee;
+font-size:20px;
+}
+
+.popup{
+position:fixed;
+left:0;
+right:0;
+bottom:-260px;
+background:#fff;
+transition:.25s;
+z-index:1200;
+box-shadow:0 -2px 10px rgba(0,0,0,.15);
+}
+
+.popup.active{
+bottom:0;
+}
+
+/* LAPTOP / LARGE SCREEN */
+@media (min-width: 900px){
+body{
+max-width:500px;
+margin:0 auto;
+border-left:1px solid #ddd;
+border-right:1px solid #ddd;
+background:#efeff4;
+}
+
+.keypad{
+grid-template-rows:repeat(4, 90px);
+}
+}
 </style>
 </head>
 
 <body>
 
 <div class="topbar">
-<div>☰</div>
-<div>Vendeur</div>
-<div>⋮</div>
+<div class="side" onclick="toggleMenu()">☰</div>
+<div class="title">Vendeur</div>
+<div class="side" onclick="openOptions()">⋮</div>
 </div>
 
-<div class="display">
-<div id="tickets" class="tickets">Pas de jeux</div>
+<div class="main">
+<div id="tickets" class="tickets">
+<div class="empty-zone">Pas de jeux</div>
+</div>
 
 <div class="summary">
 <div id="count">0</div>
@@ -360,7 +472,6 @@ font-size:16px;
 <div id="numeroLine" class="field active" onclick="setField('numero')">Numero</div>
 <div id="loterieLine" class="field" onclick="setField('loterie')">Loterie</div>
 <div id="montantLine" class="field" onclick="setField('montant')">Montant</div>
-</div>
 </div>
 
 <div class="keypad">
@@ -386,11 +497,28 @@ font-size:16px;
 </div>
 
 <div class="nav">
-<div>Billets</div>
+<div class="active">Billets</div>
 <div>Copier</div>
 <div>Payer</div>
 <div>Rapports</div>
 <div>Menu</div>
+</div>
+</div>
+
+<div id="menu" class="menu">
+<div class="option">Tirages</div>
+<div class="option">Balance</div>
+<div class="option">Paramètres</div>
+<div class="option">Imprimante</div>
+<div class="option">Update</div>
+<div class="option">Sortir</div>
+</div>
+
+<div id="options" class="popup">
+<div class="option" onclick="deleteAll()">Supprimer</div>
+<div class="option">Traiter le jeu</div>
+<div class="option">Processus local</div>
+<div class="option">Processus en ligne</div>
 </div>
 
 <div id="loterieModal" class="loterie-modal">
@@ -407,6 +535,8 @@ font-size:16px;
 </div>
 </div>
 </div>
+
+</body>
 
 
 <script>

@@ -715,13 +715,26 @@ function closeOptions(){
 document.getElementById("optionsSheet").classList.remove("open");
 }
 
-function deleteAllGames(){
-jeux = [];
-closeOptions();
-document.getElementById("overlay").classList.remove("show");
+function addGame(){
+if(!numero.trim()) return;
+if(!montant.trim()) return;
+if(selectedLoteries.length === 0) return;
+
+selectedLoteries.forEach(function(lot){
+jeux.push({
+type: "Borlette",
+numero: numero.trim(),
+loterie: lot,
+montant: parseFloat(montant) || 0
+});
+});
+
+numero = "";
+activeField = "numero";
 renderJeux();
 updateFields();
 }
+
 
 renderJeux();
 updateFields();

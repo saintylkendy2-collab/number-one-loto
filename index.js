@@ -569,7 +569,7 @@ font-weight: 600;
 <div class="key" onclick="pressKey('.')">.</div>
 <div class="key" onclick="backspace()">⌫</div>
 <div class="key" onclick="pressKey('0')">0</div>
-<div class="key" onclick="addJeu()">ENTER</div>
+<div class="key enter-key" onclick="addJeu()">ENTER</div>
 
 </div>
 
@@ -807,23 +807,47 @@ ticketsList.appendChild(row);
 }
 
 function addJeu() {
+// si nou sou Numero
 if (activeField === "numero") {
 if (!numero || numero.trim() === "") return;
 
+const n = numero.trim();
+
+// numero dwe gen ant 2 ak 5 chif
+if (n.length < 2 || n.length > 5) return;
+
+// si loterie deja chwazi, ale sou montant
 if (loterie && loterie.trim() !== "") {
-setField("montant");
+activeField = "montant";
+
+document.getElementById("tabNumero").classList.remove("active");
+document.getElementById("tabLoterie").classList.remove("active");
+document.getElementById("tabMontant").classList.add("active");
 } else {
-setField("loterie");
+activeField = "loterie";
+
+document.getElementById("tabNumero").classList.remove("active");
+document.getElementById("tabMontant").classList.remove("active");
+document.getElementById("tabLoterie").classList.add("active");
+
+openLoterieModal();
 }
 return;
 }
 
+// si nou sou Loterie
 if (activeField === "loterie") {
 return;
 }
 
+// si nou sou Montant
 if (activeField === "montant") {
 if (!numero || !loterie || !montant) return;
+
+const n = numero.trim();
+
+// numero dwe gen ant 2 ak 5 chif
+if (n.length < 2 || n.length > 5) return;
 
 jeux.push({
 numero: numero,
@@ -834,15 +858,16 @@ montant: parseFloat(montant)
 renderJeux();
 updateTopActions();
 
-// reset sèlman numero ak montant
+// reset numero sèlman
 numero = "";
-montant = "";
-
 document.getElementById("numeroLabel").textContent = "Numero";
-document.getElementById("montantLabel").textContent = "Montant";
 
-// fòse retounen sou numero
+// montant rete menm jan
+document.getElementById("montantLabel").textContent = montant;
+
+// loterie rete menm jan
 activeField = "numero";
+
 document.getElementById("tabNumero").classList.add("active");
 document.getElementById("tabLoterie").classList.remove("active");
 document.getElementById("tabMontant").classList.remove("active");
@@ -850,6 +875,7 @@ document.getElementById("tabMontant").classList.remove("active");
 return;
 }
 }
+
 
 </script>
 <div id="loterieModal" class="loterie-modal">

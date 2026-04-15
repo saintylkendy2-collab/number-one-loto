@@ -807,7 +807,6 @@ ticketsList.appendChild(row);
 }
 
 function addJeu() {
-// SI LI SOU NUMERO
 if (activeField === "numero") {
 if (!numero || numero.trim() === "") return;
 
@@ -816,28 +815,23 @@ if (n.length < 2 || n.length > 5) return;
 
 if (loterie && loterie.trim() !== "") {
 activeField = "montant";
-
 document.getElementById("tabNumero").classList.remove("active");
 document.getElementById("tabLoterie").classList.remove("active");
 document.getElementById("tabMontant").classList.add("active");
 } else {
 activeField = "loterie";
-
 document.getElementById("tabNumero").classList.remove("active");
 document.getElementById("tabMontant").classList.remove("active");
 document.getElementById("tabLoterie").classList.add("active");
-
 openLoterieModal();
 }
 return;
 }
 
-// SI LI SOU LOTERIE
 if (activeField === "loterie") {
 return;
 }
 
-// SI LI SOU MONTANT
 if (activeField === "montant") {
 if (!numero || !loterie || !montant) return;
 
@@ -853,16 +847,15 @@ montant: parseFloat(montant)
 renderJeux();
 updateTopActions();
 
-// RESET NUMERO SELMAN
+// reset numero sèlman
 numero = "";
 document.getElementById("numeroLabel").textContent = "Numero";
 
-// MONTANT RETE MENM JAN
+// montant rete menm jan
 document.getElementById("montantLabel").textContent = montant;
 
-// RETOUNEN SOU NUMERO
+// tounen sou numero
 activeField = "numero";
-
 document.getElementById("tabNumero").classList.add("active");
 document.getElementById("tabLoterie").classList.remove("active");
 document.getElementById("tabMontant").classList.remove("active");

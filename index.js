@@ -511,12 +511,16 @@ updateFields();
 
 function handleEnter(){
 if(activeField === "numero"){
-if(!numero.trim()){
-return;
-}
+if(!numero.trim()) return;
+
+if(selectedLoteries.length > 0){
+activeField = "montant";
+updateFields();
+}else{
 activeField = "loterie";
 updateFields();
 openLoterieModal();
+}
 return;
 }
 

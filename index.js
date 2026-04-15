@@ -841,8 +841,13 @@ montant = "";
 document.getElementById("numeroLabel").textContent = "Numero";
 document.getElementById("montantLabel").textContent = "Montant";
 
-// loterie a rete menm jan
-setField("numero");
+// fòse retounen sou numero
+activeField = "numero";
+document.getElementById("tabNumero").classList.add("active");
+document.getElementById("tabLoterie").classList.remove("active");
+document.getElementById("tabMontant").classList.remove("active");
+
+return;
 }
 }
 

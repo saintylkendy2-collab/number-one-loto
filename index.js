@@ -849,6 +849,9 @@ document.getElementById("montantLabel").textContent = montant;
 // tounen sou numero
 setField("numero");
 
+return;
+}
+
 </script>
 <div id="loterieModal" class="loterie-modal">
 <div class="loterie-box">

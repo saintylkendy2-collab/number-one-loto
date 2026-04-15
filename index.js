@@ -115,9 +115,15 @@ padding:0 14px;
 font-size:20px;
 font-weight:700;
 }
+
+.summary-bar div:first-child{
+text-align:center;
+}
+
 .summary-bar div:last-child{
 text-align:right;
 }
+
 .selected-loteries-line{
 min-height:42px;
 background:#f2f2f2;
@@ -139,7 +145,9 @@ display:grid;
 grid-template-columns:1fr 1fr 1fr;
 align-items:end;
 background:#f7f7f7;
+position:relative;
 }
+
 .field{
 height:100%;
 display:flex;
@@ -148,39 +156,32 @@ justify-content:center;
 padding:0 8px 10px 8px;
 font-size:18px;
 color:#8f8f8f;
-position:relative;
 overflow:hidden;
 white-space:nowrap;
 text-overflow:ellipsis;
 cursor:pointer;
 user-select:none;
+font-weight:500;
 }
-.field::after{
-content:"";
-position:absolute;
-left:8px;
-right:8px;
-bottom:0;
-height:3px;
-background:#5a6df0;
-}
+
 .field.active{
 color:#111;
 font-weight:700;
 }
-.field.active::before{
-content:"";
+
+.active-line{
 position:absolute;
-left:42%;
-bottom:4px;
-width:2px;
-height:28px;
-background:#ff4f86;
-border-radius:2px;
+bottom:0;
+height:3px;
+width:31%;
+background:#5a6df0;
+left:1%;
+transition:left .2s ease;
 }
+
 .keypad{
-height:384px;
-min-height:384px;
+height:340px;
+min-height:340px;
 display:grid;
 grid-template-columns:repeat(4,1fr);
 grid-template-rows:repeat(4,1fr);
@@ -203,8 +204,8 @@ font-size:26px;
 font-weight:700;
 }
 .bottom-nav{
-height:58px;
-min-height:58px;
+height:54px;
+min-height:54px;
 background:#f3f1ff;
 border-top:1px solid #d8d8d8;
 display:grid;
@@ -378,11 +379,14 @@ border-right:1px solid #ddd;
 
 <div id="selectedLoteriesLine" class="selected-loteries-line"></div>
 
+
 <div class="fields">
 <div id="numeroLine" class="field active" onclick="setField('numero')">Numero</div>
 <div id="loterieLine" class="field" onclick="setField('loterie')">Loterie</div>
 <div id="montantLine" class="field" onclick="setField('montant')">Montant</div>
+<div id="activeLine" class="active-line"></div>
 </div>
+
 
 <div class="keypad">
 <div class="key" onclick="press('+')">+</div>
@@ -463,25 +467,38 @@ var loteries = [
 { name: "LA SUERTE NOCHE", sub: "6 heures 15 minutes", time: "5:50 PM" },
 { name: "ANGUILLA 6:00 PM", sub: "6 heures 15 minutes", time: "5:50 PM" },
 { name: "GEORGIA EVENING", sub: "7 heures 15 minutes", time: "6:50 PM" }
-];
-
 function updateFields(){
 document.getElementById("numeroLine").textContent = numero || "Numero";
-document.getElementById("loterieLine").textContent = selectedLoteries.length ? "Loterie" : "Loterie";
+document.getElementById("loterieLine").textContent = "Loterie";
 document.getElementById("montantLine").textContent = montant || "Montant";
 
 document.getElementById("numeroLine").classList.remove("active");
 document.getElementById("loterieLine").classList.remove("active");
 document.getElementById("montantLine").classList.remove("active");
 
-if(activeField === "numero") document.getElementById("numeroLine").classList.add("active");
-if(activeField === "loterie") document.getElementById("loterieLine").classList.add("active");
-if(activeField === "montant") document.getElementById("montantLine").classList.add("active");
+var left = "1%";
+if(activeField === "numero"){
+document.getElementById("numeroLine").classList.add("active");
+left = "1%";
+}
+if(activeField === "loterie"){
+document.getElementById("loterieLine").classList.add("active");
+left = "34.5%";
+}
+if(activeField === "montant"){
+document.getElementById("montantLine").classList.add("active");
+left = "68%";
+}
+
+document.getElementById("activeLine").style.left = left;
 
 document.getElementById("selectedLoteriesLine").textContent = selectedLoteries.length
 ? selectedLoteries.join(", ")
 : "";
 }
+];
+
+
 
 function setField(field){
 activeField = field;
@@ -511,12 +528,16 @@ updateFields();
 
 function handleEnter(){
 if(activeField === "numero"){
-if(!numero.trim()){
-return;
-}
+if(!numero.trim()) return;
+
+if(selectedLoteries.length > 0){
+activeField = "montant";
+updateFields();
+}else{
 activeField = "loterie";
 updateFields();
 openLoterieModal();
+}
 return;
 }
 
@@ -529,6 +550,7 @@ if(activeField === "loterie"){
 openLoterieModal();
 }
 }
+
 
 function openLoterieModal(){
 document.getElementById("loterieModal").classList.add("show");
@@ -595,25 +617,26 @@ list.appendChild(row);
 });
 }
 
-function addGame(){
-if(!numero.trim()) return;
-if(!montant.trim()) return;
-if(selectedLoteries.length === 0) return;
-
-selectedLoteries.forEach(function(lot){
-jeux.push({
-type: "Borlette",
-numero: numero.trim(),
-loterie: lot,
-montant: parseFloat(montant) || 0
-});
-});
-
-numero = "";
-activeField = "numero";
-renderJeux();
-updateFields();
+.summary-bar{
+height:40px;
+min-height:40px;
+background:#dfe3fb;
+display:grid;
+grid-template-columns:1fr 1fr;
+align-items:center;
+padding:0 14px;
+font-size:20px;
+font-weight:700;
 }
+
+.summary-bar div:first-child{
+text-align:center;
+}
+
+.summary-bar div:last-child{
+text-align:right;
+}
+
 
 function renderJeux(){
 var area = document.getElementById("ticketsArea");

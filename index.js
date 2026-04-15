@@ -177,154 +177,113 @@ res.send(`
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POS</title>
+<title>Vendeur</title>
 
 <style>
-*{
-box-sizing:border-box;
-}
-
 body{
 margin:0;
-font-family:Arial, sans-serif;
+font-family:Arial;
 background:#efeff4;
 }
 
+/* TOPBAR */
 .topbar{
-height:64px;
-background:#1f4aa8;
-color:#fff;
+height:60px;
+background:#2f4ea2;
+color:white;
 display:flex;
 align-items:center;
 justify-content:space-between;
-padding:0 14px;
+padding:0 15px;
+font-size:20px;
 }
 
-.topbar .left,
-.topbar .right{
-width:70px;
-display:flex;
-align-items:center;
-gap:12px;
-font-size:24px;
-}
-
-.topbar .title{
-flex:1;
-text-align:center;
-font-size:24px;
-font-weight:600;
-}
-
+/* DISPLAY */
 .display{
-padding:18px 16px 10px 16px;
-background:#efeff4;
-}
-
-.line{
-font-size:28px;
-margin:14px 0;
-color:#111;
-}
-
-.active{
-color:red;
+height:45vh;
+display:flex;
+flex-direction:column;
 }
 
 .tickets{
-background:#f3f4f8;
-min-height:280px;
-margin:6px 16px 0 16px;
-border-radius:2px;
-overflow:auto;
-}
-
-.empty-zone{
-height:280px;
+flex:1;
 display:flex;
 align-items:center;
 justify-content:center;
-color:#999;
-font-size:26px;
-font-weight:600;
+color:#aaa;
+font-size:22px;
 }
 
-.ticket{
-background:#fff;
-border-bottom:1px solid #ddd;
-padding:10px 14px;
+.summary{
+height:40px;
+background:#dfe3ff;
 display:flex;
 justify-content:space-between;
-font-size:24px;
+padding:0 15px;
+align-items:center;
+font-size:20px;
+font-weight:bold;
 }
 
+.fields{
+display:flex;
+border-top:1px solid #ccc;
+}
+
+.field{
+flex:1;
+text-align:center;
+padding:10px;
+border-bottom:3px solid transparent;
+font-size:18px;
+color:#888;
+}
+
+.field.active{
+border-bottom:3px solid blue;
+color:black;
+font-weight:bold;
+}
+
+/* KEYPAD */
 .keypad{
 position:fixed;
+bottom:60px;
 left:0;
 right:0;
-bottom:0;
-background:#efeff4;
-padding:8px 8px 12px 8px;
 display:grid;
-grid-template-columns:repeat(3, 1fr);
-gap:8px;
+grid-template-columns:repeat(4,1fr);
 }
 
 .key{
-background:#fff;
-border-radius:6px;
-min-height:92px;
+height:80px;
+border:1px solid #ccc;
 display:flex;
-align-items:center;
 justify-content:center;
-font-size:30px;
-border:1px solid #e3e3e3;
+align-items:center;
+font-size:24px;
+background:#f7f7f7;
 }
 
 .enter{
 background:green;
-color:#fff;
-font-size:26px;
-font-weight:600;
+color:white;
 }
 
-.menu{
+/* NAV */
+.nav{
 position:fixed;
-top:0;
-left:-260px;
-width:260px;
-height:100%;
-background:#fff;
-transition:.25s;
-z-index:50;
-padding-top:70px;
-box-shadow:2px 0 10px rgba(0,0,0,.15);
-}
-
-.menu.active{
-left:0;
-}
-
-.option{
-padding:16px 18px;
-border-bottom:1px solid #eee;
-font-size:22px;
-}
-
-.popup{
-position:fixed;
+bottom:0;
 left:0;
 right:0;
-bottom:-260px;
-background:#fff;
-transition:.25s;
-z-index:60;
-box-shadow:0 -2px 10px rgba(0,0,0,.15);
-}
-
-.popup.active{
-bottom:0;
+height:60px;
+background:#f3f1ff;
+display:flex;
+justify-content:space-around;
+align-items:center;
+font-size:14px;
 }
 </style>
 </head>
@@ -332,157 +291,124 @@ bottom:0;
 <body>
 
 <div class="topbar">
-<div class="left">
-<span onclick="toggleMenu()">☰</span>
-</div>
-<div class="title">Vendeur</div>
-<div class="right">
-<span onclick="openPrint()">🖨️</span>
-<span onclick="openOptions()">⋮</span>
-</div>
+<div>☰</div>
+<div>Vendeur</div>
+<div>⋮</div>
 </div>
 
 <div class="display">
-<div id="numeroLine" class="line active">Numero</div>
-<div id="loterieLine" class="line">Loterie</div>
-<div id="montantLine" class="line">Montant</div>
+<div id="tickets" class="tickets">Pas de jeux</div>
+
+<div class="summary">
+<div id="count">0</div>
+<div id="total">0.00</div>
 </div>
 
-<div class="tickets" id="tickets">
-<div class="empty-zone" id="emptyZone">Pas de jeux</div>
+<div class="fields">
+<div id="numeroLine" class="field active">Numero</div>
+<div id="loterieLine" class="field">Loterie</div>
+<div id="montantLine" class="field">Montant</div>
 </div>
-
+</div>
 
 <div class="keypad">
-<div class="key" onclick="press(1)">1</div>
-<div class="key" onclick="press(2)">2</div>
-<div class="key" onclick="press(3)">3</div>
+<div class="key" onclick="press('+')">+</div>
+<div class="key" onclick="press('1')">1</div>
+<div class="key" onclick="press('2')">2</div>
+<div class="key" onclick="press('3')">3</div>
 
-<div class="key" onclick="press(4)">4</div>
-<div class="key" onclick="press(5)">5</div>
-<div class="key" onclick="press(6)">6</div>
+<div class="key" onclick="press('-')">-</div>
+<div class="key" onclick="press('4')">4</div>
+<div class="key" onclick="press('5')">5</div>
+<div class="key" onclick="press('6')">6</div>
 
-<div class="key" onclick="press(7)">7</div>
-<div class="key" onclick="press(8)">8</div>
-<div class="key" onclick="press(9)">9</div>
+<div class="key" onclick="press('/')">/</div>
+<div class="key" onclick="press('7')">7</div>
+<div class="key" onclick="press('8')">8</div>
+<div class="key" onclick="press('9')">9</div>
 
+<div class="key" onclick="press('.')">.</div>
 <div class="key" onclick="back()">⌫</div>
-<div class="key" onclick="press(0)">0</div>
-<div class="key enter" onclick="enter()">ENTER</div>
+<div class="key" onclick="press('0')">0</div>
+<div class="key enter" onclick="enter()">✓</div>
 </div>
 
-<div id="menu" class="menu">
-<div class="option">Tirages</div>
-<div class="option">Balance</div>
-<div class="option">Paramètres</div>
-<div class="option">Imprimante</div>
-<div class="option">Rapports</div>
-<div class="option">Copier</div>
-</div>
-
-<div id="options" class="popup">
-<div class="option" onclick="deleteAll()">Supprimer tout</div>
-<div class="option">Traiter le jeu</div>
-<div class="option">Processus: Local</div>
+<div class="nav">
+<div>Billets</div>
+<div>Copier</div>
+<div>Payer</div>
+<div>Rapports</div>
+<div>Menu</div>
 </div>
 
 <script>
-let active="numero";
 let numero="";
 let loterie="Florida";
 let montant="";
+let active="numero";
 let jeux=[];
 
-function update(){
-document.getElementById("numeroLine").textContent=numero||"Numero";
-document.getElementById("loterieLine").textContent=loterie||"Loterie";
-document.getElementById("montantLine").textContent=montant||"Montant";
-
-document.getElementById("numeroLine").classList.remove("active");
-document.getElementById("loterieLine").classList.remove("active");
-document.getElementById("montantLine").classList.remove("active");
-
-document.getElementById(active+"Line").classList.add("active");
-}
-
-function press(n){
-if(active==="numero"){numero+=n}
-if(active==="montant"){montant+=n}
+function press(v){
+if(active==="numero") numero+=v;
+if(active==="montant") montant+=v;
 update();
 }
 
 function back(){
-if(active==="numero"){numero=numero.slice(0,-1)}
-if(active==="montant"){montant=montant.slice(0,-1)}
+if(active==="numero") numero=numero.slice(0,-1);
+if(active==="montant") montant=montant.slice(0,-1);
 update();
 }
 
 function enter(){
-if(active==="numero"){
-if(!numero)return;
-active="montant";
-update();
-return;
-}
-
-if(active==="montant"){
-if(!numero||!montant)return;
-
+if(numero && montant){
 jeux.push({numero,loterie,montant});
-render();
-
 numero="";
+montant="";
 active="numero";
-update();
-return;
+render();
 }
+}
+
+function update(){
+document.getElementById("numeroLine").textContent=numero||"Numero";
+document.getElementById("loterieLine").textContent=loterie;
+document.getElementById("montantLine").textContent=montant||"Montant";
+
+document.querySelectorAll(".field").forEach(e=>e.classList.remove("active"));
+document.getElementById(active+"Line").classList.add("active");
 }
 
 function render(){
-let div = document.getElementById("tickets");
-div.innerHTML = "";
+let div=document.getElementById("tickets");
+let total=0;
 
-if(jeux.length === 0){
-div.innerHTML = '<div class="empty-zone" id="emptyZone">Pas de jeux</div>';
+if(jeux.length===0){
+div.innerHTML="Pas de jeux";
+document.getElementById("count").textContent="0";
+document.getElementById("total").textContent="0.00";
 return;
 }
 
-jeux.forEach(function(j, i){
-let el = document.createElement("div");
-el.className = "ticket";
+div.innerHTML="";
 
-el.innerHTML =
-"<span>" + j.numero + "</span>" +
-"<span>" + j.loterie + "</span>" +
-"<span>" + j.montant + "</span>";
+jeux.forEach((j,i)=>{
+let el=document.createElement("div");
+el.innerHTML=j.numero+" - "+j.loterie+" - "+j.montant;
 
-el.onclick = function(){
+el.onclick=()=>{
 if(confirm("Supprimer ?")){
-jeux.splice(i, 1);
+jeux.splice(i,1);
 render();
 }
 };
 
+total+=parseFloat(j.montant)||0;
 div.appendChild(el);
 });
-}
 
-
-function toggleMenu(){
-document.getElementById("menu").classList.toggle("active");
-}
-
-function openOptions(){
-document.getElementById("options").classList.toggle("active");
-}
-
-function deleteAll(){
-jeux=[];
-render();
-}
-
-function openPrint(){
-window.print();
+document.getElementById("count").textContent=jeux.length;
+document.getElementById("total").textContent=total.toFixed(2);
 }
 
 update();

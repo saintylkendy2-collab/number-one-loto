@@ -186,9 +186,10 @@ body{
 margin:0;
 font-family:Arial;
 background:#efeff4;
+overflow:hidden;
+height:100vh;
 }
 
-/* TOPBAR */
 .topbar{
 height:60px;
 background:#2f4ea2;
@@ -200,11 +201,11 @@ padding:0 15px;
 font-size:20px;
 }
 
-/* DISPLAY */
 .display{
-height:45vh;
+height:calc(100vh - 60px - 58px - 384px);
 display:flex;
 flex-direction:column;
+overflow:hidden;
 }
 
 .tickets{
@@ -214,6 +215,7 @@ align-items:center;
 justify-content:center;
 color:#aaa;
 font-size:22px;
+overflow:hidden;
 }
 
 .summary{
@@ -230,60 +232,64 @@ font-weight:bold;
 .fields{
 display:flex;
 border-top:1px solid #ccc;
+background:#f7f7f7;
 }
 
 .field{
 flex:1;
 text-align:center;
-padding:10px;
+padding:10px 6px;
 border-bottom:3px solid transparent;
 font-size:18px;
 color:#888;
 }
 
 .field.active{
-border-bottom:3px solid blue;
+border-bottom:3px solid #4b5cff;
 color:black;
 font-weight:bold;
 }
 
-/* KEYPAD */
 .keypad{
 position:fixed;
-bottom:60px;
+bottom:58px;
 left:0;
 right:0;
+height:384px;
 display:grid;
 grid-template-columns:repeat(4,1fr);
+grid-template-rows:repeat(4,1fr);
+background:#ddd;
 }
 
 .key{
-height:80px;
-border:1px solid #ccc;
+border:1px solid #c8c8c8;
 display:flex;
 justify-content:center;
 align-items:center;
-font-size:24px;
+font-size:26px;
 background:#f7f7f7;
 }
 
 .enter{
-background:green;
-color:white;
+background:linear-gradient(#dfe7ea, #cfd8dc);
+color:#111;
+font-size:34px;
+font-weight:bold;
 }
 
-/* NAV */
 .nav{
 position:fixed;
 bottom:0;
 left:0;
 right:0;
-height:60px;
+height:58px;
 background:#f3f1ff;
 display:flex;
 justify-content:space-around;
 align-items:center;
 font-size:14px;
+border-top:1px solid #d3d3d3;
 }
 </style>
 </head>
@@ -330,7 +336,7 @@ font-size:14px;
 <div class="key" onclick="press('.')">.</div>
 <div class="key" onclick="back()">⌫</div>
 <div class="key" onclick="press('0')">0</div>
-<div class="key enter" onclick="enter()">✓</div>
+<div class="key enter" onclick="enter()">ENTER</div>
 </div>
 
 <div class="nav">

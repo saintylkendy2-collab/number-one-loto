@@ -807,6 +807,22 @@ ticketsList.appendChild(row);
 }
 
 function addJeu() {
+if (activeField === "numero") {
+if (!numero || numero.trim() === "") return;
+
+if (loterie && loterie.trim() !== "") {
+setField("montant");
+} else {
+setField("loterie");
+}
+return;
+}
+
+if (activeField === "loterie") {
+return;
+}
+
+if (activeField === "montant") {
 if (!numero || !loterie || !montant) return;
 
 jeux.push({
@@ -816,11 +832,18 @@ montant: parseFloat(montant)
 });
 
 renderJeux();
+updateTopActions();
 
-// reset apre ajout
+// reset sèlman numero ak montant
 numero = "";
-loterie = "";
 montant = "";
+
+document.getElementById("numeroLabel").textContent = "Numero";
+document.getElementById("montantLabel").textContent = "Montant";
+
+// loterie a rete menm jan
+setField("numero");
+}
 }
 
 </script>

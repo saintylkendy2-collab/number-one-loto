@@ -807,16 +807,13 @@ ticketsList.appendChild(row);
 }
 
 function addJeu() {
-// si nou sou Numero
+// SI LI SOU NUMERO
 if (activeField === "numero") {
 if (!numero || numero.trim() === "") return;
 
 const n = numero.trim();
-
-// numero dwe gen ant 2 ak 5 chif
 if (n.length < 2 || n.length > 5) return;
 
-// si loterie deja chwazi, ale sou montant
 if (loterie && loterie.trim() !== "") {
 activeField = "montant";
 
@@ -835,18 +832,16 @@ openLoterieModal();
 return;
 }
 
-// si nou sou Loterie
+// SI LI SOU LOTERIE
 if (activeField === "loterie") {
 return;
 }
 
-// si nou sou Montant
+// SI LI SOU MONTANT
 if (activeField === "montant") {
 if (!numero || !loterie || !montant) return;
 
 const n = numero.trim();
-
-// numero dwe gen ant 2 ak 5 chif
 if (n.length < 2 || n.length > 5) return;
 
 jeux.push({
@@ -858,14 +853,14 @@ montant: parseFloat(montant)
 renderJeux();
 updateTopActions();
 
-// reset numero sèlman
+// RESET NUMERO SELMAN
 numero = "";
 document.getElementById("numeroLabel").textContent = "Numero";
 
-// montant rete menm jan
+// MONTANT RETE MENM JAN
 document.getElementById("montantLabel").textContent = montant;
 
-// loterie rete menm jan
+// RETOUNEN SOU NUMERO
 activeField = "numero";
 
 document.getElementById("tabNumero").classList.add("active");

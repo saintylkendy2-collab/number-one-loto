@@ -519,24 +519,32 @@ openLoterieModal();
 }
 
 function press(val){
+console.log("press:", val);
+
 if(activeField === "numero"){
 numero += String(val);
 }else if(activeField === "montant"){
 montant += String(val);
 }
+
 updateFields();
 }
 
 function backspaceKey(){
+console.log("backspace");
+
 if(activeField === "numero"){
 numero = numero.slice(0, -1);
 }else if(activeField === "montant"){
 montant = montant.slice(0, -1);
 }
+
 updateFields();
 }
 
 function handleEnter(){
+console.log("enter");
+
 if(activeField === "numero"){
 if(!numero.trim()) return;
 

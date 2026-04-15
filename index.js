@@ -183,6 +183,8 @@ left:1%;
 transition:left .2s ease;
 }
 .keypad{
+height:340px;
+min-height:340px;
 display:grid;
 grid-template-columns:repeat(4,1fr);
 grid-template-rows:repeat(4,1fr);
@@ -191,6 +193,7 @@ margin-top:10px;
 }
 
 .key{
+height:100%;
 border:1px solid #cacaca;
 background:#f7f7f7;
 display:flex;
@@ -214,6 +217,7 @@ font-weight:700;
 
 .bottom-nav{
 height:54px;
+min-height:54px;
 background:#f3f1ff;
 border-top:1px solid #d8d8d8;
 display:grid;

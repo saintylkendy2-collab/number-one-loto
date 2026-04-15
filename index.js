@@ -172,7 +172,7 @@ margin:0;
 padding:0;
 width:100%;
 height:100%;
-overflow:hidden;
+overflow:auto;
 font-family:Arial,sans-serif;
 background:#efeff4;
 }
@@ -183,6 +183,7 @@ color:#111;
 height:100vh;
 display:flex;
 flex-direction:column;
+padding-bottom: 90px;
 }
 .topbar{
 height:60px;
@@ -334,14 +335,13 @@ transition:left .18s ease;
 left:16%;
 }
 .keypad{
-height:330px;
-min-height:330px;
+height:290px;
+min-height:290px;
 display:grid;
 grid-template-columns:repeat(4,1fr);
 grid-template-rows:repeat(4,1fr);
 border-top:1px solid #cacaca;
-margin-top: 8vh;
-padding-bottom: 10px;
+margin-top:6vh;
 }
 .key{
 border:1px solid #cacaca;

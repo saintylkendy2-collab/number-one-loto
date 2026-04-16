@@ -303,8 +303,8 @@ position:relative;
 display:flex;
 align-items:flex-end;
 justify-content:center;
-padding:0 8px 10px 8px;
-font-size:18px;
+padding:0 8px 6px 8px;
+font-size:16px;
 color:#979797;
 font-weight:500;
 user-select:none;
@@ -336,13 +336,14 @@ border-radius:3px;
 transition:left .18s ease;
 left:16%;
 }
-.field{
-position:relative;
-display:flex;
-align-items:flex-end;
-justify-content:center;
-padding:0 8px 6px 8px;
-font-size:16px;
+.keypad{
+height:300px;
+min-height:300px;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+grid-template-rows:repeat(4,1fr);
+border-top:1px solid #cacaca;
+margin-top:10px;
 }
 .key{
 border:1px solid #cacaca;

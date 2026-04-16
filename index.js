@@ -234,9 +234,9 @@ font-weight:700;
 .group-title{
 background:#dfe3fb;
 color:#4b4b4b;
-font-size:24px;
+font-size:18px;
 font-weight:800;
-padding:8px 14px;
+padding:4px 10px;
 border-top:1px solid #d0d0d0;
 border-bottom:1px solid #d0d0d0;
 }
@@ -244,10 +244,10 @@ border-bottom:1px solid #d0d0d0;
 display:grid;
 grid-template-columns:1.2fr .9fr .9fr;
 align-items:center;
-min-height:56px;
+min-height:38px;
 background:#fff;
 border-bottom:1px solid #ddd;
-font-size:22px;
+font-size:18px;
 }
 .ticket-row div{
 padding:8px 14px;
@@ -257,15 +257,16 @@ padding:8px 14px;
 text-align:right;
 }
 .summary-bar{
-height:42px;
-min-height:42px;
+height:36px;
+min-height:36px;
 background:#dfe3fb;
 display:grid;
 grid-template-columns:1fr 1fr;
 align-items:center;
 padding:0 14px;
-font-size:22px;
+font-size:18px;
 font-weight:800;
+margin-top:4px;
 }
 .summary-bar .count{
 text-align:left;
@@ -274,14 +275,15 @@ text-align:left;
 text-align:right;
 }
 .selected-loteries-line{
-min-height:44px;
+min-height:32px;
+height:32px;
 background:#f3f3f3;
 border-top:1px solid #ddd;
 border-bottom:1px solid #ddd;
 display:flex;
 align-items:center;
-padding:0 12px;
-font-size:20px;
+padding:0 10px;
+font-size:16px;
 color:#444;
 overflow:hidden;
 white-space:nowrap;

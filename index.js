@@ -183,7 +183,7 @@ color:#111;
 height:100vh;
 display:flex;
 flex-direction:column;
-padding-bottom: 90px;
+padding-bottom:0;
 }
 .topbar{
 height:60px;
@@ -335,13 +335,13 @@ transition:left .18s ease;
 left:16%;
 }
 .keypad{
-height:290px;
-min-height:290px;
+height:300px;
+min-height:300px;
 display:grid;
 grid-template-columns:repeat(4,1fr);
 grid-template-rows:repeat(4,1fr);
 border-top:1px solid #cacaca;
-margin-top:6vh;
+margin-top:0;
 }
 .key{
 border:1px solid #cacaca;

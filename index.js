@@ -260,23 +260,27 @@ height:42px;
 min-height:42px;
 background:#dfe3fb;
 display:grid;
-grid-template-columns:1fr 1fr;
+grid-template-columns:1fr 1fr 1fr;
 align-items:center;
-padding:0;
 font-size:22px;
 font-weight:800;
+padding:0 12px;
 }
 .summary-bar .count{
+grid-column:2;
 display:flex;
 align-items:center;
 justify-content:center;
+text-align:center;
 }
 .summary-bar .total{
+grid-column:3;
 display:flex;
 align-items:center;
 justify-content:flex-end;
-padding-right:14px;
+text-align:right;
 }
+
 .selected-loteries-line{
 min-height:40px;
 height:40px;

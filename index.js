@@ -579,9 +579,9 @@ border-right:1px solid #ddd;
 <div id="selectedLoteriesLine" class="selected-loteries-line"></div>
 
 <div class="fields">
-<div id="numeroLine" class="field active" onclick="tapField(event,'numero')">Numero</div>
+<div id="numeroLine" class="field active" onclick="setField('numero')">Numero</div>
 <div id="loterieLine" class="field" onclick="setField('loterie')">Loterie</div>
-<div id="montantLine" class="field" onclick="tapField(event,'montant')">Montant</div>
+<div id="montantLine" class="field" onclick="setField('montant')">Montant</div>
 <div id="activeLine" class="active-line"></div>
 <div id="activeCaret" class="active-caret"></div>
 </div>
@@ -649,14 +649,6 @@ border-right:1px solid #ddd;
 <input type="hidden" name="data" id="printData">
 </form>
 </div>
-var activeField = "numero";
-var numero = "";
-var montant = "";
-var jeux = [];
-var selectedLoteries = [];
-
-var cursorNumero = 0;
-var cursorMontant = 0;
 
 
 

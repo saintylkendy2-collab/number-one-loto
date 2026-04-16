@@ -248,19 +248,15 @@ background:#fff;
 border-bottom:1px solid #ddd;
 font-size:20px;
 }
-
 .ticket-row div{
 padding:8px 14px;
 }
-
 .ticket-row div:nth-child(1){
 text-align:left;
 }
-
 .ticket-row div:nth-child(2){
 text-align:center;
 }
-
 .ticket-row div:nth-child(3){
 text-align:right;
 }
@@ -289,7 +285,6 @@ align-items:center;
 justify-content:flex-end;
 text-align:right;
 }
-
 .selected-loteries-line{
 min-height:40px;
 height:40px;
@@ -547,6 +542,22 @@ cursor:pointer;
 .btn-clear{background:#5f628b;}
 .btn-ok{background:#1fc7dd;}
 .btn-close{background:#c9c9c9;}
+
+.choice-item{
+height:70px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:28px;
+font-weight:800;
+border-bottom:1px solid #ddd;
+background:#fff;
+cursor:pointer;
+}
+.choice-item:active{
+background:#ececec;
+}
+
 .hidden-print-form{
 display:none;
 }
@@ -659,6 +670,15 @@ border-right:1px solid #ddd;
 </div>
 </div>
 
+<div id="choiceModal" class="loterie-modal">
+<div class="loterie-box" style="max-width:320px;">
+<div id="choiceList" class="loterie-list"></div>
+<div class="modal-actions">
+<div class="circle-btn btn-close" onclick="closeChoiceModal()">✕</div>
+</div>
+</div>
+</div>
+
 <form id="printForm" class="hidden-print-form" method="POST" action="/print" target="_blank">
 <input type="hidden" name="data" id="printData">
 </form>
@@ -672,6 +692,8 @@ var jeux = [];
 var selectedLoteries = [];
 var cursorNumero = 0;
 var cursorMontant = 0;
+var pendingChoiceNumber = "";
+var pendingChoiceMode = "";
 
 var loteries = [
 { name: "LA PRIMERA DIA", sub: "20 minutes", time: "11:55 AM" },
@@ -841,6 +863,22 @@ function press(val){
 val = String(val);
 
 if(activeField === "numero"){
+if(val === "+"){
+if(numero.length === 4){
+pendingChoiceNumber = numero;
+pendingChoiceMode = "4";
+openChoiceModal(["L1","L2","L4"]);
+return;
+}
+
+if(numero.length === 5){
+pendingChoiceNumber = numero;
+pendingChoiceMode = "5";
+openChoiceModal(["L1","L2","L3"]);
+return;
+}
+}
+
 numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
 cursorNumero += val.length;
 }else if(activeField === "montant"){
@@ -961,15 +999,83 @@ list.appendChild(row);
 });
 }
 
+function openChoiceModal(options){
+var modal = document.getElementById("choiceModal");
+var list = document.getElementById("choiceList");
+
+list.innerHTML = "";
+
+options.forEach(function(opt){
+var div = document.createElement("div");
+div.className = "choice-item";
+div.textContent = opt;
+div.onclick = function(){
+applyChoice(opt);
+};
+list.appendChild(div);
+});
+
+modal.classList.add("show");
+}
+
+function closeChoiceModal(){
+document.getElementById("choiceModal").classList.remove("show");
+}
+
+function applyChoice(choice){
+numero = pendingChoiceNumber + "+" + choice;
+cursorNumero = numero.length;
+closeChoiceModal();
+activeField = "montant";
+cursorMontant = montant.length;
+updateFields();
+}
+
+function buildGameData(num){
+num = num.trim();
+
+if (/^\\d{2}$/.test(num)) {
+return { type: "BOR", numero: num };
+}
+
+if (/^\\d{4}$/.test(num)) {
+return { type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) };
+}
+
+if (/^\\d{3}$/.test(num)) {
+return { type: "L3", numero: num };
+}
+
+if (/^\\d{4}\\+(L1|L2|L4)$/.test(num)) {
+var raw4 = num.slice(0,4);
+var type4 = num.split("+")[1];
+return { type: type4, numero: raw4 };
+}
+
+if (/^\\d{5}\\+(L1|L2|L3)$/.test(num)) {
+var raw5 = num.slice(0,5);
+var type5 = num.split("+")[1];
+return { type: type5, numero: raw5 };
+}
+
+if (/^\\d{5}$/.test(num)) {
+return { type: "L5", numero: num };
+}
+
+return { type: "UNK", numero: num };
+}
+
 function addGame(){
 if (!numero.trim()) return;
 if (!montant.trim()) return;
 if (selectedLoteries.length === 0) return;
 
+var gameData = buildGameData(numero);
+
 selectedLoteries.forEach(function(lot){
 jeux.push({
-type: "Borlette",
-numero: numero.trim(),
+type: gameData.type,
+numero: gameData.numero,
 loterie: lot,
 montant: parseFloat(montant) || 0
 });

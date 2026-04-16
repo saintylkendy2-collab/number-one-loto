@@ -261,7 +261,6 @@ if (!numero.trim()) return;
 
 if (selectedLoteries.length > 0) {
 activeField = "montant";
-cursorMontant = montant.length;
 updateFields();
 } else {
 activeField = "loterie";

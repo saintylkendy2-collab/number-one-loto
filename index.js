@@ -268,9 +268,11 @@ font-size:18px;
 font-weight:800;
 margin-top:4px;
 }
+
 .summary-bar .count{
-text-align:left;
+text-align:center;
 }
+
 .summary-bar .total{
 text-align:right;
 }
@@ -335,6 +337,11 @@ background:#ff5d93;
 border-radius:3px;
 transition:left .18s ease;
 left:16%;
+animation:blinkCaret 1s steps(1) infinite;
+}
+@keyframes blinkCaret{
+0%, 50% { opacity:1; }
+50.01%, 100% { opacity:0; }
 }
 .keypad{
 height:300px;

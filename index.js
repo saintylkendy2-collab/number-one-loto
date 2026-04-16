@@ -255,30 +255,6 @@ padding:8px 14px;
 .ticket-row div:nth-child(3){
 text-align:right;
 }
-function handleEnter(){
-if (activeField === "numero") {
-if (!numero.trim()) return;
-
-if (selectedLoteries.length > 0) {
-activeField = "montant";
-updateFields();
-} else {
-activeField = "loterie";
-updateFields();
-openLoterieModal();
-}
-return;
-}
-
-if (activeField === "montant") {
-addGame();
-return;
-}
-
-if (activeField === "loterie") {
-openLoterieModal();
-}
-}
 
 .summary-bar{
 height:42px;

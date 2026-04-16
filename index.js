@@ -7,156 +7,6 @@ app.use(express.json());
 const LOGIN_ID = "NOC100";
 const LOGIN_PASSWORD = "1234";
 
-app.get("/", (req, res) => {
-res.send(`
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login Vendeur</title>
-<style>
-*{box-sizing:border-box;}
-html,body{
-margin:0;
-padding:0;
-width:100%;
-height:100%;
-font-family:Arial,sans-serif;
-background:#f2f2f2;
-}
-body{
-display:flex;
-align-items:center;
-justify-content:center;
-padding:20px;
-}
-.login-box{
-width:100%;
-max-width:380px;
-background:#fff;
-border-radius:16px;
-box-shadow:0 8px 25px rgba(0,0,0,.08);
-padding:28px 22px;
-}
-.title{
-text-align:center;
-font-size:26px;
-font-weight:800;
-color:#1c1c1c;
-margin-bottom:22px;
-}
-.sub{
-text-align:center;
-color:#666;
-margin-bottom:20px;
-}
-.input{
-width:100%;
-height:52px;
-border:1px solid #d8d8d8;
-border-radius:10px;
-font-size:18px;
-padding:0 14px;
-margin-bottom:14px;
-}
-.btn{
-width:100%;
-height:54px;
-border:none;
-border-radius:12px;
-background:#3f7fe8;
-color:#fff;
-font-size:22px;
-font-weight:700;
-cursor:pointer;
-}
-.note{
-margin-top:16px;
-color:#888;
-font-size:14px;
-text-align:center;
-}
-</style>
-</head>
-<body>
-<form class="login-box" method="POST" action="/login">
-<div class="title">NUMBER ONE LOTO</div>
-<div class="sub">Connexion vendeur</div>
-<input class="input" type="text" name="id" placeholder="Identifiant" autocomplete="username" required>
-<input class="input" type="password" name="password" placeholder="Mot de passe" autocomplete="current-password" required>
-<button class="btn" type="submit">CONNECTER</button>
-<div class="note">ID test: NOC100 &nbsp;|&nbsp; Mot de passe: 1234</div>
-</form>
-</body>
-</html>
-`);
-});
-
-app.post("/login", (req, res) => {
-const id = (req.body.id || "").trim();
-const password = (req.body.password || "").trim();
-
-if (id === LOGIN_ID && password === LOGIN_PASSWORD) {
-return res.redirect("/dashboard");
-}
-
-res.send(`
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login échoué</title>
-<style>
-body{
-margin:0;
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#f2f2f2;
-font-family:Arial,sans-serif;
-padding:20px;
-}
-.box{
-width:100%;
-max-width:360px;
-background:#fff;
-border-radius:14px;
-padding:24px;
-box-shadow:0 8px 22px rgba(0,0,0,.08);
-text-align:center;
-}
-.msg{
-color:#d93025;
-font-size:20px;
-font-weight:700;
-margin-bottom:16px;
-}
-a{
-display:inline-block;
-margin-top:6px;
-text-decoration:none;
-color:#3f7fe8;
-font-weight:700;
-}
-</style>
-</head>
-<body>
-<div class="box">
-<div class="msg">Identifiant ou mot de passe incorrect ✖</div>
-<a href="/">Retour</a>
-</div>
-</body>
-</html>
-`);
-});
-
-app.get("/logout", (req, res) => {
-res.redirect("/");
-});
-
 app.get("/dashboard", (req, res) => {
 res.send(`
 <!DOCTYPE html>
@@ -554,6 +404,13 @@ border-bottom:1px solid #ddd;
 background:#fff;
 cursor:pointer;
 }
+.choice-item.active{
+background:#dfe3fb;
+}
+.choice-item.ok{
+background:#1fc7dd;
+color:#fff;
+}
 .choice-item:active{
 background:#ececec;
 }
@@ -671,12 +528,12 @@ border-right:1px solid #ddd;
 </div>
 
 <div id="choiceModal" class="loterie-modal">
-<div class="loterie-box" style="max-width:320px;">
-<div id="choiceList" class="loterie-list"></div>
-<div class="modal-actions">
-<div class="circle-btn btn-close" onclick="closeChoiceModal()">✕</div>
-</div>
-</div>
+  <div class="loterie-box" style="max-width:320px;">
+    <div id="choiceList" class="loterie-list"></div>
+    <div class="modal-actions">
+      <div class="circle-btn btn-close" onclick="closeChoiceModal()">✕</div>
+    </div>
+  </div>
 </div>
 
 <form id="printForm" class="hidden-print-form" method="POST" action="/print" target="_blank">
@@ -693,7 +550,7 @@ var selectedLoteries = [];
 var cursorNumero = 0;
 var cursorMontant = 0;
 var pendingChoiceNumber = "";
-var pendingChoiceMode = "";
+var tempChoices = [];
 
 var loteries = [
 { name: "LA PRIMERA DIA", sub: "20 minutes", time: "11:55 AM" },
@@ -866,14 +723,14 @@ if(activeField === "numero"){
 if(val === "+"){
 if(numero.length === 4){
 pendingChoiceNumber = numero;
-pendingChoiceMode = "4";
+tempChoices = [];
 openChoiceModal(["L1","L2","L4"]);
 return;
 }
 
 if(numero.length === 5){
 pendingChoiceNumber = numero;
-pendingChoiceMode = "5";
+tempChoices = [];
 openChoiceModal(["L1","L2","L3"]);
 return;
 }
@@ -1009,11 +866,27 @@ options.forEach(function(opt){
 var div = document.createElement("div");
 div.className = "choice-item";
 div.textContent = opt;
+
 div.onclick = function(){
-applyChoice(opt);
+if(tempChoices.includes(opt)){
+tempChoices = tempChoices.filter(function(x){ return x !== opt; });
+div.classList.remove("active");
+}else{
+tempChoices.push(opt);
+div.classList.add("active");
+}
 };
+
 list.appendChild(div);
 });
+
+var okBtn = document.createElement("div");
+okBtn.className = "choice-item ok";
+okBtn.textContent = "OK";
+okBtn.onclick = function(){
+applyChoiceMulti();
+};
+list.appendChild(okBtn);
 
 modal.classList.add("show");
 }
@@ -1022,8 +895,13 @@ function closeChoiceModal(){
 document.getElementById("choiceModal").classList.remove("show");
 }
 
-function applyChoice(choice){
-numero = pendingChoiceNumber + "+" + choice;
+function applyChoiceMulti(){
+if(tempChoices.length === 0){
+alert("Chwazi omwen youn");
+return;
+}
+
+numero = pendingChoiceNumber + "+" + tempChoices.join(",");
 cursorNumero = numero.length;
 closeChoiceModal();
 activeField = "montant";
@@ -1031,38 +909,38 @@ cursorMontant = montant.length;
 updateFields();
 }
 
-function buildGameData(num){
+function buildGameEntries(num){
 num = num.trim();
 
 if (/^\\d{2}$/.test(num)) {
-return { type: "BOR", numero: num };
-}
-
-if (/^\\d{4}$/.test(num)) {
-return { type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) };
+return [{ type: "BOR", numero: num }];
 }
 
 if (/^\\d{3}$/.test(num)) {
-return { type: "L3", numero: num };
+return [{ type: "L3", numero: num }];
 }
 
-if (/^\\d{4}\\+(L1|L2|L4)$/.test(num)) {
-var raw4 = num.slice(0,4);
-var type4 = num.split("+")[1];
-return { type: type4, numero: raw4 };
+if (/^\\d{4}$/.test(num)) {
+return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
 }
 
-if (/^\\d{5}\\+(L1|L2|L3)$/.test(num)) {
-var raw5 = num.slice(0,5);
-var type5 = num.split("+")[1];
-return { type: type5, numero: raw5 };
+if (/^\\d{4}\\+(L1|L2|L4)(,(L1|L2|L4))*$/.test(num)) {
+var raw4 = num.split("+")[0];
+var types4 = num.split("+")[1].split(",");
+return types4.map(function(t){
+return { type: t, numero: raw4 };
+});
 }
 
-if (/^\\d{5}$/.test(num)) {
-return { type: "L5", numero: num };
+if (/^\\d{5}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
+var raw5 = num.split("+")[0];
+var types5 = num.split("+")[1].split(",");
+return types5.map(function(t){
+return { type: t, numero: raw5 };
+});
 }
 
-return { type: "UNK", numero: num };
+return null;
 }
 
 function addGame(){
@@ -1070,14 +948,21 @@ if (!numero.trim()) return;
 if (!montant.trim()) return;
 if (selectedLoteries.length === 0) return;
 
-var gameData = buildGameData(numero);
+var entries = buildGameEntries(numero);
+
+if (!entries) {
+alert("Jeu pa valid");
+return;
+}
 
 selectedLoteries.forEach(function(lot){
+entries.forEach(function(entry){
 jeux.push({
-type: gameData.type,
-numero: gameData.numero,
+type: entry.type,
+numero: entry.numero,
 loterie: lot,
 montant: parseFloat(montant) || 0
+});
 });
 });
 

@@ -305,13 +305,6 @@ align-items:flex-end;
 justify-content:center;
 padding:0 8px 6px 8px;
 font-size:16px;
-color:#979797;
-font-weight:500;
-user-select:none;
-cursor:pointer;
-overflow:hidden;
-white-space:nowrap;
-text-overflow:ellipsis;f
 }
 .field.active{
 color:#111;

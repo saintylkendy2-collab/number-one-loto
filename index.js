@@ -1,3 +1,12 @@
+const express = require("express");
+const app = express();
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+const LOGIN_ID = "NOC100";
+const LOGIN_PASSWORD = "1234";
+
 app.get("/dashboard", (req, res) => {
 res.send(`
 <!DOCTYPE html>

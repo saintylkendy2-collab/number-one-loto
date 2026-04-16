@@ -1,162 +1,3 @@
-const express = require("express");
-const app = express();
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-const LOGIN_ID = "NOC100";
-const LOGIN_PASSWORD = "1234";
-
-app.get("/", (req, res) => {
-res.send(`
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login Vendeur</title>
-<style>
-*{box-sizing:border-box;}
-html,body{
-margin:0;
-padding:0;
-width:100%;
-height:100%;
-font-family:Arial,sans-serif;
-background:#f2f2f2;
-}
-body{
-display:flex;
-align-items:center;
-justify-content:center;
-padding:20px;
-}
-.login-box{
-width:100%;
-max-width:380px;
-background:#fff;
-border-radius:16px;
-box-shadow:0 8px 25px rgba(0,0,0,.08);
-padding:28px 22px;
-}
-.title{
-text-align:center;
-font-size:26px;
-font-weight:800;
-color:#1c1c1c;
-margin-bottom:22px;
-}
-.sub{
-text-align:center;
-color:#666;
-margin-bottom:20px;
-}
-.input{
-width:100%;
-height:52px;
-border:1px solid #d8d8d8;
-border-radius:10px;
-font-size:18px;
-padding:0 14px;
-margin-bottom:14px;
-}
-.btn{
-width:100%;
-height:54px;
-border:none;
-border-radius:12px;
-background:#3f7fe8;
-color:#fff;
-font-size:22px;
-font-weight:700;
-cursor:pointer;
-}
-.note{
-margin-top:16px;
-color:#888;
-font-size:14px;
-text-align:center;
-}
-</style>
-</head>
-<body>
-<form class="login-box" method="POST" action="/login">
-<div class="title">NUMBER ONE LOTO</div>
-<div class="sub">Connexion vendeur</div>
-<input class="input" type="text" name="id" placeholder="Identifiant" autocomplete="username" required>
-<input class="input" type="password" name="password" placeholder="Mot de passe" autocomplete="current-password" required>
-<button class="btn" type="submit">CONNECTER</button>
-<div class="note">ID test: NOC100 &nbsp;|&nbsp; Mot de passe: 1234</div>
-</form>
-</body>
-</html>
-`);
-});
-
-app.post("/login", (req, res) => {
-const id = (req.body.id || "").trim();
-const password = (req.body.password || "").trim();
-
-if (id === LOGIN_ID && password === LOGIN_PASSWORD) {
-return res.redirect("/dashboard");
-}
-
-res.send(`
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login échoué</title>
-<style>
-body{
-margin:0;
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#f2f2f2;
-font-family:Arial,sans-serif;
-padding:20px;
-}
-.box{
-width:100%;
-max-width:360px;
-background:#fff;
-border-radius:14px;
-padding:24px;
-box-shadow:0 8px 22px rgba(0,0,0,.08);
-text-align:center;
-}
-.msg{
-color:#d93025;
-font-size:20px;
-font-weight:700;
-margin-bottom:16px;
-}
-a{
-display:inline-block;
-margin-top:6px;
-text-decoration:none;
-color:#3f7fe8;
-font-weight:700;
-}
-</style>
-</head>
-<body>
-<div class="box">
-<div class="msg">Identifiant ou mot de passe incorrect ✖</div>
-<a href="/">Retour</a>
-</div>
-</body>
-</html>
-`);
-});
-
-app.get("/logout", (req, res) => {
-res.redirect("/");
-});
-
 app.get("/dashboard", (req, res) => {
 res.send(`
 <!DOCTYPE html>
@@ -263,18 +104,21 @@ background:#dfe3fb;
 display:grid;
 grid-template-columns:1fr 1fr;
 align-items:center;
-padding:0 14px;
+padding:0;
 font-size:18px;
 font-weight:800;
 margin-top:4px;
 }
-
 .summary-bar .count{
-text-align:center;
+display:flex;
+align-items:center;
+justify-content:center;
 }
-
 .summary-bar .total{
-text-align:right;
+display:flex;
+align-items:center;
+justify-content:flex-end;
+padding-right:14px;
 }
 .selected-loteries-line{
 min-height:32px;
@@ -650,22 +494,14 @@ border-right:1px solid #ddd;
 </form>
 </div>
 
-
-
-
-
-
-
 <script>
 var activeField = "numero";
 var numero = "";
 var montant = "";
 var jeux = [];
 var selectedLoteries = [];
-
 var cursorNumero = 0;
 var cursorMontant = 0;
-
 
 var loteries = [
 { name: "LA PRIMERA DIA", sub: "20 minutes", time: "11:55 AM" },
@@ -685,6 +521,95 @@ var loteries = [
 
 function getSelectedLoteriesText(){
 return selectedLoteries.length ? selectedLoteries.join(", ") : "";
+}
+
+function measureTextWidth(text, el){
+const canvas = measureTextWidth.canvas || (measureTextWidth.canvas = document.createElement("canvas"));
+const ctx = canvas.getContext("2d");
+const style = window.getComputedStyle(el);
+ctx.font = style.fontWeight + " " + style.fontSize + " " + style.fontFamily;
+return ctx.measureText(text).width;
+}
+
+function getFieldValue(field){
+return field === "numero" ? numero : montant;
+}
+
+function getCursorValue(field){
+return field === "numero" ? cursorNumero : cursorMontant;
+}
+
+function setCursorValue(field, value){
+if(field === "numero"){
+cursorNumero = value;
+}else{
+cursorMontant = value;
+}
+}
+
+function tapField(event, field){
+activeField = field;
+
+var el = document.getElementById(field === "numero" ? "numeroLine" : "montantLine");
+var value = getFieldValue(field);
+var rect = el.getBoundingClientRect();
+var clickX = event.clientX;
+
+if(!value.length){
+setCursorValue(field, 0);
+updateFields();
+return;
+}
+
+var textWidth = measureTextWidth(value, el);
+var startX = rect.left + ((rect.width - textWidth) / 2);
+
+var bestIndex = 0;
+var bestDistance = Infinity;
+
+for(var i = 0; i <= value.length; i++){
+var part = value.slice(0, i);
+var x = startX + measureTextWidth(part, el);
+var dist = Math.abs(clickX - x);
+
+if(dist < bestDistance){
+bestDistance = dist;
+bestIndex = i;
+}
+}
+
+setCursorValue(field, bestIndex);
+updateFields();
+}
+
+function moveCaret(){
+var caret = document.getElementById("activeCaret");
+var fieldsWrap = document.querySelector(".fields");
+
+if(activeField === "loterie"){
+caret.style.display = "none";
+return;
+}
+
+var fieldEl = document.getElementById(activeField === "numero" ? "numeroLine" : "montantLine");
+var value = getFieldValue(activeField);
+var cursorPos = getCursorValue(activeField);
+
+var wrapRect = fieldsWrap.getBoundingClientRect();
+var fieldRect = fieldEl.getBoundingClientRect();
+
+var shownText = value || (activeField === "numero" ? "Numero" : "Montant");
+var fullWidth = measureTextWidth(shownText, fieldEl);
+var textStart = fieldRect.left + ((fieldRect.width - fullWidth) / 2);
+
+var realText = value || "";
+var beforeCursor = realText.slice(0, cursorPos);
+var beforeWidth = measureTextWidth(beforeCursor, fieldEl);
+
+var caretX = textStart + beforeWidth;
+
+caret.style.display = "block";
+caret.style.left = (caretX - wrapRect.left) + "px";
 }
 
 function updateFields(){
@@ -724,7 +649,37 @@ activeLine.style.left = lineLeft;
 moveCaret();
 }
 
+function setField(field){
+activeField = field;
 
+if(field === "numero"){
+cursorNumero = numero.length;
+}
+
+if(field === "montant"){
+cursorMontant = montant.length;
+}
+
+updateFields();
+
+if(field === "loterie"){
+openLoterieModal();
+}
+}
+
+function press(val){
+val = String(val);
+
+if(activeField === "numero"){
+numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
+cursorNumero += val.length;
+}else if(activeField === "montant"){
+montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
+cursorMontant += val.length;
+}
+
+updateFields();
+}
 
 function backspaceKey(){
 if(activeField === "numero"){
@@ -741,20 +696,13 @@ cursorMontant--;
 
 updateFields();
 }
-}
 
 function handleEnter(){
 if (activeField === "numero") {
 if (!numero.trim()) return;
-
-if (selectedLoteries.length > 0) {
-activeField = "montant";
-updateFields();
-} else {
 activeField = "loterie";
 updateFields();
 openLoterieModal();
-}
 return;
 }
 
@@ -787,7 +735,8 @@ updateFields();
 
 function validateLoteries(){
 document.getElementById("loterieModal").classList.remove("show");
-activeField = "numero";
+activeField = "montant";
+cursorMontant = montant.length;
 updateFields();
 }
 
@@ -834,19 +783,7 @@ row.appendChild(right);
 list.appendChild(row);
 });
 }
-function press(val){
-val = String(val);
 
-if(activeField === "numero"){
-numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
-cursorNumero += val.length;
-}else if(activeField === "montant"){
-montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
-cursorMontant += val.length;
-}
-
-updateFields();
-}
 function addGame(){
 if (!numero.trim()) return;
 if (!montant.trim()) return;
@@ -860,7 +797,6 @@ loterie: lot,
 montant: parseFloat(montant) || 0
 });
 });
-
 
 numero = "";
 cursorNumero = 0;

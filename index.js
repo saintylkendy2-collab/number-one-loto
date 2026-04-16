@@ -248,10 +248,19 @@ background:#fff;
 border-bottom:1px solid #ddd;
 font-size:20px;
 }
+
 .ticket-row div{
 padding:8px 14px;
 }
-.ticket-row div:nth-child(2),
+
+.ticket-row div:nth-child(1){
+text-align:left;
+}
+
+.ticket-row div:nth-child(2){
+text-align:center;
+}
+
 .ticket-row div:nth-child(3){
 text-align:right;
 }

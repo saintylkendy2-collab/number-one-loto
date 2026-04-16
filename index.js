@@ -335,13 +335,13 @@ transition:left .18s ease;
 left:16%;
 }
 .keypad{
-height:300px;
-min-height:300px;
+height:290px;
+min-height:290px;
 display:grid;
 grid-template-columns:repeat(4,1fr);
 grid-template-rows:repeat(4,1fr);
 border-top:1px solid #cacaca;
-margin-top:0;
+margin-top:8px;
 }
 .key{
 border:1px solid #cacaca;

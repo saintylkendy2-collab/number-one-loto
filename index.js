@@ -311,7 +311,7 @@ user-select:none;
 cursor:pointer;
 overflow:hidden;
 white-space:nowrap;
-text-overflow:ellipsis;
+text-overflow:ellipsis;f
 }
 .field.active{
 color:#111;

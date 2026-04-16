@@ -303,8 +303,15 @@ position:relative;
 display:flex;
 align-items:flex-end;
 justify-content:center;
-padding:0 8px 6px 8px;
-font-size:16px;
+padding:0 8px 10px 8px;
+font-size:18px;
+color:#979797;
+font-weight:500;
+user-select:none;
+cursor:pointer;
+overflow:hidden;
+white-space:nowrap;
+text-overflow:ellipsis;
 }
 .field.active{
 color:#111;

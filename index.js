@@ -255,31 +255,27 @@ padding:8px 14px;
 .ticket-row div:nth-child(3){
 text-align:right;
 }
-
 .summary-bar{
 height:42px;
 min-height:42px;
 background:#dfe3fb;
 display:grid;
-grid-template-columns:1fr 1fr 1fr;
+grid-template-columns:1fr 1fr;
 align-items:center;
+padding:0;
 font-size:22px;
 font-weight:800;
-padding:0 12px;
 }
 .summary-bar .count{
-grid-column:2;
 display:flex;
 align-items:center;
 justify-content:center;
-text-align:center;
 }
 .summary-bar .total{
-grid-column:3;
 display:flex;
 align-items:center;
 justify-content:flex-end;
-text-align:right;
+padding-right:14px;
 }
 .selected-loteries-line{
 min-height:40px;
@@ -861,16 +857,9 @@ updateFields();
 function handleEnter(){
 if (activeField === "numero") {
 if (!numero.trim()) return;
-
-if (selectedLoteries.length > 0) {
-activeField = "montant";
-cursorMontant = montant.length;
-updateFields();
-} else {
 activeField = "loterie";
 updateFields();
 openLoterieModal();
-}
 return;
 }
 
@@ -882,6 +871,11 @@ return;
 if (activeField === "loterie") {
 openLoterieModal();
 }
+}
+
+function openLoterieModal(){
+document.getElementById("loterieModal").classList.add("show");
+renderLoterieList();
 }
 
 function closeLoterieModal(){

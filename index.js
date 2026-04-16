@@ -579,9 +579,9 @@ border-right:1px solid #ddd;
 <div id="selectedLoteriesLine" class="selected-loteries-line"></div>
 
 <div class="fields">
-<div id="numeroLine" class="field active" onclick="setField('numero')">Numero</div>
+<div id="numeroLine" class="field active" onclick="tapField(event,'numero')">Numero</div>
 <div id="loterieLine" class="field" onclick="setField('loterie')">Loterie</div>
-<div id="montantLine" class="field" onclick="setField('montant')">Montant</div>
+<div id="montantLine" class="field" onclick="tapField(event,'montant')">Montant</div>
 <div id="activeLine" class="active-line"></div>
 <div id="activeCaret" class="active-caret"></div>
 </div>
@@ -649,13 +649,122 @@ border-right:1px solid #ddd;
 <input type="hidden" name="data" id="printData">
 </form>
 </div>
+var activeField = "numero";
+var numero = "";
+var montant = "";
+var jeux = [];
+var selectedLoteries = [];
 
+var cursorNumero = 0;
+var cursorMontant = 0;
+
+
+
+<div id="numeroLine" class="field active" onclick="tapField(event,'numero')">Numero</div>
+<div id="loterieLine" class="field" onclick="setField('loterie')">Loterie</div>
+<div id="montantLine" class="field" onclick="tapField(event,'montant')">Montant</div>
+
+
+
+
+function measureTextWidth(text, el){
+const canvas = measureTextWidth.canvas || (measureTextWidth.canvas = document.createElement("canvas"));
+const ctx = canvas.getContext("2d");
+const style = window.getComputedStyle(el);
+ctx.font = style.fontWeight + " " + style.fontSize + " " + style.fontFamily;
+return ctx.measureText(text).width;
+}
+
+function getFieldValue(field){
+return field === "numero" ? numero : montant;
+}
+
+function getCursorValue(field){
+return field === "numero" ? cursorNumero : cursorMontant;
+}
+
+function setCursorValue(field, value){
+if(field === "numero"){
+cursorNumero = value;
+}else{
+cursorMontant = value;
+}
+}
+
+function tapField(event, field){
+activeField = field;
+
+var el = document.getElementById(field === "numero" ? "numeroLine" : "montantLine");
+var value = getFieldValue(field);
+var rect = el.getBoundingClientRect();
+var clickX = event.clientX;
+
+if(!value.length){
+setCursorValue(field, 0);
+updateFields();
+return;
+}
+
+var textWidth = measureTextWidth(value, el);
+var startX = rect.left + ((rect.width - textWidth) / 2);
+
+var bestIndex = 0;
+var bestDistance = Infinity;
+
+for(var i = 0; i <= value.length; i++){
+var part = value.slice(0, i);
+var x = startX + measureTextWidth(part, el);
+var dist = Math.abs(clickX - x);
+
+if(dist < bestDistance){
+bestDistance = dist;
+bestIndex = i;
+}
+}
+
+setCursorValue(field, bestIndex);
+updateFields();
+}
+
+function moveCaret(){
+var caret = document.getElementById("activeCaret");
+var fieldsWrap = document.querySelector(".fields");
+
+if(activeField === "loterie"){
+caret.style.display = "none";
+return;
+}
+
+var fieldEl = document.getElementById(activeField === "numero" ? "numeroLine" : "montantLine");
+var value = getFieldValue(activeField);
+var cursorPos = getCursorValue(activeField);
+
+var wrapRect = fieldsWrap.getBoundingClientRect();
+var fieldRect = fieldEl.getBoundingClientRect();
+
+var shownText = value || (activeField === "numero" ? "Numero" : "Montant");
+var fullWidth = measureTextWidth(shownText, fieldEl);
+var textStart = fieldRect.left + ((fieldRect.width - fullWidth) / 2);
+
+var realText = value || "";
+var beforeCursor = realText.slice(0, cursorPos);
+var beforeWidth = measureTextWidth(beforeCursor, fieldEl);
+
+var caretX = textStart + beforeWidth;
+
+caret.style.display = "block";
+caret.style.left = (caretX - wrapRect.left) + "px";
+}
 <script>
 var activeField = "numero";
 var numero = "";
 var montant = "";
 var jeux = [];
 var selectedLoteries = [];
+
+var cursorNumero = 0;
+var cursorMontant = 0;
+
 
 var loteries = [
 { name: "LA PRIMERA DIA", sub: "20 minutes", time: "11:55 AM" },
@@ -683,7 +792,6 @@ var loterieLine = document.getElementById("loterieLine");
 var montantLine = document.getElementById("montantLine");
 var selectedLine = document.getElementById("selectedLoteriesLine");
 var activeLine = document.getElementById("activeLine");
-var activeCaret = document.getElementById("activeCaret");
 
 numeroLine.textContent = numero || "Numero";
 loterieLine.textContent = "Loterie";
@@ -695,56 +803,43 @@ loterieLine.classList.remove("active");
 montantLine.classList.remove("active");
 
 var lineLeft = "1%";
-var caretLeft = "16%";
 
-if (activeField === "numero") {
+if(activeField === "numero"){
 numeroLine.classList.add("active");
 lineLeft = "1%";
-caretLeft = "14%";
 }
 
-if (activeField === "loterie") {
+if(activeField === "loterie"){
 loterieLine.classList.add("active");
 lineLeft = "34.5%";
-caretLeft = "49.5%";
 }
 
-if (activeField === "montant") {
+if(activeField === "montant"){
 montantLine.classList.add("active");
 lineLeft = "68%";
-caretLeft = "83.5%";
 }
 
 activeLine.style.left = lineLeft;
-activeCaret.style.left = caretLeft;
-activeCaret.style.display = activeField === "loterie" ? "none" : "block";
+moveCaret();
 }
 
-function setField(field){
-activeField = field;
-updateFields();
 
-if (field === "loterie") {
-openLoterieModal();
-}
-}
-
-function press(val){
-if (activeField === "numero") {
-numero += String(val);
-} else if (activeField === "montant") {
-montant += String(val);
-}
-updateFields();
-}
 
 function backspaceKey(){
-if (activeField === "numero") {
-numero = numero.slice(0, -1);
-} else if (activeField === "montant") {
-montant = montant.slice(0, -1);
+if(activeField === "numero"){
+if(cursorNumero > 0){
+numero = numero.slice(0, cursorNumero - 1) + numero.slice(cursorNumero);
+cursorNumero--;
 }
+}else if(activeField === "montant"){
+if(cursorMontant > 0){
+montant = montant.slice(0, cursorMontant - 1) + montant.slice(cursorMontant);
+cursorMontant--;
+}
+}
+
 updateFields();
+}
 }
 
 function handleEnter(){
@@ -838,7 +933,19 @@ row.appendChild(right);
 list.appendChild(row);
 });
 }
+function press(val){
+val = String(val);
 
+if(activeField === "numero"){
+numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
+cursorNumero += val.length;
+}else if(activeField === "montant"){
+montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
+cursorMontant += val.length;
+}
+
+updateFields();
+}
 function addGame(){
 if (!numero.trim()) return;
 if (!montant.trim()) return;
@@ -853,7 +960,9 @@ montant: parseFloat(montant) || 0
 });
 });
 
+
 numero = "";
+cursorNumero = 0;
 activeField = "numero";
 renderJeux();
 updateFields();

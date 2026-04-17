@@ -1528,6 +1528,7 @@ hour: "2-digit",
 minute: "2-digit"
 });
 
+res.set("Content-Type", "text/html; charset=utf-8");
 res.send(`
 <!DOCTYPE html>
 <html>
@@ -1535,28 +1536,39 @@ res.send(`
 <meta charset="UTF-8">
 <title>Print</title>
 <style>
+html, body{
+margin:0;
+padding:0;
+background:#fff;
+}
 body{
 font-family: monospace;
 font-size: 12px;
-margin: 0;
 padding: 4px;
 width: 58mm;
 }
-@media print {
-html, body{
-height:auto !important;
-overflow:visible !important;
-}
-}
-
 pre{
 margin:0;
 white-space:pre-wrap;
 word-break:break-word;
 }
+@media print {
+html, body{
+height:auto !important;
+overflow:visible !important;
+background:#fff !important;
+}
+}
 </style>
 </head>
-<body onload="window.print();setTimeout(function(){window.close();},400);">
+<body>
+<script>
+window.onload = function(){
+  setTimeout(function(){
+    window.print();
+  }, 800);
+};
+</script>
 <pre>NUMBER ONE LOTO
 Date: \${dateStr}
 Heure: \${timeStr}
@@ -1570,7 +1582,6 @@ Bon chans
 </body>
 </html>
 `);
-});
 
 app.listen(3000, "0.0.0.0", () => {
 console.log("Server ap mache sou rezo a");

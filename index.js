@@ -927,9 +927,33 @@ return;
 return;
 }
 
-if(!/[0-9/]/.test(val)) return;
-if(numero.length >= 5 && val !== "/") return;
+if(val === "/"){
+if(numero === "45" || /^\d{2}$/.test(numero)){
+numero = numero + "/";
+cursorNumero = numero.length;
+updateFields();
+activeField = "montant";
+cursorMontant = montant.length;
+updateFields();
+return;
+}
+
+if(/^\d{4}$/.test(numero)){
+numero = numero + "/";
+cursorNumero = numero.length;
+updateFields();
+activeField = "montant";
+cursorMontant = montant.length;
+updateFields();
+return;
+}
+
+return;
+}
+
+if(!/[0-9]/.test(val)) return;
 if(numero.indexOf("/") >= 0) return;
+if(numero.length >= 5) return;
 
 numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
 cursorNumero += val.length;
@@ -1105,23 +1129,32 @@ return { type: "MAR", numero: x };
 function buildGameEntries(num){
 num = num.trim();
 
-if (/^\\d{2}$/.test(num)) {
+if (/^\d{2}$/.test(num)) {
 return [{ type: "BOR", numero: num }];
 }
 
-if (/^\\d{3}$/.test(num)) {
+if (/^\d{2}\/$/.test(num)) {
+var a2 = num.slice(0,2);
+var ar2 = reverse2(a2);
+
+return uniqueStrings([a2, ar2]).map(function(x){
+return { type: "BOR", numero: x };
+});
+}
+
+if (/^\d{3}$/.test(num)) {
 return [{ type: "L3", numero: num }];
 }
 
-if (/^\\d{4}$/.test(num)) {
+if (/^\d{4}$/.test(num)) {
 return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
 }
 
-if (/^\\d{4}\\/$/.test(num)) {
+if (/^\d{4}\/$/.test(num)) {
 return buildSlashMarriageEntries(num);
 }
 
-if (/^\\d{4}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
+if (/^\d{4}\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
 var raw4 = num.split("+")[0];
 var types4 = uniqueStrings(num.split("+")[1].split(","));
 return types4.map(function(t){
@@ -1129,7 +1162,7 @@ return { type: t, numero: raw4 };
 });
 }
 
-if (/^\\d{5}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
+if (/^\d{5}\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
 var raw5 = num.split("+")[0];
 var types5 = uniqueStrings(num.split("+")[1].split(","));
 return types5.map(function(t){

@@ -80,13 +80,10 @@ text-align:center;
 </style>
 </head>
 <body>
-<form class="login-box" method="POST" action="/login">
 <div class="title">NUMBER ONE LOTO</div>
-<div class="sub">Connexion vendeur</div>
-<input class="input" type="text" name="id" placeholder="Identifiant" autocomplete="username" required>
-<input class="input" type="password" name="password" placeholder="Mot de passe" autocomplete="current-password" required>
-<button class="btn" type="submit">CONNECTER</button>
-<div class="note">ID test: NOC100 &nbsp;|&nbsp; Mot de passe: 1234</div>
+<pre class="meta">...</pre>
+<pre class="games">...</pre>
+<div class="footer">Bon chans</div>
 </form>
 </body>
 </html>
@@ -1575,39 +1572,49 @@ gameLines.push(`${typeTxt}${numTxt}${amtTxt}`);
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html, body{
-   margin:0;
-  padding:3px;
-  width:58mm;
-  font-family:monospace;
-  font-size:8px;
-  font-weight:400;
-  color:#000;
+margin:0;
+padding:0;
+background:#fff;
+}
+
+body{
+width:58mm;
+padding:3px 2px;
+font-family:Arial, sans-serif;
+font-size:8px;
+font-weight:400;
+color:#000;
 }
 
 .title{
-  text-align:center;
-  font-size:10px;
-  font-weight:600;
-  margin-bottom:3px;
+text-align:center;
+font-size:10px;
+font-weight:600;
+margin:0 0 4px 0;
 }
 
 .meta{
-  font-size:8px;
-  font-weight:400;
-  line-height:1.2;
-  white-space:pre;
+font-size:8px;
+font-weight:400;
+line-height:1.2;
+white-space:pre-wrap;
+word-break:break-word;
+margin:0;
 }
 
 .games{
-  font-size:8px;
-  font-weight:400;
-  white-space:pre;
-  line-height:1.2;
+font-family:monospace;
+font-size:8px;
+font-weight:400;
+line-height:1.2;
+white-space:pre-wrap;
+margin:0;
+}
 
 .footer{
-  font-size:9px;
-  font-weight:400;
-  margin-top:6px;
+font-size:8px;
+font-weight:400;
+margin-top:6px;
 }
 
 .line{

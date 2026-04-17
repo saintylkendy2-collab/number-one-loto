@@ -231,7 +231,6 @@ color:#a9a9a9;
 font-size:26px;
 font-weight:700;
 }
-
 .group-title{
 font-size:14px; /* piti tit la */
 font-weight:600;
@@ -272,6 +271,7 @@ text-align:right;
 .ticket-row + .ticket-row{
 margin-top:2px;
 }
+
 .summary-bar{
 height:42px;
 min-height:42px;

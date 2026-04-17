@@ -1212,15 +1212,17 @@ return;
 }
 
 var results = {};
+
 for(var i=0;i<nums.length;i++){
-for(var j=i;j<nums.length;j++){
+for(var j=i+1;j<nums.length;j++){
 var a = nums[i];
 var b = nums[j];
-
-if(i === j && counts[a] < 2) continue;
-
 var ar = reverse2(a);
 var br = reverse2(b);
+
+if(a === b) continue;
+if(a === br) continue;
+if(ar === b) continue;
 
 [
 a + "*" + b,
@@ -1228,7 +1230,10 @@ a + "*" + br,
 ar + "*" + b,
 ar + "*" + br
 ].forEach(function(m){
+var parts = m.split("*");
+if(parts[0] !== parts[1] && parts[0] !== reverse2(parts[1])){
 results[m] = true;
+}
 });
 }
 }
@@ -1268,15 +1273,17 @@ return;
 }
 
 var results = {};
+
 for(var i=0;i<nums.length;i++){
-for(var j=i;j<nums.length;j++){
+for(var j=i+1;j<nums.length;j++){
 var a = nums[i];
 var b = nums[j];
-
-if(i === j && counts[a] < 2) continue;
-
 var ar = reverse2(a);
 var br = reverse2(b);
+
+if(a === b) continue;
+if(a === br) continue;
+if(ar === b) continue;
 
 [
 a + b,
@@ -1288,7 +1295,12 @@ b + ar,
 br + a,
 br + ar
 ].forEach(function(l4){
+var left = l4.slice(0,2);
+var right = l4.slice(2,4);
+
+if(left !== right && left !== reverse2(right)){
 results[l4] = true;
+}
 });
 }
 }

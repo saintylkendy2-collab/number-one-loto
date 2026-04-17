@@ -172,7 +172,7 @@ margin:0;
 padding:0;
 width:100%;
 height:100%;
-overflow:auto;
+overflow:hidden;
 font-family:Arial,sans-serif;
 background:#efeff4;
 }
@@ -180,7 +180,7 @@ body{
 color:#111;
 }
 .app{
-min-height:100vh;
+height:100vh;
 display:flex;
 flex-direction:column;
 }
@@ -192,9 +192,6 @@ color:#fff;
 display:grid;
 grid-template-columns:60px 1fr 110px;
 align-items:center;
-position:sticky;
-top:0;
-z-index:20;
 }
 .top-left,.top-right{
 display:flex;
@@ -217,16 +214,16 @@ flex:1;
 min-height:0;
 display:flex;
 flex-direction:column;
+overflow:hidden;
 }
 .tickets-area{
 flex:1;
 min-height:140px;
 overflow:auto;
 background:#efeff4;
-scroll-behavior:smooth;
 }
 .empty-zone{
-height:260px;
+height:100%;
 display:flex;
 align-items:center;
 justify-content:center;
@@ -312,7 +309,6 @@ display:grid;
 grid-template-columns:1fr 1fr 1fr;
 position:relative;
 border-bottom:1px solid #d0d0d0;
-scroll-margin-top:70px;
 }
 .field{
 position:relative;
@@ -354,8 +350,8 @@ left:16%;
 animation:blinkCaret 1s steps(1) infinite;
 }
 @keyframes blinkCaret{
-0%, 50% { opacity:1; }
-50.01%, 100% { opacity:0; }
+0%,50%{opacity:1;}
+50.01%,100%{opacity:0;}
 }
 .keypad{
 height:300px;
@@ -365,10 +361,6 @@ grid-template-columns:repeat(4,1fr);
 grid-template-rows:repeat(4,1fr);
 border-top:1px solid #cacaca;
 margin-top:8px;
-position:sticky;
-bottom:54px;
-background:#fff;
-z-index:8;
 }
 .key{
 border:1px solid #cacaca;
@@ -390,6 +382,10 @@ color:#fff;
 font-size:26px;
 font-weight:800;
 }
+.key.enter.option-mode{
+background:#1fc7dd;
+color:#fff;
+}
 .bottom-nav{
 height:54px;
 min-height:54px;
@@ -400,9 +396,6 @@ grid-template-columns:repeat(5,1fr);
 align-items:center;
 text-align:center;
 font-size:15px;
-position:sticky;
-bottom:0;
-z-index:9;
 }
 .bottom-nav .active{
 color:#7a6bf2;
@@ -866,20 +859,6 @@ openLoterieModal();
 }
 }
 
-function ensureInputVisible(){
-var fields = document.querySelector(".fields");
-if(fields){
-fields.scrollIntoView({ behavior:"smooth", block:"nearest" });
-}
-}
-
-function ensureLastGameVisible(){
-var area = document.getElementById("ticketsArea");
-if(area){
-area.scrollTop = area.scrollHeight;
-}
-}
-
 function openChoiceModal(options){
 var modal = document.getElementById("choiceModal");
 var list = document.getElementById("choiceList");
@@ -891,6 +870,7 @@ options.forEach(function(opt){
 var div = document.createElement("div");
 div.className = "choice-item";
 div.textContent = opt;
+
 div.onclick = function(){
 if(tempChoices.includes(opt)){
 tempChoices = tempChoices.filter(function(x){ return x !== opt; });
@@ -900,16 +880,19 @@ tempChoices.push(opt);
 div.classList.add("active");
 }
 };
+
 list.appendChild(div);
 });
 
 modal.classList.add("show");
 document.getElementById("overlay").classList.add("show");
+document.querySelector(".key.enter").classList.add("option-mode");
 }
 
 function closeChoiceModal(){
 document.getElementById("choiceModal").classList.remove("show");
 document.getElementById("overlay").classList.remove("show");
+document.querySelector(".key.enter").classList.remove("option-mode");
 tempChoices = [];
 }
 
@@ -934,7 +917,6 @@ return;
 }
 
 if(!/[0-9]/.test(val)) return;
-
 if(numero.length >= 5) return;
 
 numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
@@ -945,7 +927,6 @@ montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
 cursorMontant += val.length;
 }
 
-ensureInputVisible();
 updateFields();
 }
 
@@ -977,7 +958,6 @@ closeChoiceModal();
 activeField = "montant";
 cursorMontant = montant.length;
 updateFields();
-ensureInputVisible();
 return;
 }
 
@@ -988,7 +968,6 @@ if (selectedLoteries.length > 0) {
 activeField = "montant";
 cursorMontant = montant.length;
 updateFields();
-ensureInputVisible();
 } else {
 activeField = "loterie";
 updateFields();
@@ -1032,7 +1011,6 @@ document.getElementById("overlay").classList.remove("show");
 activeField = "montant";
 cursorMontant = montant.length;
 updateFields();
-ensureInputVisible();
 }
 
 function toggleLoterie(name){
@@ -1140,7 +1118,6 @@ numero = "";
 cursorNumero = 0;
 activeField = "numero";
 renderJeux();
-ensureLastGameVisible();
 updateFields();
 }
 

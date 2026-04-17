@@ -680,11 +680,8 @@ border-right:1px solid #ddd;
 <div id="choiceModal" class="loterie-modal">
   <div class="loterie-box" style="max-width:320px;">
     <div id="choiceList" class="loterie-list"></div>
-    <div class="modal-actions">
-      <div class="circle-btn btn-close" onclick="closeChoiceModal()">✕</div>
-    </div>
   </div>
-</div>
+</div<
 
 <form id="printForm" class="hidden-print-form" method="POST" action="/print" target="_blank">
 <input type="hidden" name="data" id="printData">
@@ -878,7 +875,7 @@ openChoiceModal(["L1","L2","L4"]);
 return;
 }
 
-if(numero.length === 5){
+if(numero.length === 4){
 pendingChoiceNumber = numero;
 tempChoices = [];
 openChoiceModal(["L1","L2","L3"]);
@@ -913,6 +910,20 @@ updateFields();
 }
 
 function handleEnter(){
+if (document.getElementById("choiceModal").classList.contains("show")) {
+if(tempChoices.length === 0){
+alert("Chwazi omwen youn");
+return;
+}
+numero = pendingChoiceNumber + "+" + tempChoices.join(",");
+cursorNumero = numero.length;
+closeChoiceModal();
+activeField = "montant";
+cursorMontant = montant.length;
+updateFields();
+return;
+}
+
 if (activeField === "numero") {
 if (!numero.trim()) return;
 
@@ -974,6 +985,168 @@ selectedLoteries.push(name);
 renderLoterieList();
 updateFields();
 }
+var pendingChoiceNumber = "";
+var tempChoices = [];
+
+/* ===== PRESS ===== */
+function press(val){
+val = String(val);
+
+if(activeField === "numero"){
+
+// VALIDATION: pa kite move format
+if(numero.length >= 5) return;
+
+// si se chif
+if(/[0-9]/.test(val)){
+numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
+cursorNumero += val.length;
+
+// SI 4 OU 5 CHIF → L1 L2 L3
+if(numero.length === 4 || numero.length === 5){
+pendingChoiceNumber = numero;
+tempChoices = [];
+openChoiceModal(["L1","L2","L3"]);
+return;
+}
+
+}else{
+// pa kite + - / . nan numero
+return;
+}
+
+}else if(activeField === "montant"){
+montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
+cursorMontant += val.length;
+}
+
+// fè ekran monte pou wè sa wap tape
+ensureInputVisible();
+
+updateFields();
+}
+
+/* ===== ENTER ===== */
+function handleEnter(){
+
+// SI NAN OPTION → ENTER VALIDÉ
+if (document.getElementById("choiceModal") && document.getElementById("choiceModal").classList.contains("show")) {
+
+if(tempChoices.length === 0){
+alert("Chwazi omwen youn");
+return;
+}
+
+numero = pendingChoiceNumber + "+" + tempChoices.join(",");
+cursorNumero = numero.length;
+
+closeChoiceModal();
+
+activeField = "montant";
+cursorMontant = montant.length;
+
+updateFields();
+return;
+}
+
+// NORMAL FLOW
+if (activeField === "numero") {
+
+// VALIDATION jwèt
+if(!/^[0-9]{2,5}$/.test(numero)) return;
+
+if (selectedLoteries.length > 0) {
+activeField = "montant";
+cursorMontant = montant.length;
+updateFields();
+} else {
+activeField = "loterie";
+updateFields();
+openLoterieModal();
+}
+return;
+}
+
+if (activeField === "montant") {
+addGame();
+return;
+}
+
+if (activeField === "loterie") {
+openLoterieModal();
+}
+}
+
+/* ===== MODAL OPTION ===== */
+function openChoiceModal(options){
+var modal = document.getElementById("choiceModal");
+
+if(!modal){
+var html = `
+<div id="choiceModal" class="loterie-modal show">
+  <div class="loterie-box" style="max-width:320px;">
+    <div id="choiceList" class="loterie-list"></div>
+  </div>
+</div>`;
+document.body.insertAdjacentHTML("beforeend", html);
+modal = document.getElementById("choiceModal");
+}else{
+modal.classList.add("show");
+}
+
+var list = document.getElementById("choiceList");
+list.innerHTML = "";
+
+options.forEach(function(opt){
+var div = document.createElement("div");
+div.className = "choice-item";
+div.style.padding = "18px";
+div.style.fontSize = "22px";
+div.style.textAlign = "center";
+div.style.borderBottom = "1px solid #ddd";
+div.textContent = opt;
+
+div.onclick = function(){
+if(tempChoices.includes(opt)){
+tempChoices = tempChoices.filter(function(x){ return x !== opt; });
+div.style.background = "";
+}else{
+tempChoices.push(opt);
+div.style.background = "#dfe3fb";
+}
+};
+
+list.appendChild(div);
+});
+}
+
+function closeChoiceModal(){
+var modal = document.getElementById("choiceModal");
+if(modal) modal.classList.remove("show");
+tempChoices = [];
+}
+
+/* ===== SCROLL FIX ===== */
+function ensureInputVisible(){
+var fields = document.querySelector(".fields");
+if(fields){
+fields.scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+}
+
+function ensureLastGameVisible(){
+var area = document.getElementById("ticketsArea");
+if(area){
+area.scrollTop = area.scrollHeight;
+}
+}
+
+/* ===== ADD GAME FIX ===== */
+var oldAddGame = addGame;
+addGame = function(){
+oldAddGame();
+ensureLastGameVisible();
+};
 
 function renderLoterieList(){
 var list = document.getElementById("loterieList");
@@ -1030,6 +1203,10 @@ div.classList.add("active");
 list.appendChild(div);
 });
 
+modal.classList.add("show");
+}
+
+
 var okBtn = document.createElement("div");
 okBtn.className = "choice-item ok";
 okBtn.textContent = "OK";
@@ -1043,6 +1220,7 @@ modal.classList.add("show");
 
 function closeChoiceModal(){
 document.getElementById("choiceModal").classList.remove("show");
+tempChoices = [];
 }
 
 function applyChoiceMulti(){

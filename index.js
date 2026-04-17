@@ -404,16 +404,21 @@ cursor:pointer;
 background:#e3e3e3;
 }
 .key.enter{
-background:linear-gradient(135deg, rgba(61,141,32,0.6), rgba(61,141,32,0.4));
+background:rgba(255,255,255,0.15); /* transparan */
+backdrop-filter:blur(12px); /* efè glas */
+-webkit-backdrop-filter:blur(12px);
+border:1px solid rgba(255,255,255,0.3);
 color:#fff;
-font-size:26px;
 font-weight:800;
-border:none;
+font-size:26px;
+box-shadow:0 4px 15px rgba(0,0,0,0.1);
 }
 
+/* lè w peze li */
 .key.enter:active{
-background:linear-gradient(135deg, rgba(61,141,32,0.4), rgba(61,141,32,0.2));
+background:rgba(255,255,255,0.25);
 }
+
 .bottom-nav{
 height:54px;
 min-height:54px;

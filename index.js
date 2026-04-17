@@ -1571,21 +1571,26 @@ gameLines.push(`${typeTxt}${numTxt}${amtTxt}`);
 <title>Print</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+
+
+.line{<style>
 html, body{
 margin:0;
 padding:0;
 background:#fff;
 }
 
+/* SA A SE BODY PADDING OU TAP MANDE A */
 body{
 width:58mm;
-padding:3px 2px;
+padding:3px 1px; /* 👈 sa ki enpòtan an */
 font-family:Arial, sans-serif;
 font-size:8px;
 font-weight:400;
 color:#000;
 }
 
+/* TIT LA */
 .title{
 text-align:center;
 font-size:10px;
@@ -1593,31 +1598,32 @@ font-weight:600;
 margin:0 0 4px 0;
 }
 
+/* SELLER / TICKET / DATE / TIRAGES */
 .meta{
 font-size:8px;
 font-weight:400;
 line-height:1.2;
-white-space:pre-wrap;
-word-break:break-word;
+white-space:pre;
 margin:0;
 }
 
+/* LIGNE JEU YO */
 .games{
 font-family:monospace;
 font-size:8px;
 font-weight:400;
 line-height:1.2;
-white-space:pre-wrap;
+white-space:pre;
 margin:0;
 }
 
+/* BAS TICKET */
 .footer{
 font-size:8px;
 font-weight:400;
 margin-top:6px;
 }
-
-.line{
+</style>
   font-family:monospace;
   font-size:9px;
   font-weight:400;

@@ -172,7 +172,7 @@ margin:0;
 padding:0;
 width:100%;
 height:100%;
-overflow:hidden;
+overflow-y:auto;
 font-family:Arial,sans-serif;
 background:#efeff4;
 }
@@ -232,12 +232,12 @@ font-size:26px;
 font-weight:700;
 }
 .group-title{
-font-size:14px; /* piti tit la */
+font-size:14px;
 font-weight:600;
-padding:6px 10px; /* mwens espas */
+padding:4px 8px;
 background:#e6e6f0;
+line-height:1.1;
 }
-
 .ticket-row{
 display:grid;
 grid-template-columns:60px 1fr 80px;
@@ -257,9 +257,9 @@ text-align:left;
 }
 
 /* numero */
-.ticket-row div:nth-child(2){
-text-align:center;
-letter-spacing:1px;
+.ticket-row div:first-child{
+font-weight:normal;
+text-align:left;
 }
 
 /* montant */

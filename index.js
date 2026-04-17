@@ -1520,12 +1520,13 @@ app.post("/print", (req, res) => {
         total += amount;
         tiragesMap[loterie] = true;
 
-        const displayType = type === "BOR" ? "Borlette" : type;
-        const typeTxt = displayType.padEnd(9, " ");
-        const numTxt = String(number).padEnd(8, " ");
-        const amtTxt = amount.toFixed(2).padStart(6, " ");
+       const displayType = "Borlette";
+const typeTxt = displayType.padEnd(10, " ");
+const numTxt = String(number).padEnd(6, " ");
+const amtTxt = amount.toFixed(2).padStart(5, " ");
 
-        gameLines.push(`${typeTxt} ${numTxt} ${amtTxt}`);
+gameLines.push(`${typeTxt}${numTxt}${amtTxt}`);
+
       }
     }
   });
@@ -1537,7 +1538,7 @@ app.post("/print", (req, res) => {
     minute: "2-digit"
   });
 
-  const tirages = Object.keys(tiragesMap).join(", ");
+  const tirages = Object.keys(tiragesMap).join(" / ");
   const sellerName = LOGIN_ID || "SELLER";
   const ticketCode =
     String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
@@ -1574,42 +1575,34 @@ app.post("/print", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html, body{
-  margin:0;
-  padding:0;
-  background:#fff;
-}
-
-body{
+   margin:0;
+  padding:3px;
   width:58mm;
-  padding:4px 3px;
-  font-family:Arial, sans-serif;
+  font-family:monospace;
+  font-size:8px;
+  font-weight:400;
   color:#000;
 }
 
 .title{
   text-align:center;
-  font-size:11px;
+  font-size:10px;
   font-weight:600;
-  margin:0 0 4px 0;
+  margin-bottom:3px;
 }
 
 .meta{
-  font-size:9px;
+  font-size:8px;
   font-weight:400;
-  line-height:1.25;
-  margin:0;
-  white-space:pre-wrap;
-  word-break:break-word;
+  line-height:1.2;
+  white-space:pre;
 }
 
 .games{
-  font-family:monospace;
-  font-size:9px;
+  font-size:8px;
   font-weight:400;
+  white-space:pre;
   line-height:1.2;
-  margin:0;
-  white-space:pre-wrap;
-}
 
 .footer{
   font-size:9px;

@@ -231,35 +231,46 @@ color:#a9a9a9;
 font-size:26px;
 font-weight:700;
 }
+
 .group-title{
-background:#dfe3fb;
-color:#4b4b4b;
-font-size:22px;
-font-weight:800;
-padding:6px 12px;
-border-top:1px solid #d0d0d0;
-border-bottom:1px solid #d0d0d0;
+font-size:14px; /* piti tit la */
+font-weight:600;
+padding:6px 10px; /* mwens espas */
+background:#e6e6f0;
 }
+
 .ticket-row{
 display:grid;
-grid-template-columns:1.2fr .9fr .9fr;
+grid-template-columns:60px 1fr 80px;
 align-items:center;
-min-height:48px;
-background:#fff;
-border-bottom:1px solid #ddd;
-font-size:20px;
+padding:6px 10px; /* redwi wotè */
+font-size:14px;
 }
+
 .ticket-row div{
-padding:8px 14px;
-}
-.ticket-row div:nth-child(1){
-text-align:left;
-}
-.ticket-row div:nth-child(2){
 text-align:center;
 }
-.ticket-row div:nth-child(3){
+
+/* type (BOR, L4, etc) */
+.ticket-row div:first-child{
+font-weight:600;
+text-align:left;
+}
+
+/* numero */
+.ticket-row div:nth-child(2){
+text-align:center;
+letter-spacing:1px;
+}
+
+/* montant */
+.ticket-row div:last-child{
 text-align:right;
+}
+
+/* retire twòp espas ant liy yo */
+.ticket-row + .ticket-row{
+margin-top:2px;
 }
 .summary-bar{
 height:42px;

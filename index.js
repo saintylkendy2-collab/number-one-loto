@@ -927,9 +927,33 @@ return;
 return;
 }
 
-if(!/[0-9/]/.test(val)) return;
-if(numero.length >= 5 && val !== "/") return;
+if(val === "/"){
+if(numero === "45" || /^\d{2}$/.test(numero)){
+numero = numero + "/";
+cursorNumero = numero.length;
+updateFields();
+activeField = "montant";
+cursorMontant = montant.length;
+updateFields();
+return;
+}
+
+if(/^\d{4}$/.test(numero)){
+numero = numero + "/";
+cursorNumero = numero.length;
+updateFields();
+activeField = "montant";
+cursorMontant = montant.length;
+updateFields();
+return;
+}
+
+return;
+}
+
+if(!/[0-9]/.test(val)) return;
 if(numero.indexOf("/") >= 0) return;
+if(numero.length >= 5) return;
 
 numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
 cursorNumero += val.length;
@@ -941,6 +965,7 @@ cursorMontant += val.length;
 
 updateFields();
 }
+
 
 
 function backspaceKey(){

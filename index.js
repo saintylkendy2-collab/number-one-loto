@@ -561,6 +561,24 @@ cursor:pointer;
 .choice-item.active{
 background:#dfe3fb;
 }
+.choice-chip{
+height:56px;
+border-radius:12px;
+background:#fff;
+border:2px solid #d7d7d7;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:24px;
+font-weight:800;
+cursor:pointer;
+user-select:none;
+}
+.choice-chip.active{
+background:#dfe3fb;
+border-color:#5b6ff2;
+}
+
 .hidden-print-form{
 display:none;
 }
@@ -673,10 +691,8 @@ border-right:1px solid #ddd;
 </div>
 </div>
 
-<div id="choiceModal" class="loterie-modal">
-<div class="loterie-box" style="max-width:320px;">
-<div id="choiceList" class="loterie-list"></div>
-</div>
+<<div id="choicePanel" style="display:none; padding:8px 12px; background:#efeff4;">
+  <div id="choiceList" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;"></div>
 </div>
 
 <form id="printForm" class="hidden-print-form" method="POST" action="/print" target="_blank">
@@ -828,7 +844,7 @@ lineLeft = "1%";
 }
 
 if(activeField === "loterie"){
-loterieLine.classList.add("active");
+loterieLine.classList.add("active")
 lineLeft = "34.5%";
 }
 
@@ -857,10 +873,8 @@ updateFields();
 if(field === "loterie"){
 openLoterieModal();
 }
-}
-
 function openChoiceModal(options){
-var modal = document.getElementById("choiceModal");
+var panel = document.getElementById("choicePanel");
 var list = document.getElementById("choiceList");
 
 tempChoices = [];
@@ -868,7 +882,7 @@ list.innerHTML = "";
 
 options.forEach(function(opt){
 var div = document.createElement("div");
-div.className = "choice-item";
+div.className = "choice-chip";
 div.textContent = opt;
 
 div.onclick = function(){
@@ -884,14 +898,13 @@ div.classList.add("active");
 list.appendChild(div);
 });
 
-modal.classList.add("show");
-document.getElementById("overlay").classList.add("show");
+panel.style.display = "block";
 document.querySelector(".key.enter").classList.add("option-mode");
 }
 
 function closeChoiceModal(){
-document.getElementById("choiceModal").classList.remove("show");
-document.getElementById("overlay").classList.remove("show");
+document.getElementById("choicePanel").style.display = "none";
+document.getElementById("choiceList").innerHTML = "";
 document.querySelector(".key.enter").classList.remove("option-mode");
 tempChoices = [];
 }
@@ -930,24 +943,8 @@ cursorMontant += val.length;
 updateFields();
 }
 
-function backspaceKey(){
-if(activeField === "numero"){
-if(cursorNumero > 0){
-numero = numero.slice(0, cursorNumero - 1) + numero.slice(cursorNumero);
-cursorNumero--;
-}
-}else if(activeField === "montant"){
-if(cursorMontant > 0){
-montant = montant.slice(0, cursorMontant - 1) + montant.slice(cursorMontant);
-cursorMontant--;
-}
-}
-
-updateFields();
-}
-
 function handleEnter(){
-if (document.getElementById("choiceModal").classList.contains("show")) {
+if (document.getElementById("choicePanel").style.display === "block") {
 if(tempChoices.length === 0){
 alert("Chwazi omwen youn");
 return;
@@ -985,6 +982,10 @@ if (activeField === "loterie") {
 openLoterieModal();
 }
 }
+}
+
+
+
 
 function openLoterieModal(){
 document.getElementById("loterieModal").classList.add("show");

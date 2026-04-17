@@ -1542,6 +1542,13 @@ margin: 0;
 padding: 4px;
 width: 58mm;
 }
+@media print {
+html, body{
+height:auto !important;
+overflow:visible !important;
+}
+}
+
 pre{
 margin:0;
 white-space:pre-wrap;

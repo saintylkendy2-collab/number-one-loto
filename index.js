@@ -1496,62 +1496,44 @@ updateFields();
 });
 
 app.post("/print", (req, res) => {
-const raw = req.body.data || "";
-const lines = raw
-.split("\\n")
-.map(line => line.trim())
-.filter(line => line.length > 0);
+  const data = req.body.data || "";
 
-let total = 0;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("fr-FR");
+  const timeStr = now.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 
-const formattedLines = lines.map(line => {
-const parts = line.split(/\\s+/);
+  res.set("Content-Type", "text/html; charset=utf-8");
 
-if (parts.length >= 3) {
-const type = parts[0].toUpperCase();
-const number = parts[1];
-const amount = parseFloat(parts[2]);
-
-if (!Number.isNaN(amount)) {
-total += amount;
-return type.padEnd(4, " ") + " " + String(number).padEnd(8, " ") + " " + amount.toFixed(2) + " G";
-}
-}
-
-return line;
-});
-
-const now = new Date();
-const dateStr = now.toLocaleDateString("fr-FR");
-const timeStr = now.toLocaleTimeString("fr-FR", {
-hour: "2-digit",
-minute: "2-digit"
-});
-
-res.set("Content-Type", "text/html; charset=utf-8");
-res.send(`
+  res.send(`
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <title>Print</title>
+
 <style>
 html, body{
 margin:0;
 padding:0;
 background:#fff;
 }
+
 body{
 font-family: monospace;
 font-size: 12px;
 padding: 4px;
 width: 58mm;
 }
+
 pre{
 margin:0;
 white-space:pre-wrap;
 word-break:break-word;
 }
+
 @media print {
 html, body{
 height:auto !important;
@@ -1561,7 +1543,9 @@ background:#fff !important;
 }
 </style>
 </head>
+
 <body>
+
 <script>
 window.onload = function(){
   setTimeout(function(){
@@ -1569,19 +1553,21 @@ window.onload = function(){
   }, 800);
 };
 </script>
+
 <pre>NUMBER ONE LOTO
-Date: \${dateStr}
-Heure: \${timeStr}
+Date: ${dateStr}
+Heure: ${timeStr}
 ------------------------------
-\${formattedLines.join("\\n")}
+${data}
 ------------------------------
-TOTAL: \${total.toFixed(2)} G
 
 Bon chans
 </pre>
+
 </body>
 </html>
 `);
+});
 
 app.listen(3000, "0.0.0.0", () => {
 console.log("Server ap mache sou rezo a");

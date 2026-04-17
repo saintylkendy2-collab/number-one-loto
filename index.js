@@ -1516,16 +1516,8 @@ app.post("/print", (req, res) => {
 
       if (!Number.isNaN(amount)) {
         total += amount;
-
-        if (!groups[loterie]) {
-          groups[loterie] = [];
-        }
-
-        groups[loterie].push({
-          type,
-          number,
-          amount
-        });
+        if (!groups[loterie]) groups[loterie] = [];
+        groups[loterie].push({ type, number, amount });
       }
     }
   });
@@ -1560,32 +1552,49 @@ app.post("/print", (req, res) => {
   ticketText += "TOTAL: " + total.toFixed(2) + " G\n\n";
   ticketText += "Bon chans";
 
-  res.send(`
-<!DOCTYPE html>
+  const safeText = ticketText
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  res.set("Content-Type", "text/html; charset=utf-8");
+  res.send(`<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <title>Print</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+html, body{
+  margin:0;
+  padding:0;
+  background:#fff;
+}
 body{
-font-family:monospace;
-font-size:10px;
-margin:0;
-padding:3px;
-width:58mm;
+  width:58mm;
+  padding:3px;
+  font-family:monospace;
+  font-size:10px;
+  line-height:1.25;
 }
 pre{
-margin:0;
-white-space:pre-wrap;
-word-break:break-word;
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-word;
 }
 </style>
 </head>
-<body onload="window.print();setTimeout(function(){window.close();},400);">
-<pre>${ticketText}</pre>
+<body>
+<pre>${safeText}</pre>
+<script>
+setTimeout(function(){
+  try {
+    window.print();
+  } catch(e) {}
+}, 300);
+</script>
 </body>
-</html>
-`);
+</html>`);
 });
 
 app.listen(3000, "0.0.0.0", () => {

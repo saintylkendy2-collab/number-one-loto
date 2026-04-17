@@ -172,7 +172,7 @@ margin:0;
 padding:0;
 width:100%;
 height:100%;
-overflow:hidden;
+overflow:auto;
 font-family:Arial,sans-serif;
 background:#efeff4;
 }
@@ -180,7 +180,7 @@ body{
 color:#111;
 }
 .app{
-height:100vh;
+min-height:100vh;
 display:flex;
 flex-direction:column;
 }
@@ -192,6 +192,9 @@ color:#fff;
 display:grid;
 grid-template-columns:60px 1fr 110px;
 align-items:center;
+position:sticky;
+top:0;
+z-index:20;
 }
 .top-left,.top-right{
 display:flex;
@@ -220,9 +223,10 @@ flex:1;
 min-height:140px;
 overflow:auto;
 background:#efeff4;
+scroll-behavior:smooth;
 }
 .empty-zone{
-height:100%;
+height:260px;
 display:flex;
 align-items:center;
 justify-content:center;
@@ -308,6 +312,7 @@ display:grid;
 grid-template-columns:1fr 1fr 1fr;
 position:relative;
 border-bottom:1px solid #d0d0d0;
+scroll-margin-top:70px;
 }
 .field{
 position:relative;
@@ -360,6 +365,10 @@ grid-template-columns:repeat(4,1fr);
 grid-template-rows:repeat(4,1fr);
 border-top:1px solid #cacaca;
 margin-top:8px;
+position:sticky;
+bottom:54px;
+background:#fff;
+z-index:8;
 }
 .key{
 border:1px solid #cacaca;
@@ -391,6 +400,9 @@ grid-template-columns:repeat(5,1fr);
 align-items:center;
 text-align:center;
 font-size:15px;
+position:sticky;
+bottom:0;
+z-index:9;
 }
 .bottom-nav .active{
 color:#7a6bf2;
@@ -542,7 +554,6 @@ cursor:pointer;
 .btn-clear{background:#5f628b;}
 .btn-ok{background:#1fc7dd;}
 .btn-close{background:#c9c9c9;}
-
 .choice-item{
 height:70px;
 display:flex;
@@ -557,14 +568,6 @@ cursor:pointer;
 .choice-item.active{
 background:#dfe3fb;
 }
-.choice-item.ok{
-background:#1fc7dd;
-color:#fff;
-}
-.choice-item:active{
-background:#ececec;
-}
-
 .hidden-print-form{
 display:none;
 }
@@ -584,7 +587,7 @@ border-right:1px solid #ddd;
 </head>
 <body>
 <div class="app">
-<div id="overlay" class="overlay" onclick="closeDrawer();closeOptions();"></div>
+<div id="overlay" class="overlay" onclick="closeDrawer();closeOptions();closeChoiceModal();"></div>
 
 <div class="topbar">
 <div class="top-left">
@@ -678,10 +681,10 @@ border-right:1px solid #ddd;
 </div>
 
 <div id="choiceModal" class="loterie-modal">
-  <div class="loterie-box" style="max-width:320px;">
-    <div id="choiceList" class="loterie-list"></div>
-  </div>
-</div<
+<div class="loterie-box" style="max-width:320px;">
+<div id="choiceList" class="loterie-list"></div>
+</div>
+</div>
 
 <form id="printForm" class="hidden-print-form" method="POST" action="/print" target="_blank">
 <input type="hidden" name="data" id="printData">
@@ -863,6 +866,53 @@ openLoterieModal();
 }
 }
 
+function ensureInputVisible(){
+var fields = document.querySelector(".fields");
+if(fields){
+fields.scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+}
+
+function ensureLastGameVisible(){
+var area = document.getElementById("ticketsArea");
+if(area){
+area.scrollTop = area.scrollHeight;
+}
+}
+
+function openChoiceModal(options){
+var modal = document.getElementById("choiceModal");
+var list = document.getElementById("choiceList");
+
+tempChoices = [];
+list.innerHTML = "";
+
+options.forEach(function(opt){
+var div = document.createElement("div");
+div.className = "choice-item";
+div.textContent = opt;
+div.onclick = function(){
+if(tempChoices.includes(opt)){
+tempChoices = tempChoices.filter(function(x){ return x !== opt; });
+div.classList.remove("active");
+}else{
+tempChoices.push(opt);
+div.classList.add("active");
+}
+};
+list.appendChild(div);
+});
+
+modal.classList.add("show");
+document.getElementById("overlay").classList.add("show");
+}
+
+function closeChoiceModal(){
+document.getElementById("choiceModal").classList.remove("show");
+document.getElementById("overlay").classList.remove("show");
+tempChoices = [];
+}
+
 function press(val){
 val = String(val);
 
@@ -870,26 +920,32 @@ if(activeField === "numero"){
 if(val === "+"){
 if(numero.length === 4){
 pendingChoiceNumber = numero;
-tempChoices = [];
-openChoiceModal(["L1","L2","L4"]);
-return;
-}
-
-if(numero.length === 4){
-pendingChoiceNumber = numero;
-tempChoices = [];
 openChoiceModal(["L1","L2","L3"]);
 return;
 }
+
+if(numero.length === 5){
+pendingChoiceNumber = numero;
+openChoiceModal(["L1","L2","L3"]);
+return;
 }
+
+return;
+}
+
+if(!/[0-9]/.test(val)) return;
+
+if(numero.length >= 5) return;
 
 numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
 cursorNumero += val.length;
 }else if(activeField === "montant"){
+if(!/[0-9.]/.test(val)) return;
 montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
 cursorMontant += val.length;
 }
 
+ensureInputVisible();
 updateFields();
 }
 
@@ -921,6 +977,7 @@ closeChoiceModal();
 activeField = "montant";
 cursorMontant = montant.length;
 updateFields();
+ensureInputVisible();
 return;
 }
 
@@ -931,6 +988,7 @@ if (selectedLoteries.length > 0) {
 activeField = "montant";
 cursorMontant = montant.length;
 updateFields();
+ensureInputVisible();
 } else {
 activeField = "loterie";
 updateFields();
@@ -951,11 +1009,13 @@ openLoterieModal();
 
 function openLoterieModal(){
 document.getElementById("loterieModal").classList.add("show");
+document.getElementById("overlay").classList.add("show");
 renderLoterieList();
 }
 
 function closeLoterieModal(){
 document.getElementById("loterieModal").classList.remove("show");
+document.getElementById("overlay").classList.remove("show");
 activeField = "numero";
 updateFields();
 }
@@ -968,9 +1028,11 @@ updateFields();
 
 function validateLoteries(){
 document.getElementById("loterieModal").classList.remove("show");
+document.getElementById("overlay").classList.remove("show");
 activeField = "montant";
 cursorMontant = montant.length;
 updateFields();
+ensureInputVisible();
 }
 
 function toggleLoterie(name){
@@ -985,168 +1047,6 @@ selectedLoteries.push(name);
 renderLoterieList();
 updateFields();
 }
-var pendingChoiceNumber = "";
-var tempChoices = [];
-
-/* ===== PRESS ===== */
-function press(val){
-val = String(val);
-
-if(activeField === "numero"){
-
-// VALIDATION: pa kite move format
-if(numero.length >= 5) return;
-
-// si se chif
-if(/[0-9]/.test(val)){
-numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
-cursorNumero += val.length;
-
-// SI 4 OU 5 CHIF → L1 L2 L3
-if(numero.length === 4 || numero.length === 5){
-pendingChoiceNumber = numero;
-tempChoices = [];
-openChoiceModal(["L1","L2","L3"]);
-return;
-}
-
-}else{
-// pa kite + - / . nan numero
-return;
-}
-
-}else if(activeField === "montant"){
-montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
-cursorMontant += val.length;
-}
-
-// fè ekran monte pou wè sa wap tape
-ensureInputVisible();
-
-updateFields();
-}
-
-/* ===== ENTER ===== */
-function handleEnter(){
-
-// SI NAN OPTION → ENTER VALIDÉ
-if (document.getElementById("choiceModal") && document.getElementById("choiceModal").classList.contains("show")) {
-
-if(tempChoices.length === 0){
-alert("Chwazi omwen youn");
-return;
-}
-
-numero = pendingChoiceNumber + "+" + tempChoices.join(",");
-cursorNumero = numero.length;
-
-closeChoiceModal();
-
-activeField = "montant";
-cursorMontant = montant.length;
-
-updateFields();
-return;
-}
-
-// NORMAL FLOW
-if (activeField === "numero") {
-
-// VALIDATION jwèt
-if(!/^[0-9]{2,5}$/.test(numero)) return;
-
-if (selectedLoteries.length > 0) {
-activeField = "montant";
-cursorMontant = montant.length;
-updateFields();
-} else {
-activeField = "loterie";
-updateFields();
-openLoterieModal();
-}
-return;
-}
-
-if (activeField === "montant") {
-addGame();
-return;
-}
-
-if (activeField === "loterie") {
-openLoterieModal();
-}
-}
-
-/* ===== MODAL OPTION ===== */
-function openChoiceModal(options){
-var modal = document.getElementById("choiceModal");
-
-if(!modal){
-var html = `
-<div id="choiceModal" class="loterie-modal show">
-  <div class="loterie-box" style="max-width:320px;">
-    <div id="choiceList" class="loterie-list"></div>
-  </div>
-</div>`;
-document.body.insertAdjacentHTML("beforeend", html);
-modal = document.getElementById("choiceModal");
-}else{
-modal.classList.add("show");
-}
-
-var list = document.getElementById("choiceList");
-list.innerHTML = "";
-
-options.forEach(function(opt){
-var div = document.createElement("div");
-div.className = "choice-item";
-div.style.padding = "18px";
-div.style.fontSize = "22px";
-div.style.textAlign = "center";
-div.style.borderBottom = "1px solid #ddd";
-div.textContent = opt;
-
-div.onclick = function(){
-if(tempChoices.includes(opt)){
-tempChoices = tempChoices.filter(function(x){ return x !== opt; });
-div.style.background = "";
-}else{
-tempChoices.push(opt);
-div.style.background = "#dfe3fb";
-}
-};
-
-list.appendChild(div);
-});
-}
-
-function closeChoiceModal(){
-var modal = document.getElementById("choiceModal");
-if(modal) modal.classList.remove("show");
-tempChoices = [];
-}
-
-/* ===== SCROLL FIX ===== */
-function ensureInputVisible(){
-var fields = document.querySelector(".fields");
-if(fields){
-fields.scrollIntoView({ behavior:"smooth", block:"nearest" });
-}
-}
-
-function ensureLastGameVisible(){
-var area = document.getElementById("ticketsArea");
-if(area){
-area.scrollTop = area.scrollHeight;
-}
-}
-
-/* ===== ADD GAME FIX ===== */
-var oldAddGame = addGame;
-addGame = function(){
-oldAddGame();
-ensureLastGameVisible();
-};
 
 function renderLoterieList(){
 var list = document.getElementById("loterieList");
@@ -1179,64 +1079,6 @@ list.appendChild(row);
 });
 }
 
-function openChoiceModal(options){
-var modal = document.getElementById("choiceModal");
-var list = document.getElementById("choiceList");
-
-list.innerHTML = "";
-
-options.forEach(function(opt){
-var div = document.createElement("div");
-div.className = "choice-item";
-div.textContent = opt;
-
-div.onclick = function(){
-if(tempChoices.includes(opt)){
-tempChoices = tempChoices.filter(function(x){ return x !== opt; });
-div.classList.remove("active");
-}else{
-tempChoices.push(opt);
-div.classList.add("active");
-}
-};
-
-list.appendChild(div);
-});
-
-modal.classList.add("show");
-}
-
-
-var okBtn = document.createElement("div");
-okBtn.className = "choice-item ok";
-okBtn.textContent = "OK";
-okBtn.onclick = function(){
-applyChoiceMulti();
-};
-list.appendChild(okBtn);
-
-modal.classList.add("show");
-}
-
-function closeChoiceModal(){
-document.getElementById("choiceModal").classList.remove("show");
-tempChoices = [];
-}
-
-function applyChoiceMulti(){
-if(tempChoices.length === 0){
-alert("Chwazi omwen youn");
-return;
-}
-
-numero = pendingChoiceNumber + "+" + tempChoices.join(",");
-cursorNumero = numero.length;
-closeChoiceModal();
-activeField = "montant";
-cursorMontant = montant.length;
-updateFields();
-}
-
 function buildGameEntries(num){
 num = num.trim();
 
@@ -1252,7 +1094,7 @@ if (/^\\d{4}$/.test(num)) {
 return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
 }
 
-if (/^\\d{4}\\+(L1|L2|L4)(,(L1|L2|L4))*$/.test(num)) {
+if (/^\\d{4}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
 var raw4 = num.split("+")[0];
 var types4 = num.split("+")[1].split(",");
 return types4.map(function(t){
@@ -1298,6 +1140,7 @@ numero = "";
 cursorNumero = 0;
 activeField = "numero";
 renderJeux();
+ensureLastGameVisible();
 updateFields();
 }
 

@@ -301,6 +301,33 @@ overflow:hidden;
 white-space:nowrap;
 text-overflow:ellipsis;
 }
+.choice-panel{
+display:none;
+padding:8px 12px;
+background:#efeff4;
+}
+.choice-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:8px;
+}
+.choice-chip{
+height:56px;
+border-radius:12px;
+background:#fff;
+border:2px solid #d7d7d7;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:24px;
+font-weight:800;
+cursor:pointer;
+user-select:none;
+}
+.choice-chip.active{
+background:#dfe3fb;
+border-color:#5b6ff2;
+}
 .fields{
 height:50px;
 min-height:50px;
@@ -437,12 +464,13 @@ font-weight:800;
 padding:17px 18px;
 border-bottom:1px solid #eee;
 font-size:20px;
+cursor:pointer;
 }
 .options-sheet{
 position:fixed;
 left:0;
 right:0;
-bottom:-320px;
+bottom:-420px;
 background:#fff;
 z-index:3200;
 transition:bottom .22s ease;
@@ -455,6 +483,7 @@ bottom:0;
 padding:18px;
 border-bottom:1px solid #eee;
 font-size:20px;
+cursor:pointer;
 }
 .loterie-modal{
 position:fixed;
@@ -547,38 +576,6 @@ cursor:pointer;
 .btn-clear{background:#5f628b;}
 .btn-ok{background:#1fc7dd;}
 .btn-close{background:#c9c9c9;}
-.choice-item{
-height:70px;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:28px;
-font-weight:800;
-border-bottom:1px solid #ddd;
-background:#fff;
-cursor:pointer;
-}
-.choice-item.active{
-background:#dfe3fb;
-}
-.choice-chip{
-height:56px;
-border-radius:12px;
-background:#fff;
-border:2px solid #d7d7d7;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:24px;
-font-weight:800;
-cursor:pointer;
-user-select:none;
-}
-.choice-chip.active{
-background:#dfe3fb;
-border-color:#5b6ff2;
-}
-
 .hidden-print-form{
 display:none;
 }
@@ -598,7 +595,7 @@ border-right:1px solid #ddd;
 </head>
 <body>
 <div class="app">
-<div id="overlay" class="overlay" onclick="closeDrawer();closeOptions();closeChoiceModal();"></div>
+<div id="overlay" class="overlay" onclick="closeDrawer();closeOptions();"></div>
 
 <div class="topbar">
 <div class="top-left">
@@ -623,6 +620,10 @@ border-right:1px solid #ddd;
 </div>
 
 <div id="selectedLoteriesLine" class="selected-loteries-line"></div>
+
+<div id="choicePanel" class="choice-panel">
+  <div id="choiceList" class="choice-grid"></div>
+</div>
 
 <div class="fields">
 <div id="numeroLine" class="field active" onclick="tapField(event,'numero')">Numero</div>
@@ -675,6 +676,8 @@ border-right:1px solid #ddd;
 
 <div id="optionsSheet" class="options-sheet">
 <div class="sheet-item" onclick="deleteAllGames()">Supprimer</div>
+<div class="sheet-item" onclick="autoMarriage()">Maryaj otomatik</div>
+<div class="sheet-item" onclick="autoLoto4()">Loto 4 chif otomatik</div>
 <div class="sheet-item">Traiter le jeu</div>
 <div class="sheet-item">Processus local</div>
 <div class="sheet-item">Processus en ligne</div>
@@ -689,10 +692,6 @@ border-right:1px solid #ddd;
 <div class="circle-btn btn-close" onclick="closeLoterieModal()">✕</div>
 </div>
 </div>
-</div>
-
-<<div id="choicePanel" style="display:none; padding:8px 12px; background:#efeff4;">
-  <div id="choiceList" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;"></div>
 </div>
 
 <form id="printForm" class="hidden-print-form" method="POST" action="/print" target="_blank">
@@ -844,7 +843,7 @@ lineLeft = "1%";
 }
 
 if(activeField === "loterie"){
-loterieLine.classList.add("active")
+loterieLine.classList.add("active");
 lineLeft = "34.5%";
 }
 
@@ -873,10 +872,11 @@ updateFields();
 if(field === "loterie"){
 openLoterieModal();
 }
-function openChoiceModal(options){
+}
+
+function showChoicePanel(options){
 var panel = document.getElementById("choicePanel");
 var list = document.getElementById("choiceList");
-
 tempChoices = [];
 list.innerHTML = "";
 
@@ -884,9 +884,8 @@ options.forEach(function(opt){
 var div = document.createElement("div");
 div.className = "choice-chip";
 div.textContent = opt;
-
 div.onclick = function(){
-if(tempChoices.includes(opt)){
+if(tempChoices.indexOf(opt) >= 0){
 tempChoices = tempChoices.filter(function(x){ return x !== opt; });
 div.classList.remove("active");
 }else{
@@ -894,7 +893,6 @@ tempChoices.push(opt);
 div.classList.add("active");
 }
 };
-
 list.appendChild(div);
 });
 
@@ -902,7 +900,7 @@ panel.style.display = "block";
 document.querySelector(".key.enter").classList.add("option-mode");
 }
 
-function closeChoiceModal(){
+function hideChoicePanel(){
 document.getElementById("choicePanel").style.display = "none";
 document.getElementById("choiceList").innerHTML = "";
 document.querySelector(".key.enter").classList.remove("option-mode");
@@ -916,21 +914,22 @@ if(activeField === "numero"){
 if(val === "+"){
 if(numero.length === 4){
 pendingChoiceNumber = numero;
-openChoiceModal(["L1","L2","L3"]);
+showChoicePanel(["L1","L2","L3"]);
 return;
 }
 
 if(numero.length === 5){
 pendingChoiceNumber = numero;
-openChoiceModal(["L1","L2","L3"]);
+showChoicePanel(["L1","L2","L3"]);
 return;
 }
 
 return;
 }
 
-if(!/[0-9]/.test(val)) return;
-if(numero.length >= 5) return;
+if(!/[0-9/]/.test(val)) return;
+if(numero.length >= 5 && val !== "/") return;
+if(numero.indexOf("/") >= 0) return;
 
 numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
 cursorNumero += val.length;
@@ -938,6 +937,22 @@ cursorNumero += val.length;
 if(!/[0-9.]/.test(val)) return;
 montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
 cursorMontant += val.length;
+}
+
+updateFields();
+}
+
+function backspaceKey(){
+if(activeField === "numero"){
+if(cursorNumero > 0){
+numero = numero.slice(0, cursorNumero - 1) + numero.slice(cursorNumero);
+cursorNumero--;
+}
+}else if(activeField === "montant"){
+if(cursorMontant > 0){
+montant = montant.slice(0, cursorMontant - 1) + montant.slice(cursorMontant);
+cursorMontant--;
+}
 }
 
 updateFields();
@@ -951,7 +966,7 @@ return;
 }
 numero = pendingChoiceNumber + "+" + tempChoices.join(",");
 cursorNumero = numero.length;
-closeChoiceModal();
+hideChoicePanel();
 activeField = "montant";
 cursorMontant = montant.length;
 updateFields();
@@ -982,10 +997,6 @@ if (activeField === "loterie") {
 openLoterieModal();
 }
 }
-}
-
-
-
 
 function openLoterieModal(){
 document.getElementById("loterieModal").classList.add("show");
@@ -1058,6 +1069,39 @@ list.appendChild(row);
 });
 }
 
+function reverse2(s){
+return s.charAt(1) + s.charAt(0);
+}
+
+function uniqueStrings(arr){
+var out = [];
+var seen = {};
+arr.forEach(function(x){
+if(!seen[x]){
+seen[x] = true;
+out.push(x);
+}
+});
+return out;
+}
+
+function buildSlashMarriageEntries(num){
+var raw = num.slice(0,4);
+var a = raw.slice(0,2);
+var b = raw.slice(2,4);
+var ar = reverse2(a);
+var br = reverse2(b);
+
+return uniqueStrings([
+a + "*" + b,
+a + "*" + br,
+ar + "*" + b,
+ar + "*" + br
+]).map(function(x){
+return { type: "MAR", numero: x };
+});
+}
+
 function buildGameEntries(num){
 num = num.trim();
 
@@ -1073,9 +1117,13 @@ if (/^\\d{4}$/.test(num)) {
 return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
 }
 
+if (/^\\d{4}\\/$/.test(num)) {
+return buildSlashMarriageEntries(num);
+}
+
 if (/^\\d{4}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
 var raw4 = num.split("+")[0];
-var types4 = num.split("+")[1].split(",");
+var types4 = uniqueStrings(num.split("+")[1].split(","));
 return types4.map(function(t){
 return { type: t, numero: raw4 };
 });
@@ -1083,13 +1131,25 @@ return { type: t, numero: raw4 };
 
 if (/^\\d{5}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
 var raw5 = num.split("+")[0];
-var types5 = num.split("+")[1].split(",");
+var types5 = uniqueStrings(num.split("+")[1].split(","));
 return types5.map(function(t){
 return { type: t, numero: raw5 };
 });
 }
 
 return null;
+}
+
+function mergeOrPushGame(entry){
+var found = jeux.find(function(j){
+return j.type === entry.type && j.numero === entry.numero && j.loterie === entry.loterie;
+});
+
+if(found){
+found.montant = Number(found.montant) + Number(entry.montant);
+}else{
+jeux.push(entry);
+}
 }
 
 function addGame(){
@@ -1106,7 +1166,7 @@ return;
 
 selectedLoteries.forEach(function(lot){
 entries.forEach(function(entry){
-jeux.push({
+mergeOrPushGame({
 type: entry.type,
 numero: entry.numero,
 loterie: lot,
@@ -1118,6 +1178,134 @@ montant: parseFloat(montant) || 0
 numero = "";
 cursorNumero = 0;
 activeField = "numero";
+renderJeux();
+updateFields();
+}
+
+function getAutoSourceBalls(){
+var counts = {};
+
+jeux.forEach(function(j){
+if(j.type === "BOR" && /^\\d{2}$/.test(j.numero)){
+counts[j.numero] = (counts[j.numero] || 0) + 1;
+}
+});
+
+return counts;
+}
+
+function autoMarriage(){
+var counts = getAutoSourceBalls();
+var nums = Object.keys(counts);
+
+if(nums.length === 0){
+alert("Pa gen boul 2 chif pou maryaj otomatik");
+return;
+}
+if(selectedLoteries.length === 0){
+alert("Chwazi omwen yon loterie");
+return;
+}
+if(!montant.trim()){
+alert("Mete montan an");
+return;
+}
+
+var results = {};
+for(var i=0;i<nums.length;i++){
+for(var j=i;j<nums.length;j++){
+var a = nums[i];
+var b = nums[j];
+
+if(i === j && counts[a] < 2) continue;
+
+var ar = reverse2(a);
+var br = reverse2(b);
+
+[
+a + "*" + b,
+a + "*" + br,
+ar + "*" + b,
+ar + "*" + br
+].forEach(function(m){
+results[m] = true;
+});
+}
+}
+
+Object.keys(results).forEach(function(numeroAuto){
+selectedLoteries.forEach(function(lot){
+mergeOrPushGame({
+type: "MAR",
+numero: numeroAuto,
+loterie: lot,
+montant: parseFloat(montant) || 0
+});
+});
+});
+
+closeOptions();
+document.getElementById("overlay").classList.remove("show");
+renderJeux();
+updateFields();
+}
+
+function autoLoto4(){
+var counts = getAutoSourceBalls();
+var nums = Object.keys(counts);
+
+if(nums.length === 0){
+alert("Pa gen boul 2 chif pou loto otomatik");
+return;
+}
+if(selectedLoteries.length === 0){
+alert("Chwazi omwen yon loterie");
+return;
+}
+if(!montant.trim()){
+alert("Mete montan an");
+return;
+}
+
+var results = {};
+for(var i=0;i<nums.length;i++){
+for(var j=i;j<nums.length;j++){
+var a = nums[i];
+var b = nums[j];
+
+if(i === j && counts[a] < 2) continue;
+
+var ar = reverse2(a);
+var br = reverse2(b);
+
+[
+a + b,
+a + br,
+ar + b,
+ar + br,
+b + a,
+b + ar,
+br + a,
+br + ar
+].forEach(function(l4){
+results[l4] = true;
+});
+}
+}
+
+Object.keys(results).forEach(function(numeroAuto){
+selectedLoteries.forEach(function(lot){
+mergeOrPushGame({
+type: "L4",
+numero: numeroAuto,
+loterie: lot,
+montant: parseFloat(montant) || 0
+});
+});
+});
+
+closeOptions();
+document.getElementById("overlay").classList.remove("show");
 renderJeux();
 updateFields();
 }
@@ -1268,11 +1456,11 @@ const parts = line.split(/\\s+/);
 if (parts.length >= 3) {
 const type = parts[0].toUpperCase();
 const number = parts[1];
-const amount = parseInt(parts[2], 10);
+const amount = parseFloat(parts[2]);
 
 if (!Number.isNaN(amount)) {
 total += amount;
-return type.padEnd(4, " ") + " " + String(number).padEnd(8, " ") + " " + amount + " G";
+return type.padEnd(4, " ") + " " + String(number).padEnd(8, " ") + " " + amount.toFixed(2) + " G";
 }
 }
 
@@ -1314,7 +1502,7 @@ Heure: \${timeStr}
 ------------------------------
 \${formattedLines.join("\\n")}
 ------------------------------
-TOTAL: \${total} G
+TOTAL: \${total.toFixed(2)} G
 
 Bon chans
 </pre>

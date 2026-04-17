@@ -404,19 +404,10 @@ cursor:pointer;
 background:#e3e3e3;
 }
 .key.enter{
-background:rgba(255,255,255,0.15); /* transparan */
-backdrop-filter:blur(12px); /* efè glas */
--webkit-backdrop-filter:blur(12px);
-border:1px solid rgba(255,255,255,0.3);
-color:#fff;
-font-weight:800;
+background:#fff; /* menm koulè ak lòt yo */
+color:#000;
 font-size:26px;
-box-shadow:0 4px 15px rgba(0,0,0,0.1);
-}
-
-/* lè w peze li */
-.key.enter:active{
-background:rgba(255,255,255,0.25);
+font-weight:700;
 }
 
 .bottom-nav{

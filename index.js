@@ -727,758 +727,757 @@ var loteries = [
 ];
 
 function getSelectedLoteriesText(){
-return selectedLoteries.length ? selectedLoteries.join(", ") : "";
+  return selectedLoteries.length ? selectedLoteries.join(", ") : "";
 }
 
 function measureTextWidth(text, el){
-const canvas = measureTextWidth.canvas || (measureTextWidth.canvas = document.createElement("canvas"));
-const ctx = canvas.getContext("2d");
-const style = window.getComputedStyle(el);
-ctx.font = style.fontWeight + " " + style.fontSize + " " + style.fontFamily;
-return ctx.measureText(text).width;
+  const canvas = measureTextWidth.canvas || (measureTextWidth.canvas = document.createElement("canvas"));
+  const ctx = canvas.getContext("2d");
+  const style = window.getComputedStyle(el);
+  ctx.font = style.fontWeight + " " + style.fontSize + " " + style.fontFamily;
+  return ctx.measureText(text).width;
 }
 
 function getFieldValue(field){
-return field === "numero" ? numero : montant;
+  return field === "numero" ? numero : montant;
 }
 
 function getCursorValue(field){
-return field === "numero" ? cursorNumero : cursorMontant;
+  return field === "numero" ? cursorNumero : cursorMontant;
 }
 
 function setCursorValue(field, value){
-if(field === "numero"){
-cursorNumero = value;
-}else{
-cursorMontant = value;
-}
+  if(field === "numero"){
+    cursorNumero = value;
+  }else{
+    cursorMontant = value;
+  }
 }
 
 function tapField(event, field){
-activeField = field;
+  activeField = field;
 
-var el = document.getElementById(field === "numero" ? "numeroLine" : "montantLine");
-var value = getFieldValue(field);
-var rect = el.getBoundingClientRect();
-var clickX = event.clientX;
+  var el = document.getElementById(field === "numero" ? "numeroLine" : "montantLine");
+  var value = getFieldValue(field);
+  var rect = el.getBoundingClientRect();
+  var clickX = event.clientX;
 
-if(!value.length){
-setCursorValue(field, 0);
-updateFields();
-return;
-}
+  if(!value.length){
+    setCursorValue(field, 0);
+    updateFields();
+    return;
+  }
 
-var textWidth = measureTextWidth(value, el);
-var startX = rect.left + ((rect.width - textWidth) / 2);
+  var textWidth = measureTextWidth(value, el);
+  var startX = rect.left + ((rect.width - textWidth) / 2);
 
-var bestIndex = 0;
-var bestDistance = Infinity;
+  var bestIndex = 0;
+  var bestDistance = Infinity;
 
-for(var i = 0; i <= value.length; i++){
-var part = value.slice(0, i);
-var x = startX + measureTextWidth(part, el);
-var dist = Math.abs(clickX - x);
+  for(var i = 0; i <= value.length; i++){
+    var part = value.slice(0, i);
+    var x = startX + measureTextWidth(part, el);
+    var dist = Math.abs(clickX - x);
 
-if(dist < bestDistance){
-bestDistance = dist;
-bestIndex = i;
-}
-}
+    if(dist < bestDistance){
+      bestDistance = dist;
+      bestIndex = i;
+    }
+  }
 
-setCursorValue(field, bestIndex);
-updateFields();
+  setCursorValue(field, bestIndex);
+  updateFields();
 }
 
 function moveCaret(){
-var caret = document.getElementById("activeCaret");
-var fieldsWrap = document.querySelector(".fields");
+  var caret = document.getElementById("activeCaret");
+  var fieldsWrap = document.querySelector(".fields");
 
-if(activeField === "loterie"){
-caret.style.display = "none";
-return;
-}
+  if(activeField === "loterie"){
+    caret.style.display = "none";
+    return;
+  }
 
-var fieldEl = document.getElementById(activeField === "numero" ? "numeroLine" : "montantLine");
-var value = getFieldValue(activeField);
-var cursorPos = getCursorValue(activeField);
+  var fieldEl = document.getElementById(activeField === "numero" ? "numeroLine" : "montantLine");
+  var value = getFieldValue(activeField);
+  var cursorPos = getCursorValue(activeField);
 
-var wrapRect = fieldsWrap.getBoundingClientRect();
-var fieldRect = fieldEl.getBoundingClientRect();
+  var wrapRect = fieldsWrap.getBoundingClientRect();
+  var fieldRect = fieldEl.getBoundingClientRect();
 
-var shownText = value || (activeField === "numero" ? "Numero" : "Montant");
-var fullWidth = measureTextWidth(shownText, fieldEl);
-var textStart = fieldRect.left + ((fieldRect.width - fullWidth) / 2);
+  var shownText = value || (activeField === "numero" ? "Numero" : "Montant");
+  var fullWidth = measureTextWidth(shownText, fieldEl);
+  var textStart = fieldRect.left + ((fieldRect.width - fullWidth) / 2);
 
-var realText = value || "";
-var beforeCursor = realText.slice(0, cursorPos);
-var beforeWidth = measureTextWidth(beforeCursor, fieldEl);
+  var realText = value || "";
+  var beforeCursor = realText.slice(0, cursorPos);
+  var beforeWidth = measureTextWidth(beforeCursor, fieldEl);
 
-var caretX = textStart + beforeWidth;
+  var caretX = textStart + beforeWidth;
 
-caret.style.display = "block";
-caret.style.left = (caretX - wrapRect.left) + "px";
+  caret.style.display = "block";
+  caret.style.left = (caretX - wrapRect.left) + "px";
 }
 
 function updateFields(){
-var numeroLine = document.getElementById("numeroLine");
-var loterieLine = document.getElementById("loterieLine");
-var montantLine = document.getElementById("montantLine");
-var selectedLine = document.getElementById("selectedLoteriesLine");
-var activeLine = document.getElementById("activeLine");
+  var numeroLine = document.getElementById("numeroLine");
+  var loterieLine = document.getElementById("loterieLine");
+  var montantLine = document.getElementById("montantLine");
+  var selectedLine = document.getElementById("selectedLoteriesLine");
+  var activeLine = document.getElementById("activeLine");
 
-numeroLine.textContent = numero || "Numero";
-loterieLine.textContent = "Loterie";
-montantLine.textContent = montant || "Montant";
-selectedLine.textContent = getSelectedLoteriesText();
+  numeroLine.textContent = numero || "Numero";
+  loterieLine.textContent = "Loterie";
+  montantLine.textContent = montant || "Montant";
+  selectedLine.textContent = getSelectedLoteriesText();
 
-numeroLine.classList.remove("active");
-loterieLine.classList.remove("active");
-montantLine.classList.remove("active");
+  numeroLine.classList.remove("active");
+  loterieLine.classList.remove("active");
+  montantLine.classList.remove("active");
 
-var lineLeft = "1%";
+  var lineLeft = "1%";
 
-if(activeField === "numero"){
-numeroLine.classList.add("active");
-lineLeft = "1%";
-}
+  if(activeField === "numero"){
+    numeroLine.classList.add("active");
+    lineLeft = "1%";
+  }
 
-if(activeField === "loterie"){
-loterieLine.classList.add("active");
-lineLeft = "34.5%";
-}
+  if(activeField === "loterie"){
+    loterieLine.classList.add("active");
+    lineLeft = "34.5%";
+  }
 
-if(activeField === "montant"){
-montantLine.classList.add("active");
-lineLeft = "68%";
-}
+  if(activeField === "montant"){
+    montantLine.classList.add("active");
+    lineLeft = "68%";
+  }
 
-activeLine.style.left = lineLeft;
-moveCaret();
+  activeLine.style.left = lineLeft;
+  moveCaret();
 }
 
 function setField(field){
-activeField = field;
+  activeField = field;
 
-if(field === "numero"){
-cursorNumero = numero.length;
-}
+  if(field === "numero"){
+    cursorNumero = numero.length;
+  }
 
-if(field === "montant"){
-cursorMontant = montant.length;
-}
+  if(field === "montant"){
+    cursorMontant = montant.length;
+  }
 
-updateFields();
+  updateFields();
 
-if(field === "loterie"){
-openLoterieModal();
-}
+  if(field === "loterie"){
+    openLoterieModal();
+  }
 }
 
 function showChoicePanel(options){
-var panel = document.getElementById("choicePanel");
-var list = document.getElementById("choiceList");
-tempChoices = [];
-list.innerHTML = "";
+  var panel = document.getElementById("choicePanel");
+  var list = document.getElementById("choiceList");
+  tempChoices = [];
+  list.innerHTML = "";
 
-options.forEach(function(opt){
-var div = document.createElement("div");
-div.className = "choice-chip";
-div.textContent = opt;
-div.onclick = function(){
-if(tempChoices.indexOf(opt) >= 0){
-tempChoices = tempChoices.filter(function(x){ return x !== opt; });
-div.classList.remove("active");
-}else{
-tempChoices.push(opt);
-div.classList.add("active");
-}
-};
-list.appendChild(div);
-});
+  options.forEach(function(opt){
+    var div = document.createElement("div");
+    div.className = "choice-chip";
+    div.textContent = opt;
+    div.onclick = function(){
+      if(tempChoices.indexOf(opt) >= 0){
+        tempChoices = tempChoices.filter(function(x){ return x !== opt; });
+        div.classList.remove("active");
+      }else{
+        tempChoices.push(opt);
+        div.classList.add("active");
+      }
+    };
+    list.appendChild(div);
+  });
 
-panel.style.display = "block";
-document.querySelector(".key.enter").classList.add("option-mode");
+  panel.style.display = "block";
+  document.querySelector(".key.enter").classList.add("option-mode");
 }
 
 function hideChoicePanel(){
-document.getElementById("choicePanel").style.display = "none";
-document.getElementById("choiceList").innerHTML = "";
-document.querySelector(".key.enter").classList.remove("option-mode");
-tempChoices = [];
+  document.getElementById("choicePanel").style.display = "none";
+  document.getElementById("choiceList").innerHTML = "";
+  document.querySelector(".key.enter").classList.remove("option-mode");
+  tempChoices = [];
 }
 
 function press(val){
-val = String(val);
+  val = String(val);
 
-if(activeField === "numero"){
-if(val === "+"){
-if(numero.length === 4){
-pendingChoiceNumber = numero;
-showChoicePanel(["L1","L2","L3"]);
-return;
-}
+  if(activeField === "numero"){
+    if(val === "+"){
+      if(numero.length === 4){
+        pendingChoiceNumber = numero;
+        showChoicePanel(["L1","L2","L3"]);
+        return;
+      }
 
-if(numero.length === 5){
-pendingChoiceNumber = numero;
-showChoicePanel(["L1","L2","L3"]);
-return;
-}
+      if(numero.length === 5){
+        pendingChoiceNumber = numero;
+        showChoicePanel(["L1","L2","L3"]);
+        return;
+      }
 
-return;
-}
+      return;
+    }
 
-if(val === "/"){
-if(numero === "45" || /^\d{2}$/.test(numero)){
-numero = numero + "/";
-cursorNumero = numero.length;
-updateFields();
-activeField = "montant";
-cursorMontant = montant.length;
-updateFields();
-return;
-}
+    if(val === "/"){
+      if(/^\\d{2}$/.test(numero) || /^\\d{4}$/.test(numero)){
+        numero = numero + "/";
+        cursorNumero = numero.length;
+        activeField = "montant";
+        cursorMontant = montant.length;
+        updateFields();
+        return;
+      }
+      return;
+    }
 
-if(/^\d{4}$/.test(numero)){
-numero = numero + "/";
-cursorNumero = numero.length;
-updateFields();
-activeField = "montant";
-cursorMontant = montant.length;
-updateFields();
-return;
-}
+    if(!/[0-9]/.test(val)) return;
+    if(numero.indexOf("/") >= 0) return;
+    if(numero.length >= 5) return;
 
-return;
-}
+    numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
+    cursorNumero += val.length;
+  }else if(activeField === "montant"){
+    if(!/[0-9.]/.test(val)) return;
+    montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
+    cursorMontant += val.length;
+  }
 
-if(!/[0-9]/.test(val)) return;
-if(numero.indexOf("/") >= 0) return;
-if(numero.length >= 5) return;
-
-numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
-cursorNumero += val.length;
-}else if(activeField === "montant"){
-if(!/[0-9.]/.test(val)) return;
-montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
-cursorMontant += val.length;
-}
-
-updateFields();
+  updateFields();
 }
 
 function backspaceKey(){
-if(activeField === "numero"){
-if(cursorNumero > 0){
-numero = numero.slice(0, cursorNumero - 1) + numero.slice(cursorNumero);
-cursorNumero--;
-}
-}else if(activeField === "montant"){
-if(cursorMontant > 0){
-montant = montant.slice(0, cursorMontant - 1) + montant.slice(cursorMontant);
-cursorMontant--;
-}
-}
+  if(activeField === "numero"){
+    if(cursorNumero > 0){
+      numero = numero.slice(0, cursorNumero - 1) + numero.slice(cursorNumero);
+      cursorNumero--;
+    }
+  }else if(activeField === "montant"){
+    if(cursorMontant > 0){
+      montant = montant.slice(0, cursorMontant - 1) + montant.slice(cursorMontant);
+      cursorMontant--;
+    }
+  }
 
-updateFields();
+  updateFields();
 }
 
 function handleEnter(){
-if (document.getElementById("choicePanel").style.display === "block") {
-if(tempChoices.length === 0){
-alert("Chwazi omwen youn");
-return;
-}
-numero = pendingChoiceNumber + "+" + tempChoices.join(",");
-cursorNumero = numero.length;
-hideChoicePanel();
-activeField = "montant";
-cursorMontant = montant.length;
-updateFields();
-return;
-}
+  if (document.getElementById("choicePanel").style.display === "block") {
+    if(tempChoices.length === 0){
+      alert("Chwazi omwen youn");
+      return;
+    }
+    numero = pendingChoiceNumber + "+" + tempChoices.join(",");
+    cursorNumero = numero.length;
+    hideChoicePanel();
+    activeField = "montant";
+    cursorMontant = montant.length;
+    updateFields();
+    return;
+  }
 
-if (activeField === "numero") {
-if (!numero.trim()) return;
+  if (activeField === "numero") {
+    if (!numero.trim()) return;
 
-if (selectedLoteries.length > 0) {
-activeField = "montant";
-cursorMontant = montant.length;
-updateFields();
-} else {
-activeField = "loterie";
-updateFields();
-openLoterieModal();
-}
-return;
-}
+    if (selectedLoteries.length > 0) {
+      activeField = "montant";
+      cursorMontant = montant.length;
+      updateFields();
+    } else {
+      activeField = "loterie";
+      updateFields();
+      openLoterieModal();
+    }
+    return;
+  }
 
-if (activeField === "montant") {
-addGame();
-return;
-}
+  if (activeField === "montant") {
+    addGame();
+    return;
+  }
 
-if (activeField === "loterie") {
-openLoterieModal();
-}
+  if (activeField === "loterie") {
+    openLoterieModal();
+  }
 }
 
 function openLoterieModal(){
-document.getElementById("loterieModal").classList.add("show");
-document.getElementById("overlay").classList.add("show");
-renderLoterieList();
+  document.getElementById("loterieModal").classList.add("show");
+  document.getElementById("overlay").classList.add("show");
+  renderLoterieList();
 }
 
 function closeLoterieModal(){
-document.getElementById("loterieModal").classList.remove("show");
-document.getElementById("overlay").classList.remove("show");
-activeField = "numero";
-updateFields();
+  document.getElementById("loterieModal").classList.remove("show");
+  document.getElementById("overlay").classList.remove("show");
+  activeField = "numero";
+  updateFields();
 }
 
 function clearLoteries(){
-selectedLoteries = [];
-renderLoterieList();
-updateFields();
+  selectedLoteries = [];
+  renderLoterieList();
+  updateFields();
 }
 
 function validateLoteries(){
-document.getElementById("loterieModal").classList.remove("show");
-document.getElementById("overlay").classList.remove("show");
-activeField = "montant";
-cursorMontant = montant.length;
-updateFields();
+  document.getElementById("loterieModal").classList.remove("show");
+  document.getElementById("overlay").classList.remove("show");
+  activeField = "montant";
+  cursorMontant = montant.length;
+  updateFields();
 }
 
 function toggleLoterie(name){
-var idx = selectedLoteries.indexOf(name);
+  var idx = selectedLoteries.indexOf(name);
 
-if (idx >= 0) {
-selectedLoteries.splice(idx, 1);
-} else {
-selectedLoteries.push(name);
-}
+  if (idx >= 0) {
+    selectedLoteries.splice(idx, 1);
+  } else {
+    selectedLoteries.push(name);
+  }
 
-renderLoterieList();
-updateFields();
+  renderLoterieList();
+  updateFields();
 }
 
 function renderLoterieList(){
-var list = document.getElementById("loterieList");
-list.innerHTML = "";
+  var list = document.getElementById("loterieList");
+  list.innerHTML = "";
 
-loteries.forEach(function(item){
-var row = document.createElement("div");
-row.className = "loterie-item" + (selectedLoteries.indexOf(item.name) >= 0 ? " selected" : "");
-row.onclick = function(){
-toggleLoterie(item.name);
-};
+  loteries.forEach(function(item){
+    var row = document.createElement("div");
+    row.className = "loterie-item" + (selectedLoteries.indexOf(item.name) >= 0 ? " selected" : "");
+    row.onclick = function(){
+      toggleLoterie(item.name);
+    };
 
-var left = document.createElement("div");
-left.className = "loterie-check";
-left.textContent = selectedLoteries.indexOf(item.name) >= 0 ? "✓" : "";
+    var left = document.createElement("div");
+    left.className = "loterie-check";
+    left.textContent = selectedLoteries.indexOf(item.name) >= 0 ? "✓" : "";
 
-var center = document.createElement("div");
-center.innerHTML =
-'<div class="loterie-name">' + item.name + '</div>' +
-'<div class="loterie-sub">' + item.sub + '</div>';
+    var center = document.createElement("div");
+    center.innerHTML =
+      '<div class="loterie-name">' + item.name + '</div>' +
+      '<div class="loterie-sub">' + item.sub + '</div>';
 
-var right = document.createElement("div");
-right.className = "loterie-time";
-right.textContent = item.time;
+    var right = document.createElement("div");
+    right.className = "loterie-time";
+    right.textContent = item.time;
 
-row.appendChild(left);
-row.appendChild(center);
-row.appendChild(right);
-list.appendChild(row);
-});
+    row.appendChild(left);
+    row.appendChild(center);
+    row.appendChild(right);
+    list.appendChild(row);
+  });
 }
 
 function reverse2(s){
-return s.charAt(1) + s.charAt(0);
+  return s.charAt(1) + s.charAt(0);
 }
 
 function uniqueStrings(arr){
-var out = [];
-var seen = {};
-arr.forEach(function(x){
-if(!seen[x]){
-seen[x] = true;
-out.push(x);
-}
-});
-return out;
+  var out = [];
+  var seen = {};
+  arr.forEach(function(x){
+    if(!seen[x]){
+      seen[x] = true;
+      out.push(x);
+    }
+  });
+  return out;
 }
 
 function buildSlashMarriageEntries(num){
-var raw = num.slice(0,4);
-var a = raw.slice(0,2);
-var b = raw.slice(2,4);
-var ar = reverse2(a);
-var br = reverse2(b);
+  var raw = num.slice(0, -1);
 
-return uniqueStrings([
-a + "*" + b,
-a + "*" + br,
-ar + "*" + b,
-ar + "*" + br
-]).map(function(x){
-return { type: "MAR", numero: x };
-});
+  if(/^\\d{2}$/.test(raw)){
+    var a2 = raw;
+    var ar2 = reverse2(a2);
+
+    return uniqueStrings([a2, ar2]).map(function(x){
+      return { type: "BOR", numero: x };
+    });
+  }
+
+  if(/^\\d{4}$/.test(raw)){
+    var a = raw.slice(0,2);
+    var b = raw.slice(2,4);
+    var ar = reverse2(a);
+    var br = reverse2(b);
+
+    return uniqueStrings([
+      a + "*" + b,
+      a + "*" + br,
+      ar + "*" + b,
+      ar + "*" + br
+    ]).map(function(x){
+      var parts = x.split("*");
+      if(parts[0] === parts[1]) return null;
+      if(parts[0] === reverse2(parts[1])) return null;
+      return { type: "MAR", numero: x };
+    }).filter(Boolean);
+  }
+
+  return null;
 }
 
 function buildGameEntries(num){
-num = num.trim();
+  num = num.trim();
 
-if (/^\d{2}$/.test(num)) {
-return [{ type: "BOR", numero: num }];
+  if (/^\\d{2}$/.test(num)) {
+    return [{ type: "BOR", numero: num }];
+  }
+
+  if (/^\\d{2}\\/$/.test(num)) {
+    return buildSlashMarriageEntries(num);
+  }
+
+  if (/^\\d{3}$/.test(num)) {
+    return [{ type: "L3", numero: num }];
+  }
+
+  if (/^\\d{4}$/.test(num)) {
+    return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
+  }
+
+  if (/^\\d{4}\\/$/.test(num)) {
+    return buildSlashMarriageEntries(num);
+  }
+
+  if (/^\\d{4}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
+    var raw4 = num.split("+")[0];
+    var types4 = uniqueStrings(num.split("+")[1].split(","));
+    return types4.map(function(t){
+      return { type: t, numero: raw4 };
+    });
+  }
+
+  if (/^\\d{5}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
+    var raw5 = num.split("+")[0];
+    var types5 = uniqueStrings(num.split("+")[1].split(","));
+    return types5.map(function(t){
+      return { type: t, numero: raw5 };
+    });
+  }
+
+  return null;
 }
-
-if (/^\d{2}\/$/.test(num)) {
-var a2 = num.slice(0,2);
-var ar2 = reverse2(a2);
-
-return uniqueStrings([a2, ar2]).map(function(x){
-return { type: "BOR", numero: x };
-});
-}
-
-if (/^\d{3}$/.test(num)) {
-return [{ type: "L3", numero: num }];
-}
-
-if (/^\d{4}$/.test(num)) {
-return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
-}
-
-if (/^\d{4}\/$/.test(num)) {
-return buildSlashMarriageEntries(num);
-}
-
-if (/^\d{4}\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
-var raw4 = num.split("+")[0];
-var types4 = uniqueStrings(num.split("+")[1].split(","));
-return types4.map(function(t){
-return { type: t, numero: raw4 };
-});
-}
-
-if (/^\d{5}\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
-var raw5 = num.split("+")[0];
-var types5 = uniqueStrings(num.split("+")[1].split(","));
-return types5.map(function(t){
-return { type: t, numero: raw5 };
-});
-}
-
-return null;
-}
-
 
 function mergeOrPushGame(entry){
-var found = jeux.find(function(j){
-return j.type === entry.type && j.numero === entry.numero && j.loterie === entry.loterie;
-});
+  var found = jeux.find(function(j){
+    return j.type === entry.type && j.numero === entry.numero && j.loterie === entry.loterie;
+  });
 
-if(found){
-found.montant = Number(found.montant) + Number(entry.montant);
-}else{
-jeux.push(entry);
-}
-}
-
-
-function addGame(){
-if (!numero.trim()) return;
-if (!montant.trim()) return;
-if (selectedLoteries.length === 0) return;
-
-var entries = buildGameEntries(numero);
-
-if (!entries) {
-alert("Jeu pa valid");
-return;
-}
-
-selectedLoteries.forEach(function(lot){
-entries.forEach(function(entry){
-mergeOrPushGame({
-type: entry.type,
-numero: entry.numero,
-loterie: lot,
-montant: parseFloat(montant) || 0
-});
-});
-});
-
-numero = "";
-cursorNumero = 0;
-activeField = "numero";
-renderJeux();
-updateFields();
+  if(found){
+    found.montant = Number(found.montant) + Number(entry.montant);
+  }else{
+    jeux.push(entry);
+  }
 }
 
 function getAutoSourceBalls(){
-var counts = {};
+  var counts = {};
 
-jeux.forEach(function(j){
-if(j.type === "BOR" && /^\\d{2}$/.test(j.numero)){
-counts[j.numero] = (counts[j.numero] || 0) + 1;
-}
-});
+  jeux.forEach(function(j){
+    if(j.type === "BOR" && /^\\d{2}$/.test(j.numero)){
+      counts[j.numero] = (counts[j.numero] || 0) + 1;
+    }
+  });
 
-return counts;
+  return counts;
 }
 
 function autoMarriage(){
-var counts = getAutoSourceBalls();
-var nums = Object.keys(counts);
+  var counts = getAutoSourceBalls();
+  var nums = Object.keys(counts);
 
-if(nums.length === 0){
-alert("Pa gen boul 2 chif pou maryaj otomatik");
-return;
-}
-if(selectedLoteries.length === 0){
-alert("Chwazi omwen yon loterie");
-return;
-}
-if(!montant.trim()){
-alert("Mete montan an");
-return;
-}
+  if(nums.length === 0){
+    alert("Pa gen boul 2 chif pou maryaj otomatik");
+    return;
+  }
+  if(selectedLoteries.length === 0){
+    alert("Chwazi omwen yon loterie");
+    return;
+  }
+  if(!montant.trim()){
+    alert("Mete montan an");
+    return;
+  }
 
-var results = {};
+  var results = {};
 
-for(var i=0;i<nums.length;i++){
-for(var j=i+1;j<nums.length;j++){
-var a = nums[i];
-var b = nums[j];
-var ar = reverse2(a);
-var br = reverse2(b);
+  for(var i=0;i<nums.length;i++){
+    for(var j=i+1;j<nums.length;j++){
+      var a = nums[i];
+      var b = nums[j];
+      var ar = reverse2(a);
+      var br = reverse2(b);
 
-if(a === b) continue;
-if(a === br) continue;
-if(ar === b) continue;
+      if(a === b) continue;
+      if(a === br) continue;
+      if(ar === b) continue;
 
-[
-a + "*" + b,
-a + "*" + br,
-ar + "*" + b,
-ar + "*" + br
-].forEach(function(m){
-var parts = m.split("*");
-if(parts[0] !== parts[1] && parts[0] !== reverse2(parts[1])){
-results[m] = true;
-}
-});
-}
-}
+      [
+        a + "*" + b,
+        a + "*" + br,
+        ar + "*" + b,
+        ar + "*" + br
+      ].forEach(function(m){
+        var parts = m.split("*");
+        if(parts[0] !== parts[1] && parts[0] !== reverse2(parts[1])){
+          results[m] = true;
+        }
+      });
+    }
+  }
 
-Object.keys(results).forEach(function(numeroAuto){
-selectedLoteries.forEach(function(lot){
-mergeOrPushGame({
-type: "MAR",
-numero: numeroAuto,
-loterie: lot,
-montant: parseFloat(montant) || 0
-});
-});
-});
+  Object.keys(results).forEach(function(numeroAuto){
+    selectedLoteries.forEach(function(lot){
+      mergeOrPushGame({
+        type: "MAR",
+        numero: numeroAuto,
+        loterie: lot,
+        montant: parseFloat(montant) || 0
+      });
+    });
+  });
 
-closeOptions();
-document.getElementById("overlay").classList.remove("show");
-renderJeux();
-updateFields();
+  closeOptions();
+  document.getElementById("overlay").classList.remove("show");
+  renderJeux();
+  updateFields();
 }
 
 function autoLoto4(){
-var counts = getAutoSourceBalls();
-var nums = Object.keys(counts);
+  var counts = getAutoSourceBalls();
+  var nums = Object.keys(counts);
 
-if(nums.length === 0){
-alert("Pa gen boul 2 chif pou loto otomatik");
-return;
+  if(nums.length === 0){
+    alert("Pa gen boul 2 chif pou loto otomatik");
+    return;
+  }
+  if(selectedLoteries.length === 0){
+    alert("Chwazi omwen yon loterie");
+    return;
+  }
+  if(!montant.trim()){
+    alert("Mete montan an");
+    return;
+  }
+
+  var results = {};
+
+  for(var i=0;i<nums.length;i++){
+    for(var j=i+1;j<nums.length;j++){
+      var a = nums[i];
+      var b = nums[j];
+      var ar = reverse2(a);
+      var br = reverse2(b);
+
+      if(a === b) continue;
+      if(a === br) continue;
+      if(ar === b) continue;
+
+      [
+        a + b,
+        a + br,
+        ar + b,
+        ar + br,
+        b + a,
+        b + ar,
+        br + a,
+        br + ar
+      ].forEach(function(l4){
+        var left = l4.slice(0,2);
+        var right = l4.slice(2,4);
+
+        if(left !== right && left !== reverse2(right)){
+          results[l4] = true;
+        }
+      });
+    }
+  }
+
+  Object.keys(results).forEach(function(numeroAuto){
+    selectedLoteries.forEach(function(lot){
+      mergeOrPushGame({
+        type: "L4",
+        numero: numeroAuto,
+        loterie: lot,
+        montant: parseFloat(montant) || 0
+      });
+    });
+  });
+
+  closeOptions();
+  document.getElementById("overlay").classList.remove("show");
+  renderJeux();
+  updateFields();
 }
-if(selectedLoteries.length === 0){
-alert("Chwazi omwen yon loterie");
-return;
-}
-if(!montant.trim()){
-alert("Mete montan an");
-return;
-}
 
-var results = {};
+function addGame(){
+  if (!numero.trim()) return;
+  if (!montant.trim()) return;
+  if (selectedLoteries.length === 0) return;
 
-for(var i=0;i<nums.length;i++){
-for(var j=i+1;j<nums.length;j++){
-var a = nums[i];
-var b = nums[j];
-var ar = reverse2(a);
-var br = reverse2(b);
+  var entries = buildGameEntries(numero);
 
-if(a === b) continue;
-if(a === br) continue;
-if(ar === b) continue;
+  if (!entries) {
+    alert("Jeu pa valid");
+    return;
+  }
 
-[
-a + b,
-a + br,
-ar + b,
-ar + br,
-b + a,
-b + ar,
-br + a,
-br + ar
-].forEach(function(l4){
-var left = l4.slice(0,2);
-var right = l4.slice(2,4);
+  selectedLoteries.forEach(function(lot){
+    entries.forEach(function(entry){
+      mergeOrPushGame({
+        type: entry.type,
+        numero: entry.numero,
+        loterie: lot,
+        montant: parseFloat(montant) || 0
+      });
+    });
+  });
 
-if(left !== right && left !== reverse2(right)){
-results[l4] = true;
-}
-});
-}
-}
-
-Object.keys(results).forEach(function(numeroAuto){
-selectedLoteries.forEach(function(lot){
-mergeOrPushGame({
-type: "L4",
-numero: numeroAuto,
-loterie: lot,
-montant: parseFloat(montant) || 0
-});
-});
-});
-
-closeOptions();
-document.getElementById("overlay").classList.remove("show");
-renderJeux();
-updateFields();
+  numero = "";
+  cursorNumero = 0;
+  activeField = "numero";
+  renderJeux();
+  updateFields();
 }
 
 function renderJeux(){
-var area = document.getElementById("ticketsArea");
+  var area = document.getElementById("ticketsArea");
 
-if (jeux.length === 0) {
-area.innerHTML = '<div class="empty-zone">Pas de jeux</div>';
-document.getElementById("ticketCount").textContent = "0";
-document.getElementById("ticketTotal").textContent = "0.00";
-return;
-}
+  if (jeux.length === 0) {
+    area.innerHTML = '<div class="empty-zone">Pas de jeux</div>';
+    document.getElementById("ticketCount").textContent = "0";
+    document.getElementById("ticketTotal").textContent = "0.00";
+    return;
+  }
 
-var grouped = {};
-var total = 0;
+  var grouped = {};
+  var total = 0;
 
-jeux.forEach(function(j){
-if (!grouped[j.loterie]) grouped[j.loterie] = [];
-grouped[j.loterie].push(j);
-total += Number(j.montant) || 0;
-});
+  jeux.forEach(function(j){
+    if (!grouped[j.loterie]) grouped[j.loterie] = [];
+    grouped[j.loterie].push(j);
+    total += Number(j.montant) || 0;
+  });
 
-area.innerHTML = "";
+  area.innerHTML = "";
 
-Object.keys(grouped).forEach(function(name){
-var title = document.createElement("div");
-title.className = "group-title";
-title.textContent = name;
-area.appendChild(title);
+  Object.keys(grouped).forEach(function(name){
+    var title = document.createElement("div");
+    title.className = "group-title";
+    title.textContent = name;
+    area.appendChild(title);
 
-grouped[name].forEach(function(j){
-var row = document.createElement("div");
-row.className = "ticket-row";
-row.innerHTML =
-'<div>' + j.type + '</div>' +
-'<div>' + j.numero + '</div>' +
-'<div>' + Number(j.montant).toFixed(2) + '</div>';
+    grouped[name].forEach(function(j){
+      var row = document.createElement("div");
+      row.className = "ticket-row";
+      row.innerHTML =
+        '<div>' + j.type + '</div>' +
+        '<div>' + j.numero + '</div>' +
+        '<div>' + Number(j.montant).toFixed(2) + '</div>';
 
-row.onclick = function(){
-if (confirm("Supprimer ?")) {
-var idx = jeux.indexOf(j);
-if (idx >= 0) {
-jeux.splice(idx, 1);
-renderJeux();
-}
-}
-};
+      row.onclick = function(){
+        if (confirm("Supprimer ?")) {
+          var idx = jeux.indexOf(j);
+          if (idx >= 0) {
+            jeux.splice(idx, 1);
+            renderJeux();
+          }
+        }
+      };
 
-area.appendChild(row);
-});
-});
+      area.appendChild(row);
+    });
+  });
 
-document.getElementById("ticketCount").textContent = String(jeux.length);
-document.getElementById("ticketTotal").textContent = total.toFixed(2);
+  document.getElementById("ticketCount").textContent = String(jeux.length);
+  document.getElementById("ticketTotal").textContent = total.toFixed(2);
 }
 
 function buildPrintText(){
-if (jeux.length === 0) return "";
+  if (jeux.length === 0) return "";
 
-var total = 0;
-var lines = [];
+  var total = 0;
+  var lines = [];
 
-jeux.forEach(function(j){
-total += Number(j.montant) || 0;
-lines.push(j.type + " " + j.numero + " " + j.montant + " - " + j.loterie);
-});
+  jeux.forEach(function(j){
+    total += Number(j.montant) || 0;
+    lines.push(j.type + " " + j.numero + " " + j.montant + " - " + j.loterie);
+  });
 
-lines.push("------------------------------");
-lines.push("TOTAL: " + total.toFixed(2) + " G");
-lines.push("");
-lines.push("Bon chans");
+  lines.push("------------------------------");
+  lines.push("TOTAL: " + total.toFixed(2) + " G");
+  lines.push("");
+  lines.push("Bon chans");
 
-return lines.join("\\n");
+  return lines.join("\\n");
 }
 
 function submitPrint(){
-var text = buildPrintText();
-if (!text) {
-alert("Pa gen jwèt pou enprime.");
-return;
-}
+  var text = buildPrintText();
+  if (!text) {
+    alert("Pa gen jwèt pou enprime.");
+    return;
+  }
 
-document.getElementById("printData").value = text;
-document.getElementById("printForm").submit();
+  document.getElementById("printData").value = text;
+  document.getElementById("printForm").submit();
 }
 
 function shareWhatsApp(){
-var text = buildPrintText();
-if (!text) {
-alert("Pa gen jwèt pou voye.");
-return;
-}
+  var text = buildPrintText();
+  if (!text) {
+    alert("Pa gen jwèt pou voye.");
+    return;
+  }
 
-var url = "https://wa.me/?text=" + encodeURIComponent(text);
-window.open(url, "_blank");
+  var url = "https://wa.me/?text=" + encodeURIComponent(text);
+  window.open(url, "_blank");
 }
 
 function toggleDrawer(){
-document.getElementById("drawer").classList.toggle("open");
-document.getElementById("overlay").classList.toggle("show");
-closeOptions();
+  document.getElementById("drawer").classList.toggle("open");
+  document.getElementById("overlay").classList.toggle("show");
+  closeOptions();
 }
 
 function closeDrawer(){
-document.getElementById("drawer").classList.remove("open");
-document.getElementById("overlay").classList.remove("show");
+  document.getElementById("drawer").classList.remove("open");
+  document.getElementById("overlay").classList.remove("show");
 }
 
 function openOptions(){
-document.getElementById("optionsSheet").classList.add("open");
-document.getElementById("overlay").classList.add("show");
-closeDrawer();
+  document.getElementById("optionsSheet").classList.add("open");
+  document.getElementById("overlay").classList.add("show");
+  closeDrawer();
 }
 
 function closeOptions(){
-document.getElementById("optionsSheet").classList.remove("open");
+  document.getElementById("optionsSheet").classList.remove("open");
 }
 
 function deleteAllGames(){
-jeux = [];
-closeOptions();
-document.getElementById("overlay").classList.remove("show");
-renderJeux();
-updateFields();
+  jeux = [];
+  closeOptions();
+  document.getElementById("overlay").classList.remove("show");
+  renderJeux();
+  updateFields();
 }
+
 
 renderJeux();
 updateFields();

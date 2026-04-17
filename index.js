@@ -1500,10 +1500,35 @@ app.post("/print", (req, res) => {
 
   const lines = raw
     .split("\n")
-    .map(l => l.trim())
-    .filter(l => l.length > 0);
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
 
   let total = 0;
+  const tiragesMap = {};
+  const gameLines = [];
+
+  lines.forEach(line => {
+    const parts = line.split(/\s+/);
+
+    if (parts.length >= 5) {
+      const type = parts[0].toUpperCase();
+      const number = parts[1];
+      const amount = parseFloat(parts[2]);
+      const loterie = parts.slice(4).join(" ");
+
+      if (!Number.isNaN(amount)) {
+        total += amount;
+        tiragesMap[loterie] = true;
+
+        const displayType = type === "BOR" ? "Borlette" : type;
+        const typeTxt = displayType.padEnd(9, " ");
+        const numTxt = String(number).padEnd(8, " ");
+        const amtTxt = amount.toFixed(2).padStart(6, " ");
+
+        gameLines.push(`${typeTxt} ${numTxt} ${amtTxt}`);
+      }
+    }
+  });
 
   const now = new Date();
   const dateStr = now.toLocaleDateString("fr-FR");
@@ -1512,28 +1537,32 @@ app.post("/print", (req, res) => {
     minute: "2-digit"
   });
 
-  let content = "";
+  const tirages = Object.keys(tiragesMap).join(", ");
+  const sellerName = LOGIN_ID || "SELLER";
+  const ticketCode =
+    String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
 
-  // CONTENT
-  lines.forEach(line => {
-    const parts = line.split(/\s+/);
-
-    if (parts.length >= 3) {
-      const type = parts[0].toUpperCase();
-      const number = parts[1];
-      const amount = parseFloat(parts[2]);
-
-      if (!isNaN(amount)) {
-        total += amount;
-
-        const typeTxt = type.padEnd(4, " ");
-        const numTxt = String(number).padEnd(6, " ");
-        const amtTxt = amount.toFixed(2).padStart(6, " ");
-
-        content += `${typeTxt} ${numTxt} ${amtTxt} G\n`;
-      }
-    }
-  });
+  const safeTitle = "NUMBER ONE LOTO";
+  const safeSeller = sellerName
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const safeTicket = ticketCode
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const safeDate = `${dateStr} ${timeStr}`
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const safeTirages = tirages
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const safeGames = gameLines.join("\n")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 
   res.set("Content-Type", "text/html; charset=utf-8");
   res.send(`
@@ -1542,53 +1571,88 @@ app.post("/print", (req, res) => {
 <head>
 <meta charset="UTF-8">
 <title>Print</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+html, body{
+  margin:0;
+  padding:0;
+  background:#fff;
+}
+
 body{
-margin:0;
-padding:4px;
-width:58mm;
-font-family:monospace;
-font-size:10px;
+  width:58mm;
+  padding:4px 3px;
+  font-family:Arial, sans-serif;
+  color:#000;
 }
 
 .title{
-font-size:14px;
-font-weight:700;
-text-align:center;
-margin-bottom:4px;
+  text-align:center;
+  font-size:11px;
+  font-weight:600;
+  margin:0 0 4px 0;
 }
 
-pre{
-margin:0;
-white-space:pre-wrap;
+.meta{
+  font-size:9px;
+  font-weight:400;
+  line-height:1.25;
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+.games{
+  font-family:monospace;
+  font-size:9px;
+  font-weight:400;
+  line-height:1.2;
+  margin:0;
+  white-space:pre-wrap;
+}
+
+.footer{
+  font-size:9px;
+  font-weight:400;
+  margin-top:6px;
+}
+
+.line{
+  font-family:monospace;
+  font-size:9px;
+  font-weight:400;
+  margin:3px 0;
 }
 </style>
 </head>
 <body>
+  <div class="title">${safeTitle}</div>
 
-<div class="title">NUMBER ONE LOTO</div>
+  <pre class="meta">SELLER   ${safeSeller}
+TICKET   ${safeTicket}
+DATE     ${safeDate}
+TIRAGES  ${safeTirages}
+--------------------------------</pre>
 
-<pre>
-Date: ${dateStr}
-Heure: ${timeStr}
---------------------------------
-${content}
---------------------------------
-TOTAL: ${total.toFixed(2)} G
+  <pre class="games">${safeGames}</pre>
 
-Bon chans
-</pre>
+  <pre class="meta">--------------------------------
+TOTAL: ${total.toFixed(2)} G</pre>
 
-<script>
-setTimeout(function(){
-  window.print();
-},300);
-</script>
+  <div class="footer">Bon chans</div>
 
+  <script>
+    setTimeout(function(){
+      try {
+        window.print();
+      } catch(e) {}
+    }, 300);
+  </script>
 </body>
 </html>
 `);
 });
+
 
 app.listen(3000, "0.0.0.0", () => {
 console.log("Server ap mache sou rezo a");

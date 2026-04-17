@@ -404,14 +404,15 @@ cursor:pointer;
 background:#e3e3e3;
 }
 .key.enter{
-background:#3d8d20;
+background:linear-gradient(135deg, rgba(61,141,32,0.6), rgba(61,141,32,0.4));
 color:#fff;
 font-size:26px;
 font-weight:800;
+border:none;
 }
-.key.enter.option-mode{
-background:#1fc7dd;
-color:#fff;
+
+.key.enter:active{
+background:linear-gradient(135deg, rgba(61,141,32,0.4), rgba(61,141,32,0.2));
 }
 .bottom-nav{
 height:54px;

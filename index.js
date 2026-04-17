@@ -966,8 +966,6 @@ cursorMontant += val.length;
 updateFields();
 }
 
-
-
 function backspaceKey(){
 if(activeField === "numero"){
 if(cursorNumero > 0){

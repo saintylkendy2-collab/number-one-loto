@@ -1497,30 +1497,13 @@ updateFields();
 
 app.post("/print", (req, res) => {
   const raw = req.body.data || "";
+
   const lines = raw
     .split("\n")
-    .map(line => line.trim())
-    .filter(line => line.length > 0);
+    .map(l => l.trim())
+    .filter(l => l.length > 0);
 
   let total = 0;
-  const groups = {};
-
-  lines.forEach(line => {
-    const parts = line.split(/\s+/);
-
-    if (parts.length >= 5) {
-      const type = parts[0].toUpperCase();
-      const number = parts[1];
-      const amount = parseFloat(parts[2]);
-      const loterie = parts.slice(4).join(" ");
-
-      if (!Number.isNaN(amount)) {
-        total += amount;
-        if (!groups[loterie]) groups[loterie] = [];
-        groups[loterie].push({ type, number, amount });
-      }
-    }
-  });
 
   const now = new Date();
   const dateStr = now.toLocaleDateString("fr-FR");
@@ -1529,72 +1512,82 @@ app.post("/print", (req, res) => {
     minute: "2-digit"
   });
 
-  let ticketText = "";
-  ticketText += "NUMBER ONE LOTO\n";
-  ticketText += "Date: " + dateStr + "\n";
-  ticketText += "Heure: " + timeStr + "\n";
-  ticketText += "------------------------------\n\n";
+  let content = "";
 
-  Object.keys(groups).forEach(loterie => {
-    ticketText += loterie + "\n\n";
+  // CONTENT
+  lines.forEach(line => {
+    const parts = line.split(/\s+/);
 
-    groups[loterie].forEach(item => {
-      const typeText = item.type.padEnd(4, " ");
-      const numberText = String(item.number).padEnd(8, " ");
-      const amountText = item.amount.toFixed(2);
-      ticketText += typeText + " " + numberText + " " + amountText + "\n";
-    });
+    if (parts.length >= 3) {
+      const type = parts[0].toUpperCase();
+      const number = parts[1];
+      const amount = parseFloat(parts[2]);
 
-    ticketText += "\n";
+      if (!isNaN(amount)) {
+        total += amount;
+
+        const typeTxt = type.padEnd(4, " ");
+        const numTxt = String(number).padEnd(6, " ");
+        const amtTxt = amount.toFixed(2).padStart(6, " ");
+
+        content += `${typeTxt} ${numTxt} ${amtTxt} G\n`;
+      }
+    }
   });
 
-  ticketText += "------------------------------\n";
-  ticketText += "TOTAL: " + total.toFixed(2) + " G\n\n";
-  ticketText += "Bon chans";
-
-  const safeText = ticketText
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
   res.set("Content-Type", "text/html; charset=utf-8");
-  res.send(`<!DOCTYPE html>
+  res.send(`
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <title>Print</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-html, body{
-  margin:0;
-  padding:0;
-  background:#fff;
-}
 body{
-  width:58mm;
-  padding:3px;
-  font-family:monospace;
-  font-size:10px;
-  line-height:1.25;
+margin:0;
+padding:4px;
+width:58mm;
+font-family:monospace;
+font-size:10px;
 }
+
+.title{
+font-size:14px;
+font-weight:700;
+text-align:center;
+margin-bottom:4px;
+}
+
 pre{
-  margin:0;
-  white-space:pre-wrap;
-  word-break:break-word;
+margin:0;
+white-space:pre-wrap;
 }
 </style>
 </head>
 <body>
-<pre>${safeText}</pre>
+
+<div class="title">NUMBER ONE LOTO</div>
+
+<pre>
+Date: ${dateStr}
+Heure: ${timeStr}
+--------------------------------
+${content}
+--------------------------------
+TOTAL: ${total.toFixed(2)} G
+
+Bon chans
+</pre>
+
 <script>
 setTimeout(function(){
-  try {
-    window.print();
-  } catch(e) {}
-}, 300);
+  window.print();
+},300);
 </script>
+
 </body>
-</html>`);
+</html>
+`);
 });
 
 app.listen(3000, "0.0.0.0", () => {

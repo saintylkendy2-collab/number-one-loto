@@ -1496,7 +1496,39 @@ updateFields();
 });
 
 app.post("/print", (req, res) => {
-  const data = req.body.data || "";
+  const raw = req.body.data || "";
+  const lines = raw
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+
+  let total = 0;
+  const groups = {};
+
+  lines.forEach(line => {
+    const parts = line.split(/\s+/);
+
+    if (parts.length >= 5) {
+      const type = parts[0].toUpperCase();
+      const number = parts[1];
+      const amount = parseFloat(parts[2]);
+      const loterie = parts.slice(4).join(" ");
+
+      if (!Number.isNaN(amount)) {
+        total += amount;
+
+        if (!groups[loterie]) {
+          groups[loterie] = [];
+        }
+
+        groups[loterie].push({
+          type,
+          number,
+          amount
+        });
+      }
+    }
+  });
 
   const now = new Date();
   const dateStr = now.toLocaleDateString("fr-FR");
@@ -1505,7 +1537,28 @@ app.post("/print", (req, res) => {
     minute: "2-digit"
   });
 
-  res.set("Content-Type", "text/html; charset=utf-8");
+  let ticketText = "";
+  ticketText += "NUMBER ONE LOTO\n";
+  ticketText += "Date: " + dateStr + "\n";
+  ticketText += "Heure: " + timeStr + "\n";
+  ticketText += "------------------------------\n\n";
+
+  Object.keys(groups).forEach(loterie => {
+    ticketText += loterie + "\n\n";
+
+    groups[loterie].forEach(item => {
+      const typeText = item.type.padEnd(4, " ");
+      const numberText = String(item.number).padEnd(8, " ");
+      const amountText = item.amount.toFixed(2);
+      ticketText += typeText + " " + numberText + " " + amountText + "\n";
+    });
+
+    ticketText += "\n";
+  });
+
+  ticketText += "------------------------------\n";
+  ticketText += "TOTAL: " + total.toFixed(2) + " G\n\n";
+  ticketText += "Bon chans";
 
   res.send(`
 <!DOCTYPE html>
@@ -1513,57 +1566,23 @@ app.post("/print", (req, res) => {
 <head>
 <meta charset="UTF-8">
 <title>Print</title>
-
 <style>
-html, body{
-margin:0;
-padding:0;
-background:#fff;
-}
-
 body{
-font-family: monospace;
-font-size: 12px;
-padding: 4px;
-width: 58mm;
+font-family:monospace;
+font-size:10px;
+margin:0;
+padding:3px;
+width:58mm;
 }
-
 pre{
 margin:0;
 white-space:pre-wrap;
 word-break:break-word;
 }
-
-@media print {
-html, body{
-height:auto !important;
-overflow:visible !important;
-background:#fff !important;
-}
-}
 </style>
 </head>
-
-<body>
-
-<script>
-window.onload = function(){
-  setTimeout(function(){
-    window.print();
-  }, 800);
-};
-</script>
-
-<pre>NUMBER ONE LOTO
-Date: ${dateStr}
-Heure: ${timeStr}
-------------------------------
-${data}
-------------------------------
-
-Bon chans
-</pre>
-
+<body onload="window.print();setTimeout(function(){window.close();},400);">
+<pre>${ticketText}</pre>
 </body>
 </html>
 `);

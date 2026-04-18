@@ -1,0 +1,174 @@
+const path = require("path");
+app.use("/master", express.static(path.join(__dirname, "master")));<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendedores</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:#1e2235;
+color:#fff;
+}
+
+.container{
+padding:10px;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:10px;
+}
+
+.btn{
+background:#6c63ff;
+padding:10px 15px;
+border-radius:8px;
+cursor:pointer;
+}
+
+.card{
+background:#2a2f4a;
+padding:10px;
+border-radius:10px;
+overflow:auto;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+padding:10px;
+text-align:left;
+font-size:14px;
+}
+
+th{
+color:#aaa;
+}
+
+tr{
+border-bottom:1px solid rgba(255,255,255,0.1);
+}
+
+.pagination{
+display:flex;
+justify-content:center;
+margin-top:10px;
+gap:5px;
+}
+
+.page-btn{
+background:#333;
+padding:6px 10px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.active{
+background:#6c63ff;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+<h2>Vendedores</h2>
+<div class="btn">+</div>
+</div>
+
+<div class="card">
+<table id="table">
+<thead>
+<tr>
+<th>ID</th>
+<th>NOMBRE</th>
+<th>ZONA</th>
+<th>APP</th>
+<th>CONEXIÓN</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+
+<div class="pagination" id="pagination"></div>
+
+</div>
+
+<script>
+let vendedores = [];
+let perPage = 25;
+let currentPage = 1;
+
+// FAKE DATA (ap ranplase ak JSON pita)
+for(let i=1;i<=120;i++){
+vendedores.push({
+id:"NOC"+(100+i),
+nombre:"User "+i,
+zona:"Zone",
+app:"2.9.3",
+conexion:"17/04"
+});
+}
+
+function render(){
+let start = (currentPage-1)*perPage;
+let end = start+perPage;
+
+let data = vendedores.slice(start,end);
+
+let tbody = document.querySelector("#table tbody");
+tbody.innerHTML = "";
+
+data.forEach(v=>{
+tbody.innerHTML += `
+<tr>
+<td>${v.id}</td>
+<td>${v.nombre}</td>
+<td>${v.zona}</td>
+<td>${v.app}</td>
+<td>${v.conexion}</td>
+</tr>
+`;
+});
+
+renderPagination();
+}
+
+function renderPagination(){
+let total = Math.ceil(vendedores.length/perPage);
+let container = document.getElementById("pagination");
+container.innerHTML = "";
+
+for(let i=1;i<=total;i++){
+container.innerHTML += `
+<div class="page-btn ${i===currentPage?"active":""}" onclick="go(${i})">${i}</div>
+`;
+}
+}
+
+function go(page){
+currentPage = page;
+render();
+}
+
+render();
+</script>
+
+</body>
+</html>
+
+app.listen(4000, () => {
+  console.log("Server ap mache sou http://localhost:4000");
+});

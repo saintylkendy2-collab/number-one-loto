@@ -1,9 +1,8 @@
-const path = require("path");
-app.use("/master", express.static(path.join(__dirname, "master")));
-
-
 const express = require("express");
 const app = express();
+const path = require("path");
+
+app.use(express.static(path.join(__dirname, "master")));
 
 app.get("/", (req, res) => {
   res.send(`
@@ -79,6 +78,8 @@ app.get("/", (req, res) => {
   `);
 });
 
-app.listen(4000, "0.0.0.0", () => {
-  console.log("Admin ap mache sou http://localhost:4000");
+
+
+app.listen(4000, () => {
+  console.log("Server ap mache sou http://localhost:4000");
 });

@@ -1486,24 +1486,18 @@ renderJeux();
 updateFields();
 
 document.querySelectorAll(".key").forEach(key => {
-  key.addEventListener("pointerdown", e => {
-    e.preventDefault();
+
+  key.addEventListener("click", () => {
 
     const val = key.dataset.val;
     const action = key.dataset.action;
 
-    if (val) {
-      press(val);
-    }
+    if (val) press(val);
+    if (action === "back") backspaceKey();
+    if (action === "enter") handleEnter();
 
-    if (action === "back") {
-      backspaceKey();
-    }
-
-    if (action === "enter") {
-      handleEnter();
-    }
   });
+
 });
 
 

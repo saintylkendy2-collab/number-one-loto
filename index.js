@@ -641,22 +641,27 @@ border-right:1px solid #ddd;
 <div id="activeCaret" class="active-caret"></div>
 </div>
 
-<div class="key" data-val="1">1</div>
-<div class="key" data-val="2">2</div>
-<div class="key" data-val="3">3</div>
+<div class="keypad">
+<div class="key" onclick="press('+')" ontouchstart="press('+'); return false;">+</div>
+<div class="key" onclick="press('1')" ontouchstart="press('1'); return false;">1</div>
+<div class="key" onclick="press('2')" ontouchstart="press('2'); return false;">2</div>
+<div class="key" onclick="press('3')" ontouchstart="press('3'); return false;">3</div>
 
-<div class="key" data-val="4">4</div>
-<div class="key" data-val="5">5</div>
-<div class="key" data-val="6">6</div>
+<div class="key" onclick="press('-')" ontouchstart="press('-'); return false;">-</div>
+<div class="key" onclick="press('4')" ontouchstart="press('4'); return false;">4</div>
+<div class="key" onclick="press('5')" ontouchstart="press('5'); return false;">5</div>
+<div class="key" onclick="press('6')" ontouchstart="press('6'); return false;">6</div>
 
-<div class="key" data-val="7">7</div>
-<div class="key" data-val="8">8</div>
-<div class="key" data-val="9">9</div>
+<div class="key" onclick="press('/')" ontouchstart="press('/'); return false;">/</div>
+<div class="key" onclick="press('7')" ontouchstart="press('7'); return false;">7</div>
+<div class="key" onclick="press('8')" ontouchstart="press('8'); return false;">8</div>
+<div class="key" onclick="press('9')" ontouchstart="press('9'); return false;">9</div>
 
-<div class="key" data-val=".">.</div>
-<div class="key" data-action="back">⌫</div>
-<div class="key" data-val="0">0</div>
-<div class="key enter" data-action="enter">ENTER</div>
+<div class="key" onclick="press('.')" ontouchstart="press('.'); return false;">.</div>
+<div class="key" onclick="backspaceKey()" ontouchstart="backspaceKey(); return false;">⌫</div>
+<div class="key" onclick="press('0')" ontouchstart="press('0'); return false;">0</div>
+<div class="key enter" onclick="handleEnter()" ontouchstart="handleEnter(); return false;">ENTER</div>
+</div>
 
 <div class="bottom-nav">
 <div class="active">Billets</div>
@@ -975,41 +980,36 @@ function backspaceKey(){
 
 function handleEnter(){
  if (document.getElementById("choicePanel").style.display === "block") {
- if(tempChoices.length === 0){
- alert("Chwazi omwen youn");
- return;
- }
- numero = pendingChoiceNumber + "+" + tempChoices.join(",");
- cursorNumero = numero.length;
- hideChoicePanel();
- activeField = "montant";
- cursorMontant = montant.length;
- updateFields();
- return;
+   if(tempChoices.length === 0){
+     alert("Chwazi omwen youn");
+     return;
+   }
+   numero = pendingChoiceNumber + "+" + tempChoices.join(",");
+   cursorNumero = numero.length;
+   hideChoicePanel();
+   activeField = "montant";
+   cursorMontant = montant.length;
+   updateFields();
+   return;
  }
 
  if (activeField === "numero") {
- if (!numero.trim()) return;
-
- if (selectedLoteries.length > 0) {
- activeField = "montant";
- cursorMontant = montant.length;
- updateFields();
- } else {
- activeField = "loterie";
- updateFields();
- openLoterieModal();
- }
- return;
- }
-
- if (activeField === "montant") {
- addGame();
- return;
+   if (!numero.trim()) return;
+   activeField = "loterie";
+   updateFields();
+   openLoterieModal();
+   return;
  }
 
  if (activeField === "loterie") {
- openLoterieModal();
+   validateLoteries();
+   return;
+ }
+
+ if (activeField === "montant") {
+   if (!montant.trim()) return;
+   addGame();
+   return;
  }
 }
 
@@ -1035,6 +1035,14 @@ function clearLoteries(){
 function validateLoteries(){
  document.getElementById("loterieModal").classList.remove("show");
  document.getElementById("overlay").classList.remove("show");
+
+ if(selectedLoteries.length === 0){
+   activeField = "loterie";
+   updateFields();
+   openLoterieModal();
+   return;
+ }
+
  activeField = "montant";
  cursorMontant = montant.length;
  updateFields();
@@ -1327,36 +1335,22 @@ function autoLoto4(){
  renderJeux();
  updateFields();
 }
+function validateLoteries(){
+ document.getElementById("loterieModal").classList.remove("show");
+ document.getElementById("overlay").classList.remove("show");
 
-function addGame(){
- if (!numero.trim()) return;
- if (!montant.trim()) return;
- if (selectedLoteries.length === 0) return;
-
- var entries = buildGameEntries(numero);
-
- if (!entries) {
- alert("Jeu pa valid");
- return;
+ if(selectedLoteries.length === 0){
+   activeField = "loterie";
+   updateFields();
+   openLoterieModal();
+   return;
  }
 
- selectedLoteries.forEach(function(lot){
- entries.forEach(function(entry){
- mergeOrPushGame({
- type: entry.type,
- numero: entry.numero,
- loterie: lot,
- montant: parseFloat(montant) || 0
- });
- });
- });
-
- numero = "";
- cursorNumero = 0;
- activeField = "numero";
- renderJeux();
+ activeField = "montant";
+ cursorMontant = montant.length;
  updateFields();
 }
+
 
 function renderJeux(){
  var area = document.getElementById("ticketsArea");
@@ -1484,23 +1478,6 @@ function deleteAllGames(){
 
 renderJeux();
 updateFields();
-
-document.querySelectorAll(".key").forEach(key => {
-
-  key.addEventListener("click", () => {
-
-    const val = key.dataset.val;
-    const action = key.dataset.action;
-
-    if (val) press(val);
-    if (action === "back") backspaceKey();
-    if (action === "enter") handleEnter();
-
-  });
-
-});
-
-
 </script>
 </body>
 </html>
@@ -1508,79 +1485,55 @@ document.querySelectorAll(".key").forEach(key => {
 });
 
 app.post("/print", (req, res) => {
-  const raw = req.body.data || "";
+const raw = req.body.data || "";
 
-  const lines = raw
-    .split("\n")
-    .map(line => line.trim())
-    .filter(line => line.length > 0);
+const lines = raw
+.split("\\n")
+.map(line => line.trim())
+.filter(line => line.length > 0);
 
-  let total = 0;
-  const tiragesMap = {};
-  const gameLines = [];
+let total = 0;
+const tiragesMap = {};
+const gameLines = [];
 
-  lines.forEach(line => {
-    const parts = line.split(/\s+/);
+lines.forEach(line => {
+  const parts = line.split(/\\s+/);
 
-    if (parts.length >= 5) {
-      const type = parts[0].toUpperCase();
-      const number = parts[1];
-      const amount = parseFloat(parts[2]);
-      const loterie = parts.slice(4).join(" ");
+  if (parts.length >= 5) {
+    const type = (parts[0] || "").toUpperCase();
+    const number = parts[1] || "";
+    const amount = parseFloat(parts[2]);
+    const loterie = parts.slice(4).join(" ");
 
-      if (!Number.isNaN(amount)) {
-        total += amount;
-        tiragesMap[loterie] = true;
+    if (!Number.isNaN(amount)) {
+      total += amount;
+      if (loterie) tiragesMap[loterie] = true;
 
-        const displayType = type === "BOR" ? "Borlette" : type;
-        const typeTxt = displayType.padEnd(9, " ");
-        const numTxt = String(number).padEnd(6, " ");
-        const amtTxt = amount.toFixed(2).padStart(6, " ");
+      const displayType = type === "BOR" ? "Borlette" : type;
+      const typeTxt = displayType.padEnd(9, " ");
+      const numTxt = String(number).padEnd(6, " ");
+      const amtTxt = amount.toFixed(2).padStart(6, " ");
 
-        gameLines.push(`${typeTxt} ${numTxt} ${amtTxt}`);
-      }
+      gameLines.push(displayType === "Borlette"
+        ? "Borlette " + numTxt + " " + amtTxt
+        : displayType.padEnd(9, " ") + " " + numTxt + " " + amtTxt
+      );
     }
-  });
+  }
+});
 
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("fr-FR");
-  const timeStr = now.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+const now = new Date();
+const dateStr = now.toLocaleDateString("fr-FR");
+const timeStr = now.toLocaleTimeString("fr-FR", {
+  hour: "2-digit",
+  minute: "2-digit"
+});
 
-  const tirages = Object.keys(tiragesMap).join(" / ");
-  const sellerName = LOGIN_ID || "SELLER";
-  const ticketCode =
-    String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
+const tirages = Object.keys(tiragesMap).join(" / ");
+const sellerName = LOGIN_ID || "SELLER";
+const ticketCode = String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
 
-  const safeSeller = sellerName
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  const safeTicket = ticketCode
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  const safeDate = `${dateStr} ${timeStr}`
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  const safeTirages = tirages
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  const safeGames = gameLines.join("\n")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  res.set("Content-Type", "text/html; charset=utf-8");
-  res.send(`
+res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -1588,65 +1541,59 @@ app.post("/print", (req, res) => {
 <title>Print</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-html, body{
-  margin:0;
-  padding:0;
-  background:#fff;
+html,body{
+margin:0;
+padding:0;
+background:#fff;
 }
-
 body{
-  width:58mm;
-  padding:2px 1px;
-  font-family:Arial, sans-serif;
-  font-size:7px;
-  font-weight:300; /* fè li pi lejè */
-  color:#000;
+width:58mm;
+padding:3px 1px;
+font-family:Arial,sans-serif;
+font-size:8px;
+font-weight:400;
+color:#000;
 }
-
 .title{
-  text-align:center;
-  font-size:9px; /* pa twò gwo pou li pa koupe */
-  font-weight:600;
-  letter-spacing:0.5px;
-  margin:0 0 3px 0;
-  white-space:nowrap; /* evite koupe */
+text-align:center;
+font-size:8px;
+font-weight:600;
+margin:0 0 3px 0;
+white-space:nowrap;
 }
-
 .meta{
-  font-size:7px;
-  font-weight:300;
-  line-height:1.2;
-  white-space:pre;
-  margin:0;
+font-size:7px;
+font-weight:400;
+line-height:1.2;
+white-space:pre-wrap;
+word-break:break-word;
+margin:0;
 }
-
 .games{
-  font-family:monospace;
-  font-size:7px;
-  font-weight:300;
-  line-height:1.2;
-  white-space:pre;
-  margin:0;
+font-family:monospace;
+font-size:7px;
+font-weight:400;
+line-height:1.2;
+white-space:pre-wrap;
+margin:0;
 }
-
 .footer{
-  font-size:7px;
-  font-weight:300;
-  margin-top:4px;
+font-size:7px;
+font-weight:400;
+margin-top:4px;
 }
-
 </style>
 </head>
 <body>
 <div class="title">NUMBER ONE LOTO</div>
 
-<pre class="meta">SELLER   ${safeSeller}
-TICKET   ${safeTicket}
-DATE     ${safeDate}
-TIRAGES  ${safeTirages}
+<pre class="meta">SELLER   ${sellerName}
+TICKET   ${ticketCode}
+DATE     ${dateStr} ${timeStr}
+TIRAGES  ${tirages}
 --------------------------------</pre>
 
-<pre class="games">${safeGames}</pre>
+<pre class="games">${gameLines.join("\\n")}</pre>
 
 <pre class="meta">--------------------------------
 TOTAL: ${total.toFixed(2)} G</pre>
@@ -1663,10 +1610,6 @@ setTimeout(function(){
 </body>
 </html>
 `);
-});
-
-app.listen(3000, "0.0.0.0", () => {
-  console.log("Server ap mache sou rezo a");
 });
 
 app.listen(3000, "0.0.0.0", () => {

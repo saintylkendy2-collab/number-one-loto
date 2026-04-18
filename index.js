@@ -1577,50 +1577,52 @@ app.post("/print", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html, body{
-margin:0;
-padding:0;
-background:#fff;
+  margin:0;
+  padding:0;
+  background:#fff;
 }
 
 body{
-width:58mm;
-padding:3px 1px;
-font-family:Arial, sans-serif;
-font-size:8px;
-font-weight:400;
-color:#000;
+  width:58mm;
+  padding:2px 1px;
+  font-family:Arial, sans-serif;
+  font-size:7px;
+  font-weight:300; /* fè li pi lejè */
+  color:#000;
 }
 
 .title{
-text-align:center;
-font-size:10px;
-font-weight:600;
-margin:0 0 4px 0;
+  text-align:center;
+  font-size:9px; /* pa twò gwo pou li pa koupe */
+  font-weight:600;
+  letter-spacing:0.5px;
+  margin:0 0 3px 0;
+  white-space:nowrap; /* evite koupe */
 }
 
 .meta{
-font-size:8px;
-font-weight:400;
-line-height:1.2;
-white-space:pre-wrap;
-word-break:break-word;
-margin:0;
+  font-size:7px;
+  font-weight:300;
+  line-height:1.2;
+  white-space:pre;
+  margin:0;
 }
 
 .games{
-font-family:monospace;
-font-size:8px;
-font-weight:400;
-line-height:1.2;
-white-space:pre-wrap;
-margin:0;
+  font-family:monospace;
+  font-size:7px;
+  font-weight:300;
+  line-height:1.2;
+  white-space:pre;
+  margin:0;
 }
 
 .footer{
-font-size:8px;
-font-weight:400;
-margin-top:6px;
+  font-size:7px;
+  font-weight:300;
+  margin-top:4px;
 }
+
 </style>
 </head>
 <body>

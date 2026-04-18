@@ -1527,36 +1527,34 @@ app.post("/print", (req, res) => {
 const raw = req.body.data || "";
 
 const lines = raw
-.split("\\n")
-.map(line => line.trim())
-.filter(line => line.length > 0);
+  .split("\n")
+  .map(line => line.trim())
+  .filter(line => line.length > 0);
 
 let total = 0;
-const tiragesMap = {};
+const tiragesSet = new Set();
 const gameLines = [];
 
 lines.forEach(line => {
-  const parts = line.split(/\\s+/);
+  const match = line.match(/^([A-Z0-9]+)\s+(.+?)\s+([0-9]+(?:\.[0-9]+)?)\s*-\s*(.+)$/i);
 
-  if (parts.length >= 5) {
-    const type = (parts[0] || "").toUpperCase();
-    const number = parts[1] || "";
-    const amount = parseFloat(parts[2]);
-    const loterie = parts.slice(4).join(" ");
+  if (match) {
+    let type = (match[1] || "").toUpperCase();
+    const number = (match[2] || "").trim();
+    const amount = parseFloat(match[3]);
+    const loterie = (match[4] || "").trim();
 
     if (!Number.isNaN(amount)) {
       total += amount;
-      if (loterie) tiragesMap[loterie] = true;
+      if (loterie) tiragesSet.add(loterie);
 
-      const displayType = type === "BOR" ? "Borlette" : type;
-      const typeTxt = displayType.padEnd(9, " ");
-      const numTxt = String(number).padEnd(6, " ");
+      if (type === "BOR") type = "Borlette";
+
+      const typeTxt = String(type).padEnd(9, " ");
+      const numTxt = String(number).padEnd(8, " ");
       const amtTxt = amount.toFixed(2).padStart(6, " ");
 
-      gameLines.push(displayType === "Borlette"
-        ? "Borlette " + numTxt + " " + amtTxt
-        : displayType.padEnd(9, " ") + " " + numTxt + " " + amtTxt
-      );
+      gameLines.push(`${typeTxt} ${numTxt} ${amtTxt} G`);
     }
   }
 });
@@ -1568,7 +1566,7 @@ const timeStr = now.toLocaleTimeString("fr-FR", {
   minute: "2-digit"
 });
 
-const tirages = Object.keys(tiragesMap).join(" / ");
+const tirages = Array.from(tiragesSet).join(" / ");
 const sellerName = LOGIN_ID || "SELLER";
 const ticketCode = String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
 
@@ -1587,39 +1585,40 @@ background:#fff;
 }
 body{
 width:58mm;
-padding:3px 1px;
+margin:0 auto;
+padding:2px 2px 4px 2px;
 font-family:Arial,sans-serif;
-font-size:8px;
-font-weight:400;
 color:#000;
+font-size:7px;
+font-weight:400;
 }
 .title{
+width:100%;
 text-align:center;
 font-size:8px;
-font-weight:600;
-margin:0 0 3px 0;
-white-space:nowrap;
+font-weight:700;
+margin:0 0 4px 0;
 }
 .meta{
 font-size:7px;
-font-weight:400;
 line-height:1.2;
 white-space:pre-wrap;
 word-break:break-word;
 margin:0;
+font-weight:400;
 }
 .games{
 font-family:monospace;
 font-size:7px;
-font-weight:400;
 line-height:1.2;
 white-space:pre-wrap;
 margin:0;
+font-weight:400;
 }
 .footer{
 font-size:7px;
-font-weight:400;
 margin-top:4px;
+font-weight:400;
 }
 </style>
 </head>
@@ -1632,7 +1631,7 @@ DATE     ${dateStr} ${timeStr}
 TIRAGES  ${tirages}
 --------------------------------</pre>
 
-<pre class="games">${gameLines.join("\\n")}</pre>
+<pre class="games">${gameLines.join("\n")}</pre>
 
 <pre class="meta">--------------------------------
 TOTAL: ${total.toFixed(2)} G</pre>

@@ -1358,7 +1358,38 @@ function validateLoteries(){
  cursorMontant = montant.length;
  updateFields();
 }
+function addGame(){
+  if (!numero.trim()) return;
+  if (!montant.trim()) return;
+  if (selectedLoteries.length === 0) return;
 
+  var entries = buildGameEntries(numero);
+
+  if (!entries) {
+    alert("Jeu pa valid");
+    return;
+  }
+
+  selectedLoteries.forEach(function(lot){
+    entries.forEach(function(entry){
+      mergeOrPushGame({
+        type: entry.type,
+        numero: entry.numero,
+        loterie: lot,
+        montant: parseFloat(montant) || 0
+      });
+    });
+  });
+
+  numero = "";
+  montant = "";
+  cursorNumero = 0;
+  cursorMontant = 0;
+  activeField = "numero";
+
+  renderJeux();
+  updateFields();
+}
 
 function renderJeux(){
  var area = document.getElementById("ticketsArea");

@@ -216,9 +216,10 @@ display:flex;
 flex-direction:column;
 overflow:hidden;
 }
+
 .tickets-area{
 flex:1;
-min-height:140px;
+min-height:60px;
 overflow:auto;
 background:#efeff4;
 }
@@ -392,32 +393,39 @@ animation:blinkCaret 1s steps(1) infinite;
 50.01%,100%{opacity:0;}
 }
 .keypad{
-height:300px;
-min-height:300px;
+height:240px;
+min-height:240px;
 display:grid;
 grid-template-columns:repeat(4,1fr);
 grid-template-rows:repeat(4,1fr);
 border-top:1px solid #cacaca;
-margin-top:8px;
+margin-top:4px;
+flex-shrink:0;
 }
+
 .key{
 border:1px solid #cacaca;
 background:#f7f7f7;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:26px;
+font-size:24px;
 color:#000;
 user-select:none;
+-webkit-user-select:none;
+-webkit-tap-highlight-color:transparent;
+touch-action:manipulation;
 cursor:pointer;
 }
+
 .key:active{
 background:#e3e3e3;
 }
+
 .key.enter{
-background:#fff; /* menm koulè ak lòt yo */
+background:#f7f7f7;
 color:#000;
-font-size:26px;
+font-size:22px;
 font-weight:700;
 }
 

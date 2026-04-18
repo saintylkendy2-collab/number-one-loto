@@ -1524,53 +1524,55 @@ updateFields();
 });
 
 app.post("/print", (req, res) => {
-const raw = req.body.data || "";
+  const raw = req.body.data || "";
 
-const lines = raw
-  .split("\n")
-  .map(line => line.trim())
-  .filter(line => line.length > 0);
+  const lines = raw
+    .split("\n")
+    .map(x => x.trim())
+    .filter(x => x.length > 0);
 
-let total = 0;
-const tiragesSet = new Set();
-const gameLines = [];
+  let total = 0;
+  const tiragesSet = new Set();
+  const gameLines = [];
 
-lines.forEach(line => {
-  const match = line.match(/^([A-Z0-9]+)\s+(.+?)\s+([0-9]+(?:\.[0-9]+)?)\s*-\s*(.+)$/i);
+  lines.forEach(line => {
+    // pran sèlman liy jwèt yo: TYPE NUMERO MONTAN - LOTERIE
+    const m = line.match(/^([A-Z0-9]+)\s+(.+?)\s+([0-9]+(?:\.[0-9]+)?)\s*-\s*(.+)$/i);
+    if (!m) return;
 
-  if (match) {
-    let type = (match[1] || "").toUpperCase();
-    const number = (match[2] || "").trim();
-    const amount = parseFloat(match[3]);
-    const loterie = (match[4] || "").trim();
+    let type = (m[1] || "").toUpperCase();
+    const numero = (m[2] || "").trim();
+    const amount = parseFloat(m[3]);
+    const loterie = (m[4] || "").trim();
 
-    if (!Number.isNaN(amount)) {
-      total += amount;
-      if (loterie) tiragesSet.add(loterie);
+    if (Number.isNaN(amount)) return;
 
-      if (type === "BOR") type = "Borlette";
+    total += amount;
+    if (loterie) tiragesSet.add(loterie);
 
-      const typeTxt = String(type).padEnd(9, " ");
-      const numTxt = String(number).padEnd(8, " ");
-      const amtTxt = amount.toFixed(2).padStart(6, " ");
+    if (type === "BOR") type = "Borlette";
 
-      gameLines.push(`${typeTxt} ${numTxt} ${amtTxt} G`);
-    }
-  }
-});
+    const typeTxt = String(type).padEnd(9, " ");
+    const numTxt = String(numero).padEnd(6, " ");
+    const amtTxt = amount.toFixed(2).padStart(6, " ");
 
-const now = new Date();
-const dateStr = now.toLocaleDateString("fr-FR");
-const timeStr = now.toLocaleTimeString("fr-FR", {
-  hour: "2-digit",
-  minute: "2-digit"
-});
+    gameLines.push(`${typeTxt} ${numTxt} ${amtTxt} G`);
+  });
 
-const tirages = Array.from(tiragesSet).join(" / ");
-const sellerName = LOGIN_ID || "SELLER";
-const ticketCode = String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("fr-FR");
+  const timeStr = now.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 
-res.send(`
+  const sellerName = LOGIN_ID || "SELLER";
+  const ticketCode =
+    String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
+  const tirages = Array.from(tiragesSet).join(" / ");
+
+  res.set("Content-Type", "text/html; charset=utf-8");
+  res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -1579,60 +1581,47 @@ res.send(`
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html,body{
-margin:0;
-padding:0;
-background:#fff;
+  margin:0;
+  padding:0;
+  background:#fff;
 }
 body{
-width:56mm;
-margin:0 auto;
-padding:2px 2px 4px 2px;
-font-family: monospace;
-font-size: 10px;
-font-weight: 400; /* pa mete bold */
-color:#000;
+  width:55mm;
+  margin:0 auto;
+  padding:2px 1px 4px 1px;
+  font-family: monospace;
+  font-size:9px;
+  font-weight:400;
+  color:#000;
+  overflow:hidden;
 }
-
-pre{
-margin:0;
-white-space:pre-wrap;
-word-break:break-word;
-line-height:1.4;
-font-weight:400; /* trè enpòtan */
-}
-
-/* pa itilize okenn bold ankò */
-b, strong{
-font-weight:500;
-}
-
 .title{
-width:100%;
-text-align:center;
-font-size:8px;
-font-weight:700;
-margin:0 0 4px 0;
+  text-align:center;
+  font-size:7px;
+  font-weight:600;
+  margin:0 0 4px 0;
+  white-space:nowrap;
 }
 .meta{
-font-size:7px;
-line-height:1.2;
-white-space:pre-wrap;
-word-break:break-word;
-margin:0;
-font-weight:400;
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-word;
+  line-height:1.25;
+  font-size:9px;
+  font-weight:400;
 }
 .games{
-font-family:monospace;
-font-size:7px;
-line-height:1.2;
-white-space:pre-wrap;
-margin:0;
-font-weight:400;
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-word;
+  line-height:1.25;
+  font-size:9px;
+  font-weight:400;
 }
 .footer{
-font-size:7px;
-margin-top:4px;
-font-weight:400;
+  margin-top:4px;
+  font-size:9px;
+  font-weight:400;
 }
 </style>
 </head>
@@ -1654,14 +1643,12 @@ TOTAL: ${total.toFixed(2)} G</pre>
 
 <script>
 setTimeout(function(){
-  try {
-    window.print();
-  } catch(e) {}
+  try { window.print(); } catch(e) {}
 }, 300);
 </script>
 </body>
 </html>
-`);
+  `);
 });
 
 app.listen(3000, "0.0.0.0", () => {

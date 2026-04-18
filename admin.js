@@ -1,137 +1,84 @@
-const express = require('express');
-const fs = require('fs');
+const path = require("path");
+app.use("/master", express.static(path.join(__dirname, "master")));
+
+
+const express = require("express");
 const app = express();
 
-app.use(express.urlencoded({ extended: true }));
+app.get("/", (req, res) => {
+  res.send(`
+  <!DOCTYPE html>
+  <html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendedores</title>
 
-const USERS_FILE = 'vendeurs.json';
+    <style>
+      body{
+        margin:0;
+        font-family:Arial,sans-serif;
+        background:#1e2235;
+        color:#fff;
+      }
 
-function loadUsers() {
-try {
-if (!fs.existsSync(USERS_FILE)) {
-fs.writeFileSync(USERS_FILE, JSON.stringify({}, null, 2));
-}
-const raw = fs.readFileSync(USERS_FILE, 'utf8');
-return JSON.parse(raw || '{}');
-} catch (error) {
-return {};
-}
-}
+      .container{
+        padding:15px;
+      }
 
-function saveUsers(users) {
-fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-}
+      h2{
+        margin-bottom:15px;
+      }
 
-app.get('/', (req, res) => {
-const users = loadUsers();
-const editId = req.query.edit || '';
-const editUser = editId && users[editId] ? users[editId] : null;
+      table{
+        width:100%;
+        border-collapse:collapse;
+        background:#2a2f4a;
+      }
 
-let rows = '';
-const ids = Object.keys(users).sort();
+      th,td{
+        padding:10px;
+        text-align:left;
+        border-bottom:1px solid #444;
+      }
 
-ids.forEach(id => {
-const u = users[id];
-rows += `
-<tr>
-<td>${id}</td>
-<td>${u.nom || ''}</td>
-<td>${u.groupe || ''}</td>
-<td>${u.password || ''}</td>
-<td>
-<a href="/?edit=${id}">Modifye</a>
-<form method="POST" action="/delete" style="display:inline;">
-<input type="hidden" name="id" value="${id}">
-<button type="submit">Efase</button>
-</form>
-</td>
-</tr>
-`;
+      th{
+        background:#3a3f5a;
+      }
+
+      tr:hover{
+        background:#3a3f5a;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h2>Lista de Vendedores</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Zona</th>
+            <th>App</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr><td>NOC100</td><td>Rodolphe 8</td><td>Brasser Dollar</td><td>2.9.32</td></tr>
+          <tr><td>NOC101</td><td>Odil</td><td>Junior</td><td>2.9.32</td></tr>
+          <tr><td>NOC102</td><td>Evens</td><td>Junior</td><td>2.9.32</td></tr>
+          <tr><td>NOC103</td><td>Michel1</td><td>Michel</td><td>2.9.32</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+  </html>
+  `);
 });
 
-res.send(`
-<html>
-<head>
-<meta charset="UTF-8">
-<title>MASTER PANEL</title>
-</head>
-<body style="font-family: monospace;">
-<h2>MASTER PANEL - VANDÈ YO</h2>
-
-<form method="POST" action="/save">
-<input type="hidden" name="oldId" value="${editId}">
-
-<label>ID / Username</label><br>
-<input name="id" value="${editId}" placeholder="NOC100" required><br><br>
-
-<label>Non vandè</label><br>
-<input name="nom" value="${editUser ? editUser.nom : ''}" placeholder="Non vandè" required><br><br>
-
-<label>Gwoup</label><br>
-<input name="groupe" value="${editUser ? (editUser.groupe || '') : ''}" placeholder="Gwoup"><br><br>
-
-<label>Password</label><br>
-<input name="password" value="${editUser ? editUser.password : '1234'}" placeholder="1234" required><br><br>
-
-<button type="submit">${editUser ? 'MODIFYE VANDE' : 'AJOUTE VANDE'}</button>
-</form>
-
-<br><hr><br>
-
-<table border="1" cellpadding="8" cellspacing="0">
-<tr>
-<th>ID</th>
-<th>NON</th>
-<th>GWOUP</th>
-<th>PASSWORD</th>
-<th>AKSYON</th>
-</tr>
-${rows}
-</table>
-</body>
-</html>
-`);
-});
-
-app.post('/save', (req, res) => {
-const users = loadUsers();
-
-const oldId = (req.body.oldId || '').trim();
-const newId = (req.body.id || '').trim().toUpperCase();
-const nom = (req.body.nom || '').trim();
-const groupe = (req.body.groupe || '').trim();
-const password = (req.body.password || '').trim();
-
-if (!newId || !nom || !password) {
-return res.send('Gen chan ki vid');
-}
-
-if (oldId && oldId !== newId) {
-delete users[oldId];
-}
-
-users[newId] = {
-nom,
-groupe,
-password
-};
-
-saveUsers(users);
-res.redirect('/');
-});
-
-app.post('/delete', (req, res) => {
-const users = loadUsers();
-const id = (req.body.id || '').trim();
-
-if (users[id]) {
-delete users[id];
-saveUsers(users);
-}
-
-res.redirect('/');
-});
-
-app.listen(4000, () => {
-console.log('Master panel ap mache sou http://localhost:4000');
+app.listen(4000, "0.0.0.0", () => {
+  console.log("Admin ap mache sou http://localhost:4000");
 });

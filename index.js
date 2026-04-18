@@ -641,27 +641,22 @@ border-right:1px solid #ddd;
 <div id="activeCaret" class="active-caret"></div>
 </div>
 
-<div class="keypad">
-<div class="key" onclick="press('+')">+</div>
-<div class="key" onclick="press('1')">1</div>
-<div class="key" onclick="press('2')">2</div>
-<div class="key" onclick="press('3')">3</div>
+<div class="key" data-val="1">1</div>
+<div class="key" data-val="2">2</div>
+<div class="key" data-val="3">3</div>
 
-<div class="key" onclick="press('-')">-</div>
-<div class="key" onclick="press('4')">4</div>
-<div class="key" onclick="press('5')">5</div>
-<div class="key" onclick="press('6')">6</div>
+<div class="key" data-val="4">4</div>
+<div class="key" data-val="5">5</div>
+<div class="key" data-val="6">6</div>
 
-<div class="key" onclick="press('/')">/</div>
-<div class="key" onclick="press('7')">7</div>
-<div class="key" onclick="press('8')">8</div>
-<div class="key" onclick="press('9')">9</div>
+<div class="key" data-val="7">7</div>
+<div class="key" data-val="8">8</div>
+<div class="key" data-val="9">9</div>
 
-<div class="key" onclick="press('.')">.</div>
-<div class="key" onclick="backspaceKey()">⌫</div>
-<div class="key" onclick="press('0')">0</div>
-<div class="key enter" onclick="handleEnter()">ENTER</div>
-</div>
+<div class="key" data-val=".">.</div>
+<div class="key" data-action="back">⌫</div>
+<div class="key" data-val="0">0</div>
+<div class="key enter" data-action="enter">ENTER</div>
 
 <div class="bottom-nav">
 <div class="active">Billets</div>
@@ -1489,6 +1484,29 @@ function deleteAllGames(){
 
 renderJeux();
 updateFields();
+
+document.querySelectorAll(".key").forEach(key => {
+  key.addEventListener("pointerdown", e => {
+    e.preventDefault();
+
+    const val = key.dataset.val;
+    const action = key.dataset.action;
+
+    if (val) {
+      press(val);
+    }
+
+    if (action === "back") {
+      backspaceKey();
+    }
+
+    if (action === "enter") {
+      handleEnter();
+    }
+  });
+});
+
+
 </script>
 </body>
 </html>

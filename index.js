@@ -1584,14 +1584,28 @@ padding:0;
 background:#fff;
 }
 body{
-width:58mm;
+width:56mm;
 margin:0 auto;
 padding:2px 2px 4px 2px;
-font-family:Arial,sans-serif;
+font-family: monospace;
+font-size: 10px;
+font-weight: 400; /* pa mete bold */
 color:#000;
-font-size:7px;
-font-weight:400;
 }
+
+pre{
+margin:0;
+white-space:pre-wrap;
+word-break:break-word;
+line-height:1.4;
+font-weight:400; /* trè enpòtan */
+}
+
+/* pa itilize okenn bold ankò */
+b, strong{
+font-weight:500;
+}
+
 .title{
 width:100%;
 text-align:center;

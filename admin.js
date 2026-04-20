@@ -11,7 +11,7 @@ router.get("/master/vendors", (req, res) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Master Ventas</title>
   <style>
-    *{
+ *{
       box-sizing:border-box;
       margin:0;
       padding:0;
@@ -22,7 +22,34 @@ router.get("/master/vendors", (req, res) => {
       background:linear-gradient(180deg,#20243d 0%, #1c2037 100%);
       color:#d9ddf3;
       min-height:100vh;
-    }
+    }   
+
+  .container {
+  max-width: 500px;
+  margin: auto;
+  padding: 10px;
+}
+
+select, input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.date-range {
+  display: flex;
+  gap: 10px;
+}
+
+.date-range div {
+  flex: 1;
+}
+
+   
+   
     .hidden{display:none!important;}
 
     /* LOGIN */
@@ -245,10 +272,17 @@ router.get("/master/vendors", (req, res) => {
 
     <div class="filters">
       <div>
-        <div class="filter-label">Fecha</div>
-        <input class="filter-input" type="date" />
-      </div>
-      <div>
+       <div class="date-range">
+  <div>
+    <label>Desde</label>
+    <input type="date" id="fechaInicio">
+  </div>
+
+  <div>
+    <label>Hasta</label>
+    <input type="date" id="fechaFin">
+  </div>
+</div> 
         <div class="filter-label">Zona</div>
         <select class="filter-select"><option>-</option></select>
       </div>

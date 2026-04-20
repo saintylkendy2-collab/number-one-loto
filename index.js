@@ -1651,6 +1651,8 @@ setTimeout(function(){
   `);
 });
 
+const adminRoutes = require("./admin");
+app.use(adminRoutes);
 
 app.listen(3000, "0.0.0.0", () => {
 console.log("Server ap mache sou rezo a");

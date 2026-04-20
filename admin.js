@@ -317,6 +317,9 @@ tbody tr:nth-child(even){
       color:#9ea5cb;
       font-size:14px;
     }
+     html, body{
+  background:#20243d !important;
+} 
   </style>
 </head>
 <body>

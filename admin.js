@@ -427,6 +427,95 @@ tbody td{
   font-weight:600 !important;
 }
 
+body,
+.app-page,
+.page-title,
+.filter-label,
+.date-range label,
+.filter-select,
+.filter-input,
+.date-range input,
+.summary,
+table,
+thead th,
+tbody td,
+.vendor-name,
+.money,
+.result-ok,
+.result-bad{
+  font-family: Arial, sans-serif !important;
+}
+
+/* ANLÈ */
+.page-title{
+  font-size: 22px !important;
+  font-weight: 600 !important;
+  color: #d5dbef !important;
+}
+
+.filter-label,
+.date-range label{
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #bcc4de !important;
+}
+
+.filter-select,
+.filter-input,
+.date-range input{
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  color: #d3d9ec !important;
+}
+
+/* TI TEKS ANLÈ TABLO A */
+.summary{
+  font-size: 13px !important;
+  color: #aeb6d2 !important;
+}
+
+/* TABLO ANBA */
+thead th{
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #c8cfe6 !important;
+}
+
+tbody td{
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #bcc4de !important;
+}
+
+/* NON MOUN YO PA BLAN */
+.vendor-name{
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #bcc4de !important;
+}
+
+/* CHIF YO MENM STYLE AK RÈS TABLO A */
+.money{
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #bcc4de !important;
+  font-family: Arial, sans-serif !important;
+}
+
+.result-ok{
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #79d98d !important;
+  font-family: Arial, sans-serif !important;
+}
+
+.result-bad{
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #d98b8b !important;
+  font-family: Arial, sans-serif !important;
+}
+
   </style>
 </head>
 <body>

@@ -530,6 +530,30 @@ tbody td{
 .date-range input{
   font-size:16px !important;
 }
+/* SOFT COLORS FOR EYES */
+body{
+  filter: brightness(0.95);
+}
+
+thead th{
+  color:#bfc7df !important;
+}
+
+tbody td{
+  color:#aeb6d2 !important;
+}
+
+.vendor-name{
+  color:#aeb6d2 !important;
+}
+
+.money{
+  color:#aeb6d2 !important;
+}
+
+.result-ok{
+  color:#6fd38a !important;
+}  
   </style>
 </head>
 <body>
@@ -619,7 +643,6 @@ tbody td{
 </div>
 
     <div class="table-card">
-      <div class="summary">Glise agoch/adwat pou wè RESULTADO.</div>
       <div class="table-scroll">
         <table>
           <thead>

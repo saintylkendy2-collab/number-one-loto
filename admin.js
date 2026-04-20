@@ -12,78 +12,64 @@ router.get("/master/vendors", (req, res) => {
   <title>Master Ventas</title>
   <style>
  *{
-/* AJOUTE SA ANBA */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
+.app-page{
+  min-height:100vh;
+  padding:8px 8px 14px;
 }
 
-th {
-  padding: 8px 6px;
-  text-align: center;
-  font-weight: 600;
+.page-title{
+  font-size:24px;
+  font-weight:500;
+  color:#dfe4ff;
+  margin:6px 2px 10px;
 }
 
-td {
-  padding: 6px 6px;
-  text-align: center;
+.filters{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+  margin-bottom:10px;
 }
 
-tr {
-  height: auto;
+.filter-group{
+  margin:0;
 }
 
-.table-container {
-  padding: 5px;
+.filter-label,
+.date-range label{
+  display:block;
+  font-size:13px;
+  line-height:1.1;
+  color:#dfe4ff;
+  margin:0 0 4px 2px;
 }
 
-.container {
-  max-width: 420px;
+.filter-input,
+.filter-select,
+.date-range input{
+  width:100%;
+  height:46px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.08);
+  background:#2a2f4a;
+  color:#eef1ff;
+  font-size:15px;
+  padding:0 12px;
+  outline:none;
+  margin:0;
 }
 
-th, td {
-  white-space: nowrap;
+.date-range{
+  display:flex;
+  gap:6px;
+  margin:0;
 }
 
-
-
-
-      box-sizing:border-box;
-      margin:0;
-      padding:0;
-      -webkit-tap-highlight-color:transparent;
-    }
-    body{
-      font-family:Arial,sans-serif;
-      background:linear-gradient(180deg,#20243d 0%, #1c2037 100%);
-      color:#d9ddf3;
-      min-height:100vh;
-    }   
-
-  .container {
-  max-width: 500px;
-  margin: auto;
-  padding: 10px;
+.date-range > div{
+  flex:1;
+  margin:0;
 }
 
-select, input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-
-.date-range {
-  display: flex;
-  gap: 10px;
-}
-
-.date-range div {
-  flex: 1;
-}
 
    
    
@@ -325,45 +311,62 @@ tbody tr:nth-child(even){
 
     <div class="page-title">Ventas</div>
 
-    <div class="filters">
-      <div>
-       <div class="date-range">
-  <div>
-    <label>Desde</label>
-    <input type="date" id="fechaInicio">
-  </div>
+   <div class="filters">
 
-  <div>
-    <label>Hasta</label>
-    <input type="date" id="fechaFin">
-  </div>
-</div> 
-        <div class="filter-label">Zona</div>
-        <select class="filter-select"><option>-</option></select>
-      </div>
+  <div class="filter-group">
+    <div class="date-range">
       <div>
-        <div class="filter-label">Vendedor</div>
-        <select class="filter-select"><option>-</option></select>
+        <label>Desde</label>
+        <input type="date" id="fechaInicio">
       </div>
+
       <div>
-        <div class="filter-label">Lotería</div>
-        <select class="filter-select"><option>-</option></select>
-      </div>
-      <div>
-        <div class="filter-label">Jugada</div>
-        <select class="filter-select"><option>-</option></select>
-      </div>
-      <div>
-        <div class="filter-label">Comisión</div>
-        <select class="filter-select">
-          <option>Todas</option>
-          <option>3%</option>
-          <option>5%</option>
-          <option>8%</option>
-          <option>10%</option>
-        </select>
+        <label>Hasta</label>
+        <input type="date" id="fechaFin">
       </div>
     </div>
+  </div>
+
+  <div class="filter-group">
+    <label class="filter-label">Zona</label>
+    <select class="filter-select">
+      <option>-</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label class="filter-label">Vendedor</label>
+    <select class="filter-select">
+      <option>-</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label class="filter-label">Lotería</label>
+    <select class="filter-select">
+      <option>-</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label class="filter-label">Jugada</label>
+    <select class="filter-select">
+      <option>-</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label class="filter-label">Comisión</label>
+    <select class="filter-select">
+      <option>Todas</option>
+      <option>3%</option>
+      <option>5%</option>
+      <option>8%</option>
+      <option>10%</option>
+    </select>
+  </div>
+
+</div>
 
     <div class="table-card">
       <div class="summary">Glise agoch/adwat pou wè RESULTADO.</div>

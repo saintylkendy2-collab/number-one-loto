@@ -6,169 +6,155 @@ app.use(express.json());
 
 app.get("/master/vendors", (req, res) => {
   res.send(`
-  <!DOCTYPE html>
-  <html lang="fr">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Vendors</title>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Master Vendors</title>
 
-    <style>
-      body {
-        margin:0;
-        font-family: Arial, sans-serif;
-        background: linear-gradient(180deg,#20243d,#1c2033);
-        color:#fff;
-      }
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#1e293b;
+  color:white;
+}
 
-      .container {
-        padding:20px;
-      }
+.container{
+  padding:20px;
+}
 
-      .header {
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        margin-bottom:20px;
-      }
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
 
-      h1 {
-        font-size:20px;
-      }
+.btn{
+  background:#6366f1;
+  border:none;
+  padding:10px 15px;
+  border-radius:10px;
+  color:white;
+  cursor:pointer;
+}
 
-      button {
-        background:#6c63ff;
-        border:none;
-        padding:10px 15px;
-        color:white;
-        border-radius:8px;
-        cursor:pointer;
-      }
+table{
+  width:100%;
+  margin-top:20px;
+  border-collapse:collapse;
+}
 
-      table {
-        width:100%;
-        border-collapse:collapse;
-      }
+th, td{
+  padding:12px;
+  text-align:left;
+}
 
-      th, td {
-        padding:12px;
-        border-bottom:1px solid rgba(255,255,255,0.1);
-        text-align:left;
-      }
+tr{
+  background:#334155;
+  margin-bottom:5px;
+}
 
-      .actions {
-        display:flex;
-        gap:10px;
-      }
+.actions button{
+  background:none;
+  border:none;
+  font-size:18px;
+  cursor:pointer;
+}
+</style>
 
-      .edit {
-        cursor:pointer;
-        color:yellow;
-      }
+</head>
 
-      .delete {
-        cursor:pointer;
-        color:red;
-      }
+<body>
 
-      input {
-        padding:8px;
-        margin:5px;
-        border-radius:5px;
-        border:none;
-      }
-    </style>
-  </head>
+<div class="container">
 
-  <body>
-
-  <div class="container">
-
-    <div class="header">
-      <h1>Admin - Vendors</h1>
-      <button onclick="addVendor()">+ Ajouter</button>
-    </div>
-
-    <div>
-      <input id="id" placeholder="ID">
-      <input id="name" placeholder="Nom">
-      <input id="zone" placeholder="Zone">
-    </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nom</th>
-          <th>Zone</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-
-      <tbody id="list"></tbody>
-    </table>
-
+  <div class="top">
+    <h2>Lista de Vendedores</h2>
+    <button class="btn" onclick="addVendor()">+ Ajouter vendeur</button>
   </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Zona</th>
+        <th>App</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+
+    <tbody id="tableBody"></tbody>
+  </table>
+
+</div>
 
 <script>
 
 let vendors = [
-  {id:"NOC100", name:"Rodolphe 8", zone:"Brasser"},
-  {id:"NOC101", name:"Odil", zone:"Junior"}
+  {id:"NOC100", name:"Rodolphe 8", zone:"Brasser Dollar", app:"2.9.32"},
+  {id:"NOC101", name:"Odil", zone:"Junior", app:"2.9.32"}
 ];
 
 function render(){
   let html = "";
+
   vendors.forEach((v,i)=>{
     html += \`
       <tr>
         <td>\${v.id}</td>
         <td>\${v.name}</td>
         <td>\${v.zone}</td>
+        <td>\${v.app}</td>
         <td class="actions">
-          <span class="edit" onclick="edit(\${i})">✏️</span>
-          <span class="delete" onclick="remove(\${i})">🗑️</span>
+          <button onclick="editVendor(\${i})">✏️</button>
+          <button onclick="deleteVendor(\${i})">🗑️</button>
         </td>
       </tr>
     \`;
   });
-  document.getElementById("list").innerHTML = html;
+
+  document.getElementById("tableBody").innerHTML = html;
 }
 
 function addVendor(){
-  const id = document.getElementById("id").value;
-  const name = document.getElementById("name").value;
-  const zone = document.getElementById("zone").value;
+  let name = prompt("Nom:");
+  if(!name) return;
 
-  if(!id || !name) return alert("Ranpli yo!");
+  vendors.push({
+    id:"NOC"+Math.floor(Math.random()*1000),
+    name:name,
+    zone:"Zone X",
+    app:"2.9.32"
+  });
 
-  vendors.push({id,name,zone});
   render();
 }
 
-function remove(i){
+function deleteVendor(i){
   vendors.splice(i,1);
   render();
 }
 
-function edit(i){
-  const v = vendors[i];
-  document.getElementById("id").value = v.id;
-  document.getElementById("name").value = v.name;
-  document.getElementById("zone").value = v.zone;
-
-  vendors.splice(i,1);
-  render();
+function editVendor(i){
+  let name = prompt("Modifier nom:", vendors[i].name);
+  if(name){
+    vendors[i].name = name;
+    render();
+  }
 }
 
 render();
 
 </script>
 
-  </body>
-  </html>
-  `);
+</body>
+</html>
+`);
 });
+
 
 
 app.listen(4000, "0.0.0.0", () => {

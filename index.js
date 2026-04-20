@@ -11,7 +11,7 @@ app.get("/", (req, res) => {
 res.send(`
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+<head>xs
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login Vendeur</title>

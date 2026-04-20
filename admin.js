@@ -12,6 +12,43 @@ router.get("/master/vendors", (req, res) => {
   <title>Master Ventas</title>
   <style>
  *{
+/* AJOUTE SA ANBA */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th {
+  padding: 8px 6px;
+  text-align: center;
+  font-weight: 600;
+}
+
+td {
+  padding: 6px 6px;
+  text-align: center;
+}
+
+tr {
+  height: auto;
+}
+
+.table-container {
+  padding: 5px;
+}
+
+.container {
+  max-width: 420px;
+}
+
+th, td {
+  white-space: nowrap;
+}
+
+
+
+
       box-sizing:border-box;
       margin:0;
       padding:0;

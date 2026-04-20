@@ -220,57 +220,75 @@ select, input {
       outline:none;
     }
     .table-card{
-      background:#2a2f4a;
-      border-radius:14px;
-      overflow:hidden;
-    }
-    .table-scroll{
-      overflow-x:auto;
-      overflow-y:hidden;
-      -webkit-overflow-scrolling:touch;
-    }
-    table{
-      width:100%;
-      min-width:860px;
-      border-collapse:collapse;
-    }
-    thead th{
-      background:#4a4f69;
-      color:#f0f2ff;
-      padding:15px 12px;
-      font-size:17px;
-      font-weight:600;
-      text-align:left;
-      white-space:nowrap;
-      border-right:1px solid rgba(255,255,255,.08);
-    }
-    tbody td{
-      padding:15px 12px;
-      font-size:16px;
-      color:#cfd4ee;
-      border-top:1px solid rgba(255,255,255,.08);
-      border-right:1px solid rgba(255,255,255,.06);
-      white-space:nowrap;
-    }
-    tbody tr:nth-child(even){
-      background:#313652;
-    }
-    .vendor-name{
-      font-weight:700;
-      color:#eef1ff;
-    }
-    .money{
-      font-weight:700;
-      color:#dfe4ff;
-    }
-    .result-ok{
-      color:#67d57b;
-      font-weight:700;
-    }
-    .result-bad{
-      color:#ff8484;
-      font-weight:700;
-    }
+  background:#2a2f4a;
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 6px 20px rgba(0,0,0,.12);
+  margin-top:10px;
+}
+
+.table-scroll{
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+
+table{
+  width:max-content;
+  min-width:0;
+  border-collapse:collapse;
+  font-size:14px;
+}
+
+thead th{
+  background:#4a4f69;
+  color:#f0f2ff;
+  padding:10px 12px;
+  font-size:14px;
+  font-weight:700;
+  text-align:left;
+  white-space:nowrap;
+  border-right:1px solid rgba(255,255,255,.08);
+}
+
+tbody td{
+  padding:10px 12px;
+  font-size:14px;
+  color:#cfd4ee;
+  border-top:1px solid rgba(255,255,255,.08);
+  border-right:1px solid rgba(255,255,255,.06);
+  white-space:nowrap;
+  text-align:left;
+  vertical-align:middle;
+}
+
+tbody tr:nth-child(even){
+  background:#313652;
+}
+
+.vendor-name{
+  font-weight:700;
+  color:#eef1ff;
+  text-align:left !important;
+}
+
+.money{
+  font-weight:700;
+  color:#dfe4ff;
+  text-align:left !important;
+}
+
+.result-ok{
+  color:#67d57b;
+  font-weight:700;
+  text-align:left !important;
+}
+
+.result-bad{
+  color:#ff8484;
+  font-weight:700;
+  text-align:left !important;
+}
     .summary{
       padding:12px 14px;
       color:#9ea5cb;

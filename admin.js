@@ -403,6 +403,7 @@ app.get("/master/vendors", (req, res) => {
       alert("Login incorrect");
     }
   }
+    
 </script>
 
 </body>

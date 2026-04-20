@@ -320,6 +320,113 @@ tbody tr:nth-child(even){
      html, body{
   background:#20243d !important;
 } 
+ .page-title{
+  margin:4px 2px 6px !important;
+}
+
+.filters{
+  gap:4px !important;
+  margin-bottom:8px !important;
+}
+
+.filter-label,
+.date-range label{
+  margin:0 0 2px 2px !important;
+  font-size:12px !important;
+}
+
+.filter-select,
+.filter-input,
+.date-range input{
+  height:38px !important;
+  margin:0 !important;
+}
+
+.date-range{
+  gap:4px !important;
+}
+
+
+.filters,
+.filters > div{
+  background: transparent !important;
+}
+
+.filter-select,
+.filter-input,
+.date-range input{
+  background:#2a2f4a !important;
+  color:#eef1ff !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+}
+
+html, body{
+  background:#20243d !important;
+}
+
+
+html, body{
+  background:linear-gradient(180deg,#20243d 0%, #1c2037 100%) !important;
+}
+
+
+git add .
+git commit -m "restore dark background"
+git push
+
+
+.page-title{
+  font-size:20px !important;
+  font-weight:600 !important;
+  color:#d7dcef !important;
+}
+
+.filter-label,
+.date-range label{
+  font-size:11px !important;
+  font-weight:500 !important;
+  color:#b9c0da !important;
+}
+
+.filter-select,
+.filter-input,
+.date-range input{
+  font-size:13px !important;
+  font-weight:500 !important;
+  color:#d7dcef !important;
+}
+ .summary{
+  font-size:12px !important;
+  color:#aeb6d2 !important;
+}
+
+thead th{
+  font-size:12px !important;
+  font-weight:600 !important;
+  color:#cfd6ee !important;
+}
+
+tbody td{
+  font-size:12px !important;
+  font-weight:500 !important;
+  color:#c5cce3 !important;
+}
+
+.vendor-name{
+  font-size:12px !important;
+  font-weight:600 !important;
+  color:#d7dcef !important;
+}
+
+.money{
+  color:#c5cce3 !important;
+}
+
+.result-ok{
+  color:#74d88a !important;
+  font-weight:600 !important;
+}
+
   </style>
 </head>
 <body>

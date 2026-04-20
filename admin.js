@@ -70,6 +70,43 @@ router.get("/master/vendors", (req, res) => {
   margin:0;
 }
 
+.page-title{
+  margin: 4px 2px 8px !important;
+}
+
+
+.filter-label,
+.date-range label{
+  margin: 0 0 2px 2px !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+
+.filter-select,
+.filter-input,
+.date-range input{
+  height: 38px !important;
+  margin: 0 !important;
+  padding: 0 10px !important;
+  font-size: 14px !important;
+}
+
+.date-range{
+  gap: 4px !important;
+  margin: 0 !important;
+}
+
+.date-range > div{
+  margin: 0 !important;
+}
+
+.topbar{
+  margin-bottom: 8px !important;
+}
+
+.app-page{
+  padding-top: 8px !important;
+}
 
    
    

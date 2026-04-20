@@ -1651,6 +1651,12 @@ setTimeout(function(){
   `);
 });
 
+app.get("/master/vendors", (req, res) => {
+  res.send(`
+    <h1>MASTER PAGE OK 🔥</h1>
+  `);
+});
+
 app.listen(3000, "0.0.0.0", () => {
 console.log("Server ap mache sou rezo a");
 });

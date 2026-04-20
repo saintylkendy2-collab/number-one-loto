@@ -515,7 +515,21 @@ tbody td{
   color: #d98b8b !important;
   font-family: Arial, sans-serif !important;
 }
+/* ONLY TOP BIGGER */
+.page-title{
+  font-size:24px !important;
+}
 
+.filter-label,
+.date-range label{
+  font-size:14px !important;
+}
+
+.filter-select,
+.filter-input,
+.date-range input{
+  font-size:16px !important;
+}
   </style>
 </head>
 <body>

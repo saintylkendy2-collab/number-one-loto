@@ -370,11 +370,6 @@ html, body{
 }
 
 
-git add .
-git commit -m "restore dark background"
-git push
-
-
 .page-title{
   font-size:20px !important;
   font-weight:600 !important;
@@ -553,6 +548,94 @@ tbody td{
 
 .result-ok{
   color:#6fd38a !important;
+} 
+ .menu-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.35);
+  display:none;
+  z-index:999;
+}
+
+.menu-overlay.show{
+  display:block;
+}
+
+.side-menu{
+  position:fixed;
+  top:0;
+  left:-320px;
+  width:320px;
+  max-width:88vw;
+  height:100vh;
+  background:#343754;
+  color:#d7dbef;
+  z-index:1000;
+  overflow-y:auto;
+  transition:left .25s ease;
+  padding:18px 18px 28px;
+  box-sizing:border-box;
+}
+
+.side-menu.open{
+  left:0;
+}
+
+.side-menu-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:22px;
+}
+
+.side-menu-logo{
+  font-size:18px;
+  font-weight:700;
+}
+
+.side-menu-close{
+  font-size:22px;
+  cursor:pointer;
+}
+
+.side-menu-section{
+  font-size:12px;
+  opacity:.6;
+  margin:18px 0 8px;
+  letter-spacing:1px;
+}
+
+.side-menu-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 12px;
+  border-radius:12px;
+  cursor:pointer;
+}
+
+.side-menu-item:hover{
+  background:rgba(255,255,255,.06);
+}
+
+.submenu-box{
+  display:none;
+  padding:4px 0 10px 18px;
+}
+
+.submenu-box.open{
+  display:block;
+}
+
+.submenu-item{
+  padding:12px 10px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.submenu-item:hover{
+  background:linear-gradient(90deg,#6d63ff,#7d73ff);
+  color:#fff;
 }  
   </style>
 </head>
@@ -569,6 +652,74 @@ tbody td{
       <button class="login-btn" onclick="loginMaster()">Ingresar</button>
     </div>
   </div>
+  <div id="menuOverlay" class="menu-overlay"></div>
+
+<div id="sideMenu" class="side-menu">
+  <div class="side-menu-header">
+    <div class="side-menu-logo">NUMBER ONE LOTO</div>
+    <div id="menuCloseBtn" class="side-menu-close" onclick="closeSideMenu()">✕</div>
+  </div>
+
+  <div class="side-menu-section">AJUSTES</div>
+
+  <div class="side-menu-item" onclick="toggleSubmenu('configMenu')">
+    <span>Configuración</span>
+    <span>></span>
+  </div>
+  <div id="configMenu" class="submenu-box">
+    <div class="submenu-item" onclick="goPage('grupo')">Grupo</div>
+  </div>
+
+  <div class="side-menu-item" onclick="toggleSubmenu('limitesMenu')">
+    <span>Límites</span>
+    <span>></span>
+  </div>
+  <div id="limitesMenu" class="submenu-box">
+    <div class="submenu-item" onclick="goPage('limites_ajustes')">Ajustes</div>
+    <div class="submenu-item" onclick="goPage('limites_estadisticas')">Estadísticas</div>
+  </div>
+
+  <div class="side-menu-item"><span>Loterías</span></div>
+  <div class="side-menu-item"><span>Vendedores</span></div>
+  <div class="side-menu-item"><span>Mi Cuenta</span></div>
+
+  <div class="side-menu-section">MONITOREO</div>
+  <div class="side-menu-item"><span>Tickets</span></div>
+  <div class="side-menu-item"><span>Sorteos</span></div>
+
+  <div class="side-menu-section">REPORTES</div>
+
+  <div class="side-menu-item" onclick="toggleSubmenu('ventaMenu')">
+    <span>Venta</span>
+    <span>></span>
+  </div>
+  <div id="ventaMenu" class="submenu-box">
+    <div class="submenu-item" onclick="goPage('venta_general')">General</div>
+    <div class="submenu-item" onclick="goPage('venta_vendedor')">Vendedor</div>
+    <div class="submenu-item" onclick="goPage('venta_loteria')">Lotería</div>
+    <div class="submenu-item" onclick="goPage('venta_jugada')">Jugada</div>
+    <div class="submenu-item" onclick="goPage('venta_numero')">Número</div>
+    <div class="submenu-item" onclick="goPage('venta_conexion')">Conexion</div>
+    <div class="submenu-item" onclick="goPage('venta_tickets_premiados')">Tickets premiados</div>
+    <div class="submenu-item" onclick="goPage('venta_tickets_cancelados')">Tickets cancelados</div>
+    <div class="submenu-item" onclick="goPage('venta_grupo')">Grupo</div>
+  </div>
+
+  <div class="side-menu-section">FLUJO DE EFECTIVO</div>
+  <div class="side-menu-item"><span>Transactions</span></div>
+
+  <div class="side-menu-item" onclick="toggleSubmenu('balanceMenu')">
+    <span>Balance</span>
+    <span>></span>
+  </div>
+  <div id="balanceMenu" class="submenu-box">
+    <div class="submenu-item" onclick="goPage('balance_vendedor')">Vendedor</div>
+  </div>
+
+  <div class="side-menu-section">DESCONECTAR</div>
+  <div class="side-menu-item"><span>Salir</span></div>
+</div>
+
 
   <div class="app-page hidden" id="appPage">
     <div class="topbar">

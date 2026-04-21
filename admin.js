@@ -637,6 +637,36 @@ tbody td{
   background:linear-gradient(90deg,#6d63ff,#7d73ff);
   color:#fff;
 }  
+  .side-menu{
+  background:#2b2f47 !important;
+  color:#c7cde0 !important;
+}
+
+.side-menu-logo{
+  color:#e4e8f2 !important;
+}
+
+.side-menu-section{
+  color:#8f97b2 !important;
+}
+
+.side-menu-item{
+  color:#c7cde0 !important;
+}
+
+.submenu-item{
+  color:#bcc4da !important;
+}
+
+.side-menu-item:hover,
+.submenu-item:hover{
+  background:rgba(255,255,255,.05) !important;
+  color:#eef1f8 !important;
+}
+
+.side-menu-close{
+  color:#d5daea !important;
+}
   </style>
 </head>
 <body>

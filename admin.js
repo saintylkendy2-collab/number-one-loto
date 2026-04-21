@@ -724,6 +724,285 @@ function loginMaster(){
     alert("Login incorrect");
   }
 }
+/* =========================
+   MENU BÒ GOCH + SUBMENUS
+   ========================= */
+
+function openSideMenu() {
+  const menu = document.getElementById("sideMenu");
+  const overlay = document.getElementById("menuOverlay");
+  if (menu) menu.classList.add("open");
+  if (overlay) overlay.classList.add("show");
+}
+
+function closeSideMenu() {
+  const menu = document.getElementById("sideMenu");
+  const overlay = document.getElementById("menuOverlay");
+  if (menu) menu.classList.remove("open");
+  if (overlay) overlay.classList.remove("show");
+}
+
+function toggleSubmenu(id) {
+  const box = document.getElementById(id);
+  if (!box) return;
+
+  const isOpen = box.classList.contains("open");
+
+  document.querySelectorAll(".submenu-box").forEach(el => {
+    el.classList.remove("open");
+  });
+
+  if (!isOpen) {
+    box.classList.add("open");
+  }
+}
+
+/* =========================
+   NAVIGASYON SUBMENU YO
+   ========================= */
+
+function goPage(page) {
+  const routes = {
+    grupo: "/grupo",
+    limites_ajustes: "/limites/ajustes",
+    limites_estadisticas: "/limites/estadisticas",
+
+    venta_general: "/venta/general",
+    venta_vendedor: "/venta/vendedor",
+    venta_loteria: "/venta/loteria",
+    venta_jugada: "/venta/jugada",
+    venta_numero: "/venta/numero",
+    venta_conexion: "/venta/conexion",
+    venta_tickets_premiados: "/venta/tickets-premiados",
+    venta_tickets_cancelados: "/venta/tickets-cancelados",
+    venta_grupo: "/venta/grupo",
+
+    balance_vendedor: "/balance/vendedor"
+  };
+
+  if (routes[page]) {
+    window.location.href = routes[page];
+  }
+}
+
+/* =========================
+   MONTANT → PAGO / COBRO
+   ========================= */
+
+let currentVendor = "";
+let currentAmount = 0;
+
+function parseAmount(value) {
+  if (typeof value === "number") return value;
+  let clean = String(value).replace(/,/g, "").trim();
+  return parseFloat(clean) || 0;
+}
+
+function formatAmount(value) {
+  const num = Math.abs(parseAmount(value));
+  return num.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+/*
+  Itilizasyon nan tablo a:
+  onclick="handleBalanceClick('Paul', '-1798.48')"
+  onclick="handleBalanceClick('Wisly', '38647.50')"
+*/
+function handleBalanceClick(vendor, amount) {
+  currentVendor = vendor;
+  currentAmount = parseAmount(amount);
+
+  if (currentAmount < 0) {
+    openPagoModal(vendor, Math.abs(currentAmount));
+  } else if (currentAmount > 0) {
+    openCobroModal(vendor, currentAmount);
+  } else {
+    alert("Balance sa a se 0.00");
+  }
+}
+
+/* =========================
+   MODAL PAGO
+   ========================= */
+
+function openPagoModal(vendor, amount) {
+  const modal = document.getElementById("modalPago");
+  if (!modal) return;
+
+  const title = document.getElementById("pagoTitle");
+  const vendorInput = document.getElementById("pagoVendor");
+  const balanceInput = document.getElementById("pagoBalance");
+  const montoInput = document.getElementById("pagoMonto");
+  const fechaInput = document.getElementById("pagoFecha");
+  const comentarioInput = document.getElementById("pagoComentario");
+
+  if (title) title.textContent = "Realizar Pago";
+  if (vendorInput) vendorInput.value = vendor;
+  if (balanceInput) balanceInput.value = formatAmount(amount);
+  if (montoInput) montoInput.value = "";
+  if (fechaInput && !fechaInput.value) fechaInput.value = todayISO();
+  if (comentarioInput) comentarioInput.value = "";
+
+  modal.style.display = "flex";
+}
+
+function closePagoModal() {
+  const modal = document.getElementById("modalPago");
+  if (modal) modal.style.display = "none";
+}
+
+/* =========================
+   MODAL COBRO / DEBITAR
+   ========================= */
+
+function openCobroModal(vendor, amount) {
+  const modal = document.getElementById("modalCobro");
+  if (!modal) return;
+
+  const title = document.getElementById("cobroTitle");
+  const vendorInput = document.getElementById("cobroVendor");
+  const balanceInput = document.getElementById("cobroBalance");
+  const montoInput = document.getElementById("cobroMonto");
+  const fechaInput = document.getElementById("cobroFecha");
+  const comentarioInput = document.getElementById("cobroComentario");
+
+  if (title) title.textContent = "Realizar Cobro";
+  if (vendorInput) vendorInput.value = vendor;
+  if (balanceInput) balanceInput.value = formatAmount(amount);
+  if (montoInput) montoInput.value = "";
+  if (fechaInput && !fechaInput.value) fechaInput.value = todayISO();
+  if (comentarioInput) comentarioInput.value = "";
+
+  modal.style.display = "flex";
+}
+
+function closeCobroModal() {
+  const modal = document.getElementById("modalCobro");
+  if (modal) modal.style.display = "none";
+}
+
+/* =========================
+   UTIL
+   ========================= */
+
+function todayISO() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return yyyy + "-" + mm + "-" + dd;
+}
+
+/* =========================
+   FÈMEN MODAL SI PEZE DEYÒ
+   ========================= */
+
+window.addEventListener("click", function(e) {
+  const pago = document.getElementById("modalPago");
+  const cobro = document.getElementById("modalCobro");
+
+  if (e.target === pago) closePagoModal();
+  if (e.target === cobro) closeCobroModal();
+});
+
+/* =========================
+   EVENT BOUTON YO
+   ========================= */
+
+document.addEventListener("DOMContentLoaded", function() {
+  const menuBtn = document.getElementById("menuBtn");
+  const menuCloseBtn = document.getElementById("menuCloseBtn");
+  const overlay = document.getElementById("menuOverlay");
+
+  if (menuBtn) menuBtn.addEventListener("click", openSideMenu);
+  if (menuCloseBtn) menuCloseBtn.addEventListener("click", closeSideMenu);
+  if (overlay) overlay.addEventListener("click", closeSideMenu);
+});
+
+function cleanAmount(txt) {
+  return parseFloat(String(txt).replace(/,/g, "").trim()) || 0;
+}
+
+function formatAmount(num) {
+  return Math.abs(num).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function todayISO() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return yyyy + "-" + mm + "-" + dd;
+}
+
+function openPagoAuto(vendor, amount) {
+  const modal = document.getElementById("modalPago");
+  if (!modal) return;
+
+  const title = document.getElementById("pagoTitle");
+  const vendorInput = document.getElementById("pagoVendor");
+  const balanceInput = document.getElementById("pagoBalance");
+  const montoInput = document.getElementById("pagoMonto");
+  const fechaInput = document.getElementById("pagoFecha");
+  const comentarioInput = document.getElementById("pagoComentario");
+
+  if (title) title.textContent = "Realizar Pago";
+  if (vendorInput) vendorInput.value = vendor;
+  if (balanceInput) balanceInput.value = formatAmount(amount);
+  if (montoInput) montoInput.value = "";
+  if (fechaInput) fechaInput.value = todayISO();
+  if (comentarioInput) comentarioInput.value = "";
+
+  modal.style.display = "flex";
+}
+
+function openCobroAuto(vendor, amount) {
+  const modal = document.getElementById("modalCobro");
+  if (!modal) return;
+
+  const title = document.getElementById("cobroTitle");
+  const vendorInput = document.getElementById("cobroVendor");
+  const balanceInput = document.getElementById("cobroBalance");
+  const montoInput = document.getElementById("cobroMonto");
+  const fechaInput = document.getElementById("cobroFecha");
+  const comentarioInput = document.getElementById("cobroComentario");
+
+  if (title) title.textContent = "Realizar Cobro";
+  if (vendorInput) vendorInput.value = vendor;
+  if (balanceInput) balanceInput.value = formatAmount(amount);
+  if (montoInput) montoInput.value = "";
+  if (fechaInput) fechaInput.value = todayISO();
+  if (comentarioInput) comentarioInput.value = "";
+
+  modal.style.display = "flex";
+}
+
+document.addEventListener("click", function(e) {
+  const balanceCell = e.target.closest(".result-ok, .result-bad");
+  if (!balanceCell) return;
+
+  const row = balanceCell.closest("tr");
+  if (!row) return;
+
+  const vendorCell = row.querySelector(".vendor-name");
+  if (!vendorCell) return;
+
+  const vendor = vendorCell.textContent.trim();
+  const amount = cleanAmount(balanceCell.textContent);
+
+  if (balanceCell.classList.contains("result-bad") || amount < 0) {
+    openPagoAuto(vendor, Math.abs(amount));
+  } else {
+    openCobroAuto(vendor, Math.abs(amount));
+  }
+});
+
 </script>
 
 </body>

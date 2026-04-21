@@ -4,17 +4,26 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const LOGIN_ID = "NOC100";
-const LOGIN_PASSWORD = "1234";
+const fs = require("fs");
+const path = require("path");
+const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
+
+function loadVendeurs() {
+  try {
+    return JSON.parse(fs.readFileSync(VENDEURS_FILE, "utf8"));
+  } catch (e) {
+    return [];
+  }
+}
 
 app.get("/", (req, res) => {
 res.send(`
 <!DOCTYPE html>
 <html lang="fr">
-<head>xs
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login Vendeur</title>
+<title>Login</title>
 <style>
 *{box-sizing:border-box;}
 html,body{
@@ -93,13 +102,25 @@ text-align:center;
 `);
 });
 
-app.post("/login", (req, res) => {
-const id = (req.body.id || "").trim();
-const password = (req.body.password || "").trim();
+app.post("/login-vendor", (req, res) => {
+  const { id, clave } = req.body || {};
+  const vendors = loadVendeurs();
 
-if (id === LOGIN_ID && password === LOGIN_PASSWORD) {
-return res.redirect("/dashboard");
-}
+  const vendor = vendors.find(v =>
+    String(v.id || "").trim() === String(id || "").trim() &&
+    String(v.clave || "").trim() === String(clave || "").trim()
+  );
+
+  if (!vendor) {
+    return res.json({ ok: false, message: "Identifiant ou mot de passe incorrect" });
+  }
+
+  if (String(vendor.estatus || "") !== "Activo") {
+    return res.json({ ok: false, message: "Vendeur bloqué" });
+  }
+
+  return res.json({ ok: true, vendor });
+});
 
 res.send(`
 <!DOCTYPE html>
@@ -151,7 +172,6 @@ font-weight:700;
 </body>
 </html>
 `);
-});
 
 app.get("/logout", (req, res) => {
 res.redirect("/");

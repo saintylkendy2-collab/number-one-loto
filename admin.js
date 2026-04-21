@@ -1950,83 +1950,88 @@ function fillVendorForm(v){
    READ FORM
 ========================= */
 function readVendorForm(){
+  function val(id, fallback=""){
+    const el = byId(id);
+    return el ? el.value : fallback;
+  }
+
   return {
-    id: byId("vd_id").value.trim(),
-    clave: byId("vd_clave").value.trim(),
-    nombre: byId("vd_nombre").value.trim(),
-    apellido: byId("vd_apellido").value.trim(),
-    cedula: byId("vd_cedula").value.trim(),
-    telefono: byId("vd_telefono").value.trim(),
-    direccion: byId("vd_direccion").value.trim(),
-    estatus: byId("vd_estatus").value,
-    sexo: byId("vd_sexo").value,
-    zona: byId("vd_zona").value,
+    id: val("vd_id").trim(),
+    clave: val("vd_clave").trim(),
+    nombre: val("vd_nombre").trim(),
+    apellido: val("vd_apellido").trim(),
+    cedula: val("vd_cedula").trim(),
+    telefono: val("vd_telefono").trim(),
+    direccion: val("vd_direccion").trim(),
+    estatus: val("vd_estatus", "Bloqueado"),
+    sexo: val("vd_sexo", "-"),
+    zona: val("vd_zona"),
 
     config:{
-      limiteDiario: byId("cfg_limite_diario").value,
-      credito: byId("cfg_credito").value,
-      deshabilitarLoterias: byId("cfg_deshabilitar_loterias").value,
-      deshabilitarJugadas: byId("cfg_deshabilitar_jugadas").value,
-      mezclaNumeros: byId("cfg_mezcla_numeros").value,
+      limiteDiario: val("cfg_limite_diario", "0"),
+      credito: val("cfg_credito", "0"),
+      deshabilitarLoterias: val("cfg_deshabilitar_loterias"),
+      deshabilitarJugadas: val("cfg_deshabilitar_jugadas"),
+      mezclaNumeros: val("cfg_mezcla_numeros", "0"),
       habilitarCuadre: getSwitchValue("sw_cuadre"),
       ventasWhatsapp: getSwitchValue("sw_whatsapp"),
       usarNombreTicket: getSwitchValue("sw_nombre_ticket"),
-      deshabilitarDecimales: byId("cfg_decimales").value,
-      deshabilitarTerminales: byId("cfg_terminales").value,
+      deshabilitarDecimales: val("cfg_decimales", "0"),
+      deshabilitarTerminales: val("cfg_terminales", "0"),
       habilitarPrepago: getSwitchValue("sw_prepago"),
       activarBono: getSwitchValue("sw_bono"),
-      bonoTipo: byId("cfg_bono").value
+      bonoTipo: val("cfg_bono", "Mariage")
     },
 
     comision:{
       retener: getSwitchValue("sw_retener_comision"),
-      general: byId("com_general").value,
-      borlette: byId("com_borlette").value,
-      mariage: byId("com_mariage").value,
-      loto3: byId("com_loto3").value,
-      loto4: byId("com_loto4").value,
-      loto5: byId("com_loto5").value,
-      loto5o2: byId("com_loto5o2").value,
-      loto5o3: byId("com_loto5o3").value,
-      zona: byId("com_zona").value,
+      general: val("com_general", "0"),
+      borlette: val("com_borlette", "0"),
+      mariage: val("com_mariage", "0"),
+      loto3: val("com_loto3", "0"),
+      loto4: val("com_loto4", "0"),
+      loto5: val("com_loto5", "0"),
+      loto5o2: val("com_loto5o2", "0"),
+      loto5o3: val("com_loto5o3", "0"),
+      zona: val("com_zona", "0"),
       porLoteria: getSwitchValue("sw_comision_loteria")
     },
 
     premios:{
       habilitar: getSwitchValue("sw_premios_habilitar"),
-      loteria: byId("premios_loteria").value,
+      loteria: val("premios_loteria", "TODAS"),
       applyAll: getSwitchValue("sw_premios_apply"),
-      borlette:[byId("prem_borlette_1").value, byId("prem_borlette_2").value, byId("prem_borlette_3").value],
-      mariage:[byId("prem_mariage_1").value, byId("prem_mariage_2").value, byId("prem_mariage_3").value],
-      loto3:[byId("prem_l3_1").value, byId("prem_l3_2").value, byId("prem_l3_3").value],
-      loto4:[byId("prem_l4_1").value, byId("prem_l4_2").value, byId("prem_l4_3").value],
-      loto5:[byId("prem_l5_1").value, byId("prem_l5_2").value, byId("prem_l5_3").value],
+      borlette:[val("prem_borlette_1"), val("prem_borlette_2"), val("prem_borlette_3")],
+      mariage:[val("prem_mariage_1"), val("prem_mariage_2"), val("prem_mariage_3")],
+      loto3:[val("prem_l3_1"), val("prem_l3_2"), val("prem_l3_3")],
+      loto4:[val("prem_l4_1"), val("prem_l4_2"), val("prem_l4_3")],
+      loto5:[val("prem_l5_1"), val("prem_l5_2"), val("prem_l5_3")],
       loto5o2:["","",""],
       loto5o3:["","",""]
     },
 
     limites:{
-      loteria: byId("limites_loteria").value,
-      applyAll: getSwitchValue("sw_limites_apply"),
-      borlette: byId("lim_borlette").value,
-      mariage: byId("lim_mariage").value,
-      loto3: byId("lim_l3").value,
-      loto4_l1: byId("lim_l4_l1").value,
-      loto4_l2: byId("lim_l4_l2").value,
-      loto4_l3: byId("lim_l4_l3").value,
-      loto5_l1: byId("lim_l5_l1").value,
-      loto5_l2: byId("lim_l5_l2").value,
-      loto5_l3: byId("lim_l5_l3").value,
+      loteria: "TODAS",
+      applyAll: true,
+      borlette: val("lim_borlette", "0"),
+      mariage: val("lim_mariage", "0"),
+      loto3: val("lim_l3", "0"),
+      loto4_l1: val("lim_l4_l1", "0"),
+      loto4_l2: val("lim_l4_l2", "0"),
+      loto4_l3: val("lim_l4_l3", "0"),
+      loto5_l1: val("lim_l5_l1", "0"),
+      loto5_l2: val("lim_l5_l2", "0"),
+      loto5_l3: val("lim_l5_l3", "0"),
       limitarNumeros: [],
       bloqueoNumeros: [],
       limitarCantidad:{
-        borlette: byId("lim_cant_borlette").value,
-        mariage: byId("lim_cant_mariage").value,
-        loto3: byId("lim_cant_l3").value,
-        loto4: byId("lim_cant_l4").value,
-        loto5: byId("lim_cant_l5").value,
-        loto5o2: byId("lim_cant_l5o2").value,
-        loto5o3: byId("lim_cant_l5o3").value
+        borlette:"0",
+        mariage:"0",
+        loto3:"0",
+        loto4:"0",
+        loto5:"0",
+        loto5o2:"0",
+        loto5o3:"0"
       }
     },
 
@@ -2035,6 +2040,7 @@ function readVendorForm(){
     conexion: currentVendorIndex != null ? vendors[currentVendorIndex].conexion : ""
   };
 }
+
 
 
 /* =========================

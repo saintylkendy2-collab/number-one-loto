@@ -926,63 +926,6 @@ function cleanAmount(txt) {
   return parseFloat(String(txt).replace(/,/g, "").trim()) || 0;
 }
 
-function formatAmount(num) {
-  return Math.abs(num).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
-
-function todayISO() {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return yyyy + "-" + mm + "-" + dd;
-}
-
-function openPagoAuto(vendor, amount) {
-  const modal = document.getElementById("modalPago");
-  if (!modal) return;
-
-  const title = document.getElementById("pagoTitle");
-  const vendorInput = document.getElementById("pagoVendor");
-  const balanceInput = document.getElementById("pagoBalance");
-  const montoInput = document.getElementById("pagoMonto");
-  const fechaInput = document.getElementById("pagoFecha");
-  const comentarioInput = document.getElementById("pagoComentario");
-
-  if (title) title.textContent = "Realizar Pago";
-  if (vendorInput) vendorInput.value = vendor;
-  if (balanceInput) balanceInput.value = formatAmount(amount);
-  if (montoInput) montoInput.value = "";
-  if (fechaInput) fechaInput.value = todayISO();
-  if (comentarioInput) comentarioInput.value = "";
-
-  modal.style.display = "flex";
-}
-
-function openCobroAuto(vendor, amount) {
-  const modal = document.getElementById("modalCobro");
-  if (!modal) return;
-
-  const title = document.getElementById("cobroTitle");
-  const vendorInput = document.getElementById("cobroVendor");
-  const balanceInput = document.getElementById("cobroBalance");
-  const montoInput = document.getElementById("cobroMonto");
-  const fechaInput = document.getElementById("cobroFecha");
-  const comentarioInput = document.getElementById("cobroComentario");
-
-  if (title) title.textContent = "Realizar Cobro";
-  if (vendorInput) vendorInput.value = vendor;
-  if (balanceInput) balanceInput.value = formatAmount(amount);
-  if (montoInput) montoInput.value = "";
-  if (fechaInput) fechaInput.value = todayISO();
-  if (comentarioInput) comentarioInput.value = "";
-
-  modal.style.display = "flex";
-}
-
 document.addEventListener("click", function(e) {
   const balanceCell = e.target.closest(".result-ok, .result-bad");
   if (!balanceCell) return;
@@ -997,9 +940,9 @@ document.addEventListener("click", function(e) {
   const amount = cleanAmount(balanceCell.textContent);
 
   if (balanceCell.classList.contains("result-bad") || amount < 0) {
-    openPagoAuto(vendor, Math.abs(amount));
+    openPagoModal(vendor, Math.abs(amount));
   } else {
-    openCobroAuto(vendor, Math.abs(amount));
+    openCobroModal(vendor, Math.abs(amount));
   }
 });
 

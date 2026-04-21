@@ -4,26 +4,16 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const fs = require("fs");
-const path = require("path");
-const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
-
-function loadVendeurs() {
-  try {
-    return JSON.parse(fs.readFileSync(VENDEURS_FILE, "utf8"));
-  } catch (e) {
-    return [];
-  }
-}
+const vendors = require("./vendeurs.json");
 
 app.get("/", (req, res) => {
 res.send(`
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+<head>xs
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login</title>
+<title>Login Vendeur</title>
 <style>
 *{box-sizing:border-box;}
 html,body{
@@ -102,76 +92,62 @@ text-align:center;
 `);
 });
 
-app.post("/login-vendor", (req, res) => {
-  const { id, clave } = req.body || {};
+app.post("/login", (req, res) => {
+  const id = (req.body.id || "").trim();
+  const password = (req.body.password || "").trim();
+
   const vendors = loadVendeurs();
 
   const vendor = vendors.find(v =>
-    String(v.id || "").trim() === String(id || "").trim() &&
-    String(v.clave || "").trim() === String(clave || "").trim()
+    String(v.id || "").trim() === id &&
+    String(v.clave || "").trim() === password
   );
 
   if (!vendor) {
-    return res.json({ ok: false, message: "Identifiant ou mot de passe incorrect" });
+    return res.send(`
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login échoué</title>
+      </head>
+      <body style="font-family:Arial,sans-serif;background:#f2f2f2;display:flex;align-items:center;justify-content:center;height:100vh;">
+        <div style="background:#fff;padding:30px;border-radius:16px;text-align:center;max-width:420px;width:100%;">
+          <div style="font-size:22px;color:#e53935;font-weight:700;margin-bottom:20px;">
+            Identifiant ou mot de passe incorrect
+          </div>
+          <a href="/" style="font-size:20px;color:#3b82f6;text-decoration:none;">Retour</a>
+        </div>
+      </body>
+      </html>
+    `);
   }
 
-  if (String(vendor.estatus || "") !== "Activo") {
-    return res.json({ ok: false, message: "Vendeur bloqué" });
+  if (String(vendor.estatus || "").trim() !== "Activo") {
+    return res.send(`
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Vendeur bloqué</title>
+      </head>
+      <body style="font-family:Arial,sans-serif;background:#f2f2f2;display:flex;align-items:center;justify-content:center;height:100vh;">
+        <div style="background:#fff;padding:30px;border-radius:16px;text-align:center;max-width:420px;width:100%;">
+          <div style="font-size:22px;color:#e53935;font-weight:700;margin-bottom:20px;">
+            Vendeur bloqué
+          </div>
+          <a href="/" style="font-size:20px;color:#3b82f6;text-decoration:none;">Retour</a>
+        </div>
+      </body>
+      </html>
+    `);
   }
 
-  return res.json({ ok: true, vendor });
+  return res.redirect("/dashboard");
 });
 
-res.send(`
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login échoué</title>
-<style>
-body{
-margin:0;
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#f2f2f2;
-font-family:Arial,sans-serif;
-padding:20px;
-}
-.box{
-width:100%;
-max-width:360px;
-background:#fff;
-border-radius:14px;
-padding:24px;
-box-shadow:0 8px 22px rgba(0,0,0,.08);
-text-align:center;
-}
-.msg{
-color:#d93025;
-font-size:20px;
-font-weight:700;
-margin-bottom:16px;
-}
-a{
-display:inline-block;
-margin-top:6px;
-text-decoration:none;
-color:#3f7fe8;
-font-weight:700;
-}
-</style>
-</head>
-<body>
-<div class="box">
-<div class="msg">Identifiant ou mot de passe incorrect ✖</div>
-<a href="/">Retour</a>
-</div>
-</body>
-</html>
-`);
 
 app.get("/logout", (req, res) => {
 res.redirect("/");
@@ -1008,36 +984,36 @@ function backspaceKey(){
 
 function handleEnter(){
  if (document.getElementById("choicePanel").style.display === "block") {
-   if(tempChoices.length === 0){
-     alert("Chwazi omwen youn");
-     return;
-   }
-   numero = pendingChoiceNumber + "+" + tempChoices.join(",");
-   cursorNumero = numero.length;
-   hideChoicePanel();
-   activeField = "montant";
-   cursorMontant = montant.length;
-   updateFields();
-   return;
+ if(tempChoices.length === 0){
+ alert("Chwazi omwen youn");
+ return;
+ }
+ numero = pendingChoiceNumber + "+" + tempChoices.join(",");
+ cursorNumero = numero.length;
+ hideChoicePanel();
+ activeField = "montant";
+ cursorMontant = montant.length;
+ updateFields();
+ return;
  }
 
  if (activeField === "numero") {
-   if (!numero.trim()) return;
-   activeField = "loterie";
-   updateFields();
-   openLoterieModal();
-   return;
+ if (!numero.trim()) return;
+ activeField = "loterie";
+ updateFields();
+ openLoterieModal();
+ return;
  }
 
  if (activeField === "loterie") {
-   validateLoteries();
-   return;
+ validateLoteries();
+ return;
  }
 
  if (activeField === "montant") {
-   if (!montant.trim()) return;
-   addGame();
-   return;
+ if (!montant.trim()) return;
+ addGame();
+ return;
  }
 }
 
@@ -1065,10 +1041,10 @@ function validateLoteries(){
  document.getElementById("overlay").classList.remove("show");
 
  if(selectedLoteries.length === 0){
-   activeField = "loterie";
-   updateFields();
-   openLoterieModal();
-   return;
+ activeField = "loterie";
+ updateFields();
+ openLoterieModal();
+ return;
  }
 
  activeField = "montant";
@@ -1368,10 +1344,10 @@ function validateLoteries(){
  document.getElementById("overlay").classList.remove("show");
 
  if(selectedLoteries.length === 0){
-   activeField = "loterie";
-   updateFields();
-   openLoterieModal();
-   return;
+ activeField = "loterie";
+ updateFields();
+ openLoterieModal();
+ return;
  }
 
  activeField = "montant";
@@ -1379,36 +1355,36 @@ function validateLoteries(){
  updateFields();
 }
 function addGame(){
-  if (!numero.trim()) return;
-  if (!montant.trim()) return;
-  if (selectedLoteries.length === 0) return;
+ if (!numero.trim()) return;
+ if (!montant.trim()) return;
+ if (selectedLoteries.length === 0) return;
 
-  var entries = buildGameEntries(numero);
+ var entries = buildGameEntries(numero);
 
-  if (!entries) {
-    alert("Jeu pa valid");
-    return;
-  }
+ if (!entries) {
+ alert("Jeu pa valid");
+ return;
+ }
 
-  selectedLoteries.forEach(function(lot){
-    entries.forEach(function(entry){
-      mergeOrPushGame({
-        type: entry.type,
-        numero: entry.numero,
-        loterie: lot,
-        montant: parseFloat(montant) || 0
-      });
-    });
-  });
+ selectedLoteries.forEach(function(lot){
+ entries.forEach(function(entry){
+ mergeOrPushGame({
+ type: entry.type,
+ numero: entry.numero,
+ loterie: lot,
+ montant: parseFloat(montant) || 0
+ });
+ });
+ });
 
-  numero = "";
-  montant = "";
-  cursorNumero = 0;
-  cursorMontant = 0;
-  activeField = "numero";
+ numero = "";
+ montant = "";
+ cursorNumero = 0;
+ cursorMontant = 0;
+ activeField = "numero";
 
-  renderJeux();
-  updateFields();
+ renderJeux();
+ updateFields();
 }
 
 function renderJeux(){
@@ -1544,55 +1520,55 @@ updateFields();
 });
 
 app.post("/print", (req, res) => {
-  const raw = req.body.data || "";
+ const raw = req.body.data || "";
 
-  const lines = raw
-    .split("\n")
-    .map(x => x.trim())
-    .filter(x => x.length > 0);
+ const lines = raw
+ .split("\n")
+ .map(x => x.trim())
+ .filter(x => x.length > 0);
 
-  let total = 0;
-  const tiragesSet = new Set();
-  const gameLines = [];
+ let total = 0;
+ const tiragesSet = new Set();
+ const gameLines = [];
 
-  lines.forEach(line => {
-    // pran sèlman liy jwèt yo: TYPE NUMERO MONTAN - LOTERIE
-    const m = line.match(/^([A-Z0-9]+)\s+(.+?)\s+([0-9]+(?:\.[0-9]+)?)\s*-\s*(.+)$/i);
-    if (!m) return;
+ lines.forEach(line => {
+ // pran sèlman liy jwèt yo: TYPE NUMERO MONTAN - LOTERIE
+ const m = line.match(/^([A-Z0-9]+)\s+(.+?)\s+([0-9]+(?:\.[0-9]+)?)\s*-\s*(.+)$/i);
+ if (!m) return;
 
-    let type = (m[1] || "").toUpperCase();
-    const numero = (m[2] || "").trim();
-    const amount = parseFloat(m[3]);
-    const loterie = (m[4] || "").trim();
+ let type = (m[1] || "").toUpperCase();
+ const numero = (m[2] || "").trim();
+ const amount = parseFloat(m[3]);
+ const loterie = (m[4] || "").trim();
 
-    if (Number.isNaN(amount)) return;
+ if (Number.isNaN(amount)) return;
 
-    total += amount;
-    if (loterie) tiragesSet.add(loterie);
+ total += amount;
+ if (loterie) tiragesSet.add(loterie);
 
-    if (type === "BOR") type = "Borlette";
+ if (type === "BOR") type = "Borlette";
 
-    const typeTxt = String(type).padEnd(9, " ");
-    const numTxt = String(numero).padEnd(6, " ");
-    const amtTxt = amount.toFixed(2).padStart(6, " ");
+ const typeTxt = String(type).padEnd(9, " ");
+ const numTxt = String(numero).padEnd(6, " ");
+ const amtTxt = amount.toFixed(2).padStart(6, " ");
 
-    gameLines.push(`${typeTxt} ${numTxt} ${amtTxt} G`);
-  });
+ gameLines.push(`${typeTxt} ${numTxt} ${amtTxt} G`);
+ });
 
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("fr-FR");
-  const timeStr = now.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+ const now = new Date();
+ const dateStr = now.toLocaleDateString("fr-FR");
+ const timeStr = now.toLocaleTimeString("fr-FR", {
+ hour: "2-digit",
+ minute: "2-digit"
+ });
 
-  const sellerName = LOGIN_ID || "SELLER";
-  const ticketCode =
-    String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
-  const tirages = Array.from(tiragesSet).join(" / ");
+ const sellerName = LOGIN_ID || "SELLER";
+ const ticketCode =
+ String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
+ const tirages = Array.from(tiragesSet).join(" / ");
 
-  res.set("Content-Type", "text/html; charset=utf-8");
-  res.send(`
+ res.set("Content-Type", "text/html; charset=utf-8");
+ res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -1601,57 +1577,57 @@ app.post("/print", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html,body{
-  margin:0;
-  padding:0;
-  background:#fff;
+ margin:0;
+ padding:0;
+ background:#fff;
 }
 body{
-  width:55mm;
-  margin:0 auto;
-  padding:2px 1px 4px 1px;
-  font-family: monospace;
-  font-size:9px;
-  font-weight:400;
-  color:#000;
-  overflow:hidden;
+ width:55mm;
+ margin:0 auto;
+ padding:2px 1px 4px 1px;
+ font-family: monospace;
+ font-size:9px;
+ font-weight:400;
+ color:#000;
+ overflow:hidden;
 }
 .title{
-  text-align:center;
-  font-size:7px;
-  font-weight:600;
-  margin:0 0 4px 0;
-  white-space:nowrap;
+ text-align:center;
+ font-size:7px;
+ font-weight:600;
+ margin:0 0 4px 0;
+ white-space:nowrap;
 }
 .meta{
-  margin:0;
-  white-space:pre-wrap;
-  word-break:break-word;
-  line-height:1.25;
-  font-size:9px;
-  font-weight:400;
+ margin:0;
+ white-space:pre-wrap;
+ word-break:break-word;
+ line-height:1.25;
+ font-size:9px;
+ font-weight:400;
 }
 .games{
-  margin:0;
-  white-space:pre-wrap;
-  word-break:break-word;
-  line-height:1.25;
-  font-size:9px;
-  font-weight:400;
+ margin:0;
+ white-space:pre-wrap;
+ word-break:break-word;
+ line-height:1.25;
+ font-size:9px;
+ font-weight:400;
 }
 .footer{
-  margin-top:4px;
-  font-size:9px;
-  font-weight:400;
+ margin-top:4px;
+ font-size:9px;
+ font-weight:400;
 }
 </style>
 </head>
 <body>
 <div class="title">NUMBER ONE LOTO</div>
 
-<pre class="meta">SELLER   ${sellerName}
-TICKET   ${ticketCode}
-DATE     ${dateStr} ${timeStr}
-TIRAGES  ${tirages}
+<pre class="meta">SELLER ${sellerName}
+TICKET ${ticketCode}
+DATE ${dateStr} ${timeStr}
+TIRAGES ${tirages}
 --------------------------------</pre>
 
 <pre class="games">${gameLines.join("\n")}</pre>
@@ -1663,12 +1639,12 @@ TOTAL: ${total.toFixed(2)} G</pre>
 
 <script>
 setTimeout(function(){
-  try { window.print(); } catch(e) {}
+ try { window.print(); } catch(e) {}
 }, 300);
 </script>
 </body>
 </html>
-  `);
+ `);
 });
 
 const adminRoutes = require("./admin");

@@ -573,7 +573,7 @@ tbody td{
   <div class="app-page hidden" id="appPage">
     <div class="topbar">
       <div class="top-left">
-        <div class="icon-btn">☰</div>
+       <div class="icon-btn" id="menuBtn" onclick="openSideMenu()">≡</div> 
         <div class="icon-btn">⌕</div>
       </div>
       <div class="top-right">

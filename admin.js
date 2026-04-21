@@ -1161,7 +1161,7 @@ router.get("/master/vendors", (req, res) => {
 
 
 <!-- LIMITE DE VENTAS -->
-<div class="editor-section vendor-tab-panel hidden" id="tab-limite">
+<div class="editor-section vendor-tab-panel hidden" id="tab-limites">
 
   <div class="field-group">
     <label>Borlette</label>
@@ -1859,94 +1859,88 @@ function backToVendorList(){
    FILL FORM
 ========================= */
 function fillVendorForm(v){
-  byId("vd_id").value = safe(v.id);
-  byId("vd_clave").value = safe(v.clave);
-  byId("vd_nombre").value = safe(v.nombre);
-  byId("vd_apellido").value = safe(v.apellido);
-  byId("vd_cedula").value = safe(v.cedula);
-  byId("vd_telefono").value = safe(v.telefono);
-  byId("vd_direccion").value = safe(v.direccion);
-  byId("vd_estatus").value = safe(v.estatus || "Bloqueado");
-  byId("vd_sexo").value = safe(v.sexo || "-");
-  byId("vd_zona").value = safe(v.zona);
-
   const cfg = v.config || {};
+  const com = v.comision || {};
+  const prem = v.premios || {};
+  const lim = v.limites || {};
 
-byId("cfg_limite_diario").value = safe(cfg.limite_diario);
-byId("cfg_credito").value = safe(cfg.credito);
-byId("cfg_deshabilitar_loterias").value = safe(cfg.deshabilitar_loterias);
-byId("cfg_deshabilitar_jugadas").value = safe(cfg.deshabilitar_jugadas);
-byId("cfg_mezcla_numeros").value = safe(cfg.mezclaNumeros);
-byId("cfg_decimales").value = safe(cfg.deshabilitarDecimales);
-byId("cfg_terminales").value = safe(cfg.deshabilitarTerminales);
-byId("cfg_bono").value = safe(cfg.bonoTipo);
+  function setVal(id, value){
+    const el = byId(id);
+    if(el) el.value = safe(value);
+  }
 
-setSwitchValue("sw_cuadre", cfg.habilitarCuadre);
-setSwitchValue("sw_whatsapp", cfg.ventasWhatsapp);
-setSwitchValue("sw_nombre_ticket", cfg.usarNombreTicket);
-setSwitchValue("sw_prepago", cfg.habilitarPrepago);
-setSwitchValue("sw_activar_bono", cfg.activarBono);
-setSwitchValue("sw_comision_loteria", cfg.comisionPorLoteria);
+  setVal("vd_id", v.id);
+  setVal("vd_clave", v.clave);
+  setVal("vd_nombre", v.nombre);
+  setVal("vd_apellido", v.apellido);
+  setVal("vd_cedula", v.cedula);
+  setVal("vd_telefono", v.telefono);
+  setVal("vd_direccion", v.direccion);
+  setVal("vd_estatus", v.estatus || "Bloqueado");
+  setVal("vd_sexo", v.sexo || "-");
+  setVal("vd_zona", v.zona);
 
-  byId("com_general").value = safe(v.comision_general || "");
-  byId("com_borlette").value = safe(v.comision.borlette);
-  byId("com_mariage").value = safe(v.comision.mariage);
-  byId("com_loto3").value = safe(v.comision.loto3);
-  byId("com_loto4").value = safe(v.comision.loto4);
-  byId("com_loto5").value = safe(v.comision.loto5);
-  byId("com_loto5o2").value = safe(v.comision.loto5o2);
-  byId("com_loto5o3").value = safe(v.comision.loto5o3);
-  byId("com_zona").value = safe(v.comision.zona);
+  setVal("cfg_limite_diario", cfg.limiteDiario);
+  setVal("cfg_credito", cfg.credito);
+  setVal("cfg_deshabilitar_loterias", cfg.deshabilitarLoterias);
+  setVal("cfg_deshabilitar_jugadas", cfg.deshabilitarJugadas);
+  setVal("cfg_mezcla_numeros", cfg.mezclaNumeros);
+  setVal("cfg_decimales", cfg.deshabilitarDecimales);
+  setVal("cfg_terminales", cfg.deshabilitarTerminales);
+  setVal("cfg_bono", cfg.bonoTipo);
 
-  setSwitchValue("sw_retener_comision", v.comision.retener);
-  setSwitchValue("sw_comision_loteria", v.comision.porLoteria);
+  setSwitchValue("sw_cuadre", cfg.habilitarCuadre);
+  setSwitchValue("sw_whatsapp", cfg.ventasWhatsapp);
+  setSwitchValue("sw_nombre_ticket", cfg.usarNombreTicket);
+  setSwitchValue("sw_prepago", cfg.habilitarPrepago);
+  setSwitchValue("sw_bono", cfg.activarBono);
 
-  byId("premios_loteria").value = safe(v.premios.loteria || "TODAS");
-  setSwitchValue("sw_premios_habilitar", v.premios.habilitar);
-  setSwitchValue("sw_premios_apply", v.premios.applyAll);
+  setVal("com_general", com.general);
+  setVal("com_borlette", com.borlette);
+  setVal("com_mariage", com.mariage);
+  setVal("com_loto3", com.loto3);
+  setVal("com_loto4", com.loto4);
+  setVal("com_loto5", com.loto5);
+  setVal("com_loto5o2", com.loto5o2);
+  setVal("com_loto5o3", com.loto5o3);
+  setVal("com_zona", com.zona);
 
-  byId("prem_borlette_1").value = safe(v.premios.borlette[0]);
-  byId("prem_borlette_2").value = safe(v.premios.borlette[1]);
-  byId("prem_borlette_3").value = safe(v.premios.borlette[2]);
+  setSwitchValue("sw_retener_comision", com.retener);
+  setSwitchValue("sw_comision_loteria", com.porLoteria);
 
-  byId("prem_mariage_1").value = safe(v.premios.mariage[0]);
-  byId("prem_mariage_2").value = safe(v.premios.mariage[1]);
-  byId("prem_mariage_3").value = safe(v.premios.mariage[2]);
+  setVal("premios_loteria", prem.loteria || "TODAS");
+  setSwitchValue("sw_premios_habilitar", prem.habilitar);
+  setSwitchValue("sw_premios_apply", prem.applyAll);
 
-  byId("prem_l3_1").value = safe(v.premios.loto3[0]);
-  byId("prem_l3_2").value = safe(v.premios.loto3[1]);
-  byId("prem_l3_3").value = safe(v.premios.loto3[2]);
+  setVal("prem_borlette_1", prem.borlette && prem.borlette[0]);
+  setVal("prem_borlette_2", prem.borlette && prem.borlette[1]);
+  setVal("prem_borlette_3", prem.borlette && prem.borlette[2]);
 
-  byId("prem_l4_1").value = safe(v.premios.loto4[0]);
-  byId("prem_l4_2").value = safe(v.premios.loto4[1]);
-  byId("prem_l4_3").value = safe(v.premios.loto4[2]);
+  setVal("prem_mariage_1", prem.mariage && prem.mariage[0]);
+  setVal("prem_mariage_2", prem.mariage && prem.mariage[1]);
+  setVal("prem_mariage_3", prem.mariage && prem.mariage[2]);
 
-  byId("prem_l5_1").value = safe(v.premios.loto5[0]);
-  byId("prem_l5_2").value = safe(v.premios.loto5[1]);
-  byId("prem_l5_3").value = safe(v.premios.loto5[2]);
+  setVal("prem_l3_1", prem.loto3 && prem.loto3[0]);
+  setVal("prem_l3_2", prem.loto3 && prem.loto3[1]);
+  setVal("prem_l3_3", prem.loto3 && prem.loto3[2]);
 
-  byId("limites_loteria").value = safe(v.limites.loteria || "TODAS");
-  setSwitchValue("sw_limites_apply", v.limites.applyAll);
+  setVal("prem_l4_1", prem.loto4 && prem.loto4[0]);
+  setVal("prem_l4_2", prem.loto4 && prem.loto4[1]);
+  setVal("prem_l4_3", prem.loto4 && prem.loto4[2]);
 
-  byId("lim_borlette").value = safe(v.limites.borlette);
-  byId("lim_mariage").value = safe(v.limites.mariage);
-  byId("lim_l3").value = safe(v.limites.loto3);
+  setVal("prem_l5_1", prem.loto5 && prem.loto5[0]);
+  setVal("prem_l5_2", prem.loto5 && prem.loto5[1]);
+  setVal("prem_l5_3", prem.loto5 && prem.loto5[2]);
 
-  byId("lim_l4_l1").value = safe(v.limites.loto4_l1);
-  byId("lim_l4_l2").value = safe(v.limites.loto4_l2);
-  byId("lim_l4_l3").value = safe(v.limites.loto4_l3);
-
-  byId("lim_l5_l1").value = safe(v.limites.loto5_l1);
-  byId("lim_l5_l2").value = safe(v.limites.loto5_l2);
-  byId("lim_l5_l3").value = safe(v.limites.loto5_l3);
-
-  byId("lim_cant_borlette").value = safe(v.limites.limitarCantidad.borlette);
-  byId("lim_cant_mariage").value = safe(v.limites.limitarCantidad.mariage);
-  byId("lim_cant_l3").value = safe(v.limites.limitarCantidad.loto3);
-  byId("lim_cant_l4").value = safe(v.limites.limitarCantidad.loto4);
-  byId("lim_cant_l5").value = safe(v.limites.limitarCantidad.loto5);
-  byId("lim_cant_l5o2").value = safe(v.limites.limitarCantidad.loto5o2);
-  byId("lim_cant_l5o3").value = safe(v.limites.limitarCantidad.loto5o3);
+  setVal("lim_borlette", lim.borlette);
+  setVal("lim_mariage", lim.mariage);
+  setVal("lim_l3", lim.loto3);
+  setVal("lim_l4_l1", lim.loto4_l1);
+  setVal("lim_l4_l2", lim.loto4_l2);
+  setVal("lim_l4_l3", lim.loto4_l3);
+  setVal("lim_l5_l1", lim.loto5_l1);
+  setVal("lim_l5_l2", lim.loto5_l2);
+  setVal("lim_l5_l3", lim.loto5_l3);
 
   renderConexiones(v.conexiones || []);
 }
@@ -2308,6 +2302,7 @@ goPage("vendors");
 });
 
 module.exports = router;
+
 
 
 

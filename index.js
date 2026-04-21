@@ -4,23 +4,14 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const fs = require("fs");
-const path = require("path");
-const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
-
-function loadVendeurs() {
-  try {
-    return JSON.parse(fs.readFileSync(VENDEURS_FILE, "utf8"));
-  } catch (e) {
-    return [];
-  }
-}
+const vendors = require("./vendeurs.json");
+let currentVendorId = "";
 
 app.get("/", (req, res) => {
 res.send(`
 <!DOCTYPE html>
 <html lang="fr">
-<head>xs
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login Vendeur</title>
@@ -106,14 +97,9 @@ app.post("/login", (req, res) => {
   const id = (req.body.id || "").trim();
   const password = (req.body.password || "").trim();
 
-  const vendors = loadVendeurs();
+  const vendor = vendors[id];
 
-  const vendor = vendors.find(v =>
-    String(v.id || "").trim() === id &&
-    String(v.clave || "").trim() === password
-  );
-
-  if (!vendor) {
+  if (!vendor || String(vendor.password || "").trim() !== password) {
     return res.send(`
 <!DOCTYPE html>
 <html lang="fr">
@@ -166,65 +152,15 @@ font-weight:700;
     `);
   }
 
-  if (String(vendor.estatus || "").trim() !== "Activo") {
-    return res.send(`
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vendeur bloqué</title>
-<style>
-body{
-margin:0;
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#f2f2f2;
-font-family:Arial,sans-serif;
-padding:20px;
-}
-.box{
-width:100%;
-max-width:360px;
-background:#fff;
-border-radius:14px;
-padding:24px;
-box-shadow:0 8px 22px rgba(0,0,0,.08);
-text-align:center;
-}
-.msg{
-color:#d93025;
-font-size:20px;
-font-weight:700;
-margin-bottom:16px;
-}
-a{
-display:inline-block;
-margin-top:6px;
-text-decoration:none;
-color:#3f7fe8;
-font-weight:700;
-}
-</style>
-</head>
-<body>
-<div class="box">
-<div class="msg">Vendeur bloqué ✖</div>
-<a href="/">Retour</a>
-</div>
-</body>
-</html>
-    `);
-  }
-
+  currentVendorId = id;
   return res.redirect("/dashboard");
 });
 
 app.get("/logout", (req, res) => {
+currentVendorId = "";
 res.redirect("/");
 });
+
 
 app.get("/dashboard", (req, res) => {
 res.send(`
@@ -1635,7 +1571,7 @@ app.post("/print", (req, res) => {
  minute: "2-digit"
  });
 
- const sellerName = "VENDEUR";
+ const sellerName = currentVendorId || "SELLER";
  const ticketCode =
  String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
  const tirages = Array.from(tiragesSet).join(" / ");

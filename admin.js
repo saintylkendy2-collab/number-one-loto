@@ -1870,22 +1870,25 @@ function fillVendorForm(v){
   byId("vd_sexo").value = safe(v.sexo || "-");
   byId("vd_zona").value = safe(v.zona);
 
-  byId("cfg_limite_diario").value = safe(v.config.limiteDiario);
-  byId("cfg_credito").value = safe(v.config.credito);
-  byId("cfg_deshabilitar_loterias").value = safe(v.config.deshabilitarLoterias);
-  byId("cfg_deshabilitar_jugadas").value = safe(v.config.deshabilitarJugadas);
-  byId("cfg_mezcla_numeros").value = safe(v.config.mezclaNumeros);
-  byId("cfg_decimales").value = safe(v.config.deshabilitarDecimales);
-  byId("cfg_terminales").value = safe(v.config.deshabilitarTerminales);
-  byId("cfg_bono").value = safe(v.config.bonoTipo);
+  const cfg = v.config || {};
 
-  setSwitchValue("sw_cuadre", v.config.habilitarCuadre);
-  setSwitchValue("sw_whatsapp", v.config.ventasWhatsapp);
-  setSwitchValue("sw_nombre_ticket", v.config.usarNombreTicket);
-  setSwitchValue("sw_prepago", v.config.habilitarPrepago);
-  setSwitchValue("sw_bono", v.config.activarBono);
+byId("cfg_limite_diario").value = safe(cfg.limite_diario);
+byId("cfg_credito").value = safe(cfg.credito);
+byId("cfg_deshabilitar_loterias").value = safe(cfg.deshabilitar_loterias);
+byId("cfg_deshabilitar_jugadas").value = safe(cfg.deshabilitar_jugadas);
+byId("cfg_mezcla_numeros").value = safe(cfg.mezclaNumeros);
+byId("cfg_decimales").value = safe(cfg.deshabilitarDecimales);
+byId("cfg_terminales").value = safe(cfg.deshabilitarTerminales);
+byId("cfg_bono").value = safe(cfg.bonoTipo);
 
-  byId("com_general").value = safe(v.comision.general);
+setSwitchValue("sw_cuadre", cfg.habilitarCuadre);
+setSwitchValue("sw_whatsapp", cfg.ventasWhatsapp);
+setSwitchValue("sw_nombre_ticket", cfg.usarNombreTicket);
+setSwitchValue("sw_prepago", cfg.habilitarPrepago);
+setSwitchValue("sw_activar_bono", cfg.activarBono);
+setSwitchValue("sw_comision_loteria", cfg.comisionPorLoteria);
+
+  byId("com_general").value = safe(v.comision_general || "");
   byId("com_borlette").value = safe(v.comision.borlette);
   byId("com_mariage").value = safe(v.comision.mariage);
   byId("com_loto3").value = safe(v.comision.loto3);

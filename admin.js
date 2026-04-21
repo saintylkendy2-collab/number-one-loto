@@ -1541,20 +1541,22 @@ setInterval(updateClock,1000);
 updateClock();
 
 
-/* =========================
-   LOGIN
-========================= */
-function loginMaster(){
-  const userEl = document.getElementById("username");
-  const passEl = document.getElementById("password");
-  const user = userEl ? userEl.value.trim() : "";
-  const pass = passEl ? passEl.value.trim() : "";
+function loginMaster() {
+  const user = document.getElementById("username");
+  const pass = document.getElementById("password");
+  const loginPage = document.getElementById("loginPage");
+  const appPage = document.getElementById("appPage");
 
-  if(user === "Number" && pass === "1234"){
-    document.getElementById("loginPage").classList.add("hidden");
-    document.getElementById("appPage").classList.remove("hidden");
-    goPage("vendors");
-  }else{
+  if (!user || !pass || !loginPage || !appPage) return;
+
+  const u = user.value.trim();
+  const p = pass.value.trim();
+
+  if (u === "Number" && p === "1234") {
+    loginPage.style.display = "none";
+    appPage.classList.remove("hidden");
+    appPage.style.display = "block";
+  } else {
     alert("Login incorrect");
   }
 }

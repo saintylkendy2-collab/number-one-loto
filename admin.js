@@ -704,26 +704,32 @@ tbody td{
   </div>
 
 <script>
-function updateClock(){
+function updateClock() {
   const d = new Date();
-  const h = String(d.getHours()).padStart(2,"0");
-  const m = String(d.getMinutes()).padStart(2,"0");
-  document.getElementById("clockBox").textContent = h + ":" + m;
+  const h = String(d.getHours()).padStart(2, "0");
+  const m = String(d.getMinutes()).padStart(2, "0");
+  const box = document.getElementById("clockBox");
+  if (box) box.textContent = h + ":" + m;
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-function loginMaster(){
-  const user = document.getElementById("username").value.trim();
-  const pass = document.getElementById("password").value.trim();
+function loginMaster() {
+  const userEl = document.getElementById("username");
+  const passEl = document.getElementById("password");
+  const user = userEl ? userEl.value.trim() : "";
+  const pass = passEl ? passEl.value.trim() : "";
 
-  if(user === "Number" && pass === "1234"){
-    document.getElementById("loginPage").classList.add("hidden");
-    document.getElementById("appPage").classList.remove("hidden");
+  if (user === "Number" && pass === "1234") {
+    const loginPage = document.getElementById("loginPage");
+    const appPage = document.getElementById("appPage");
+    if (loginPage) loginPage.classList.add("hidden");
+    if (appPage) appPage.classList.remove("hidden");
   } else {
     alert("Login incorrect");
   }
 }
+
 /* =========================
    MENU BÒ GOCH + SUBMENUS
    ========================= */
@@ -748,7 +754,7 @@ function toggleSubmenu(id) {
 
   const isOpen = box.classList.contains("open");
 
-  document.querySelectorAll(".submenu-box").forEach(el => {
+  document.querySelectorAll(".submenu-box").forEach(function(el) {
     el.classList.remove("open");
   });
 
@@ -786,42 +792,27 @@ function goPage(page) {
 }
 
 /* =========================
-   MONTANT → PAGO / COBRO
+   UTIL
    ========================= */
 
-let currentVendor = "";
-let currentAmount = 0;
-
-function parseAmount(value) {
-  if (typeof value === "number") return value;
-  let clean = String(value).replace(/,/g, "").trim();
-  return parseFloat(clean) || 0;
+function cleanAmount(txt) {
+  return parseFloat(String(txt).replace(/,/g, "").trim()) || 0;
 }
 
 function formatAmount(value) {
-  const num = Math.abs(parseAmount(value));
+  const num = Math.abs(cleanAmount(value));
   return num.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
 }
 
-/*
-  Itilizasyon nan tablo a:
-  onclick="handleBalanceClick('Paul', '-1798.48')"
-  onclick="handleBalanceClick('Wisly', '38647.50')"
-*/
-function handleBalanceClick(vendor, amount) {
-  currentVendor = vendor;
-  currentAmount = parseAmount(amount);
-
-  if (currentAmount < 0) {
-    openPagoModal(vendor, Math.abs(currentAmount));
-  } else if (currentAmount > 0) {
-    openCobroModal(vendor, currentAmount);
-  } else {
-    alert("Balance sa a se 0.00");
-  }
+function todayISO() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return yyyy + "-" + mm + "-" + dd;
 }
 
 /* =========================
@@ -843,7 +834,7 @@ function openPagoModal(vendor, amount) {
   if (vendorInput) vendorInput.value = vendor;
   if (balanceInput) balanceInput.value = formatAmount(amount);
   if (montoInput) montoInput.value = "";
-  if (fechaInput && !fechaInput.value) fechaInput.value = todayISO();
+  if (fechaInput) fechaInput.value = todayISO();
   if (comentarioInput) comentarioInput.value = "";
 
   modal.style.display = "flex";
@@ -873,7 +864,7 @@ function openCobroModal(vendor, amount) {
   if (vendorInput) vendorInput.value = vendor;
   if (balanceInput) balanceInput.value = formatAmount(amount);
   if (montoInput) montoInput.value = "";
-  if (fechaInput && !fechaInput.value) fechaInput.value = todayISO();
+  if (fechaInput) fechaInput.value = todayISO();
   if (comentarioInput) comentarioInput.value = "";
 
   modal.style.display = "flex";
@@ -885,16 +876,33 @@ function closeCobroModal() {
 }
 
 /* =========================
-   UTIL
+   CLICK SOU BALANCE YO
+   vèt = cobro / wouj = pago
    ========================= */
 
-function todayISO() {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return yyyy + "-" + mm + "-" + dd;
-}
+document.addEventListener("click", function(e) {
+  const balanceCell = e.target.closest(".balance-positive, .balance-negative, .result-ok, .result-bad");
+  if (!balanceCell) return;
+
+  const row = balanceCell.closest("tr");
+  if (!row) return;
+
+  const vendorCell = row.querySelector(".vendor-name");
+  if (!vendorCell) return;
+
+  const vendor = vendorCell.textContent.trim();
+  const amount = cleanAmount(balanceCell.textContent);
+
+  if (
+    balanceCell.classList.contains("balance-negative") ||
+    balanceCell.classList.contains("result-bad") ||
+    amount < 0
+  ) {
+    openPagoModal(vendor, Math.abs(amount));
+  } else if (amount > 0) {
+    openCobroModal(vendor, Math.abs(amount));
+  }
+});
 
 /* =========================
    FÈMEN MODAL SI PEZE DEYÒ
@@ -921,31 +929,6 @@ document.addEventListener("DOMContentLoaded", function() {
   if (menuCloseBtn) menuCloseBtn.addEventListener("click", closeSideMenu);
   if (overlay) overlay.addEventListener("click", closeSideMenu);
 });
-
-function cleanAmount(txt) {
-  return parseFloat(String(txt).replace(/,/g, "").trim()) || 0;
-}
-
-document.addEventListener("click", function(e) {
-  const balanceCell = e.target.closest(".result-ok, .result-bad");
-  if (!balanceCell) return;
-
-  const row = balanceCell.closest("tr");
-  if (!row) return;
-
-  const vendorCell = row.querySelector(".vendor-name");
-  if (!vendorCell) return;
-
-  const vendor = vendorCell.textContent.trim();
-  const amount = cleanAmount(balanceCell.textContent);
-
-  if (balanceCell.classList.contains("result-bad") || amount < 0) {
-    openPagoModal(vendor, Math.abs(amount));
-  } else {
-    openCobroModal(vendor, Math.abs(amount));
-  }
-});
-
 </script>
 
 </body>

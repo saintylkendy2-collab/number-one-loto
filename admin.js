@@ -955,6 +955,21 @@ cursor:pointer;
 .triple-grid{grid-template-columns:1fr;}
 .tab{padding:16px 22px;font-size:17px;}
 }
+
+#tab-conexiones .table-card{
+ overflow:visible;
+}
+
+#tab-conexiones .table-scroll{
+ overflow-x:auto;
+ overflow-y:visible;
+ -webkit-overflow-scrolling:touch;
+}
+
+.conn-menu{
+ z-index:9999;
+}
+
 </style>
 </head>
 <body>
@@ -1247,12 +1262,10 @@ cursor:pointer;
      <input id="vd_cedula" class="field-input" />
     </div>
     <div class="field-group">
-     <div class="field-label">Teléfono</div>
-     <div class="phone-wrap">
-      <div class="phone-code">🇭🇹 +509 ▼</div>
-      <input id="vd_telefono" class="phone-input" placeholder="35 15 3152" />
-     </div>
-    </div>
+ <div class="field-label">Teléfono</div>
+ <input id="vd_telefono" class="field-input" placeholder="+509 / +1 / +33 ..." />
+</div>
+
     <div class="field-group">
      <div class="field-label">Dirección</div>
      <input id="vd_direccion" class="field-input" />
@@ -1587,6 +1600,7 @@ function loginMaster() {
    appPage.classList.remove("hidden");
    appPage.style.display = "block";
    loadVendorsFromServer();
+   goPage("ventas"); // FIX
  } else {
    alert("Login incorrect");
  }

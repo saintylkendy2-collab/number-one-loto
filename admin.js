@@ -1,3 +1,4 @@
+// admin.js
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -6,12 +7,8 @@ const router = express.Router();
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 
 function ensureVendeursFile() {
-  try {
-    if (!fs.existsSync(VENDEURS_FILE)) {
-      fs.writeFileSync(VENDEURS_FILE, JSON.stringify({}, null, 2), "utf8");
-    }
-  } catch (err) {
-    console.error("Erreur création vendeurs.json :", err);
+  if (!fs.existsSync(VENDEURS_FILE)) {
+    fs.writeFileSync(VENDEURS_FILE, JSON.stringify({}, null, 2), "utf8");
   }
 }
 
@@ -56,7 +53,7 @@ function objectToArray(obj) {
       comision: v.comision || {},
       premios: v.premios || {},
       limites: v.limites || {},
-      conexiones: v.conexiones || []
+      conexiones: Array.isArray(v.conexiones) ? v.conexiones : []
     };
   });
 }
@@ -81,7 +78,7 @@ function normalizeVendor(data = {}) {
     comision: data.comision || {},
     premios: data.premios || {},
     limites: data.limites || {},
-    conexiones: data.conexiones || []
+    conexiones: Array.isArray(data.conexiones) ? data.conexiones : []
   };
 }
 
@@ -191,7 +188,7 @@ router.delete("/api/vendors/:id", (req, res) => {
 });
 
 router.get("/master/vendors", (req, res) => {
- res.send(`
+  res.send(`
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -544,11 +541,6 @@ router.get("/master/vendors", (req, res) => {
  }
 
  .clickable-row{cursor:pointer;}
- .row-actions{
- display:flex;
- align-items:center;
- gap:10px;
- }
  .mini-btn{
  border:none;
  background:transparent;
@@ -563,9 +555,6 @@ router.get("/master/vendors", (req, res) => {
  .green{color:#54d46d;}
  .gray{color:#969bb1;}
 
- .editor-wrap{
- background:transparent;
- }
  .editor-top-actions{
  display:flex;
  justify-content:flex-end;
@@ -643,7 +632,6 @@ router.get("/master/vendors", (req, res) => {
  background:#43436f;
  border-radius:0;
  }
-
  .phone-wrap{
  display:flex;
  align-items:center;
@@ -731,133 +719,6 @@ router.get("/master/vendors", (req, res) => {
  outline:none;
  }
 
- .single-limit-grid{
- margin-top:10px;
- }
-
- .add-row{
- display:grid;
- grid-template-columns:190px 1fr 110px;
- gap:0;
- margin:10px 0 18px;
- }
- .add-row .field-select,
- .add-row .field-input{
- border-radius:0;
- }
- .add-row .field-select{
- border-radius:12px 0 0 12px;
- border-right:none;
- }
- .add-row .field-input{
- border-right:none;
- }
- .plus-box{
- height:52px;
- border:2px solid #6d63ff;
- border-radius:0 12px 12px 0;
- display:flex;
- align-items:center;
- justify-content:center;
- color:#6d63ff;
- font-size:28px;
- cursor:pointer;
- background:transparent;
- }
-
- .connections-head{
- display:flex;
- justify-content:flex-end;
- margin-bottom:10px;
- padding-right:10px;
- }
- .circle-refresh{
- width:82px;
- height:82px;
- border-radius:50%;
- display:flex;
- align-items:center;
- justify-content:center;
- color:#6d63ff;
- font-size:40px;
- background:rgba(255,255,255,.03);
- margin:0 auto 10px 0;
- cursor:pointer;
- }
- .clone-wrap{
- display:flex;
- justify-content:center;
- padding:28px 0 10px;
- }
- .clone-btn{
- min-width:280px;
- height:74px;
- border-radius:14px;
- border:2px solid #3fc9e8;
- color:#3fc9e8;
- background:transparent;
- font-size:24px;
- cursor:pointer;
- }
-
- .modal-backdrop{
- position:fixed;
- inset:0;
- background:rgba(0,0,0,.45);
- display:none;
- align-items:center;
- justify-content:center;
- z-index:2000;
- padding:20px;
- }
- .modal-backdrop.show{display:flex;}
- .modal-card{
- width:100%;
- max-width:640px;
- background:#343754;
- border-radius:18px;
- padding:34px 24px 22px;
- text-align:center;
- box-shadow:0 14px 40px rgba(0,0,0,.35);
- }
- .modal-icon{
- font-size:92px;
- color:#d98b3c;
- margin-bottom:18px;
- }
- .modal-title{
- font-size:34px;
- color:#dfe4ff;
- font-weight:700;
- margin-bottom:12px;
- }
- .modal-text{
- font-size:18px;
- color:#cfd4ee;
- margin-bottom:26px;
- }
- .modal-actions{
- display:flex;
- justify-content:center;
- gap:20px;
- }
- .modal-btn{
- min-width:160px;
- height:62px;
- border:none;
- border-radius:14px;
- font-size:20px;
- cursor:pointer;
- }
- .modal-btn.primary{
- background:linear-gradient(90deg,#6d63ff,#7d73ff);
- color:#fff;
- }
- .modal-btn.secondary{
- background:#4a4f69;
- color:#d7dcef;
- }
-
  .empty-state{
  color:#9ea5cb;
  font-size:15px;
@@ -867,558 +728,528 @@ router.get("/master/vendors", (req, res) => {
 
  @media (max-width:700px){
  .square-btn,.editor-top-btn{width:132px;height:70px}
- .triple-grid{
- grid-template-columns:1fr;
- }
- .add-row{
- grid-template-columns:120px 1fr 80px;
- }
- .tab{
- padding:16px 22px;
- font-size:17px;
- }
+ .triple-grid{grid-template-columns:1fr;}
+ .tab{padding:16px 22px;font-size:17px;}
  }
  </style>
 </head>
 <body>
 
  <div class="login-page" id="loginPage">
- <div class="login-card">
- <div class="login-field-label">Username</div>
- <input id="username" type="text" placeholder="Username" class="login-input" />
+  <div class="login-card">
+   <div class="login-field-label">Username</div>
+   <input id="username" type="text" placeholder="Username" class="login-input" />
 
- <div class="login-field-label">Password</div>
- <input id="password" type="password" placeholder="••••••••" class="login-input" />
+   <div class="login-field-label">Password</div>
+   <input id="password" type="password" placeholder="••••••••" class="login-input" />
 
- <button class="login-btn" onclick="loginMaster()">Ingresar</button>
- </div>
+   <button class="login-btn" onclick="loginMaster()">Ingresar</button>
+  </div>
  </div>
 
  <div id="menuOverlay" class="menu-overlay"></div>
 
  <div id="sideMenu" class="side-menu">
- <div class="side-menu-header">
- <div class="side-menu-logo-wrap">
- <img class="side-menu-logo-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/240px-Placeholder_view_vector.svg.png" alt="logo">
- <div class="side-menu-logo">NUMBER ONE LOTO</div>
- </div>
- <div id="menuCloseBtn" class="side-menu-close" onclick="closeSideMenu()">✕</div>
- </div>
+  <div class="side-menu-header">
+   <div class="side-menu-logo-wrap">
+    <img class="side-menu-logo-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/240px-Placeholder_view_vector.svg.png" alt="logo">
+    <div class="side-menu-logo">NUMBER ONE LOTO</div>
+   </div>
+   <div id="menuCloseBtn" class="side-menu-close" onclick="closeSideMenu()">✕</div>
+  </div>
 
- <div class="side-menu-section">AJUSTES</div>
+  <div class="side-menu-section">AJUSTES</div>
 
- <div class="side-menu-item" onclick="toggleSubmenu('configMenu')">
- <span>Configuración</span><span>></span>
- </div>
- <div id="configMenu" class="submenu-box">
- <div class="submenu-item" onclick="goPage('grupo')">Grupo</div>
- </div>
+  <div class="side-menu-item" onclick="toggleSubmenu('configMenu')">
+   <span>Configuración</span><span>></span>
+  </div>
+  <div id="configMenu" class="submenu-box">
+   <div class="submenu-item" onclick="goPage('grupo')">Grupo</div>
+  </div>
 
- <div class="side-menu-item" onclick="toggleSubmenu('limitesMenu')">
- <span>Límites</span><span>></span>
- </div>
- <div id="limitesMenu" class="submenu-box">
- <div class="submenu-item" onclick="goPage('limites_ajustes')">Ajustes</div>
- <div class="submenu-item" onclick="goPage('limites_estadisticas')">Estadísticas</div>
- </div>
+  <div class="side-menu-item" onclick="toggleSubmenu('limitesMenu')">
+   <span>Límites</span><span>></span>
+  </div>
+  <div id="limitesMenu" class="submenu-box">
+   <div class="submenu-item" onclick="goPage('limites_ajustes')">Ajustes</div>
+   <div class="submenu-item" onclick="goPage('limites_estadisticas')">Estadísticas</div>
+  </div>
 
- <div class="side-menu-item"><span>Loterías</span></div>
- <div class="side-menu-item active" onclick="goPage('vendors')"><span>Vendedores</span></div>
- <div class="side-menu-item"><span>Mi Cuenta</span></div>
+  <div class="side-menu-item"><span>Loterías</span></div>
+  <div class="side-menu-item active" onclick="goPage('vendors')"><span>Vendedores</span></div>
+  <div class="side-menu-item"><span>Mi Cuenta</span></div>
 
- <div class="side-menu-section">MONITOREO</div>
- <div class="side-menu-item"><span>Tickets</span></div>
- <div class="side-menu-item"><span>Sorteos</span></div>
+  <div class="side-menu-section">MONITOREO</div>
+  <div class="side-menu-item"><span>Tickets</span></div>
+  <div class="side-menu-item"><span>Sorteos</span></div>
 
- <div class="side-menu-section">REPORTES</div>
- <div class="side-menu-item" onclick="toggleSubmenu('ventaMenu')">
- <span>Venta</span><span>></span>
- </div>
- <div id="ventaMenu" class="submenu-box">
- <div class="submenu-item" onclick="goPage('ventas')">General</div>
- <div class="submenu-item" onclick="goPage('vendors')">Vendedor</div>
- <div class="submenu-item">Lotería</div>
- <div class="submenu-item">Jugada</div>
- <div class="submenu-item">Número</div>
- <div class="submenu-item">Conexion</div>
- <div class="submenu-item">Tickets premiados</div>
- <div class="submenu-item">Tickets cancelados</div>
- <div class="submenu-item">Grupo</div>
- </div>
+  <div class="side-menu-section">REPORTES</div>
+  <div class="side-menu-item" onclick="toggleSubmenu('ventaMenu')">
+   <span>Venta</span><span>></span>
+  </div>
+  <div id="ventaMenu" class="submenu-box">
+   <div class="submenu-item" onclick="goPage('ventas')">General</div>
+   <div class="submenu-item" onclick="goPage('vendors')">Vendedor</div>
+   <div class="submenu-item">Lotería</div>
+   <div class="submenu-item">Jugada</div>
+   <div class="submenu-item">Número</div>
+   <div class="submenu-item">Conexion</div>
+   <div class="submenu-item">Tickets premiados</div>
+   <div class="submenu-item">Tickets cancelados</div>
+   <div class="submenu-item">Grupo</div>
+  </div>
 
- <div class="side-menu-section">FLUJO DE EFECTIVO</div>
- <div class="side-menu-item"><span>Transactions</span></div>
+  <div class="side-menu-section">FLUJO DE EFECTIVO</div>
+  <div class="side-menu-item"><span>Transactions</span></div>
 
- <div class="side-menu-item" onclick="toggleSubmenu('balanceMenu')">
- <span>Balance</span><span>></span>
- </div>
- <div id="balanceMenu" class="submenu-box">
- <div class="submenu-item">Vendedor</div>
- </div>
+  <div class="side-menu-item" onclick="toggleSubmenu('balanceMenu')">
+   <span>Balance</span><span>></span>
+  </div>
+  <div id="balanceMenu" class="submenu-box">
+   <div class="submenu-item">Vendedor</div>
+  </div>
 
- <div class="side-menu-section">DESCONECTAR</div>
- <div class="side-menu-item"><span>Salir</span></div>
+  <div class="side-menu-section">DESCONECTAR</div>
+  <div class="side-menu-item"><span>Salir</span></div>
  </div>
 
  <div class="app-page hidden" id="appPage">
- <div class="topbar">
- <div class="top-left">
- <div class="icon-btn" id="menuBtn" onclick="openSideMenu()">☰</div>
- <div class="icon-btn">⌕</div>
- </div>
- <div class="top-right">
- <div class="clock-pill" id="clockBox">13:15</div>
- <div class="icon-btn">☼</div>
- <div class="avatar">👤</div>
- </div>
- </div>
+  <div class="topbar">
+   <div class="top-left">
+    <div class="icon-btn" id="menuBtn" onclick="openSideMenu()">☰</div>
+    <div class="icon-btn">⌕</div>
+   </div>
+   <div class="top-right">
+    <div class="clock-pill" id="clockBox">13:15</div>
+    <div class="icon-btn">☼</div>
+    <div class="avatar">👤</div>
+   </div>
+  </div>
 
- <!-- VENTAS PAGE -->
- <div id="ventasPage" class="page-block">
- <div class="page-title">Ventas</div>
+  <div id="ventasPage" class="page-block">
+   <div class="page-title">Ventas</div>
 
- <div class="filters">
- <div class="filter-group">
- <div class="date-range">
- <div>
- <label>Desde</label>
- <input type="date" id="fechaInicio">
- </div>
- <div>
- <label>Hasta</label>
- <input type="date" id="fechaFin">
- </div>
- </div>
- </div>
+   <div class="filters">
+    <div class="filter-group">
+     <div class="date-range">
+      <div>
+       <label>Desde</label>
+       <input type="date" id="fechaInicio">
+      </div>
+      <div>
+       <label>Hasta</label>
+       <input type="date" id="fechaFin">
+      </div>
+     </div>
+    </div>
 
- <div class="filter-group">
- <label class="filter-label">Zona</label>
- <select class="filter-select"><option>-</option></select>
- </div>
+    <div class="filter-group">
+     <label class="filter-label">Zona</label>
+     <select class="filter-select"><option>-</option></select>
+    </div>
 
- <div class="filter-group">
- <label class="filter-label">Vendedor</label>
- <select class="filter-select"><option>-</option></select>
- </div>
+    <div class="filter-group">
+     <label class="filter-label">Vendedor</label>
+     <select class="filter-select"><option>-</option></select>
+    </div>
 
- <div class="filter-group">
- <label class="filter-label">Lotería</label>
- <select class="filter-select"><option>-</option></select>
- </div>
+    <div class="filter-group">
+     <label class="filter-label">Lotería</label>
+     <select class="filter-select"><option>-</option></select>
+    </div>
 
- <div class="filter-group">
- <label class="filter-label">Jugada</label>
- <select class="filter-select"><option>-</option></select>
- </div>
+    <div class="filter-group">
+     <label class="filter-label">Jugada</label>
+     <select class="filter-select"><option>-</option></select>
+    </div>
 
- <div class="filter-group">
- <label class="filter-label">Comisión</label>
- <select class="filter-select">
- <option>Todas</option>
- <option>3%</option>
- <option>5%</option>
- <option>8%</option>
- <option>10%</option>
- </select>
- </div>
- </div>
+    <div class="filter-group">
+     <label class="filter-label">Comisión</label>
+     <select class="filter-select">
+      <option>Todas</option>
+      <option>3%</option>
+      <option>5%</option>
+      <option>8%</option>
+      <option>10%</option>
+     </select>
+    </div>
+   </div>
 
- <div class="table-card">
- <div class="table-scroll">
- <table>
- <thead>
- <tr>
- <th>VENDEDOR</th>
- <th>VENTA</th>
- <th>COMISIÓN</th>
- <th>PREMIOS</th>
- <th>RESULTADO</th>
- </tr>
- </thead>
- <tbody>
- <tr>
- <td class="vendor-name">Wisly</td>
- <td class="money">9,918.00</td>
- <td class="money">991.80</td>
- <td class="money">700.00</td>
- <td class="result-ok">8,226.20</td>
- </tr>
- <tr>
- <td class="vendor-name">Edras</td>
- <td class="money">9,830.00</td>
- <td class="money">1,474.50</td>
- <td class="money">1,500.00</td>
- <td class="result-ok">6,855.50</td>
- </tr>
- <tr>
- <td class="vendor-name">Paul</td>
- <td class="money">8,945.00</td>
- <td class="money">1,252.30</td>
- <td class="money">1,600.00</td>
- <td class="result-ok">6,092.70</td>
- </tr>
- <tr>
- <td class="vendor-name">Mackenson</td>
- <td class="money">8,268.00</td>
- <td class="money">1,240.20</td>
- <td class="money">1,200.00</td>
- <td class="result-ok">5,827.80</td>
- </tr>
- <tr>
- <td class="vendor-name">Etzer</td>
- <td class="money">8,950.00</td>
- <td class="money">1,253.00</td>
- <td class="money">1,975.00</td>
- <td class="result-ok">5,722.00</td>
- </tr>
- <tr>
- <td class="vendor-name">Klodi</td>
- <td class="money">6,499.00</td>
- <td class="money">974.85</td>
- <td class="money">550.00</td>
- <td class="result-ok">4,974.15</td>
- </tr>
- </tbody>
- </table>
- </div>
- </div>
- </div>
+   <div class="table-card">
+    <div class="table-scroll">
+     <table>
+      <thead>
+       <tr>
+        <th>VENDEDOR</th>
+        <th>VENTA</th>
+        <th>COMISIÓN</th>
+        <th>PREMIOS</th>
+        <th>RESULTADO</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tr>
+        <td class="vendor-name">Wisly</td>
+        <td class="money">9,918.00</td>
+        <td class="money">991.80</td>
+        <td class="money">700.00</td>
+        <td class="result-ok">8,226.20</td>
+       </tr>
+       <tr>
+        <td class="vendor-name">Edras</td>
+        <td class="money">9,830.00</td>
+        <td class="money">1,474.50</td>
+        <td class="money">1,500.00</td>
+        <td class="result-ok">6,855.50</td>
+       </tr>
+       <tr>
+        <td class="vendor-name">Paul</td>
+        <td class="money">8,945.00</td>
+        <td class="money">1,252.30</td>
+        <td class="money">1,600.00</td>
+        <td class="result-ok">6,092.70</td>
+       </tr>
+       <tr>
+        <td class="vendor-name">Mackenson</td>
+        <td class="money">8,268.00</td>
+        <td class="money">1,240.20</td>
+        <td class="money">1,200.00</td>
+        <td class="result-ok">5,827.80</td>
+       </tr>
+       <tr>
+        <td class="vendor-name">Etzer</td>
+        <td class="money">8,950.00</td>
+        <td class="money">1,253.00</td>
+        <td class="money">1,975.00</td>
+        <td class="result-ok">5,722.00</td>
+       </tr>
+       <tr>
+        <td class="vendor-name">Klodi</td>
+        <td class="money">6,499.00</td>
+        <td class="money">974.85</td>
+        <td class="money">550.00</td>
+        <td class="result-ok">4,974.15</td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+   </div>
+  </div>
 
- <!-- VENDORS LIST PAGE -->
- <div id="vendorsPage" class="page-block hidden">
- <div class="page-title">Vendedores</div>
+  <div id="vendorsPage" class="page-block hidden">
+   <div class="page-title">Vendedores</div>
 
- <div class="action-row">
- <div></div>
- <div class="action-buttons">
- <button class="square-btn" onclick="openNewVendor()">+</button>
- <button class="square-btn purple" onclick="loadVendorsFromServer()">↻</button>
- </div>
- </div>
+   <div class="action-row">
+    <div></div>
+    <div class="action-buttons">
+     <button class="square-btn" onclick="openNewVendor()">+</button>
+     <button class="square-btn purple" onclick="loadVendorsFromServer()">↻</button>
+    </div>
+   </div>
 
- <div class="vendor-filters">
- <input id="vendorFilterId" class="filter-input" placeholder="ID" />
- <input id="vendorFilterNombre" class="filter-input" placeholder="NOMBRE" />
- <select id="vendorFilterGrupo" class="filter-select"></select>
- <select id="vendorFilterEstado" class="filter-select">
- <option value="">- ESTADO -</option>
- <option value="Activo">Activo</option>
- <option value="Bloqueado">Bloqueado</option>
- </select>
- </div>
+   <div class="vendor-filters">
+    <input id="vendorFilterId" class="filter-input" placeholder="ID" />
+    <input id="vendorFilterNombre" class="filter-input" placeholder="NOMBRE" />
+    <select id="vendorFilterGrupo" class="filter-select"></select>
+    <select id="vendorFilterEstado" class="filter-select">
+     <option value="">- ESTADO -</option>
+     <option value="Activo">Activo</option>
+     <option value="Bloqueado">Bloqueado</option>
+    </select>
+   </div>
 
- <div class="table-card">
- <div class="table-scroll">
- <table>
- <thead>
- <tr>
- <th>ID</th>
- <th>NOMBRE</th>
- <th>ZONA</th>
- <th>APP</th>
- <th>CONEXIÓN</th>
- <th>LIMIT</th>
- <th>PAGO</th>
- <th>STATUS</th>
- <th></th>
- <th></th>
- <th></th>
- </tr>
- </thead>
- <tbody id="vendorsTableBody"></tbody>
- </table>
- </div>
- </div>
- </div>
+   <div class="table-card">
+    <div class="table-scroll">
+     <table>
+      <thead>
+       <tr>
+        <th>ID</th>
+        <th>NOMBRE</th>
+        <th>ZONA</th>
+        <th>APP</th>
+        <th>CONEXIÓN</th>
+        <th>LIMIT</th>
+        <th>PAGO</th>
+        <th>STATUS</th>
+        <th></th>
+        <th></th>
+        <th></th>
+       </tr>
+      </thead>
+      <tbody id="vendorsTableBody"></tbody>
+     </table>
+    </div>
+   </div>
+  </div>
 
- <!-- VENDOR EDITOR PAGE -->
- <div id="vendorEditorPage" class="page-block hidden">
- <div class="page-title">Vendedor</div>
+  <div id="vendorEditorPage" class="page-block hidden">
+   <div class="page-title">Vendedor</div>
 
- <div class="editor-top-actions">
- <button class="editor-top-btn back" onclick="backToVendorList()">≪</button>
- <button class="editor-top-btn save" onclick="saveVendor()">💾</button>
- </div>
+   <div class="editor-top-actions">
+    <button class="editor-top-btn back" onclick="backToVendorList()">≪</button>
+    <button class="editor-top-btn save" onclick="saveVendor()">💾</button>
+   </div>
 
- <div class="tabs-scroll">
- <div class="tabs" id="vendorTabs">
- <div class="tab active" data-tab="datos" onclick="showVendorTab('datos')">Datos Del Vendedor</div>
- <div class="tab" data-tab="config" onclick="showVendorTab('config')">Configuración</div>
- <div class="tab" data-tab="comision" onclick="showVendorTab('comision')">Comisión</div>
- <div class="tab" data-tab="premios" onclick="showVendorTab('premios')">Pago De Premios</div>
- <div class="tab" data-tab="limites" onclick="showVendorTab('limites')">Límite De Ventas</div>
- <div class="tab" data-tab="conexiones" onclick="showVendorTab('conexiones')">Conexiones</div>
- <div class="tab" data-tab="clonar" onclick="showVendorTab('clonar')">Clonar</div>
- </div>
- </div>
+   <div class="tabs-scroll">
+    <div class="tabs" id="vendorTabs">
+     <div class="tab active" data-tab="datos" onclick="showVendorTab('datos')">Datos Del Vendedor</div>
+     <div class="tab" data-tab="config" onclick="showVendorTab('config')">Configuración</div>
+     <div class="tab" data-tab="comision" onclick="showVendorTab('comision')">Comisión</div>
+     <div class="tab" data-tab="premios" onclick="showVendorTab('premios')">Pago De Premios</div>
+     <div class="tab" data-tab="limites" onclick="showVendorTab('limites')">Límite De Ventas</div>
+     <div class="tab" data-tab="conexiones" onclick="showVendorTab('conexiones')">Conexiones</div>
+     <div class="tab" data-tab="clonar" onclick="showVendorTab('clonar')">Clonar</div>
+    </div>
+   </div>
 
- <div class="editor-card">
- <!-- DATOS -->
- <div class="editor-section vendor-tab-panel" id="tab-datos">
- <div class="field-group">
- <div class="field-label">ID</div>
- <input id="vd_id" class="field-input" />
- </div>
- <div class="field-group">
- <div class="field-label">Clave</div>
- <input id="vd_clave" class="field-input" />
- </div>
- <div class="field-group">
- <div class="field-label">Nombre</div>
- <input id="vd_nombre" class="field-input" />
- </div>
- <div class="field-group">
- <div class="field-label">Apellido</div>
- <input id="vd_apellido" class="field-input" />
- </div>
- <div class="field-group">
- <div class="field-label">Cédula</div>
- <input id="vd_cedula" class="field-input" />
- </div>
- <div class="field-group">
- <div class="field-label">Teléfono</div>
- <div class="phone-wrap">
- <div class="phone-code">🇭🇹 +509 ▼</div>
- <input id="vd_telefono" class="phone-input" placeholder="35 15 3152" />
- </div>
- </div>
- <div class="field-group">
- <div class="field-label">Dirección</div>
- <input id="vd_direccion" class="field-input" />
- </div>
- <div class="field-group">
- <div class="field-label">Estatus</div>
- <select id="vd_estatus" class="field-select">
- <option>Bloqueado</option>
- <option>Activo</option>
- </select>
- </div>
- <div class="field-group">
- <div class="field-label">Sexo</div>
- <select id="vd_sexo" class="field-select">
- <option>-</option>
- <option>Hombre</option>
- <option>Mujer</option>
- </select>
- </div>
- <div class="field-group">
- <div class="field-label">Zona</div>
- <select id="vd_zona" class="field-select"></select>
- </div>
- </div>
+   <div class="editor-card">
+    <div class="editor-section vendor-tab-panel" id="tab-datos">
+     <div class="field-group">
+      <div class="field-label">ID</div>
+      <input id="vd_id" class="field-input" />
+     </div>
+     <div class="field-group">
+      <div class="field-label">Clave</div>
+      <input id="vd_clave" class="field-input" />
+     </div>
+     <div class="field-group">
+      <div class="field-label">Nombre</div>
+      <input id="vd_nombre" class="field-input" />
+     </div>
+     <div class="field-group">
+      <div class="field-label">Apellido</div>
+      <input id="vd_apellido" class="field-input" />
+     </div>
+     <div class="field-group">
+      <div class="field-label">Cédula</div>
+      <input id="vd_cedula" class="field-input" />
+     </div>
+     <div class="field-group">
+      <div class="field-label">Teléfono</div>
+      <div class="phone-wrap">
+       <div class="phone-code">🇭🇹 +509 ▼</div>
+       <input id="vd_telefono" class="phone-input" placeholder="35 15 3152" />
+      </div>
+     </div>
+     <div class="field-group">
+      <div class="field-label">Dirección</div>
+      <input id="vd_direccion" class="field-input" />
+     </div>
+     <div class="field-group">
+      <div class="field-label">Estatus</div>
+      <select id="vd_estatus" class="field-select">
+       <option value="Activo">Activo</option>
+       <option value="Bloqueado">Bloqueado</option>
+      </select>
+     </div>
+     <div class="field-group">
+      <div class="field-label">Sexo</div>
+      <select id="vd_sexo" class="field-select">
+       <option>-</option>
+       <option>Hombre</option>
+       <option>Mujer</option>
+      </select>
+     </div>
+     <div class="field-group">
+      <div class="field-label">Zona</div>
+      <select id="vd_zona" class="field-select"></select>
+     </div>
+    </div>
 
- <!-- CONFIG -->
- <div class="editor-section vendor-tab-panel hidden" id="tab-config">
- <div class="field-group">
- <div class="field-label">Límite Diario</div>
- <input id="cfg_limite_diario" class="field-input" value="0" />
- <div class="hint">Monto máximo que puede vender por día. Deje en 0 si no lo utiliza.</div>
+    <div class="editor-section vendor-tab-panel hidden" id="tab-config">
+     <div class="field-group">
+      <div class="field-label">Límite Diario</div>
+      <input id="cfg_limite_diario" class="field-input" value="0" />
+      <div class="hint">Monto máximo que puede vender por día. Deje en 0 si no lo utiliza.</div>
+     </div>
+     <div class="field-group">
+      <div class="field-label">Crédito</div>
+      <input id="cfg_credito" class="field-input" value="0" />
+      <div class="hint">Balance general hasta el próximo cuadre. Deje en 0 si no lo utiliza.</div>
+     </div>
+     <div class="field-group">
+      <div class="field-label">Deshabilitar Loterías</div>
+      <input id="cfg_deshabilitar_loterias" class="field-input" />
+      <div class="hint">Loterías que este vendedor no puede vender.</div>
+     </div>
+     <div class="field-group">
+      <div class="field-label">Deshabilitar Jugadas</div>
+      <input id="cfg_deshabilitar_jugadas" class="field-input" />
+      <div class="hint">Jugadas que este vendedor no puede vender.</div>
+     </div>
+     <div class="field-group">
+      <div class="field-label">Mezcla de números</div>
+      <input id="cfg_mezcla_numeros" class="field-input" value="0" />
+      <div class="hint">Cantidad de números que puede mezclar. 0 para usar el valor global. -1 para desactivar a este vendedor.</div>
+     </div>
+
+     <div class="switch-row"><div id="sw_cuadre" class="switch"></div><div class="switch-label">Habilitar Cuadre</div></div>
+     <div class="hint">Mostrar opción de cuadre al vendedor.</div>
+
+     <div class="switch-row"><div id="sw_whatsapp" class="switch"></div><div class="switch-label">Ventas por WhatsApp</div></div>
+     <div class="hint">Permitir ventas por WhatsApp.</div>
+
+     <div class="switch-row"><div id="sw_nombre_ticket" class="switch"></div><div class="switch-label">Usar nombre en Ticket</div></div>
+     <div class="hint">Usar el nombre de este vendedor como nombre de Consorcio en sus tickets.</div>
+
+     <div class="field-group">
+      <div class="field-label">Deshabilitar Decimales</div>
+      <input id="cfg_decimales" class="field-input" value="0" />
+      <div class="hint">Cantidad de decimales permitidos por lotería. Deje en 0 para usar el valor global.</div>
+     </div>
+
+     <div class="field-group">
+      <div class="field-label">Deshabilitar Terminales</div>
+      <input id="cfg_terminales" class="field-input" value="0" />
+      <div class="hint">Cantidad de terminales permitidos por lotería. Deje en 0 para usar el valor global.</div>
+     </div>
+
+     <div class="switch-row"><div id="sw_prepago" class="switch"></div><div class="switch-label">Habilitar Prepago</div></div>
+     <div class="hint">Para habilitar el punto de venta en modo PREPAGO.</div>
+
+     <div class="switch-row"><div id="sw_bono" class="switch"></div><div class="switch-label">Activar Bono</div></div>
+     <div class="field-group">
+      <select id="cfg_bono" class="field-select">
+       <option>Mariage</option>
+       <option>Borlette</option>
+       <option>Loto 3</option>
+      </select>
+     </div>
+    </div>
+
+    <div class="editor-section vendor-tab-panel hidden" id="tab-comision">
+     <div class="switch-row" style="justify-content:flex-end;">
+      <div id="sw_retener_comision" class="switch"></div>
+      <div class="switch-label">Retener Comisión</div>
+     </div>
+
+     <div class="field-group">
+      <div class="field-label" style="font-weight:700;">Comisión General</div>
+      <input id="com_general" class="field-input" value="0" />
+     </div>
+
+     <div class="field-group"><div class="field-label">Borlette</div><input id="com_borlette" class="field-input" value="0" /></div>
+     <div class="field-group"><div class="field-label">Mariage</div><input id="com_mariage" class="field-input" value="0" /></div>
+     <div class="field-group"><div class="field-label">Loto 3</div><input id="com_loto3" class="field-input" value="0" /></div>
+     <div class="field-group"><div class="field-label">Loto 4</div><input id="com_loto4" class="field-input" value="0" /></div>
+     <div class="field-group"><div class="field-label">Loto 5</div><input id="com_loto5" class="field-input" value="0" /></div>
+     <div class="field-group"><div class="field-label">Loto 5 o2</div><input id="com_loto5o2" class="field-input" value="0" /></div>
+     <div class="field-group"><div class="field-label">Loto 5 o3</div><input id="com_loto5o3" class="field-input" value="0" /></div>
+
+     <div class="field-group">
+      <div class="field-label" style="font-weight:700;">Comisión de Zona</div>
+      <input id="com_zona" class="field-input" value="0" />
+      <div class="hint">Use esta opción si el vendedor pagará la comisión del supervisor diferente a lo configurado en la zona.</div>
+     </div>
+
+     <div class="switch-row"><div id="sw_comision_loteria" class="switch"></div><div class="switch-label">Comisión por Lotería</div></div>
+    </div>
+
+    <div class="editor-section vendor-tab-panel hidden" id="tab-premios">
+     <div class="switch-row">
+      <div id="sw_premios_habilitar" class="switch on"></div>
+      <div class="switch-label">Habilitar</div>
+     </div>
+
+     <div class="field-group" style="display:flex;gap:14px;align-items:center;">
+      <select id="premios_loteria" class="field-select" style="flex:1;"></select>
+      <div class="switch on" id="sw_premios_apply"></div>
+     </div>
+
+     <div class="triple-grid">
+      <div class="game-name">Borlette</div>
+      <input id="prem_borlette_1" class="mini-input" />
+      <input id="prem_borlette_2" class="mini-input" />
+      <input id="prem_borlette_3" class="mini-input" />
+     </div>
+
+     <div class="triple-grid">
+      <div class="game-name">Mariage</div>
+      <input id="prem_mariage_1" class="mini-input" />
+      <input id="prem_mariage_2" class="mini-input" />
+      <input id="prem_mariage_3" class="mini-input" />
+     </div>
+
+     <div class="triple-grid">
+      <div class="game-name">Loto 3</div>
+      <input id="prem_l3_1" class="mini-input" />
+      <input id="prem_l3_2" class="mini-input" />
+      <input id="prem_l3_3" class="mini-input" />
+     </div>
+
+     <div class="triple-grid">
+      <div class="game-name">Loto 4</div>
+      <input id="prem_l4_1" class="mini-input" />
+      <input id="prem_l4_2" class="mini-input" />
+      <input id="prem_l4_3" class="mini-input" />
+     </div>
+
+     <div class="triple-grid">
+      <div class="game-name">Loto 5</div>
+      <input id="prem_l5_1" class="mini-input" />
+      <input id="prem_l5_2" class="mini-input" />
+      <input id="prem_l5_3" class="mini-input" />
+     </div>
+    </div>
+
+    <div class="editor-section vendor-tab-panel hidden" id="tab-limite">
+     <div class="field-group">
+      <label>Borlette</label>
+      <input id="lim_borlette" class="field-input" />
+     </div>
+
+     <div class="field-group">
+      <label>Mariage</label>
+      <input id="lim_mariage" class="field-input" />
+     </div>
+
+     <div class="field-group">
+      <label>Loto 3</label>
+      <input id="lim_l3" class="field-input" />
+     </div>
+
+     <div class="field-group">
+      <label>Loto 4 (L1, L2, L3)</label>
+      <input id="lim_l4_l1" class="field-input" placeholder="L1"/>
+      <input id="lim_l4_l2" class="field-input" placeholder="L2"/>
+      <input id="lim_l4_l3" class="field-input" placeholder="L3"/>
+     </div>
+
+     <div class="field-group">
+      <label>Loto 5 (L1, L2, L3)</label>
+      <input id="lim_l5_l1" class="field-input" placeholder="L1"/>
+      <input id="lim_l5_l2" class="field-input" placeholder="L2"/>
+      <input id="lim_l5_l3" class="field-input" placeholder="L3"/>
+     </div>
+    </div>
+
+    <div class="editor-section vendor-tab-panel hidden" id="tab-conexiones">
+     <div class="table-card">
+      <table>
+       <thead>
+        <tr>
+         <th>ID</th>
+         <th>LAST CONNECTION</th>
+         <th>PIN</th>
+         <th>CO</th>
+         <th>ON</th>
+         <th>ST</th>
+         <th></th>
+        </tr>
+       </thead>
+       <tbody id="conexiones_table"></tbody>
+      </table>
+     </div>
+    </div>
+
+    <div class="editor-section vendor-tab-panel hidden" id="tab-clonar">
+     <div style="display:flex;justify-content:center;margin-top:40px;">
+      <button class="login-btn" onclick="cloneVendor()">Clonar Vendedor</button>
+     </div>
+    </div>
+   </div>
+  </div>
  </div>
- <div class="field-group">
- <div class="field-label">Crédito</div>
- <input id="cfg_credito" class="field-input" value="0" />
- <div class="hint">Balance general hasta el próximo cuadre. Deje en 0 si no lo utiliza.</div>
- </div>
- <div class="field-group">
- <div class="field-label">Deshabilitar Loterías</div>
- <input id="cfg_deshabilitar_loterias" class="field-input" />
- <div class="hint">Loterías que este vendedor no puede vender.</div>
- </div>
- <div class="field-group">
- <div class="field-label">Deshabilitar Jugadas</div>
- <input id="cfg_deshabilitar_jugadas" class="field-input" />
- <div class="hint">Jugadas que este vendedor no puede vender.</div>
- </div>
- <div class="field-group">
- <div class="field-label">Mezcla de números</div>
- <input id="cfg_mezcla_numeros" class="field-input" value="0" />
- <div class="hint">Cantidad de números que puede mezclar. 0 para usar el valor global. -1 para desactivar a este vendedor.</div>
- </div>
-
- <div class="switch-row"><div id="sw_cuadre" class="switch"></div><div class="switch-label">Habilitar Cuadre</div></div>
- <div class="hint">Mostrar opción de cuadre al vendedor.</div>
-
- <div class="switch-row"><div id="sw_whatsapp" class="switch"></div><div class="switch-label">Ventas por WhatsApp</div></div>
- <div class="hint">Permitir ventas por WhatsApp.</div>
-
- <div class="switch-row"><div id="sw_nombre_ticket" class="switch"></div><div class="switch-label">Usar nombre en Ticket</div></div>
- <div class="hint">Usar el nombre de este vendedor como nombre de Consorcio en sus tickets.</div>
-
- <div class="field-group">
- <div class="field-label">Deshabilitar Decimales</div>
- <input id="cfg_decimales" class="field-input" value="0" />
- <div class="hint">Cantidad de decimales permitidos por lotería. Deje en 0 para usar el valor global.</div>
- </div>
-
- <div class="field-group">
- <div class="field-label">Deshabilitar Terminales</div>
- <input id="cfg_terminales" class="field-input" value="0" />
- <div class="hint">Cantidad de terminales permitidos por lotería. Deje en 0 para usar el valor global.</div>
- </div>
-
- <div class="switch-row"><div id="sw_prepago" class="switch"></div><div class="switch-label">Habilitar Prepago</div></div>
- <div class="hint">Para habilitar el punto de venta en modo PREPAGO.</div>
-
- <div class="switch-row"><div id="sw_bono" class="switch"></div><div class="switch-label">Activar Bono</div></div>
- <div class="field-group">
- <select id="cfg_bono" class="field-select">
- <option>Mariage</option>
- <option>Borlette</option>
- <option>Loto 3</option>
- </select>
- </div>
- </div>
-
- <!-- COMISION -->
- <div class="editor-section vendor-tab-panel hidden" id="tab-comision">
- <div class="switch-row" style="justify-content:flex-end;">
- <div id="sw_retener_comision" class="switch"></div>
- <div class="switch-label">Retener Comisión</div>
- </div>
-
- <div class="field-group">
- <div class="field-label" style="font-weight:700;">Comisión General</div>
- <input id="com_general" class="field-input" value="0" />
- </div>
-
- <div class="field-group"><div class="field-label">Borlette</div><input id="com_borlette" class="field-input" value="0" /></div>
- <div class="field-group"><div class="field-label">Mariage</div><input id="com_mariage" class="field-input" value="0" /></div>
- <div class="field-group"><div class="field-label">Loto 3</div><input id="com_loto3" class="field-input" value="0" /></div>
- <div class="field-group"><div class="field-label">Loto 4</div><input id="com_loto4" class="field-input" value="0" /></div>
- <div class="field-group"><div class="field-label">Loto 5</div><input id="com_loto5" class="field-input" value="0" /></div>
- <div class="field-group"><div class="field-label">Loto 5 o2</div><input id="com_loto5o2" class="field-input" value="0" /></div>
- <div class="field-group"><div class="field-label">Loto 5 o3</div><input id="com_loto5o3" class="field-input" value="0" /></div>
-
- <div class="field-group">
- <div class="field-label" style="font-weight:700;">Comisión de Zona</div>
- <input id="com_zona" class="field-input" value="0" />
- <div class="hint">Use esta opción si el vendedor pagará la comisión del supervisor diferente a lo configurado en la zona.</div>
- </div>
-
- <div class="switch-row"><div id="sw_comision_loteria" class="switch"></div><div class="switch-label">Comisión por Lotería</div></div>
- </div>
-
-<!-- PREMIOS -->
-<div class="editor-section vendor-tab-panel hidden" id="tab-premios">
-
- <div class="switch-row">
- <div id="sw_premios_habilitar" class="switch on"></div>
- <div class="switch-label">Habilitar</div>
- </div>
-
- <div class="field-group" style="display:flex;gap:14px;align-items:center;">
- <select id="premios_loteria" class="field-select" style="flex:1;"></select>
- <div class="switch on" id="sw_premios_apply"></div>
- </div>
-
- <div class="triple-grid">
- <div class="game-name">Borlette</div>
- <input id="prem_borlette_1" class="mini-input" />
- <input id="prem_borlette_2" class="mini-input" />
- <input id="prem_borlette_3" class="mini-input" />
- </div>
-
- <div class="triple-grid">
- <div class="game-name">Mariage</div>
- <input id="prem_mariage_1" class="mini-input" />
- <input id="prem_mariage_2" class="mini-input" />
- <input id="prem_mariage_3" class="mini-input" />
- </div>
-
- <div class="triple-grid">
- <div class="game-name">Loto 3</div>
- <input id="prem_l3_1" class="mini-input" />
- <input id="prem_l3_2" class="mini-input" />
- <input id="prem_l3_3" class="mini-input" />
- </div>
-
- <div class="triple-grid">
- <div class="game-name">Loto 4</div>
- <input id="prem_l4_1" class="mini-input" />
- <input id="prem_l4_2" class="mini-input" />
- <input id="prem_l4_3" class="mini-input" />
- </div>
-
- <div class="triple-grid">
- <div class="game-name">Loto 5</div>
- <input id="prem_l5_1" class="mini-input" />
- <input id="prem_l5_2" class="mini-input" />
- <input id="prem_l5_3" class="mini-input" />
- </div>
-
-</div>
-
-
-<!-- LIMITE DE VENTAS -->
-<div class="editor-section vendor-tab-panel hidden" id="tab-limite">
-
- <div class="field-group">
- <label>Borlette</label>
- <input id="lim_borlette" class="field-input" />
- </div>
-
- <div class="field-group">
- <label>Mariage</label>
- <input id="lim_mariage" class="field-input" />
- </div>
-
- <div class="field-group">
- <label>Loto 3</label>
- <input id="lim_l3" class="field-input" />
- </div>
-
- <div class="field-group">
- <label>Loto 4 (L1, L2, L3)</label>
- <input id="lim_l4_l1" class="field-input" placeholder="L1"/>
- <input id="lim_l4_l2" class="field-input" placeholder="L2"/>
- <input id="lim_l4_l3" class="field-input" placeholder="L3"/>
- </div>
-
- <div class="field-group">
- <label>Loto 5 (L1, L2, L3)</label>
- <input id="lim_l5_l1" class="field-input" placeholder="L1"/>
- <input id="lim_l5_l2" class="field-input" placeholder="L2"/>
- <input id="lim_l5_l3" class="field-input" placeholder="L3"/>
- </div>
-
-</div>
-
-
-<!-- CONEXIONES -->
-<div class="editor-section vendor-tab-panel hidden" id="tab-conexiones">
-
- <div class="table-card">
- <table>
- <thead>
- <tr>
- <th>ID</th>
- <th>LAST CONNECTION</th>
- <th>PIN</th>
- <th>CO</th>
- <th>ON</th>
- <th>ST</th>
- <th></th>
- </tr>
- </thead>
- <tbody id="conexiones_table"></tbody>
- </table>
- </div>
-
-</div>
-
-<!-- CLONAR -->
-<div class="editor-section vendor-tab-panel hidden" id="tab-clonar">
-
- <div style="display:flex;justify-content:center;margin-top:40px;">
- <button class="btn-primary" onclick="cloneVendor()">Clonar Vendedor</button>
- </div>
-
-</div>
-
- </div> <!-- FIN editor-card -->
- </div> <!-- FIN vendorEditorPage -->
-
- </div> <!-- FIN appPage -->
 
 <script>
 let currentPage = "ventas";
@@ -1447,9 +1278,47 @@ const loteriasList = [
  "GEORGIA EVENING"
 ];
 
-/* =========================
- CLOCK
-========================= */
+function safe(v){
+ return v == null ? "" : String(v);
+}
+
+function byId(id){
+ return document.getElementById(id);
+}
+
+function exists(id){
+ return !!byId(id);
+}
+
+function setValue(id, value){
+ const el = byId(id);
+ if(el) el.value = safe(value);
+}
+
+function getValue(id, fallback = ""){
+ const el = byId(id);
+ return el ? el.value : fallback;
+}
+
+function getSwitchValue(id){
+ const el = byId(id);
+ return el ? el.classList.contains("on") : false;
+}
+
+function setSwitchValue(id,val){
+ const el = byId(id);
+ if(!el) return;
+ if(val){ el.classList.add("on"); }
+ else{ el.classList.remove("on"); }
+}
+
+function makeOption(value,text){
+ const opt = document.createElement("option");
+ opt.value = value;
+ opt.textContent = text;
+ return opt;
+}
+
 function updateClock(){
  const d = new Date();
  const h = String(d.getHours()).padStart(2,"0");
@@ -1473,11 +1342,7 @@ async function loadVendorsFromServer(){
  }
 }
 
-function getCurrentVendorSafe(index){
- return index != null && vendors[index] ? vendors[index] : null;
-}
-
-async function loginMaster() {
+function loginMaster() {
  const user = document.getElementById("username");
  const pass = document.getElementById("password");
  const loginPage = document.getElementById("loginPage");
@@ -1492,15 +1357,12 @@ async function loginMaster() {
    loginPage.style.display = "none";
    appPage.classList.remove("hidden");
    appPage.style.display = "block";
-   await loadVendorsFromServer();
+   loadVendorsFromServer();
  } else {
    alert("Login incorrect");
  }
 }
 
-/* =========================
- SIDE MENU
-========================= */
 function openSideMenu(){
  const menu = document.getElementById("sideMenu");
  const overlay = document.getElementById("menuOverlay");
@@ -1521,15 +1383,12 @@ function toggleSubmenu(id){
  const isOpen = box.classList.contains("open");
 
  document.querySelectorAll(".submenu-box").forEach(function(el){
- el.classList.remove("open");
+   el.classList.remove("open");
  });
 
  if(!isOpen) box.classList.add("open");
 }
 
-/* =========================
- PAGE NAVIGATION
-========================= */
 function goPage(page){
  currentPage = page;
 
@@ -1553,76 +1412,6 @@ function goPage(page){
  closeSideMenu();
 }
 
-/* =========================
- HELPERS
-========================= */
-function safe(v){
- return v == null ? "" : String(v);
-}
-
-function byId(id){
- return document.getElementById(id);
-}
-
-function getSwitchValue(id){
- const el = byId(id);
- return el ? el.classList.contains("on") : false;
-}
-
-function setSwitchValue(id,val){
- const el = byId(id);
- if(!el) return;
- if(val){ el.classList.add("on"); }
- else{ el.classList.remove("on"); }
-}
-
-function makeOption(value,text){
- const opt = document.createElement("option");
- opt.value = value;
- opt.textContent = text;
- return opt;
-}
-
-function canConnectVendor(vendor){
-  if(vendor.conexiones && vendor.conexiones.length > 0){
-    return false; // deja konekte
-  }
-  return true;
-}
-
-async function blockConn(i){
-  if(currentVendorIndex == null) return;
-
-  const vendor = vendors[currentVendorIndex];
-  if(!vendor) return;
-
-  vendor.estatus = "Bloqueado";
-
-  try{
-    const res = await fetch("/api/vendors/" + encodeURIComponent(vendor.id), {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(vendor)
-    });
-
-    const data = await res.json();
-
-    if(!res.ok){
-      alert(data.message || "Erreur blocage");
-      return;
-    }
-
-    alert("Vendedor bloqueado");
-    await loadVendorsFromServer();
-  }catch(err){
-    console.error(err);
-    alert("Erreur blocage vendeur");
-  }
-}
-
-/* =========================
- LOAD SELECTS
-========================= */
 function loadGrupoSelects(){
  const ids = ["vendorFilterGrupo","vd_zona"];
  ids.forEach(id=>{
@@ -1645,7 +1434,7 @@ function loadGrupoSelects(){
 }
 
 function loadLoteriasSelects(){
- const ids = ["premios_loteria","limites_loteria"];
+ const ids = ["premios_loteria"];
  ids.forEach(id=>{
    const el = byId(id);
    if(!el) return;
@@ -1658,9 +1447,6 @@ function loadLoteriasSelects(){
  });
 }
 
-/* =========================
- VENDORS LIST FILTER
-========================= */
 function renderVendorTable(){
  const tbody = byId("vendorsTableBody");
  if(!tbody) return;
@@ -1673,7 +1459,7 @@ function renderVendorTable(){
  const filtered = vendors.filter(v=>{
    const okId = !idFilter || safe(v.id).toLowerCase().includes(idFilter);
    const okName = !nameFilter || safe(v.nombre).toLowerCase().includes(nameFilter);
-   const okGrupo = !grupoFilter || safe(v.zona) === grupoFilter;
+   const okGrupo = !grupoFilter || safe(v.zona || v.groupe) === grupoFilter;
    const okEstado = !estadoFilter || safe(v.estatus) === estadoFilter;
    return okId && okName && okGrupo && okEstado;
  });
@@ -1689,118 +1475,109 @@ function renderVendorTable(){
    const originalIndex = vendors.findIndex(x=>x.id === v.id);
 
    const statusDot = v.estatus === "Activo"
-   ? '<span class="status-dot green">●</span>'
-   : '<span class="status-dot gray">●</span>';
+     ? '<span class="status-dot green">●</span>'
+     : '<span class="status-dot gray">●</span>';
 
    tbody.innerHTML += \`
    <tr class="clickable-row" onclick="openVendorByIndex(\${originalIndex})">
-   <td>\${statusDot}<strong>\${safe(v.id)}</strong></td>
-   <td>\${safe(v.nombre)}</td>
-   <td>\${safe(v.zona)}</td>
-   <td>\${safe(v.app)}</td>
-   <td>\${safe(v.conexion)}</td>
-   <td>✓</td>
-   <td>✓</td>
-   <td>\${v.estatus === "Activo" ? "✓" : ""}</td>
-   <td>
-   <button class="mini-btn" onclick="event.stopPropagation();openVendorByIndex(\${originalIndex})">✎</button>
-   </td>
-   <td>
-   <button class="mini-btn" onclick="event.stopPropagation();deleteVendorByIndex(\${originalIndex})">🗑</button>
-   </td>
-   <td></td>
+    <td>\${statusDot}<strong>\${safe(v.id)}</strong></td>
+    <td>\${safe(v.nombre)}</td>
+    <td>\${safe(v.zona || v.groupe)}</td>
+    <td>\${safe(v.app)}</td>
+    <td>\${safe(v.conexion)}</td>
+    <td>✓</td>
+    <td>✓</td>
+    <td>\${v.estatus === "Activo" ? "✓" : ""}</td>
+    <td><button class="mini-btn" onclick="event.stopPropagation();openVendorByIndex(\${originalIndex})">✎</button></td>
+    <td><button class="mini-btn" onclick="event.stopPropagation();deleteVendorByIndex(\${originalIndex})">🗑</button></td>
+    <td></td>
    </tr>
    \`;
  });
 }
 
-/* =========================
- OPEN NEW / EDIT VENDOR
-========================= */
 function blankVendor(){
  return {
- id:"",
- clave:"",
- nombre:"",
- apellido:"",
- cedula:"",
- telefono:"",
- direccion:"",
- estatus:"Bloqueado",
- sexo:"-",
- zona:"",
-
- config:{
- limiteDiario:"0",
- credito:"0",
- deshabilitarLoterias:"",
- deshabilitarJugadas:"",
- mezclaNumeros:"0",
- habilitarCuadre:false,
- ventasWhatsapp:false,
- usarNombreTicket:false,
- deshabilitarDecimales:"0",
- deshabilitarTerminales:"0",
- habilitarPrepago:false,
- activarBono:false,
- bonoTipo:"Mariage"
- },
-
- comision:{
- retener:false,
- general:"0",
- borlette:"0",
- mariage:"0",
- loto3:"0",
- loto4:"0",
- loto5:"0",
- loto5o2:"0",
- loto5o3:"0",
- zona:"0",
- porLoteria:false
- },
-
- premios:{
- habilitar:true,
- loteria:"TODAS",
- applyAll:true,
- borlette:["","",""],
- mariage:["","",""],
- loto3:["","",""],
- loto4:["","",""],
- loto5:["","",""],
- loto5o2:["","",""],
- loto5o3:["","",""]
- },
-
- limites:{
- loteria:"TODAS",
- applyAll:true,
- borlette:"0",
- mariage:"0",
- loto3:"0",
- loto4_l1:"0",
- loto4_l2:"0",
- loto4_l3:"0",
- loto5_l1:"0",
- loto5_l2:"0",
- loto5_l3:"0",
- limitarNumeros:[],
- bloqueoNumeros:[],
- limitarCantidad:{
- borlette:"0",
- mariage:"0",
- loto3:"0",
- loto4:"0",
- loto5:"0",
- loto5o2:"0",
- loto5o3:"0"
- }
- },
-
- conexiones:[],
- app:"2.9.32",
- conexion:""
+   id:"",
+   clave:"",
+   password:"",
+   nombre:"",
+   nom:"",
+   apellido:"",
+   cedula:"",
+   telefono:"",
+   direccion:"",
+   estatus:"Activo",
+   sexo:"-",
+   zona:"",
+   groupe:"",
+   config:{
+     limiteDiario:"0",
+     credito:"0",
+     deshabilitarLoterias:"",
+     deshabilitarJugadas:"",
+     mezclaNumeros:"0",
+     habilitarCuadre:false,
+     ventasWhatsapp:false,
+     usarNombreTicket:false,
+     deshabilitarDecimales:"0",
+     deshabilitarTerminales:"0",
+     habilitarPrepago:false,
+     activarBono:false,
+     bonoTipo:"Mariage"
+   },
+   comision:{
+     retener:false,
+     general:"0",
+     borlette:"0",
+     mariage:"0",
+     loto3:"0",
+     loto4:"0",
+     loto5:"0",
+     loto5o2:"0",
+     loto5o3:"0",
+     zona:"0",
+     porLoteria:false
+   },
+   premios:{
+     habilitar:true,
+     loteria:"TODAS",
+     applyAll:true,
+     borlette:["","",""],
+     mariage:["","",""],
+     loto3:["","",""],
+     loto4:["","",""],
+     loto5:["","",""],
+     loto5o2:["","",""],
+     loto5o3:["","",""]
+   },
+   limites:{
+     loteria:"TODAS",
+     applyAll:true,
+     borlette:"0",
+     mariage:"0",
+     loto3:"0",
+     loto4_l1:"0",
+     loto4_l2:"0",
+     loto4_l3:"0",
+     loto5_l1:"0",
+     loto5_l2:"0",
+     loto5_l3:"0",
+     limitarNumeros:[],
+     bloqueoNumeros:[],
+     limitarCantidad:{
+       borlette:"0",
+       mariage:"0",
+       loto3:"0",
+       loto4:"0",
+       loto5:"0",
+       loto5o2:"0",
+       loto5o3:"0"
+     }
+   },
+   conexiones:[],
+   app:"2.9.32",
+   conexion:""
  };
 }
 
@@ -1822,219 +1599,187 @@ function backToVendorList(){
  goPage("vendors");
 }
 
-/* =========================
- FILL FORM
-========================= */
 function fillVendorForm(v){
- byId("vd_id").value = safe(v.id);
- byId("vd_clave").value = safe(v.clave);
- byId("vd_nombre").value = safe(v.nombre);
- byId("vd_apellido").value = safe(v.apellido);
- byId("vd_cedula").value = safe(v.cedula);
- byId("vd_telefono").value = safe(v.telefono);
- byId("vd_direccion").value = safe(v.direccion);
- byId("vd_estatus").value = safe(v.estatus || "Bloqueado");
- byId("vd_sexo").value = safe(v.sexo || "-");
- byId("vd_zona").value = safe(v.zona);
-
  const cfg = v.config || {};
-
- byId("cfg_limite_diario").value = safe(cfg.limiteDiario || cfg.limite_diario);
- byId("cfg_credito").value = safe(cfg.credito);
- byId("cfg_deshabilitar_loterias").value = safe(cfg.deshabilitarLoterias || cfg.deshabilitar_loterias);
- byId("cfg_deshabilitar_jugadas").value = safe(cfg.deshabilitarJugadas || cfg.deshabilitar_jugadas);
- byId("cfg_mezcla_numeros").value = safe(cfg.mezclaNumeros);
- byId("cfg_decimales").value = safe(cfg.deshabilitarDecimales);
- byId("cfg_terminales").value = safe(cfg.deshabilitarTerminales);
- byId("cfg_bono").value = safe(cfg.bonoTipo);
-
- setSwitchValue("sw_cuadre", cfg.habilitarCuadre);
- setSwitchValue("sw_whatsapp", cfg.ventasWhatsapp);
- setSwitchValue("sw_nombre_ticket", cfg.usarNombreTicket);
- setSwitchValue("sw_prepago", cfg.habilitarPrepago);
- setSwitchValue("sw_bono", cfg.activarBono);
-
  const com = v.comision || {};
- byId("com_general").value = safe(com.general || v.comision_general || "");
- byId("com_borlette").value = safe(com.borlette);
- byId("com_mariage").value = safe(com.mariage);
- byId("com_loto3").value = safe(com.loto3);
- byId("com_loto4").value = safe(com.loto4);
- byId("com_loto5").value = safe(com.loto5);
- byId("com_loto5o2").value = safe(com.loto5o2);
- byId("com_loto5o3").value = safe(com.loto5o3);
- byId("com_zona").value = safe(com.zona);
-
- setSwitchValue("sw_retener_comision", com.retener);
- setSwitchValue("sw_comision_loteria", com.porLoteria);
-
  const premios = v.premios || {};
- byId("premios_loteria").value = safe(premios.loteria || "TODAS");
- setSwitchValue("sw_premios_habilitar", premios.habilitar);
- setSwitchValue("sw_premios_apply", premios.applyAll);
-
- byId("prem_borlette_1").value = safe((premios.borlette || [])[0]);
- byId("prem_borlette_2").value = safe((premios.borlette || [])[1]);
- byId("prem_borlette_3").value = safe((premios.borlette || [])[2]);
-
- byId("prem_mariage_1").value = safe((premios.mariage || [])[0]);
- byId("prem_mariage_2").value = safe((premios.mariage || [])[1]);
- byId("prem_mariage_3").value = safe((premios.mariage || [])[2]);
-
- byId("prem_l3_1").value = safe((premios.loto3 || [])[0]);
- byId("prem_l3_2").value = safe((premios.loto3 || [])[1]);
- byId("prem_l3_3").value = safe((premios.loto3 || [])[2]);
-
- byId("prem_l4_1").value = safe((premios.loto4 || [])[0]);
- byId("prem_l4_2").value = safe((premios.loto4 || [])[1]);
- byId("prem_l4_3").value = safe((premios.loto4 || [])[2]);
-
- byId("prem_l5_1").value = safe((premios.loto5 || [])[0]);
- byId("prem_l5_2").value = safe((premios.loto5 || [])[1]);
- byId("prem_l5_3").value = safe((premios.loto5 || [])[2]);
-
  const limites = v.limites || {};
- const limitesLoteria = byId("limites_loteria");
- if (limitesLoteria) limitesLoteria.value = safe(limites.loteria || "TODAS");
- setSwitchValue("sw_limites_apply", limites.applyAll);
-
- byId("lim_borlette").value = safe(limites.borlette);
- byId("lim_mariage").value = safe(limites.mariage);
- byId("lim_l3").value = safe(limites.loto3);
-
- byId("lim_l4_l1").value = safe(limites.loto4_l1);
- byId("lim_l4_l2").value = safe(limites.loto4_l2);
- byId("lim_l4_l3").value = safe(limites.loto4_l3);
-
- byId("lim_l5_l1").value = safe(limites.loto5_l1);
- byId("lim_l5_l2").value = safe(limites.loto5_l2);
- byId("lim_l5_l3").value = safe(limites.loto5_l3);
-
  const limCant = limites.limitarCantidad || {};
- const limCantBorlette = byId("lim_cant_borlette");
- const limCantMariage = byId("lim_cant_mariage");
- const limCantL3 = byId("lim_cant_l3");
- const limCantL4 = byId("lim_cant_l4");
- const limCantL5 = byId("lim_cant_l5");
- const limCantL5o2 = byId("lim_cant_l5o2");
- const limCantL5o3 = byId("lim_cant_l5o3");
 
- if (limCantBorlette) limCantBorlette.value = safe(limCant.borlette);
- if (limCantMariage) limCantMariage.value = safe(limCant.mariage);
- if (limCantL3) limCantL3.value = safe(limCant.loto3);
- if (limCantL4) limCantL4.value = safe(limCant.loto4);
- if (limCantL5) limCantL5.value = safe(limCant.loto5);
- if (limCantL5o2) limCantL5o2.value = safe(limCant.loto5o2);
- if (limCantL5o3) limCantL5o3.value = safe(limCant.loto5o3);
+ setValue("vd_id", v.id);
+ setValue("vd_clave", v.clave || v.password);
+ setValue("vd_nombre", v.nombre || v.nom);
+ setValue("vd_apellido", v.apellido);
+ setValue("vd_cedula", v.cedula);
+ setValue("vd_telefono", v.telefono);
+ setValue("vd_direccion", v.direccion);
+ setValue("vd_estatus", v.estatus || "Activo");
+ setValue("vd_sexo", v.sexo || "-");
+ setValue("vd_zona", v.zona || v.groupe);
 
- renderConexiones(v.conexiones || []);
+ setValue("cfg_limite_diario", cfg.limiteDiario || cfg.limite_diario || "0");
+ setValue("cfg_credito", cfg.credito || "0");
+ setValue("cfg_deshabilitar_loterias", cfg.deshabilitarLoterias || cfg.deshabilitar_loterias || "");
+ setValue("cfg_deshabilitar_jugadas", cfg.deshabilitarJugadas || cfg.deshabilitar_jugadas || "");
+ setValue("cfg_mezcla_numeros", cfg.mezclaNumeros || "0");
+ setValue("cfg_decimales", cfg.deshabilitarDecimales || "0");
+ setValue("cfg_terminales", cfg.deshabilitarTerminales || "0");
+ setValue("cfg_bono", cfg.bonoTipo || "Mariage");
+
+ setSwitchValue("sw_cuadre", !!cfg.habilitarCuadre);
+ setSwitchValue("sw_whatsapp", !!cfg.ventasWhatsapp);
+ setSwitchValue("sw_nombre_ticket", !!cfg.usarNombreTicket);
+ setSwitchValue("sw_prepago", !!cfg.habilitarPrepago);
+ setSwitchValue("sw_bono", !!cfg.activarBono);
+
+ setValue("com_general", com.general || "0");
+ setValue("com_borlette", com.borlette || "0");
+ setValue("com_mariage", com.mariage || "0");
+ setValue("com_loto3", com.loto3 || "0");
+ setValue("com_loto4", com.loto4 || "0");
+ setValue("com_loto5", com.loto5 || "0");
+ setValue("com_loto5o2", com.loto5o2 || "0");
+ setValue("com_loto5o3", com.loto5o3 || "0");
+ setValue("com_zona", com.zona || "0");
+
+ setSwitchValue("sw_retener_comision", !!com.retener);
+ setSwitchValue("sw_comision_loteria", !!com.porLoteria);
+
+ setValue("premios_loteria", premios.loteria || "TODAS");
+ setSwitchValue("sw_premios_habilitar", premios.habilitar !== false);
+ setSwitchValue("sw_premios_apply", premios.applyAll !== false);
+
+ setValue("prem_borlette_1", (premios.borlette || [])[0] || "");
+ setValue("prem_borlette_2", (premios.borlette || [])[1] || "");
+ setValue("prem_borlette_3", (premios.borlette || [])[2] || "");
+ setValue("prem_mariage_1", (premios.mariage || [])[0] || "");
+ setValue("prem_mariage_2", (premios.mariage || [])[1] || "");
+ setValue("prem_mariage_3", (premios.mariage || [])[2] || "");
+ setValue("prem_l3_1", (premios.loto3 || [])[0] || "");
+ setValue("prem_l3_2", (premios.loto3 || [])[1] || "");
+ setValue("prem_l3_3", (premios.loto3 || [])[2] || "");
+ setValue("prem_l4_1", (premios.loto4 || [])[0] || "");
+ setValue("prem_l4_2", (premios.loto4 || [])[1] || "");
+ setValue("prem_l4_3", (premios.loto4 || [])[2] || "");
+ setValue("prem_l5_1", (premios.loto5 || [])[0] || "");
+ setValue("prem_l5_2", (premios.loto5 || [])[1] || "");
+ setValue("prem_l5_3", (premios.loto5 || [])[2] || "");
+
+ setValue("lim_borlette", limites.borlette || "");
+ setValue("lim_mariage", limites.mariage || "");
+ setValue("lim_l3", limites.loto3 || "");
+ setValue("lim_l4_l1", limites.loto4_l1 || "");
+ setValue("lim_l4_l2", limites.loto4_l2 || "");
+ setValue("lim_l4_l3", limites.loto4_l3 || "");
+ setValue("lim_l5_l1", limites.loto5_l1 || "");
+ setValue("lim_l5_l2", limites.loto5_l2 || "");
+ setValue("lim_l5_l3", limites.loto5_l3 || "");
+
+ if (exists("limites_loteria")) setValue("limites_loteria", limites.loteria || "TODAS");
+ if (exists("sw_limites_apply")) setSwitchValue("sw_limites_apply", limites.applyAll !== false);
+ if (exists("lim_cant_borlette")) setValue("lim_cant_borlette", limCant.borlette || "0");
+ if (exists("lim_cant_mariage")) setValue("lim_cant_mariage", limCant.mariage || "0");
+ if (exists("lim_cant_l3")) setValue("lim_cant_l3", limCant.loto3 || "0");
+ if (exists("lim_cant_l4")) setValue("lim_cant_l4", limCant.loto4 || "0");
+ if (exists("lim_cant_l5")) setValue("lim_cant_l5", limCant.loto5 || "0");
+ if (exists("lim_cant_l5o2")) setValue("lim_cant_l5o2", limCant.loto5o2 || "0");
+ if (exists("lim_cant_l5o3")) setValue("lim_cant_l5o3", limCant.loto5o3 || "0");
+
+ renderConexiones(Array.isArray(v.conexiones) ? v.conexiones : []);
 }
 
-/* =========================
- READ FORM
-========================= */
 function readVendorForm(){
- const limitesLoteria = byId("limites_loteria");
- const limCantBorlette = byId("lim_cant_borlette");
- const limCantMariage = byId("lim_cant_mariage");
- const limCantL3 = byId("lim_cant_l3");
- const limCantL4 = byId("lim_cant_l4");
- const limCantL5 = byId("lim_cant_l5");
- const limCantL5o2 = byId("lim_cant_l5o2");
- const limCantL5o3 = byId("lim_cant_l5o3");
+ const current = currentVendorIndex != null ? vendors[currentVendorIndex] : null;
 
  return {
-   id: byId("vd_id").value.trim(),
-   clave: byId("vd_clave").value.trim(),
-   password: byId("vd_clave").value.trim(),
-   nombre: byId("vd_nombre").value.trim(),
-   nom: byId("vd_nombre").value.trim(),
-   apellido: byId("vd_apellido").value.trim(),
-   cedula: byId("vd_cedula").value.trim(),
-   telefono: byId("vd_telefono").value.trim(),
-   direccion: byId("vd_direccion").value.trim(),
-   estatus: byId("vd_estatus").value,
-   sexo: byId("vd_sexo").value,
-   zona: byId("vd_zona").value,
-   groupe: byId("vd_zona").value,
+   id: getValue("vd_id").trim(),
+   clave: getValue("vd_clave").trim(),
+   password: getValue("vd_clave").trim(),
+   nombre: getValue("vd_nombre").trim(),
+   nom: getValue("vd_nombre").trim(),
+   apellido: getValue("vd_apellido").trim(),
+   cedula: getValue("vd_cedula").trim(),
+   telefono: getValue("vd_telefono").trim(),
+   direccion: getValue("vd_direccion").trim(),
+   estatus: getValue("vd_estatus", "Activo"),
+   sexo: getValue("vd_sexo", "-"),
+   zona: getValue("vd_zona").trim(),
+   groupe: getValue("vd_zona").trim(),
 
    config:{
-     limiteDiario: byId("cfg_limite_diario").value,
-     credito: byId("cfg_credito").value,
-     deshabilitarLoterias: byId("cfg_deshabilitar_loterias").value,
-     deshabilitarJugadas: byId("cfg_deshabilitar_jugadas").value,
-     mezclaNumeros: byId("cfg_mezcla_numeros").value,
+     limiteDiario: getValue("cfg_limite_diario", "0"),
+     credito: getValue("cfg_credito", "0"),
+     deshabilitarLoterias: getValue("cfg_deshabilitar_loterias", ""),
+     deshabilitarJugadas: getValue("cfg_deshabilitar_jugadas", ""),
+     mezclaNumeros: getValue("cfg_mezcla_numeros", "0"),
      habilitarCuadre: getSwitchValue("sw_cuadre"),
      ventasWhatsapp: getSwitchValue("sw_whatsapp"),
      usarNombreTicket: getSwitchValue("sw_nombre_ticket"),
-     deshabilitarDecimales: byId("cfg_decimales").value,
-     deshabilitarTerminales: byId("cfg_terminales").value,
+     deshabilitarDecimales: getValue("cfg_decimales", "0"),
+     deshabilitarTerminales: getValue("cfg_terminales", "0"),
      habilitarPrepago: getSwitchValue("sw_prepago"),
      activarBono: getSwitchValue("sw_bono"),
-     bonoTipo: byId("cfg_bono").value
+     bonoTipo: getValue("cfg_bono", "Mariage")
    },
 
    comision:{
      retener: getSwitchValue("sw_retener_comision"),
-     general: byId("com_general").value,
-     borlette: byId("com_borlette").value,
-     mariage: byId("com_mariage").value,
-     loto3: byId("com_loto3").value,
-     loto4: byId("com_loto4").value,
-     loto5: byId("com_loto5").value,
-     loto5o2: byId("com_loto5o2").value,
-     loto5o3: byId("com_loto5o3").value,
-     zona: byId("com_zona").value,
+     general: getValue("com_general", "0"),
+     borlette: getValue("com_borlette", "0"),
+     mariage: getValue("com_mariage", "0"),
+     loto3: getValue("com_loto3", "0"),
+     loto4: getValue("com_loto4", "0"),
+     loto5: getValue("com_loto5", "0"),
+     loto5o2: getValue("com_loto5o2", "0"),
+     loto5o3: getValue("com_loto5o3", "0"),
+     zona: getValue("com_zona", "0"),
      porLoteria: getSwitchValue("sw_comision_loteria")
    },
 
    premios:{
      habilitar: getSwitchValue("sw_premios_habilitar"),
-     loteria: byId("premios_loteria").value,
+     loteria: getValue("premios_loteria", "TODAS"),
      applyAll: getSwitchValue("sw_premios_apply"),
-     borlette:[byId("prem_borlette_1").value, byId("prem_borlette_2").value, byId("prem_borlette_3").value],
-     mariage:[byId("prem_mariage_1").value, byId("prem_mariage_2").value, byId("prem_mariage_3").value],
-     loto3:[byId("prem_l3_1").value, byId("prem_l3_2").value, byId("prem_l3_3").value],
-     loto4:[byId("prem_l4_1").value, byId("prem_l4_2").value, byId("prem_l4_3").value],
-     loto5:[byId("prem_l5_1").value, byId("prem_l5_2").value, byId("prem_l5_3").value],
+     borlette:[getValue("prem_borlette_1"), getValue("prem_borlette_2"), getValue("prem_borlette_3")],
+     mariage:[getValue("prem_mariage_1"), getValue("prem_mariage_2"), getValue("prem_mariage_3")],
+     loto3:[getValue("prem_l3_1"), getValue("prem_l3_2"), getValue("prem_l3_3")],
+     loto4:[getValue("prem_l4_1"), getValue("prem_l4_2"), getValue("prem_l4_3")],
+     loto5:[getValue("prem_l5_1"), getValue("prem_l5_2"), getValue("prem_l5_3")],
      loto5o2:["","",""],
      loto5o3:["","",""]
    },
 
    limites:{
-     loteria: limitesLoteria ? limitesLoteria.value : "TODAS",
-     applyAll: getSwitchValue("sw_limites_apply"),
-     borlette: byId("lim_borlette").value,
-     mariage: byId("lim_mariage").value,
-     loto3: byId("lim_l3").value,
-     loto4_l1: byId("lim_l4_l1").value,
-     loto4_l2: byId("lim_l4_l2").value,
-     loto4_l3: byId("lim_l4_l3").value,
-     loto5_l1: byId("lim_l5_l1").value,
-     loto5_l2: byId("lim_l5_l2").value,
-     loto5_l3: byId("lim_l5_l3").value,
+     loteria: exists("limites_loteria") ? getValue("limites_loteria", "TODAS") : "TODAS",
+     applyAll: exists("sw_limites_apply") ? getSwitchValue("sw_limites_apply") : true,
+     borlette: getValue("lim_borlette", "0"),
+     mariage: getValue("lim_mariage", "0"),
+     loto3: getValue("lim_l3", "0"),
+     loto4_l1: getValue("lim_l4_l1", "0"),
+     loto4_l2: getValue("lim_l4_l2", "0"),
+     loto4_l3: getValue("lim_l4_l3", "0"),
+     loto5_l1: getValue("lim_l5_l1", "0"),
+     loto5_l2: getValue("lim_l5_l2", "0"),
+     loto5_l3: getValue("lim_l5_l3", "0"),
      limitarNumeros: [],
      bloqueoNumeros: [],
      limitarCantidad:{
-       borlette: limCantBorlette ? limCantBorlette.value : "0",
-       mariage: limCantMariage ? limCantMariage.value : "0",
-       loto3: limCantL3 ? limCantL3.value : "0",
-       loto4: limCantL4 ? limCantL4.value : "0",
-       loto5: limCantL5 ? limCantL5.value : "0",
-       loto5o2: limCantL5o2 ? limCantL5o2.value : "0",
-       loto5o3: limCantL5o3 ? limCantL5o3.value : "0"
+       borlette: exists("lim_cant_borlette") ? getValue("lim_cant_borlette", "0") : "0",
+       mariage: exists("lim_cant_mariage") ? getValue("lim_cant_mariage", "0") : "0",
+       loto3: exists("lim_cant_l3") ? getValue("lim_cant_l3", "0") : "0",
+       loto4: exists("lim_cant_l4") ? getValue("lim_cant_l4", "0") : "0",
+       loto5: exists("lim_cant_l5") ? getValue("lim_cant_l5", "0") : "0",
+       loto5o2: exists("lim_cant_l5o2") ? getValue("lim_cant_l5o2", "0") : "0",
+       loto5o3: exists("lim_cant_l5o3") ? getValue("lim_cant_l5o3", "0") : "0"
      }
    },
 
-   conexiones: currentVendorIndex != null ? ((vendors[currentVendorIndex] && vendors[currentVendorIndex].conexiones) || []) : [],
-   app: currentVendorIndex != null ? ((vendors[currentVendorIndex] && vendors[currentVendorIndex].app) || "2.9.32") : "2.9.32",
-   conexion: currentVendorIndex != null ? ((vendors[currentVendorIndex] && vendors[currentVendorIndex].conexion) || "") : ""
+   conexiones: current ? (Array.isArray(current.conexiones) ? current.conexiones : []) : [],
+   app: current ? safe(current.app || "2.9.32") : "2.9.32",
+   conexion: current ? safe(current.conexion || "") : ""
  };
 }
 
-/* =========================
- SAVE / DELETE / CLONE
-========================= */
 async function saveVendor(){
  const vendor = readVendorForm();
 
@@ -2058,12 +1803,7 @@ async function saveVendor(){
        body: JSON.stringify(vendor)
      });
    }else{
-     const oldVendor = getCurrentVendorSafe(currentVendorIndex);
-     if(!oldVendor){
-       alert("Vendedor introuvable");
-       return;
-     }
-
+     const oldVendor = vendors[currentVendorIndex];
      res = await fetch("/api/vendors/" + encodeURIComponent(oldVendor.id), {
        method: "PUT",
        headers: { "Content-Type": "application/json" },
@@ -2091,12 +1831,7 @@ async function deleteVendorByIndex(index){
  if(!confirm("Eliminar vendedor?")) return;
 
  try{
-   const vendor = getCurrentVendorSafe(index);
-   if(!vendor){
-     alert("Vendedor introuvable");
-     return;
-   }
-
+   const vendor = vendors[index];
    const res = await fetch("/api/vendors/" + encodeURIComponent(vendor.id), {
      method: "DELETE"
    });
@@ -2126,6 +1861,8 @@ async function cloneVendor(){
  vendor.id = vendor.id + "_copy";
  vendor.nombre = vendor.nombre + "_copy";
  vendor.nom = vendor.nombre;
+ vendor.password = vendor.clave;
+ vendor.groupe = vendor.zona;
 
  try{
    const res = await fetch("/api/vendors", {
@@ -2150,16 +1887,13 @@ async function cloneVendor(){
  }
 }
 
-/* =========================
- CONNECTIONS
-========================= */
 function renderConexiones(rows){
  const tbody = byId("conexiones_table");
  if(!tbody) return;
 
  tbody.innerHTML = "";
 
- if(!rows.length){
+ if(!rows || !rows.length){
    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay conexiones</td></tr>';
    return;
  }
@@ -2167,39 +1901,102 @@ function renderConexiones(rows){
  rows.forEach((c,i)=>{
    tbody.innerHTML += \`
    <tr>
-   <td>\${safe(c.id)}</td>
-   <td>\${safe(c.last)}</td>
-   <td>\${safe(c.pin)}</td>
-   <td>\${c.co ? "✔" : ""}</td>
-   <td>\${c.on ? "✔" : ""}</td>
-   <td>\${c.st ? "✔" : ""}</td>
-   <td>
-   <button class="mini-btn" onclick="blockConn(\${i})">⛔</button>
-   <button class="mini-btn" onclick="deleteConn(\${i})">🗑</button>
-   <button class="mini-btn" onclick="pinConn(\${i})">PIN</button>
-   </td>
+    <td>\${safe(c.id)}</td>
+    <td>\${safe(c.last)}</td>
+    <td>\${safe(c.pin)}</td>
+    <td>\${c.co ? "✔" : ""}</td>
+    <td>\${c.on ? "✔" : ""}</td>
+    <td>\${c.st ? "✔" : ""}</td>
+    <td>
+     <button class="mini-btn" onclick="blockConn(\${i})">⛔</button>
+     <button class="mini-btn" onclick="deleteConn(\${i})">🗑</button>
+     <button class="mini-btn" onclick="pinConn(\${i})">PIN</button>
+    </td>
    </tr>
    \`;
  });
 }
 
-function blockConn(i){
- alert("Bloquear conexión " + i);
-}
-function deleteConn(i){
-  if(currentVendorIndex == null) return;
+async function blockConn(i){
+ if(currentVendorIndex == null) return;
 
-  vendors[currentVendorIndex].conexiones.splice(i,1);
+ const vendor = vendors[currentVendorIndex];
+ if(!vendor) return;
 
-  renderConexiones(vendors[currentVendorIndex].conexiones);
+ vendor.estatus = "Bloqueado";
+
+ try{
+   const res = await fetch("/api/vendors/" + encodeURIComponent(vendor.id), {
+     method: "PUT",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify(vendor)
+   });
+
+   const data = await res.json();
+
+   if(!res.ok){
+     alert(data.message || "Erreur blocage");
+     return;
+   }
+
+   alert("Vendedor bloqueado");
+   await loadVendorsFromServer();
+   if (vendors[currentVendorIndex]) {
+     renderConexiones(vendors[currentVendorIndex].conexiones || []);
+   }
+ }catch(err){
+   console.error(err);
+   alert("Erreur blocage vendeur");
+ }
 }
+
+async function deleteConn(i){
+ if(currentVendorIndex == null) return;
+
+ const vendor = vendors[currentVendorIndex];
+ if(!vendor || !Array.isArray(vendor.conexiones)) return;
+
+ vendor.conexiones.splice(i, 1);
+
+ if(vendor.conexiones.length === 0){
+   vendor.conexion = "";
+ }
+
+ try{
+   const res = await fetch("/api/vendors/" + encodeURIComponent(vendor.id), {
+     method: "PUT",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify(vendor)
+   });
+
+   const data = await res.json();
+
+   if(!res.ok){
+     alert(data.message || "Erreur suppression connexion");
+     return;
+   }
+
+   alert("Conexión eliminada");
+   await loadVendorsFromServer();
+   if (vendors[currentVendorIndex]) {
+     renderConexiones(vendors[currentVendorIndex].conexiones || []);
+   }
+ }catch(err){
+   console.error(err);
+   alert("Erreur suppression connexion");
+ }
+}
+
 function pinConn(i){
- alert("PIN conexión " + i);
+ const vendor = currentVendorIndex != null ? vendors[currentVendorIndex] : null;
+ const conn = vendor && Array.isArray(vendor.conexiones) ? vendor.conexiones[i] : null;
+ if(!conn){
+   alert("PIN introuvable");
+   return;
+ }
+ alert("PIN conexión: " + safe(conn.pin));
 }
 
-/* =========================
- TAB SWITCH
-========================= */
 function showVendorTab(tabName){
  document.querySelectorAll(".tab").forEach(tab=>{
    tab.classList.remove("active");
@@ -2212,13 +2009,20 @@ function showVendorTab(tabName){
    panel.classList.add("hidden");
  });
 
- const panel = byId("tab-" + tabName);
+ const map = {
+   datos: "tab-datos",
+   config: "tab-config",
+   comision: "tab-comision",
+   premios: "tab-premios",
+   limites: "tab-limite",
+   conexiones: "tab-conexiones",
+   clonar: "tab-clonar"
+ };
+
+ const panel = byId(map[tabName] || ("tab-" + tabName));
  if(panel) panel.classList.remove("hidden");
 }
 
-/* =========================
- SWITCH CLICK
-========================= */
 function bindSwitches(){
  document.querySelectorAll(".switch").forEach(sw=>{
    if(sw.dataset.bound === "1") return;
@@ -2229,9 +2033,6 @@ function bindSwitches(){
  });
 }
 
-/* =========================
- MODAL PAGO / COBRO
-========================= */
 function cleanAmount(txt){
  return parseFloat(String(txt).replace(/,/g,"").trim()) || 0;
 }
@@ -2239,8 +2040,8 @@ function cleanAmount(txt){
 function formatAmount(value){
  const num = Math.abs(cleanAmount(value));
  return num.toLocaleString("en-US", {
- minimumFractionDigits: 2,
- maximumFractionDigits: 2
+   minimumFractionDigits: 2,
+   maximumFractionDigits: 2
  });
 }
 
@@ -2318,9 +2119,9 @@ document.addEventListener("click", function(e){
  const amount = cleanAmount(balanceCell.textContent);
 
  if(
- balanceCell.classList.contains("balance-negative") ||
- balanceCell.classList.contains("result-bad") ||
- amount < 0
+   balanceCell.classList.contains("balance-negative") ||
+   balanceCell.classList.contains("result-bad") ||
+   amount < 0
  ){
    openPagoModal(vendor, Math.abs(amount));
  }else if(amount > 0){
@@ -2328,9 +2129,6 @@ document.addEventListener("click", function(e){
  }
 });
 
-/* =========================
- MENU BUTTONS + FILTERS
-========================= */
 document.addEventListener("DOMContentLoaded", function(){
  const menuBtn = byId("menuBtn");
  const menuCloseBtn = byId("menuCloseBtn");
@@ -2356,9 +2154,6 @@ document.addEventListener("DOMContentLoaded", function(){
  loadVendorsFromServer();
 });
 
-/* =========================
- START DEFAULT
-========================= */
 goPage("vendors");
 </script>
 

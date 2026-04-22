@@ -15,7 +15,17 @@
     "clave": "1234",
     "estatus": "Activo",
     "app": "2.9.32",
-    "conexion": ""
+    "conexion": "",
+    "conexiones": [
+      {
+        "id": "DEV-1776869872911",
+        "last": "4/22/2026, 10:57:52 AM",
+        "pin": 193,
+        "co": true,
+        "on": true,
+        "st": true
+      }
+    ]
   },
   "NOC110": {
     "nom": "Toto",

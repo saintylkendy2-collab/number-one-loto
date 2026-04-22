@@ -7,10 +7,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
+const TICKETS_FILE = path.join(__dirname, "tickets.json");
 
 function ensureVendeursFile() {
   if (!fs.existsSync(VENDEURS_FILE)) {
     fs.writeFileSync(VENDEURS_FILE, JSON.stringify({}, null, 2), "utf8");
+  }
+}
+
+function ensureTicketsFile() {
+  if (!fs.existsSync(TICKETS_FILE)) {
+    fs.writeFileSync(TICKETS_FILE, JSON.stringify([], null, 2), "utf8");
   }
 }
 
@@ -34,6 +41,46 @@ function saveVendeursForLogin(vendeurs) {
   } catch (err) {
     console.error("Erreur sauvegarde vendeurs :", err);
   }
+}
+
+function loadTickets() {
+  try {
+    ensureTicketsFile();
+    const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error("Erreur lecture tickets :", err);
+    return [];
+  }
+}
+
+function saveTickets(tickets) {
+  try {
+    fs.writeFileSync(TICKETS_FILE, JSON.stringify(tickets, null, 2), "utf8");
+  } catch (err) {
+    console.error("Erreur sauvegarde tickets :", err);
+  }
+}
+
+function formatDateTimeFR(date = new Date()) {
+  return date.toLocaleString("fr-FR");
+}
+
+function formatDateFR(date = new Date()) {
+  return date.toLocaleDateString("fr-FR");
+}
+
+function formatTimeFR(date = new Date()) {
+  return date.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function money(n) {
+  return Number(n || 0).toFixed(2);
 }
 
 function loginErrorPage(message) {
@@ -89,10 +136,6 @@ font-weight:700;
 `;
 }
 
-function formatDateTimeFR(date = new Date()) {
-  return date.toLocaleString("fr-FR");
-}
-
 function detectDeviceInfo(userAgent = "") {
   const ua = String(userAgent || "");
   const low = ua.toLowerCase();
@@ -146,12 +189,7 @@ function getClientIp(req) {
   if (forwarded) {
     return String(forwarded).split(",")[0].trim();
   }
-  return (
-    req.socket?.remoteAddress ||
-    req.connection?.remoteAddress ||
-    req.ip ||
-    "?"
-  );
+  return req.socket?.remoteAddress || req.connection?.remoteAddress || req.ip || "?";
 }
 
 function buildConnectionRow(req, vendeur) {
@@ -175,6 +213,89 @@ function buildConnectionRow(req, vendeur) {
     on: true,
     st: true
   };
+}
+
+function normalizeStatus(status = "") {
+  const s = String(status || "").trim().toUpperCase();
+  if (s === "GANE" || s === "GANADO" || s === "GAGNE" || s === "WON") return "GANYE";
+  if (s === "PERDU" || s === "PERDIDO" || s === "LOST") return "PEDI";
+  if (s === "ANULE" || s === "ANULADO" || s === "CANCELED") return "ANILE";
+  return "ANATAN";
+}
+
+function statusLabel(status = "") {
+  const s = normalizeStatus(status);
+  if (s === "GANYE") return "GANYE";
+  if (s === "PEDI") return "PEDI";
+  if (s === "ANILE") return "ANILE";
+  return "AN ATAN";
+}
+
+function getVendorCommissionRate(vendeurObj) {
+  const general = Number(
+    vendeurObj?.comision?.general ||
+    vendeurObj?.comision?.generalComision ||
+    vendeurObj?.comision?.generale ||
+    0
+  );
+  if (general > 0) return general / 100;
+  return 0.05;
+}
+
+function getTicketPremioValue(ticket) {
+  const status = normalizeStatus(ticket.status);
+  if (status !== "GANYE") return 0;
+  return Number(ticket.premio || 0);
+}
+
+function computeSummaries() {
+  const vendeurs = loadVendeursForLogin();
+  const tickets = loadTickets();
+  const map = {};
+
+  tickets.forEach((ticket) => {
+    const vendeurId = String(ticket.vendeur || "").trim().toUpperCase();
+    if (!vendeurId) return;
+
+    if (!map[vendeurId]) {
+      const vendeurObj = vendeurs[vendeurId] || {};
+      map[vendeurId] = {
+        vendeur: vendeurId,
+        nombre: String(vendeurObj.nom || vendeurObj.nombre || vendeurId),
+        zona: String(vendeurObj.zona || vendeurObj.groupe || ""),
+        venta: 0,
+        premios: 0,
+        comision: 0,
+        resultado: 0,
+        tickets: 0,
+        balanceAnterior: Number(vendeurObj.config?.credito || 0),
+        balanceFinal: 0
+      };
+    }
+
+    const status = normalizeStatus(ticket.status);
+    const total = Number(ticket.total || 0);
+    const premio = getTicketPremioValue(ticket);
+
+    if (status !== "ANILE") {
+      map[vendeurId].venta += total;
+      map[vendeurId].tickets += 1;
+    }
+
+    if (status === "GANYE") {
+      map[vendeurId].premios += premio;
+    }
+  });
+
+  Object.keys(map).forEach((id) => {
+    const vendeurObj = vendeurs[id] || {};
+    const rate = getVendorCommissionRate(vendeurObj);
+    map[id].comision = map[id].venta * rate;
+    map[id].resultado = map[id].venta - map[id].comision - map[id].premios;
+    map[id].balanceFinal = map[id].balanceAnterior + map[id].resultado;
+  });
+
+  return Object.values(map);
 }
 
 app.get("/", (req, res) => {
@@ -283,11 +404,9 @@ app.post("/login", (req, res) => {
     return res.send(loginErrorPage("Vandè sa bloke ✖"));
   }
 
-  if (!Array.isArray(vendeur.conexiones)) {
-    vendeur.conexiones = [];
-  }
+  if (!Array.isArray(vendeur.conexiones)) vendeur.conexiones = [];
 
-  const activeConn = vendeur.conexiones.find(c => c && c.st === true);
+  const activeConn = vendeur.conexiones.find((c) => c && c.st === true);
   if (activeConn) {
     return res.send(loginErrorPage("ID sa konekte deja ✖"));
   }
@@ -298,12 +417,134 @@ app.post("/login", (req, res) => {
   if (!vendeur.app) vendeur.app = "2.9.32";
 
   saveVendeursForLogin(vendeurs);
-
   return res.redirect("/dashboard?id=" + encodeURIComponent(id));
 });
 
 app.get("/logout", (req, res) => {
+  const sellerId = String(req.query.id || "").trim().toUpperCase();
+  if (sellerId) {
+    const vendeurs = loadVendeursForLogin();
+    const vendeur = vendeurs[sellerId];
+    if (vendeur && Array.isArray(vendeur.conexiones)) {
+      vendeur.conexiones = vendeur.conexiones.map((c) => ({
+        ...c,
+        co: false,
+        on: false,
+        st: false,
+        last: formatDateTimeFR(new Date())
+      }));
+      vendeur.conexion = "";
+      saveVendeursForLogin(vendeurs);
+    }
+  }
   res.redirect("/");
+});
+
+app.get("/api/vendor/:id/tickets", (req, res) => {
+  const sellerId = String(req.params.id || "").trim().toUpperCase();
+  const tickets = loadTickets()
+    .filter((t) => String(t.vendeur || "").trim().toUpperCase() === sellerId)
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  res.json(tickets);
+});
+
+app.get("/api/ticket/:id", (req, res) => {
+  const id = String(req.params.id || "").trim();
+  const tickets = loadTickets();
+  const ticket = tickets.find((t) => String(t.id) === id);
+  res.json(ticket || {});
+});
+
+app.post("/api/tickets", (req, res) => {
+  const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
+  const sellerName = String(req.body.sellerName || sellerId || "VENDEUR");
+  const jeux = Array.isArray(req.body.jeux) ? req.body.jeux : [];
+  const channel = String(req.body.channel || "MANUEL").trim().toUpperCase();
+
+  if (!sellerId) {
+    return res.status(400).json({ ok: false, message: "sellerId obligatoire" });
+  }
+
+  if (!jeux.length) {
+    return res.status(400).json({ ok: false, message: "Pa gen jwèt" });
+  }
+
+  const safeJeux = jeux.map((j) => ({
+    type: String(j.type || "").trim(),
+    numero: String(j.numero || "").trim(),
+    loterie: String(j.loterie || "").trim(),
+    montant: Number(j.montant || 0)
+  })).filter((j) => j.type && j.numero && j.loterie && j.montant > 0);
+
+  if (!safeJeux.length) {
+    return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
+  }
+
+  const now = new Date();
+  const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
+  const tirages = [...new Set(safeJeux.map((j) => j.loterie))];
+  const ticketId = String(Date.now()).slice(-8) + "-" + Math.floor(1000 + Math.random() * 9000);
+
+  const ticket = {
+    id: ticketId,
+    vendeur: sellerId,
+    vendeurNom: sellerName,
+    createdAt: now.toISOString(),
+    createdAtLabel: formatDateTimeFR(now),
+    dateLabel: formatDateFR(now),
+    timeLabel: formatTimeFR(now),
+    status: "ANATAN",
+    premio: 0,
+    channel,
+    total,
+    tirages,
+    jeux: safeJeux
+  };
+
+  const tickets = loadTickets();
+  tickets.push(ticket);
+  saveTickets(tickets);
+
+  res.json({ ok: true, ticket });
+});
+
+app.post("/api/ticket-status", (req, res) => {
+  const ticketId = String(req.body.id || "").trim();
+  const status = normalizeStatus(req.body.status);
+  const premio = Number(req.body.premio || 0);
+
+  const tickets = loadTickets();
+  const ticket = tickets.find((t) => String(t.id) === ticketId);
+
+  if (!ticket) {
+    return res.status(404).json({ ok: false, message: "Ticket introuvable" });
+  }
+
+  ticket.status = status;
+  ticket.updatedAt = new Date().toISOString();
+  if (status === "GANYE") {
+    ticket.premio = premio > 0 ? premio : Number(ticket.premio || 0);
+  } else if (status !== "GANYE") {
+    ticket.premio = 0;
+  }
+
+  saveTickets(tickets);
+  res.json({ ok: true, ticket });
+});
+
+app.get("/api/master/ventas-summary", (req, res) => {
+  res.json(computeSummaries());
+});
+
+app.get("/api/master/balance-summary", (req, res) => {
+  const summaries = computeSummaries().map((x) => ({
+    vendeur: x.vendeur,
+    nombre: x.nombre,
+    balanceAnterior: x.balanceAnterior,
+    resultado: x.resultado,
+    balanceFinal: x.balanceFinal
+  }));
+  res.json(summaries);
 });
 
 app.get("/dashboard", (req, res) => {
@@ -330,9 +571,7 @@ overflow-y:auto;
 font-family:Arial,sans-serif;
 background:#efeff4;
 }
-body{
-color:#111;
-}
+body{color:#111;}
 .app{
 height:100vh;
 display:flex;
@@ -344,25 +583,27 @@ min-height:60px;
 background:#3452aa;
 color:#fff;
 display:grid;
-grid-template-columns:60px 1fr 110px;
+grid-template-columns:60px 1fr 150px;
 align-items:center;
 }
 .top-left,.top-right{
 display:flex;
 align-items:center;
 justify-content:center;
-gap:14px;
-font-size:28px;
+gap:12px;
+font-size:24px;
 user-select:none;
 }
 .top-title{
 text-align:center;
-font-size:28px;
+font-size:24px;
 font-weight:800;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+padding:0 6px;
 }
-.icon-btn{
-cursor:pointer;
-}
+.icon-btn{cursor:pointer;}
 .main{
 flex:1;
 min-height:0;
@@ -370,6 +611,13 @@ display:flex;
 flex-direction:column;
 overflow:hidden;
 }
+.page{
+flex:1;
+min-height:0;
+display:none;
+flex-direction:column;
+}
+.page.active{display:flex;}
 .tickets-area{
 flex:1;
 min-height:60px;
@@ -387,8 +635,8 @@ font-weight:700;
 }
 .group-title{
 font-size:14px;
-font-weight:600;
-padding:4px 8px;
+font-weight:700;
+padding:6px 8px;
 background:#e6e6f0;
 line-height:1.1;
 }
@@ -398,19 +646,16 @@ grid-template-columns:60px 1fr 80px;
 align-items:center;
 padding:6px 10px;
 font-size:14px;
+background:#fff;
+border-bottom:1px solid #ececec;
 }
-.ticket-row div{
-text-align:center;
-}
+.ticket-row div{text-align:center;}
 .ticket-row div:first-child{
-font-weight:normal;
+font-weight:700;
 text-align:left;
 }
 .ticket-row div:last-child{
 text-align:right;
-}
-.ticket-row + .ticket-row{
-margin-top:2px;
 }
 .summary-bar{
 height:42px;
@@ -550,14 +795,10 @@ justify-content:center;
 font-size:24px;
 color:#000;
 user-select:none;
--webkit-user-select:none;
--webkit-tap-highlight-color:transparent;
 touch-action:manipulation;
 cursor:pointer;
 }
-.key:active{
-background:#e3e3e3;
-}
+.key:active{background:#e3e3e3;}
 .key.enter{
 background:#f7f7f7;
 color:#000;
@@ -575,7 +816,11 @@ align-items:center;
 text-align:center;
 font-size:15px;
 }
-.bottom-nav .active{
+.nav-item{
+cursor:pointer;
+padding:4px 2px;
+}
+.nav-item.active{
 color:#7a6bf2;
 font-weight:700;
 }
@@ -586,9 +831,7 @@ background:rgba(0,0,0,.22);
 z-index:3000;
 display:none;
 }
-.overlay.show{
-display:block;
-}
+.overlay.show{display:block;}
 .drawer{
 position:fixed;
 top:0;
@@ -601,9 +844,7 @@ transition:left .22s ease;
 box-shadow:3px 0 16px rgba(0,0,0,.18);
 overflow:auto;
 }
-.drawer.open{
-left:0;
-}
+.drawer.open{left:0;}
 .drawer-head{
 background:#3452aa;
 color:#fff;
@@ -627,9 +868,7 @@ z-index:3200;
 transition:bottom .22s ease;
 box-shadow:0 -3px 16px rgba(0,0,0,.18);
 }
-.options-sheet.open{
-bottom:0;
-}
+.options-sheet.open{bottom:0;}
 .sheet-item{
 padding:18px;
 border-bottom:1px solid #eee;
@@ -645,9 +884,7 @@ display:none;
 align-items:center;
 justify-content:center;
 }
-.loterie-modal.show{
-display:flex;
-}
+.loterie-modal.show{display:flex;}
 .loterie-box{
 width:92%;
 max-width:460px;
@@ -684,9 +921,7 @@ justify-content:center;
 font-size:28px;
 font-weight:700;
 }
-.loterie-item.selected .loterie-check{
-background:#355af2;
-}
+.loterie-item.selected .loterie-check{background:#355af2;}
 .loterie-name{
 font-size:20px;
 font-weight:800;
@@ -727,13 +962,112 @@ cursor:pointer;
 .btn-clear{background:#5f628b;}
 .btn-ok{background:#1fc7dd;}
 .btn-close{background:#c9c9c9;}
-.hidden-print-form{
-display:none;
+.hidden-print-form{display:none;}
+
+.billets-wrap{
+flex:1;
+overflow:auto;
+padding:10px;
+}
+.billet-card{
+background:#fff;
+border-radius:14px;
+padding:12px;
+margin-bottom:10px;
+box-shadow:0 4px 12px rgba(0,0,0,.05);
+}
+.billet-head{
+display:flex;
+justify-content:space-between;
+gap:10px;
+align-items:flex-start;
+margin-bottom:8px;
+}
+.billet-code{
+font-size:17px;
+font-weight:800;
+color:#222;
+}
+.billet-meta{
+font-size:13px;
+color:#666;
+line-height:1.4;
+}
+.status-badge{
+padding:6px 10px;
+border-radius:999px;
+font-size:12px;
+font-weight:800;
+white-space:nowrap;
+}
+.st-anatan{background:#fff3cd;color:#8a6d00;}
+.st-ganye{background:#d1f7de;color:#157347;}
+.st-pedi{background:#ffe0e0;color:#b42318;}
+.st-anile{background:#ececec;color:#555;}
+.billet-game{
+display:grid;
+grid-template-columns:70px 1fr 70px;
+gap:6px;
+font-size:14px;
+padding:4px 0;
+border-bottom:1px dashed #eee;
+}
+.billet-game:last-child{border-bottom:none;}
+.billet-actions{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:8px;
+margin-top:10px;
+}
+.small-btn{
+border:none;
+border-radius:10px;
+padding:10px 6px;
+font-size:13px;
+font-weight:800;
+cursor:pointer;
+}
+.btn-yellow{background:#fff3cd;color:#8a6d00;}
+.btn-green{background:#d1f7de;color:#157347;}
+.btn-red{background:#ffe0e0;color:#b42318;}
+.btn-gray{background:#ececec;color:#555;}
+.total-line{
+margin-top:8px;
+text-align:right;
+font-size:15px;
+font-weight:800;
+}
+.copy-wrap{
+padding:14px;
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+.copy-input{
+height:52px;
+border:1px solid #d6d6d6;
+border-radius:12px;
+padding:0 14px;
+font-size:18px;
+background:#fff;
+}
+.copy-btn{
+height:52px;
+border:none;
+border-radius:12px;
+background:#3452aa;
+color:#fff;
+font-size:18px;
+font-weight:800;
+cursor:pointer;
+}
+.copy-note{
+font-size:14px;
+color:#666;
+line-height:1.5;
 }
 @media (min-width:900px){
-body{
-background:#dfe3ea;
-}
+body{background:#dfe3ea;}
 .app{
 max-width:500px;
 margin:0 auto;
@@ -761,6 +1095,8 @@ border-right:1px solid #ddd;
 </div>
 
 <div class="main">
+
+<div id="salePage" class="page active">
 <div id="ticketsArea" class="tickets-area">
 <div class="empty-zone">Pas de jeux</div>
 </div>
@@ -805,14 +1141,30 @@ border-right:1px solid #ddd;
 <div class="key" onclick="press('0')" ontouchstart="press('0'); return false;">0</div>
 <div class="key enter" onclick="handleEnter()" ontouchstart="handleEnter(); return false;">ENTER</div>
 </div>
-
-<div class="bottom-nav">
-<div class="active">Billets</div>
-<div>Copier</div>
-<div>Payer</div>
-<div>Rapports</div>
-<div>Menu</div>
 </div>
+
+<div id="billetsPage" class="page">
+<div id="billetsWrap" class="billets-wrap">
+<div class="empty-zone">Pa gen billet</div>
+</div>
+</div>
+
+<div id="copierPage" class="page">
+<div class="copy-wrap">
+<input id="copyTicketId" class="copy-input" placeholder="Mete nimewo seri ticket la">
+<button class="copy-btn" onclick="copyTicketById()">Chèche epi rekopye</button>
+<div class="copy-note">
+Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran an pou rekopye yo.
+</div>
+</div>
+</div>
+
+<div id="payerPage" class="page">
+<div class="empty-zone">Payer ap vini</div>
+</div>
+
+<div id="rapportsPage" class="page">
+<div class="empty-zone">Rapports ap vini</div>
 </div>
 
 <div id="drawer" class="drawer">
@@ -822,7 +1174,7 @@ border-right:1px solid #ddd;
 <div class="drawer-item">Paramètre</div>
 <div class="drawer-item">Imprimante</div>
 <div class="drawer-item">Update</div>
-<div class="drawer-item" onclick="window.location='/logout'">Sortir</div>
+<div class="drawer-item" onclick="window.location='/logout?id=${encodeURIComponent(sellerId)}'">Sortir</div>
 </div>
 
 <div id="optionsSheet" class="options-sheet">
@@ -846,12 +1198,23 @@ border-right:1px solid #ddd;
 </div>
 
 <form id="printForm" class="hidden-print-form" method="POST" action="/print" target="_blank">
-<input type="hidden" name="data" id="printData">
+<input type="hidden" name="ticketId" id="printTicketId">
 <input type="hidden" name="sellerId" value="${sellerId}">
 </form>
+
+<div class="bottom-nav">
+<div id="nav-billets" class="nav-item active" onclick="switchPage('salePage', this)">Billets</div>
+<div id="nav-copier" class="nav-item" onclick="switchPage('copierPage', this)">Copier</div>
+<div id="nav-payer" class="nav-item" onclick="switchPage('payerPage', this)">Payer</div>
+<div id="nav-rapports" class="nav-item" onclick="switchPage('rapportsPage', this)">Rapports</div>
+<div id="nav-menu" class="nav-item" onclick="toggleDrawer()">Menu</div>
+</div>
 </div>
 
 <script>
+var sellerId = ${JSON.stringify(sellerId)};
+var sellerName = ${JSON.stringify(sellerName)};
+
 var activeField = "numero";
 var numero = "";
 var montant = "";
@@ -861,6 +1224,8 @@ var cursorNumero = 0;
 var cursorMontant = 0;
 var pendingChoiceNumber = "";
 var tempChoices = [];
+var savedTickets = [];
+var currentPageName = "salePage";
 
 var loteries = [
 { name: "LA PRIMERA DIA", sub: "20 minutes", time: "11:55 AM" },
@@ -899,25 +1264,21 @@ function getCursorValue(field){
 }
 
 function setCursorValue(field, value){
- if(field === "numero"){
- cursorNumero = value;
- }else{
- cursorMontant = value;
- }
+ if(field === "numero") cursorNumero = value;
+ else cursorMontant = value;
 }
 
 function tapField(event, field){
  activeField = field;
-
  var el = document.getElementById(field === "numero" ? "numeroLine" : "montantLine");
  var value = getFieldValue(field);
  var rect = el.getBoundingClientRect();
  var clickX = event.clientX;
 
  if(!value.length){
- setCursorValue(field, 0);
- updateFields();
- return;
+   setCursorValue(field, 0);
+   updateFields();
+   return;
  }
 
  var textWidth = measureTextWidth(value, el);
@@ -927,14 +1288,14 @@ function tapField(event, field){
  var bestDistance = Infinity;
 
  for(var i = 0; i <= value.length; i++){
- var part = value.slice(0, i);
- var x = startX + measureTextWidth(part, el);
- var dist = Math.abs(clickX - x);
+   var part = value.slice(0, i);
+   var x = startX + measureTextWidth(part, el);
+   var dist = Math.abs(clickX - x);
 
- if(dist < bestDistance){
- bestDistance = dist;
- bestIndex = i;
- }
+   if(dist < bestDistance){
+     bestDistance = dist;
+     bestIndex = i;
+   }
  }
 
  setCursorValue(field, bestIndex);
@@ -946,8 +1307,8 @@ function moveCaret(){
  var fieldsWrap = document.querySelector(".fields");
 
  if(activeField === "loterie"){
- caret.style.display = "none";
- return;
+   caret.style.display = "none";
+   return;
  }
 
  var fieldEl = document.getElementById(activeField === "numero" ? "numeroLine" : "montantLine");
@@ -990,18 +1351,18 @@ function updateFields(){
  var lineLeft = "1%";
 
  if(activeField === "numero"){
- numeroLine.classList.add("active");
- lineLeft = "1%";
+   numeroLine.classList.add("active");
+   lineLeft = "1%";
  }
 
  if(activeField === "loterie"){
- loterieLine.classList.add("active");
- lineLeft = "34.5%";
+   loterieLine.classList.add("active");
+   lineLeft = "34.5%";
  }
 
  if(activeField === "montant"){
- montantLine.classList.add("active");
- lineLeft = "68%";
+   montantLine.classList.add("active");
+   lineLeft = "68%";
  }
 
  activeLine.style.left = lineLeft;
@@ -1011,18 +1372,13 @@ function updateFields(){
 function setField(field){
  activeField = field;
 
- if(field === "numero"){
- cursorNumero = numero.length;
- }
-
- if(field === "montant"){
- cursorMontant = montant.length;
- }
+ if(field === "numero") cursorNumero = numero.length;
+ if(field === "montant") cursorMontant = montant.length;
 
  updateFields();
 
  if(field === "loterie"){
- openLoterieModal();
+   openLoterieModal();
  }
 }
 
@@ -1033,29 +1389,27 @@ function showChoicePanel(options){
  list.innerHTML = "";
 
  options.forEach(function(opt){
- var div = document.createElement("div");
- div.className = "choice-chip";
- div.textContent = opt;
- div.onclick = function(){
- if(tempChoices.indexOf(opt) >= 0){
- tempChoices = tempChoices.filter(function(x){ return x !== opt; });
- div.classList.remove("active");
- }else{
- tempChoices.push(opt);
- div.classList.add("active");
- }
- };
- list.appendChild(div);
+   var div = document.createElement("div");
+   div.className = "choice-chip";
+   div.textContent = opt;
+   div.onclick = function(){
+     if(tempChoices.indexOf(opt) >= 0){
+       tempChoices = tempChoices.filter(function(x){ return x !== opt; });
+       div.classList.remove("active");
+     }else{
+       tempChoices.push(opt);
+       div.classList.add("active");
+     }
+   };
+   list.appendChild(div);
  });
 
  panel.style.display = "block";
- document.querySelector(".key.enter").classList.add("option-mode");
 }
 
 function hideChoicePanel(){
  document.getElementById("choicePanel").style.display = "none";
  document.getElementById("choiceList").innerHTML = "";
- document.querySelector(".key.enter").classList.remove("option-mode");
  tempChoices = [];
 }
 
@@ -1063,44 +1417,44 @@ function press(val){
  val = String(val);
 
  if(activeField === "numero"){
- if(val === "+"){
- if(numero.length === 4){
- pendingChoiceNumber = numero;
- showChoicePanel(["L1","L2","L3"]);
- return;
- }
+   if(val === "+"){
+     if(numero.length === 4){
+       pendingChoiceNumber = numero;
+       showChoicePanel(["L1","L2","L3"]);
+       return;
+     }
 
- if(numero.length === 5){
- pendingChoiceNumber = numero;
- showChoicePanel(["L1","L2","L3"]);
- return;
- }
+     if(numero.length === 5){
+       pendingChoiceNumber = numero;
+       showChoicePanel(["L1","L2","L3"]);
+       return;
+     }
 
- return;
- }
+     return;
+   }
 
- if(val === "/"){
- if(/^\\d{2}$/.test(numero) || /^\\d{4}$/.test(numero)){
- numero = numero + "/";
- cursorNumero = numero.length;
- activeField = "montant";
- cursorMontant = montant.length;
- updateFields();
- return;
- }
- return;
- }
+   if(val === "/"){
+     if(/^\\d{2}$/.test(numero) || /^\\d{4}$/.test(numero)){
+       numero = numero + "/";
+       cursorNumero = numero.length;
+       activeField = "montant";
+       cursorMontant = montant.length;
+       updateFields();
+       return;
+     }
+     return;
+   }
 
- if(!/[0-9]/.test(val)) return;
- if(numero.indexOf("/") >= 0) return;
- if(numero.length >= 5) return;
+   if(!/[0-9]/.test(val)) return;
+   if(numero.indexOf("/") >= 0) return;
+   if(numero.length >= 5) return;
 
- numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
- cursorNumero += val.length;
+   numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
+   cursorNumero += val.length;
  }else if(activeField === "montant"){
- if(!/[0-9.]/.test(val)) return;
- montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
- cursorMontant += val.length;
+   if(!/[0-9.]/.test(val)) return;
+   montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
+   cursorMontant += val.length;
  }
 
  updateFields();
@@ -1108,52 +1462,52 @@ function press(val){
 
 function backspaceKey(){
  if(activeField === "numero"){
- if(cursorNumero > 0){
- numero = numero.slice(0, cursorNumero - 1) + numero.slice(cursorNumero);
- cursorNumero--;
- }
+   if(cursorNumero > 0){
+     numero = numero.slice(0, cursorNumero - 1) + numero.slice(cursorNumero);
+     cursorNumero--;
+   }
  }else if(activeField === "montant"){
- if(cursorMontant > 0){
- montant = montant.slice(0, cursorMontant - 1) + montant.slice(cursorMontant);
- cursorMontant--;
- }
+   if(cursorMontant > 0){
+     montant = montant.slice(0, cursorMontant - 1) + montant.slice(cursorMontant);
+     cursorMontant--;
+   }
  }
 
  updateFields();
 }
 
 function handleEnter(){
- if (document.getElementById("choicePanel").style.display === "block") {
- if(tempChoices.length === 0){
- alert("Chwazi omwen youn");
- return;
- }
- numero = pendingChoiceNumber + "+" + tempChoices.join(",");
- cursorNumero = numero.length;
- hideChoicePanel();
- activeField = "montant";
- cursorMontant = montant.length;
- updateFields();
- return;
- }
-
- if (activeField === "numero") {
- if (!numero.trim()) return;
- activeField = "loterie";
- updateFields();
- openLoterieModal();
- return;
+ if(document.getElementById("choicePanel").style.display === "block"){
+   if(tempChoices.length === 0){
+     alert("Chwazi omwen youn");
+     return;
+   }
+   numero = pendingChoiceNumber + "+" + tempChoices.join(",");
+   cursorNumero = numero.length;
+   hideChoicePanel();
+   activeField = "montant";
+   cursorMontant = montant.length;
+   updateFields();
+   return;
  }
 
- if (activeField === "loterie") {
- validateLoteries();
- return;
+ if(activeField === "numero"){
+   if(!numero.trim()) return;
+   activeField = "loterie";
+   updateFields();
+   openLoterieModal();
+   return;
  }
 
- if (activeField === "montant") {
- if (!montant.trim()) return;
- addGame();
- return;
+ if(activeField === "loterie"){
+   validateLoteries();
+   return;
+ }
+
+ if(activeField === "montant"){
+   if(!montant.trim()) return;
+   addGame();
+   return;
  }
 }
 
@@ -1181,10 +1535,10 @@ function validateLoteries(){
  document.getElementById("overlay").classList.remove("show");
 
  if(selectedLoteries.length === 0){
- activeField = "loterie";
- updateFields();
- openLoterieModal();
- return;
+   activeField = "loterie";
+   updateFields();
+   openLoterieModal();
+   return;
  }
 
  activeField = "montant";
@@ -1195,11 +1549,8 @@ function validateLoteries(){
 function toggleLoterie(name){
  var idx = selectedLoteries.indexOf(name);
 
- if (idx >= 0) {
- selectedLoteries.splice(idx, 1);
- } else {
- selectedLoteries.push(name);
- }
+ if(idx >= 0) selectedLoteries.splice(idx, 1);
+ else selectedLoteries.push(name);
 
  renderLoterieList();
  updateFields();
@@ -1210,29 +1561,29 @@ function renderLoterieList(){
  list.innerHTML = "";
 
  loteries.forEach(function(item){
- var row = document.createElement("div");
- row.className = "loterie-item" + (selectedLoteries.indexOf(item.name) >= 0 ? " selected" : "");
- row.onclick = function(){
- toggleLoterie(item.name);
- };
+   var row = document.createElement("div");
+   row.className = "loterie-item" + (selectedLoteries.indexOf(item.name) >= 0 ? " selected" : "");
+   row.onclick = function(){
+     toggleLoterie(item.name);
+   };
 
- var left = document.createElement("div");
- left.className = "loterie-check";
- left.textContent = selectedLoteries.indexOf(item.name) >= 0 ? "✓" : "";
+   var left = document.createElement("div");
+   left.className = "loterie-check";
+   left.textContent = selectedLoteries.indexOf(item.name) >= 0 ? "✓" : "";
 
- var center = document.createElement("div");
- center.innerHTML =
- '<div class="loterie-name">' + item.name + '</div>' +
- '<div class="loterie-sub">' + item.sub + '</div>';
+   var center = document.createElement("div");
+   center.innerHTML =
+     '<div class="loterie-name">' + item.name + '</div>' +
+     '<div class="loterie-sub">' + item.sub + '</div>';
 
- var right = document.createElement("div");
- right.className = "loterie-time";
- right.textContent = item.time;
+   var right = document.createElement("div");
+   right.className = "loterie-time";
+   right.textContent = item.time;
 
- row.appendChild(left);
- row.appendChild(center);
- row.appendChild(right);
- list.appendChild(row);
+   row.appendChild(left);
+   row.appendChild(center);
+   row.appendChild(right);
+   list.appendChild(row);
  });
 }
 
@@ -1244,10 +1595,10 @@ function uniqueStrings(arr){
  var out = [];
  var seen = {};
  arr.forEach(function(x){
- if(!seen[x]){
- seen[x] = true;
- out.push(x);
- }
+   if(!seen[x]){
+     seen[x] = true;
+     out.push(x);
+   }
  });
  return out;
 }
@@ -1256,31 +1607,31 @@ function buildSlashMarriageEntries(num){
  var raw = num.slice(0, -1);
 
  if(/^\\d{2}$/.test(raw)){
- var a2 = raw;
- var ar2 = reverse2(a2);
+   var a2 = raw;
+   var ar2 = reverse2(a2);
 
- return uniqueStrings([a2, ar2]).map(function(x){
- return { type: "BOR", numero: x };
- });
+   return uniqueStrings([a2, ar2]).map(function(x){
+     return { type: "BOR", numero: x };
+   });
  }
 
  if(/^\\d{4}$/.test(raw)){
- var a = raw.slice(0,2);
- var b = raw.slice(2,4);
- var ar = reverse2(a);
- var br = reverse2(b);
+   var a = raw.slice(0,2);
+   var b = raw.slice(2,4);
+   var ar = reverse2(a);
+   var br = reverse2(b);
 
- return uniqueStrings([
- a + "*" + b,
- a + "*" + br,
- ar + "*" + b,
- ar + "*" + br
- ]).map(function(x){
- var parts = x.split("*");
- if(parts[0] === parts[1]) return null;
- if(parts[0] === reverse2(parts[1])) return null;
- return { type: "MAR", numero: x };
- }).filter(Boolean);
+   return uniqueStrings([
+     a + "*" + b,
+     a + "*" + br,
+     ar + "*" + b,
+     ar + "*" + br
+   ]).map(function(x){
+     var parts = x.split("*");
+     if(parts[0] === parts[1]) return null;
+     if(parts[0] === reverse2(parts[1])) return null;
+     return { type: "MAR", numero: x };
+   }).filter(Boolean);
  }
 
  return null;
@@ -1289,40 +1640,40 @@ function buildSlashMarriageEntries(num){
 function buildGameEntries(num){
  num = num.trim();
 
- if (/^\\d{2}$/.test(num)) {
- return [{ type: "BOR", numero: num }];
+ if(/^\\d{2}$/.test(num)){
+   return [{ type: "BOR", numero: num }];
  }
 
- if (/^\\d{2}\\/$/.test(num)) {
- return buildSlashMarriageEntries(num);
+ if(/^\\d{2}\\/$/.test(num)){
+   return buildSlashMarriageEntries(num);
  }
 
- if (/^\\d{3}$/.test(num)) {
- return [{ type: "L3", numero: num }];
+ if(/^\\d{3}$/.test(num)){
+   return [{ type: "L3", numero: num }];
  }
 
- if (/^\\d{4}$/.test(num)) {
- return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
+ if(/^\\d{4}$/.test(num)){
+   return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
  }
 
- if (/^\\d{4}\\/$/.test(num)) {
- return buildSlashMarriageEntries(num);
+ if(/^\\d{4}\\/$/.test(num)){
+   return buildSlashMarriageEntries(num);
  }
 
- if (/^\\d{4}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
- var raw4 = num.split("+")[0];
- var types4 = uniqueStrings(num.split("+")[1].split(","));
- return types4.map(function(t){
- return { type: t, numero: raw4 };
- });
+ if(/^\\d{4}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
+   var raw4 = num.split("+")[0];
+   var types4 = uniqueStrings(num.split("+")[1].split(","));
+   return types4.map(function(t){
+     return { type: t, numero: raw4 };
+   });
  }
 
- if (/^\\d{5}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
- var raw5 = num.split("+")[0];
- var types5 = uniqueStrings(num.split("+")[1].split(","));
- return types5.map(function(t){
- return { type: t, numero: raw5 };
- });
+ if(/^\\d{5}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
+   var raw5 = num.split("+")[0];
+   var types5 = uniqueStrings(num.split("+")[1].split(","));
+   return types5.map(function(t){
+     return { type: t, numero: raw5 };
+   });
  }
 
  return null;
@@ -1330,13 +1681,13 @@ function buildGameEntries(num){
 
 function mergeOrPushGame(entry){
  var found = jeux.find(function(j){
- return j.type === entry.type && j.numero === entry.numero && j.loterie === entry.loterie;
+   return j.type === entry.type && j.numero === entry.numero && j.loterie === entry.loterie;
  });
 
  if(found){
- found.montant = Number(found.montant) + Number(entry.montant);
+   found.montant = Number(found.montant) + Number(entry.montant);
  }else{
- jeux.push(entry);
+   jeux.push(entry);
  }
 }
 
@@ -1344,9 +1695,9 @@ function getAutoSourceBalls(){
  var counts = {};
 
  jeux.forEach(function(j){
- if(j.type === "BOR" && /^\\d{2}$/.test(j.numero)){
- counts[j.numero] = (counts[j.numero] || 0) + 1;
- }
+   if(j.type === "BOR" && /^\\d{2}$/.test(j.numero)){
+     counts[j.numero] = (counts[j.numero] || 0) + 1;
+   }
  });
 
  return counts;
@@ -1357,54 +1708,54 @@ function autoMarriage(){
  var nums = Object.keys(counts);
 
  if(nums.length === 0){
- alert("Pa gen boul 2 chif pou maryaj otomatik");
- return;
+   alert("Pa gen boul 2 chif pou maryaj otomatik");
+   return;
  }
  if(selectedLoteries.length === 0){
- alert("Chwazi omwen yon loterie");
- return;
+   alert("Chwazi omwen yon loterie");
+   return;
  }
  if(!montant.trim()){
- alert("Mete montan an");
- return;
+   alert("Mete montan an");
+   return;
  }
 
  var results = {};
 
  for(var i=0;i<nums.length;i++){
- for(var j=i+1;j<nums.length;j++){
- var a = nums[i];
- var b = nums[j];
- var ar = reverse2(a);
- var br = reverse2(b);
+   for(var j=i+1;j<nums.length;j++){
+     var a = nums[i];
+     var b = nums[j];
+     var ar = reverse2(a);
+     var br = reverse2(b);
 
- if(a === b) continue;
- if(a === br) continue;
- if(ar === b) continue;
+     if(a === b) continue;
+     if(a === br) continue;
+     if(ar === b) continue;
 
- [
- a + "*" + b,
- a + "*" + br,
- ar + "*" + b,
- ar + "*" + br
- ].forEach(function(m){
- var parts = m.split("*");
- if(parts[0] !== parts[1] && parts[0] !== reverse2(parts[1])){
- results[m] = true;
- }
- });
- }
+     [
+       a + "*" + b,
+       a + "*" + br,
+       ar + "*" + b,
+       ar + "*" + br
+     ].forEach(function(m){
+       var parts = m.split("*");
+       if(parts[0] !== parts[1] && parts[0] !== reverse2(parts[1])){
+         results[m] = true;
+       }
+     });
+   }
  }
 
  Object.keys(results).forEach(function(numeroAuto){
- selectedLoteries.forEach(function(lot){
- mergeOrPushGame({
- type: "MAR",
- numero: numeroAuto,
- loterie: lot,
- montant: parseFloat(montant) || 0
- });
- });
+   selectedLoteries.forEach(function(lot){
+     mergeOrPushGame({
+       type: "MAR",
+       numero: numeroAuto,
+       loterie: lot,
+       montant: parseFloat(montant) || 0
+     });
+   });
  });
 
  closeOptions();
@@ -1418,60 +1769,60 @@ function autoLoto4(){
  var nums = Object.keys(counts);
 
  if(nums.length === 0){
- alert("Pa gen boul 2 chif pou loto otomatik");
- return;
+   alert("Pa gen boul 2 chif pou loto otomatik");
+   return;
  }
  if(selectedLoteries.length === 0){
- alert("Chwazi omwen yon loterie");
- return;
+   alert("Chwazi omwen yon loterie");
+   return;
  }
  if(!montant.trim()){
- alert("Mete montan an");
- return;
+   alert("Mete montan an");
+   return;
  }
 
  var results = {};
 
  for(var i=0;i<nums.length;i++){
- for(var j=i+1;j<nums.length;j++){
- var a = nums[i];
- var b = nums[j];
- var ar = reverse2(a);
- var br = reverse2(b);
+   for(var j=i+1;j<nums.length;j++){
+     var a = nums[i];
+     var b = nums[j];
+     var ar = reverse2(a);
+     var br = reverse2(b);
 
- if(a === b) continue;
- if(a === br) continue;
- if(ar === b) continue;
+     if(a === b) continue;
+     if(a === br) continue;
+     if(ar === b) continue;
 
- [
- a + b,
- a + br,
- ar + b,
- ar + br,
- b + a,
- b + ar,
- br + a,
- br + ar
- ].forEach(function(l4){
- var left = l4.slice(0,2);
- var right = l4.slice(2,4);
+     [
+       a + b,
+       a + br,
+       ar + b,
+       ar + br,
+       b + a,
+       b + ar,
+       br + a,
+       br + ar
+     ].forEach(function(l4){
+       var left = l4.slice(0,2);
+       var right = l4.slice(2,4);
 
- if(left !== right && left !== reverse2(right)){
- results[l4] = true;
- }
- });
- }
+       if(left !== right && left !== reverse2(right)){
+         results[l4] = true;
+       }
+     });
+   }
  }
 
  Object.keys(results).forEach(function(numeroAuto){
- selectedLoteries.forEach(function(lot){
- mergeOrPushGame({
- type: "L4",
- numero: numeroAuto,
- loterie: lot,
- montant: parseFloat(montant) || 0
- });
- });
+   selectedLoteries.forEach(function(lot){
+     mergeOrPushGame({
+       type: "L4",
+       numero: numeroAuto,
+       loterie: lot,
+       montant: parseFloat(montant) || 0
+     });
+   });
  });
 
  closeOptions();
@@ -1481,32 +1832,30 @@ function autoLoto4(){
 }
 
 function addGame(){
- if (!numero.trim()) return;
- if (!montant.trim()) return;
- if (selectedLoteries.length === 0) return;
+ if(!numero.trim()) return;
+ if(!montant.trim()) return;
+ if(selectedLoteries.length === 0) return;
 
  var entries = buildGameEntries(numero);
 
- if (!entries) {
- alert("Jeu pa valid");
- return;
+ if(!entries){
+   alert("Jeu pa valid");
+   return;
  }
 
  selectedLoteries.forEach(function(lot){
- entries.forEach(function(entry){
- mergeOrPushGame({
- type: entry.type,
- numero: entry.numero,
- loterie: lot,
- montant: parseFloat(montant) || 0
- });
- });
+   entries.forEach(function(entry){
+     mergeOrPushGame({
+       type: entry.type,
+       numero: entry.numero,
+       loterie: lot,
+       montant: parseFloat(montant) || 0
+     });
+   });
  });
 
  numero = "";
- montant = "";
  cursorNumero = 0;
- cursorMontant = 0;
  activeField = "numero";
 
  renderJeux();
@@ -1516,95 +1865,140 @@ function addGame(){
 function renderJeux(){
  var area = document.getElementById("ticketsArea");
 
- if (jeux.length === 0) {
- area.innerHTML = '<div class="empty-zone">Pas de jeux</div>';
- document.getElementById("ticketCount").textContent = "0";
- document.getElementById("ticketTotal").textContent = "0.00";
- return;
+ if(jeux.length === 0){
+   area.innerHTML = '<div class="empty-zone">Pas de jeux</div>';
+   document.getElementById("ticketCount").textContent = "0";
+   document.getElementById("ticketTotal").textContent = "0.00";
+   return;
  }
 
  var grouped = {};
  var total = 0;
 
  jeux.forEach(function(j){
- if (!grouped[j.loterie]) grouped[j.loterie] = [];
- grouped[j.loterie].push(j);
- total += Number(j.montant) || 0;
+   if(!grouped[j.loterie]) grouped[j.loterie] = [];
+   grouped[j.loterie].push(j);
+   total += Number(j.montant) || 0;
  });
 
  area.innerHTML = "";
 
  Object.keys(grouped).forEach(function(name){
- var title = document.createElement("div");
- title.className = "group-title";
- title.textContent = name;
- area.appendChild(title);
+   var title = document.createElement("div");
+   title.className = "group-title";
+   title.textContent = name;
+   area.appendChild(title);
 
- grouped[name].forEach(function(j){
- var row = document.createElement("div");
- row.className = "ticket-row";
- row.innerHTML =
- '<div>' + j.type + '</div>' +
- '<div>' + j.numero + '</div>' +
- '<div>' + Number(j.montant).toFixed(2) + '</div>';
+   grouped[name].forEach(function(j){
+     var row = document.createElement("div");
+     row.className = "ticket-row";
+     row.innerHTML =
+       '<div>' + j.type + '</div>' +
+       '<div>' + j.numero + '</div>' +
+       '<div>' + Number(j.montant).toFixed(2) + '</div>';
 
- row.onclick = function(){
- if (confirm("Supprimer ?")) {
- var idx = jeux.indexOf(j);
- if (idx >= 0) {
- jeux.splice(idx, 1);
- renderJeux();
- }
- }
- };
+     row.onclick = function(){
+       if(confirm("Supprimer ?")){
+         var idx = jeux.indexOf(j);
+         if(idx >= 0){
+           jeux.splice(idx, 1);
+           renderJeux();
+         }
+       }
+     };
 
- area.appendChild(row);
- });
+     area.appendChild(row);
+   });
  });
 
  document.getElementById("ticketCount").textContent = String(jeux.length);
  document.getElementById("ticketTotal").textContent = total.toFixed(2);
 }
 
-function buildPrintText(){
- if (jeux.length === 0) return "";
+function buildPayloadGames(){
+ return jeux.map(function(j){
+   return {
+     type: j.type,
+     numero: j.numero,
+     loterie: j.loterie,
+     montant: Number(j.montant || 0)
+   };
+ });
+}
 
- var total = 0;
+function buildPrintableTextFromTicket(ticket){
+ if(!ticket || !Array.isArray(ticket.jeux)) return "";
+
  var lines = [];
 
- jeux.forEach(function(j){
- total += Number(j.montant) || 0;
- lines.push(j.type + " " + j.numero + " " + j.montant + " - " + j.loterie);
+ ticket.jeux.forEach(function(j){
+   lines.push(j.type + " " + j.numero + " " + Number(j.montant).toFixed(2) + " - " + j.loterie);
  });
-
- lines.push("------------------------------");
- lines.push("TOTAL: " + total.toFixed(2) + " G");
- lines.push("");
- lines.push("Bon chans");
 
  return lines.join("\\n");
 }
 
-function submitPrint(){
- var text = buildPrintText();
- if (!text) {
- alert("Pa gen jwèt pou enprime.");
- return;
+function resetAfterSend(){
+ jeux = [];
+ numero = "";
+ cursorNumero = 0;
+ activeField = "numero";
+ renderJeux();
+ updateFields();
+}
+
+function saveCurrentTicket(channel){
+ if(jeux.length === 0){
+   alert("Pa gen jwèt pou voye.");
+   return Promise.resolve(null);
  }
 
- document.getElementById("printData").value = text;
- document.getElementById("printForm").submit();
+ return fetch("/api/tickets", {
+   method: "POST",
+   headers: { "Content-Type": "application/json" },
+   body: JSON.stringify({
+     sellerId: sellerId,
+     sellerName: sellerName,
+     jeux: buildPayloadGames(),
+     channel: channel || "MANUEL"
+   })
+ }).then(function(res){
+   return res.json();
+ }).then(function(data){
+   if(!data.ok){
+     alert(data.message || "Erreur save ticket");
+     return null;
+   }
+   return data.ticket;
+ }).catch(function(){
+   alert("Erreur save ticket");
+   return null;
+ });
+}
+
+function submitPrint(){
+ saveCurrentTicket("PRINT").then(function(ticket){
+   if(!ticket) return;
+
+   document.getElementById("printTicketId").value = ticket.id;
+   document.getElementById("printForm").submit();
+
+   loadBillets();
+   resetAfterSend();
+ });
 }
 
 function shareWhatsApp(){
- var text = buildPrintText();
- if (!text) {
- alert("Pa gen jwèt pou voye.");
- return;
- }
+ saveCurrentTicket("WHATSAPP").then(function(ticket){
+   if(!ticket) return;
 
- var url = "https://wa.me/?text=" + encodeURIComponent(text);
- window.open(url, "_blank");
+   var text = buildPrintableTextFromTicket(ticket);
+   var url = "https://wa.me/?text=" + encodeURIComponent(text);
+   window.open(url, "_blank");
+
+   loadBillets();
+   resetAfterSend();
+ });
 }
 
 function toggleDrawer(){
@@ -1636,8 +2030,184 @@ function deleteAllGames(){
  updateFields();
 }
 
+function switchPage(pageId, el){
+ currentPageName = pageId;
+
+ document.querySelectorAll(".page").forEach(function(p){
+   p.classList.remove("active");
+ });
+
+ document.getElementById(pageId).classList.add("active");
+
+ document.querySelectorAll(".nav-item").forEach(function(n){
+   n.classList.remove("active");
+ });
+
+ if(el) el.classList.add("active");
+
+ if(pageId === "billetsPage"){
+   loadBillets();
+ }
+}
+
+function statusClass(status){
+ var s = String(status || "").toUpperCase();
+ if(s === "GANYE") return "st-ganye";
+ if(s === "PEDI") return "st-pedi";
+ if(s === "ANILE") return "st-anile";
+ return "st-anatan";
+}
+
+function statusLabel(status){
+ var s = String(status || "").toUpperCase();
+ if(s === "GANYE") return "GANYE";
+ if(s === "PEDI") return "PEDI";
+ if(s === "ANILE") return "ANILE";
+ return "AN ATAN";
+}
+
+function loadBillets(){
+ fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
+   .then(function(res){ return res.json(); })
+   .then(function(rows){
+     savedTickets = Array.isArray(rows) ? rows : [];
+     renderBillets();
+   })
+   .catch(function(){
+     savedTickets = [];
+     renderBillets();
+   });
+}
+
+function renderBillets(){
+ var wrap = document.getElementById("billetsWrap");
+
+ if(!savedTickets.length){
+   wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
+   return;
+ }
+
+ wrap.innerHTML = "";
+
+ savedTickets.forEach(function(t){
+   var card = document.createElement("div");
+   card.className = "billet-card";
+
+   var premioTxt = Number(t.premio || 0) > 0 ? ('<div class="billet-meta">Premio: ' + Number(t.premio || 0).toFixed(2) + '</div>') : '';
+
+   card.innerHTML =
+     '<div class="billet-head">' +
+       '<div>' +
+         '<div class="billet-code">#' + t.id + '</div>' +
+         '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
+         '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
+         premioTxt +
+       '</div>' +
+       '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
+     '</div>';
+
+   if(Array.isArray(t.jeux)){
+     t.jeux.forEach(function(j){
+       var row = document.createElement("div");
+       row.className = "billet-game";
+       row.innerHTML =
+         '<div>' + j.type + '</div>' +
+         '<div>' + j.numero + ' - ' + j.loterie + '</div>' +
+         '<div style="text-align:right">' + Number(j.montant || 0).toFixed(2) + '</div>';
+       card.appendChild(row);
+     });
+   }
+
+   var actions = document.createElement("div");
+   actions.className = "billet-actions";
+   actions.innerHTML =
+     '<button class="small-btn btn-yellow">AN ATAN</button>' +
+     '<button class="small-btn btn-green">GANYE</button>' +
+     '<button class="small-btn btn-red">PEDI</button>' +
+     '<button class="small-btn btn-gray">ANILE</button>';
+
+   var btns = actions.querySelectorAll("button");
+
+   btns[0].onclick = function(){ updateTicketStatus(t.id, "ANATAN"); };
+   btns[1].onclick = function(){
+     var premio = prompt("Konbyen ticket sa genyen?", Number(t.premio || t.total || 0));
+     if(premio === null) return;
+     updateTicketStatus(t.id, "GANYE", premio);
+   };
+   btns[2].onclick = function(){ updateTicketStatus(t.id, "PEDI"); };
+   btns[3].onclick = function(){ updateTicketStatus(t.id, "ANILE"); };
+
+   card.appendChild(actions);
+   wrap.appendChild(card);
+ });
+}
+
+function updateTicketStatus(id, status, premio){
+ fetch("/api/ticket-status", {
+   method: "POST",
+   headers: { "Content-Type": "application/json" },
+   body: JSON.stringify({
+     id: id,
+     status: status,
+     premio: premio || 0
+   })
+ }).then(function(res){
+   return res.json();
+ }).then(function(){
+   loadBillets();
+ }).catch(function(){
+   alert("Erreur mise à jour status");
+ });
+}
+
+function copyTicketById(){
+ var id = document.getElementById("copyTicketId").value.trim();
+ if(!id){
+   alert("Mete nimewo seri a");
+   return;
+ }
+
+ fetch("/api/ticket/" + encodeURIComponent(id))
+   .then(function(res){ return res.json(); })
+   .then(function(ticket){
+     if(!ticket || !ticket.id){
+       alert("Ticket pa jwenn");
+       return;
+     }
+
+     jeux = [];
+     selectedLoteries = [];
+     numero = "";
+     cursorNumero = 0;
+     activeField = "numero";
+
+     if(Array.isArray(ticket.jeux)){
+       ticket.jeux.forEach(function(j){
+         jeux.push({
+           type: j.type,
+           numero: j.numero,
+           loterie: j.loterie,
+           montant: Number(j.montant || 0)
+         });
+
+         if(selectedLoteries.indexOf(j.loterie) < 0){
+           selectedLoteries.push(j.loterie);
+         }
+       });
+     }
+
+     renderJeux();
+     updateFields();
+     switchPage("salePage", document.getElementById("nav-billets"));
+   })
+   .catch(function(){
+     alert("Erreur lecture ticket");
+   });
+}
+
 renderJeux();
 updateFields();
+loadBillets();
 </script>
 </body>
 </html>
@@ -1645,53 +2215,38 @@ updateFields();
 });
 
 app.post("/print", (req, res) => {
-  const raw = String(req.body.data || "");
+  const ticketId = String(req.body.ticketId || "").trim();
   const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
+
+  const tickets = loadTickets();
+  const ticket = tickets.find((t) => String(t.id) === ticketId);
+
+  if(!ticket){
+    return res.status(404).send("Ticket introuvable");
+  }
+
   const vendeurs = loadVendeursForLogin();
   const vendeur = vendeurs[sellerId] || {};
-  const sellerName = sellerId || vendeur.nom || vendeur.nombre || "SELLER";
+  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
 
-  const lines = raw
-    .split("\n")
-    .map(x => x.trim())
-    .filter(x => x.length > 0);
+  const total = Number(ticket.total || 0);
+  const tirages = Array.isArray(ticket.tirages) ? ticket.tirages.join(" / ") : "";
 
-  let total = 0;
-  const tiragesSet = new Set();
-  const gameLines = [];
-
-  lines.forEach(line => {
-    const m = line.match(/^([A-Z0-9]+)\s+(.+?)\s+([0-9]+(?:\.[0-9]+)?)\s*-\s*(.+)$/i);
-    if (!m) return;
-
-    let type = (m[1] || "").toUpperCase();
-    const numero = (m[2] || "").trim();
-    const amount = parseFloat(m[3]);
-    const loterie = (m[4] || "").trim();
-
-    if (Number.isNaN(amount)) return;
-
-    total += amount;
-    if (loterie) tiragesSet.add(loterie);
-
-    if (type === "BOR") type = "Borlette";
-
-    const typeTxt = String(type).padEnd(9, " ");
-    const numTxt = String(numero).padEnd(6, " ");
-    const amtTxt = amount.toFixed(2).padStart(6, " ");
-
-    gameLines.push(`${typeTxt} ${numTxt} ${amtTxt} G`);
-  });
-
-  const now = new Date();
+  const now = new Date(ticket.createdAt || Date.now());
   const dateStr = now.toLocaleDateString("fr-FR");
   const timeStr = now.toLocaleTimeString("fr-FR", {
     hour: "2-digit",
     minute: "2-digit"
   });
 
-  const ticketCode = String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
-  const tirages = Array.from(tiragesSet).join(" / ");
+  const gameLines = (ticket.jeux || []).map(function(j){
+    let type = String(j.type || "").toUpperCase();
+    if(type === "BOR") type = "Borlette";
+    const typeTxt = type.padEnd(9, " ");
+    const numTxt = String(j.numero || "").padEnd(6, " ");
+    const amtTxt = Number(j.montant || 0).toFixed(2).padStart(6, " ");
+    return typeTxt + " " + numTxt + " " + amtTxt + " G";
+  });
 
   res.set("Content-Type", "text/html; charset=utf-8");
   res.send(`
@@ -1751,12 +2306,12 @@ body{
 <div class="title">NUMBER ONE LOTO</div>
 
 <pre class="meta">SELLER ${sellerName}
-TICKET ${ticketCode}
+TICKET ${ticket.id}
 DATE ${dateStr} ${timeStr}
 TIRAGES ${tirages}
 --------------------------------</pre>
 
-<pre class="games">${gameLines.join("\n")}</pre>
+<pre class="games">${gameLines.join("\\n")}</pre>
 
 <pre class="meta">--------------------------------
 TOTAL: ${total.toFixed(2)} G</pre>

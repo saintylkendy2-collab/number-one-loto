@@ -699,7 +699,7 @@
     "clave": "1234",
     "estatus": "Activo",
     "app": "2.9.32",
-    "conexion": "22/04/2026 14:05:22",
+    "conexion": "22/04/2026 15:53:04",
     "apellido": "",
     "cedula": "",
     "telefono": "",
@@ -805,7 +805,7 @@
         "version": "17",
         "app": "2.9.32",
         "vinculado": "22/04/2026 14:05:22",
-        "last": "22/04/2026 14:05:22",
+        "last": "22/04/2026 15:53:04",
         "pin": 287,
         "place": "PC",
         "ip": "127.0.0.1",
@@ -825,7 +825,7 @@
     "clave": "1234",
     "estatus": "Activo",
     "app": "2.9.32",
-    "conexion": "",
+    "conexion": "22/04/2026 15:47:40",
     "apellido": "",
     "cedula": "",
     "telefono": "",
@@ -923,6 +923,23 @@
         "loto5o3": "0"
       }
     },
-    "conexiones": []
+    "conexiones": [
+      {
+        "id": "DEV-1776887260989",
+        "marca": "APPLE",
+        "modelo": "MAC",
+        "version": "17",
+        "app": "2.9.32",
+        "vinculado": "22/04/2026 15:47:40",
+        "last": "22/04/2026 15:47:40",
+        "pin": 513,
+        "place": "PC",
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15",
+        "co": true,
+        "on": true,
+        "st": true
+      }
+    ]
   }
 }

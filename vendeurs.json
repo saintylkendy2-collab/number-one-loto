@@ -1,32 +1,20 @@
 {
-  "NOC06": {
-    "nom": "Gg",
-    "password": "1234",
-    "groupe": "Junior",
-    "status": "Activo"
-  },
   "NOC100": {
-    "nom": "Rodolphe 8",
+    "nom": "MAMA",
+    "groupe": "",
     "password": "1234",
-    "groupe": "Brasser Dollar",
-    "status": "Bloqueado"
+    "clave": "1234",
+    "estatus": "Activo",
+    "app": "2.9.32",
+    "conexion": ""
   },
   "NOC101": {
-    "nom": "Odil",
-    "password": "1234",
-    "groupe": "Junior",
-    "status": "Activo"
-  },
-  "NOC110": {
-    "nom": "Densert",
-    "password": "1234",
-    "groupe": "Junior",
-    "status": "Activo"
-  },
-  "NOC150": {
-    "nom": "Toto",
-    "password": "1234",
+    "nom": "Gaga",
     "groupe": "",
-    "status": "Bloqueado"
+    "password": "1234",
+    "clave": "1234",
+    "estatus": "Activo",
+    "app": "2.9.32",
+    "conexion": ""
   }
 }

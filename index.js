@@ -1,14 +1,39 @@
 const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const vendors = require("./vendeurs.json");
-let currentVendorId = "";
+const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
+
+function ensureVendeursFile() {
+  try {
+    if (!fs.existsSync(VENDEURS_FILE)) {
+      fs.writeFileSync(VENDEURS_FILE, JSON.stringify({}, null, 2), "utf8");
+    }
+  } catch (err) {
+    console.error("Erreur création vendeurs.json :", err);
+  }
+}
+
+function loadVendeursForLogin() {
+  try {
+    ensureVendeursFile();
+    const raw = fs.readFileSync(VENDEURS_FILE, "utf8").trim();
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return parsed;
+  } catch (err) {
+    console.error("Erreur lecture vendeurs.json :", err);
+    return {};
+  }
+}
 
 app.get("/", (req, res) => {
-res.send(`
+  res.send(`
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -86,7 +111,7 @@ text-align:center;
 <input class="input" type="text" name="id" placeholder="Identifiant" autocomplete="username" required>
 <input class="input" type="password" name="password" placeholder="Mot de passe" autocomplete="current-password" required>
 <button class="btn" type="submit">CONNECTER</button>
-<div class="note">ID test: NOC100 &nbsp;|&nbsp; Mot de passe: 1234</div>
+<div class="note">Antre ak ID vandè w ak modpas li</div>
 </form>
 </body>
 </html>
@@ -94,14 +119,20 @@ text-align:center;
 });
 
 app.post("/login", (req, res) => {
-  const id = (req.body.id || "").trim();
-  const password = (req.body.password || "").trim();
+  const id = String(req.body.id || "").trim();
+  const password = String(req.body.password || "").trim();
 
-  const vendors = require("./vendeurs.json");
-  const vendor = vendors[id];
+  const vendeurs = loadVendeursForLogin();
+  const vendeur = vendeurs[id];
 
-  if (!vendor || String(vendor.password || "").trim() !== password) {
-    return res.send(`
+  if (vendeur) {
+    const savedPassword = String(vendeur.password || vendeur.clave || "").trim();
+    if (password === savedPassword) {
+      return res.redirect("/dashboard");
+    }
+  }
+
+  res.send(`
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -150,21 +181,15 @@ font-weight:700;
 </div>
 </body>
 </html>
-    `);
-  }
-
-  return res.redirect("/dashboard");
+`);
 });
-
 
 app.get("/logout", (req, res) => {
-currentVendorId = "";
-res.redirect("/");
+  res.redirect("/");
 });
 
-
 app.get("/dashboard", (req, res) => {
-res.send(`
+  res.send(`
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -222,7 +247,6 @@ display:flex;
 flex-direction:column;
 overflow:hidden;
 }
-
 .tickets-area{
 flex:1;
 min-height:60px;
@@ -249,36 +273,22 @@ line-height:1.1;
 display:grid;
 grid-template-columns:60px 1fr 80px;
 align-items:center;
-padding:6px 10px; /* redwi wotè */
+padding:6px 10px;
 font-size:14px;
 }
-
 .ticket-row div{
 text-align:center;
 }
-
-/* type (BOR, L4, etc) */
-.ticket-row div:first-child{
-font-weight:600;
-text-align:left;
-}
-
-/* numero */
 .ticket-row div:first-child{
 font-weight:normal;
 text-align:left;
 }
-
-/* montant */
 .ticket-row div:last-child{
 text-align:right;
 }
-
-/* retire twòp espas ant liy yo */
 .ticket-row + .ticket-row{
 margin-top:2px;
 }
-
 .summary-bar{
 height:42px;
 min-height:42px;
@@ -408,7 +418,6 @@ border-top:1px solid #cacaca;
 margin-top:4px;
 flex-shrink:0;
 }
-
 .key{
 border:1px solid #cacaca;
 background:#f7f7f7;
@@ -423,18 +432,15 @@ user-select:none;
 touch-action:manipulation;
 cursor:pointer;
 }
-
 .key:active{
 background:#e3e3e3;
 }
-
 .key.enter{
 background:#f7f7f7;
 color:#000;
 font-size:22px;
 font-weight:700;
 }
-
 .bottom-nav{
 height:54px;
 min-height:54px;
@@ -637,6 +643,7 @@ border-right:1px solid #ddd;
 </div>
 
 <div class="summary-bar">
+<div></div>
 <div id="ticketCount" class="count">0</div>
 <div id="ticketTotal" class="total">0.00</div>
 </div>
@@ -770,9 +777,9 @@ function getCursorValue(field){
 
 function setCursorValue(field, value){
  if(field === "numero"){
- cursorNumero = value;
+   cursorNumero = value;
  }else{
- cursorMontant = value;
+   cursorMontant = value;
  }
 }
 
@@ -785,9 +792,9 @@ function tapField(event, field){
  var clickX = event.clientX;
 
  if(!value.length){
- setCursorValue(field, 0);
- updateFields();
- return;
+   setCursorValue(field, 0);
+   updateFields();
+   return;
  }
 
  var textWidth = measureTextWidth(value, el);
@@ -797,14 +804,14 @@ function tapField(event, field){
  var bestDistance = Infinity;
 
  for(var i = 0; i <= value.length; i++){
- var part = value.slice(0, i);
- var x = startX + measureTextWidth(part, el);
- var dist = Math.abs(clickX - x);
+   var part = value.slice(0, i);
+   var x = startX + measureTextWidth(part, el);
+   var dist = Math.abs(clickX - x);
 
- if(dist < bestDistance){
- bestDistance = dist;
- bestIndex = i;
- }
+   if(dist < bestDistance){
+     bestDistance = dist;
+     bestIndex = i;
+   }
  }
 
  setCursorValue(field, bestIndex);
@@ -816,8 +823,8 @@ function moveCaret(){
  var fieldsWrap = document.querySelector(".fields");
 
  if(activeField === "loterie"){
- caret.style.display = "none";
- return;
+   caret.style.display = "none";
+   return;
  }
 
  var fieldEl = document.getElementById(activeField === "numero" ? "numeroLine" : "montantLine");
@@ -860,18 +867,18 @@ function updateFields(){
  var lineLeft = "1%";
 
  if(activeField === "numero"){
- numeroLine.classList.add("active");
- lineLeft = "1%";
+   numeroLine.classList.add("active");
+   lineLeft = "1%";
  }
 
  if(activeField === "loterie"){
- loterieLine.classList.add("active");
- lineLeft = "34.5%";
+   loterieLine.classList.add("active");
+   lineLeft = "34.5%";
  }
 
  if(activeField === "montant"){
- montantLine.classList.add("active");
- lineLeft = "68%";
+   montantLine.classList.add("active");
+   lineLeft = "68%";
  }
 
  activeLine.style.left = lineLeft;
@@ -882,17 +889,17 @@ function setField(field){
  activeField = field;
 
  if(field === "numero"){
- cursorNumero = numero.length;
+   cursorNumero = numero.length;
  }
 
  if(field === "montant"){
- cursorMontant = montant.length;
+   cursorMontant = montant.length;
  }
 
  updateFields();
 
  if(field === "loterie"){
- openLoterieModal();
+   openLoterieModal();
  }
 }
 
@@ -903,29 +910,27 @@ function showChoicePanel(options){
  list.innerHTML = "";
 
  options.forEach(function(opt){
- var div = document.createElement("div");
- div.className = "choice-chip";
- div.textContent = opt;
- div.onclick = function(){
- if(tempChoices.indexOf(opt) >= 0){
- tempChoices = tempChoices.filter(function(x){ return x !== opt; });
- div.classList.remove("active");
- }else{
- tempChoices.push(opt);
- div.classList.add("active");
- }
- };
- list.appendChild(div);
+   var div = document.createElement("div");
+   div.className = "choice-chip";
+   div.textContent = opt;
+   div.onclick = function(){
+     if(tempChoices.indexOf(opt) >= 0){
+       tempChoices = tempChoices.filter(function(x){ return x !== opt; });
+       div.classList.remove("active");
+     }else{
+       tempChoices.push(opt);
+       div.classList.add("active");
+     }
+   };
+   list.appendChild(div);
  });
 
  panel.style.display = "block";
- document.querySelector(".key.enter").classList.add("option-mode");
 }
 
 function hideChoicePanel(){
  document.getElementById("choicePanel").style.display = "none";
  document.getElementById("choiceList").innerHTML = "";
- document.querySelector(".key.enter").classList.remove("option-mode");
  tempChoices = [];
 }
 
@@ -933,44 +938,44 @@ function press(val){
  val = String(val);
 
  if(activeField === "numero"){
- if(val === "+"){
- if(numero.length === 4){
- pendingChoiceNumber = numero;
- showChoicePanel(["L1","L2","L3"]);
- return;
- }
+   if(val === "+"){
+     if(numero.length === 4){
+       pendingChoiceNumber = numero;
+       showChoicePanel(["L1","L2","L3"]);
+       return;
+     }
 
- if(numero.length === 5){
- pendingChoiceNumber = numero;
- showChoicePanel(["L1","L2","L3"]);
- return;
- }
+     if(numero.length === 5){
+       pendingChoiceNumber = numero;
+       showChoicePanel(["L1","L2","L3"]);
+       return;
+     }
 
- return;
- }
+     return;
+   }
 
- if(val === "/"){
- if(/^\\d{2}$/.test(numero) || /^\\d{4}$/.test(numero)){
- numero = numero + "/";
- cursorNumero = numero.length;
- activeField = "montant";
- cursorMontant = montant.length;
- updateFields();
- return;
- }
- return;
- }
+   if(val === "/"){
+     if(/^\\d{2}$/.test(numero) || /^\\d{4}$/.test(numero)){
+       numero = numero + "/";
+       cursorNumero = numero.length;
+       activeField = "montant";
+       cursorMontant = montant.length;
+       updateFields();
+       return;
+     }
+     return;
+   }
 
- if(!/[0-9]/.test(val)) return;
- if(numero.indexOf("/") >= 0) return;
- if(numero.length >= 5) return;
+   if(!/[0-9]/.test(val)) return;
+   if(numero.indexOf("/") >= 0) return;
+   if(numero.length >= 5) return;
 
- numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
- cursorNumero += val.length;
+   numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
+   cursorNumero += val.length;
  }else if(activeField === "montant"){
- if(!/[0-9.]/.test(val)) return;
- montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
- cursorMontant += val.length;
+   if(!/[0-9.]/.test(val)) return;
+   montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
+   cursorMontant += val.length;
  }
 
  updateFields();
@@ -978,15 +983,15 @@ function press(val){
 
 function backspaceKey(){
  if(activeField === "numero"){
- if(cursorNumero > 0){
- numero = numero.slice(0, cursorNumero - 1) + numero.slice(cursorNumero);
- cursorNumero--;
- }
+   if(cursorNumero > 0){
+     numero = numero.slice(0, cursorNumero - 1) + numero.slice(cursorNumero);
+     cursorNumero--;
+   }
  }else if(activeField === "montant"){
- if(cursorMontant > 0){
- montant = montant.slice(0, cursorMontant - 1) + montant.slice(cursorMontant);
- cursorMontant--;
- }
+   if(cursorMontant > 0){
+     montant = montant.slice(0, cursorMontant - 1) + montant.slice(cursorMontant);
+     cursorMontant--;
+   }
  }
 
  updateFields();
@@ -994,36 +999,36 @@ function backspaceKey(){
 
 function handleEnter(){
  if (document.getElementById("choicePanel").style.display === "block") {
- if(tempChoices.length === 0){
- alert("Chwazi omwen youn");
- return;
- }
- numero = pendingChoiceNumber + "+" + tempChoices.join(",");
- cursorNumero = numero.length;
- hideChoicePanel();
- activeField = "montant";
- cursorMontant = montant.length;
- updateFields();
- return;
+   if(tempChoices.length === 0){
+     alert("Chwazi omwen youn");
+     return;
+   }
+   numero = pendingChoiceNumber + "+" + tempChoices.join(",");
+   cursorNumero = numero.length;
+   hideChoicePanel();
+   activeField = "montant";
+   cursorMontant = montant.length;
+   updateFields();
+   return;
  }
 
  if (activeField === "numero") {
- if (!numero.trim()) return;
- activeField = "loterie";
- updateFields();
- openLoterieModal();
- return;
+   if (!numero.trim()) return;
+   activeField = "loterie";
+   updateFields();
+   openLoterieModal();
+   return;
  }
 
  if (activeField === "loterie") {
- validateLoteries();
- return;
+   validateLoteries();
+   return;
  }
 
  if (activeField === "montant") {
- if (!montant.trim()) return;
- addGame();
- return;
+   if (!montant.trim()) return;
+   addGame();
+   return;
  }
 }
 
@@ -1051,10 +1056,10 @@ function validateLoteries(){
  document.getElementById("overlay").classList.remove("show");
 
  if(selectedLoteries.length === 0){
- activeField = "loterie";
- updateFields();
- openLoterieModal();
- return;
+   activeField = "loterie";
+   updateFields();
+   openLoterieModal();
+   return;
  }
 
  activeField = "montant";
@@ -1066,9 +1071,9 @@ function toggleLoterie(name){
  var idx = selectedLoteries.indexOf(name);
 
  if (idx >= 0) {
- selectedLoteries.splice(idx, 1);
+   selectedLoteries.splice(idx, 1);
  } else {
- selectedLoteries.push(name);
+   selectedLoteries.push(name);
  }
 
  renderLoterieList();
@@ -1080,29 +1085,29 @@ function renderLoterieList(){
  list.innerHTML = "";
 
  loteries.forEach(function(item){
- var row = document.createElement("div");
- row.className = "loterie-item" + (selectedLoteries.indexOf(item.name) >= 0 ? " selected" : "");
- row.onclick = function(){
- toggleLoterie(item.name);
- };
+   var row = document.createElement("div");
+   row.className = "loterie-item" + (selectedLoteries.indexOf(item.name) >= 0 ? " selected" : "");
+   row.onclick = function(){
+     toggleLoterie(item.name);
+   };
 
- var left = document.createElement("div");
- left.className = "loterie-check";
- left.textContent = selectedLoteries.indexOf(item.name) >= 0 ? "✓" : "";
+   var left = document.createElement("div");
+   left.className = "loterie-check";
+   left.textContent = selectedLoteries.indexOf(item.name) >= 0 ? "✓" : "";
 
- var center = document.createElement("div");
- center.innerHTML =
- '<div class="loterie-name">' + item.name + '</div>' +
- '<div class="loterie-sub">' + item.sub + '</div>';
+   var center = document.createElement("div");
+   center.innerHTML =
+     '<div class="loterie-name">' + item.name + '</div>' +
+     '<div class="loterie-sub">' + item.sub + '</div>';
 
- var right = document.createElement("div");
- right.className = "loterie-time";
- right.textContent = item.time;
+   var right = document.createElement("div");
+   right.className = "loterie-time";
+   right.textContent = item.time;
 
- row.appendChild(left);
- row.appendChild(center);
- row.appendChild(right);
- list.appendChild(row);
+   row.appendChild(left);
+   row.appendChild(center);
+   row.appendChild(right);
+   list.appendChild(row);
  });
 }
 
@@ -1114,10 +1119,10 @@ function uniqueStrings(arr){
  var out = [];
  var seen = {};
  arr.forEach(function(x){
- if(!seen[x]){
- seen[x] = true;
- out.push(x);
- }
+   if(!seen[x]){
+     seen[x] = true;
+     out.push(x);
+   }
  });
  return out;
 }
@@ -1126,31 +1131,31 @@ function buildSlashMarriageEntries(num){
  var raw = num.slice(0, -1);
 
  if(/^\\d{2}$/.test(raw)){
- var a2 = raw;
- var ar2 = reverse2(a2);
+   var a2 = raw;
+   var ar2 = reverse2(a2);
 
- return uniqueStrings([a2, ar2]).map(function(x){
- return { type: "BOR", numero: x };
- });
+   return uniqueStrings([a2, ar2]).map(function(x){
+     return { type: "BOR", numero: x };
+   });
  }
 
  if(/^\\d{4}$/.test(raw)){
- var a = raw.slice(0,2);
- var b = raw.slice(2,4);
- var ar = reverse2(a);
- var br = reverse2(b);
+   var a = raw.slice(0,2);
+   var b = raw.slice(2,4);
+   var ar = reverse2(a);
+   var br = reverse2(b);
 
- return uniqueStrings([
- a + "*" + b,
- a + "*" + br,
- ar + "*" + b,
- ar + "*" + br
- ]).map(function(x){
- var parts = x.split("*");
- if(parts[0] === parts[1]) return null;
- if(parts[0] === reverse2(parts[1])) return null;
- return { type: "MAR", numero: x };
- }).filter(Boolean);
+   return uniqueStrings([
+     a + "*" + b,
+     a + "*" + br,
+     ar + "*" + b,
+     ar + "*" + br
+   ]).map(function(x){
+     var parts = x.split("*");
+     if(parts[0] === parts[1]) return null;
+     if(parts[0] === reverse2(parts[1])) return null;
+     return { type: "MAR", numero: x };
+   }).filter(Boolean);
  }
 
  return null;
@@ -1160,39 +1165,39 @@ function buildGameEntries(num){
  num = num.trim();
 
  if (/^\\d{2}$/.test(num)) {
- return [{ type: "BOR", numero: num }];
+   return [{ type: "BOR", numero: num }];
  }
 
  if (/^\\d{2}\\/$/.test(num)) {
- return buildSlashMarriageEntries(num);
+   return buildSlashMarriageEntries(num);
  }
 
  if (/^\\d{3}$/.test(num)) {
- return [{ type: "L3", numero: num }];
+   return [{ type: "L3", numero: num }];
  }
 
  if (/^\\d{4}$/.test(num)) {
- return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
+   return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
  }
 
  if (/^\\d{4}\\/$/.test(num)) {
- return buildSlashMarriageEntries(num);
+   return buildSlashMarriageEntries(num);
  }
 
  if (/^\\d{4}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
- var raw4 = num.split("+")[0];
- var types4 = uniqueStrings(num.split("+")[1].split(","));
- return types4.map(function(t){
- return { type: t, numero: raw4 };
- });
+   var raw4 = num.split("+")[0];
+   var types4 = uniqueStrings(num.split("+")[1].split(","));
+   return types4.map(function(t){
+     return { type: t, numero: raw4 };
+   });
  }
 
  if (/^\\d{5}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)) {
- var raw5 = num.split("+")[0];
- var types5 = uniqueStrings(num.split("+")[1].split(","));
- return types5.map(function(t){
- return { type: t, numero: raw5 };
- });
+   var raw5 = num.split("+")[0];
+   var types5 = uniqueStrings(num.split("+")[1].split(","));
+   return types5.map(function(t){
+     return { type: t, numero: raw5 };
+   });
  }
 
  return null;
@@ -1200,13 +1205,13 @@ function buildGameEntries(num){
 
 function mergeOrPushGame(entry){
  var found = jeux.find(function(j){
- return j.type === entry.type && j.numero === entry.numero && j.loterie === entry.loterie;
+   return j.type === entry.type && j.numero === entry.numero && j.loterie === entry.loterie;
  });
 
  if(found){
- found.montant = Number(found.montant) + Number(entry.montant);
+   found.montant = Number(found.montant) + Number(entry.montant);
  }else{
- jeux.push(entry);
+   jeux.push(entry);
  }
 }
 
@@ -1214,9 +1219,9 @@ function getAutoSourceBalls(){
  var counts = {};
 
  jeux.forEach(function(j){
- if(j.type === "BOR" && /^\\d{2}$/.test(j.numero)){
- counts[j.numero] = (counts[j.numero] || 0) + 1;
- }
+   if(j.type === "BOR" && /^\\d{2}$/.test(j.numero)){
+     counts[j.numero] = (counts[j.numero] || 0) + 1;
+   }
  });
 
  return counts;
@@ -1227,54 +1232,54 @@ function autoMarriage(){
  var nums = Object.keys(counts);
 
  if(nums.length === 0){
- alert("Pa gen boul 2 chif pou maryaj otomatik");
- return;
+   alert("Pa gen boul 2 chif pou maryaj otomatik");
+   return;
  }
  if(selectedLoteries.length === 0){
- alert("Chwazi omwen yon loterie");
- return;
+   alert("Chwazi omwen yon loterie");
+   return;
  }
  if(!montant.trim()){
- alert("Mete montan an");
- return;
+   alert("Mete montan an");
+   return;
  }
 
  var results = {};
 
  for(var i=0;i<nums.length;i++){
- for(var j=i+1;j<nums.length;j++){
- var a = nums[i];
- var b = nums[j];
- var ar = reverse2(a);
- var br = reverse2(b);
+   for(var j=i+1;j<nums.length;j++){
+     var a = nums[i];
+     var b = nums[j];
+     var ar = reverse2(a);
+     var br = reverse2(b);
 
- if(a === b) continue;
- if(a === br) continue;
- if(ar === b) continue;
+     if(a === b) continue;
+     if(a === br) continue;
+     if(ar === b) continue;
 
- [
- a + "*" + b,
- a + "*" + br,
- ar + "*" + b,
- ar + "*" + br
- ].forEach(function(m){
- var parts = m.split("*");
- if(parts[0] !== parts[1] && parts[0] !== reverse2(parts[1])){
- results[m] = true;
- }
- });
- }
+     [
+       a + "*" + b,
+       a + "*" + br,
+       ar + "*" + b,
+       ar + "*" + br
+     ].forEach(function(m){
+       var parts = m.split("*");
+       if(parts[0] !== parts[1] && parts[0] !== reverse2(parts[1])){
+         results[m] = true;
+       }
+     });
+   }
  }
 
  Object.keys(results).forEach(function(numeroAuto){
- selectedLoteries.forEach(function(lot){
- mergeOrPushGame({
- type: "MAR",
- numero: numeroAuto,
- loterie: lot,
- montant: parseFloat(montant) || 0
- });
- });
+   selectedLoteries.forEach(function(lot){
+     mergeOrPushGame({
+       type: "MAR",
+       numero: numeroAuto,
+       loterie: lot,
+       montant: parseFloat(montant) || 0
+     });
+   });
  });
 
  closeOptions();
@@ -1288,60 +1293,60 @@ function autoLoto4(){
  var nums = Object.keys(counts);
 
  if(nums.length === 0){
- alert("Pa gen boul 2 chif pou loto otomatik");
- return;
+   alert("Pa gen boul 2 chif pou loto otomatik");
+   return;
  }
  if(selectedLoteries.length === 0){
- alert("Chwazi omwen yon loterie");
- return;
+   alert("Chwazi omwen yon loterie");
+   return;
  }
  if(!montant.trim()){
- alert("Mete montan an");
- return;
+   alert("Mete montan an");
+   return;
  }
 
  var results = {};
 
  for(var i=0;i<nums.length;i++){
- for(var j=i+1;j<nums.length;j++){
- var a = nums[i];
- var b = nums[j];
- var ar = reverse2(a);
- var br = reverse2(b);
+   for(var j=i+1;j<nums.length;j++){
+     var a = nums[i];
+     var b = nums[j];
+     var ar = reverse2(a);
+     var br = reverse2(b);
 
- if(a === b) continue;
- if(a === br) continue;
- if(ar === b) continue;
+     if(a === b) continue;
+     if(a === br) continue;
+     if(ar === b) continue;
 
- [
- a + b,
- a + br,
- ar + b,
- ar + br,
- b + a,
- b + ar,
- br + a,
- br + ar
- ].forEach(function(l4){
- var left = l4.slice(0,2);
- var right = l4.slice(2,4);
+     [
+       a + b,
+       a + br,
+       ar + b,
+       ar + br,
+       b + a,
+       b + ar,
+       br + a,
+       br + ar
+     ].forEach(function(l4){
+       var left = l4.slice(0,2);
+       var right = l4.slice(2,4);
 
- if(left !== right && left !== reverse2(right)){
- results[l4] = true;
- }
- });
- }
+       if(left !== right && left !== reverse2(right)){
+         results[l4] = true;
+       }
+     });
+   }
  }
 
  Object.keys(results).forEach(function(numeroAuto){
- selectedLoteries.forEach(function(lot){
- mergeOrPushGame({
- type: "L4",
- numero: numeroAuto,
- loterie: lot,
- montant: parseFloat(montant) || 0
- });
- });
+   selectedLoteries.forEach(function(lot){
+     mergeOrPushGame({
+       type: "L4",
+       numero: numeroAuto,
+       loterie: lot,
+       montant: parseFloat(montant) || 0
+     });
+   });
  });
 
  closeOptions();
@@ -1349,21 +1354,7 @@ function autoLoto4(){
  renderJeux();
  updateFields();
 }
-function validateLoteries(){
- document.getElementById("loterieModal").classList.remove("show");
- document.getElementById("overlay").classList.remove("show");
 
- if(selectedLoteries.length === 0){
- activeField = "loterie";
- updateFields();
- openLoterieModal();
- return;
- }
-
- activeField = "montant";
- cursorMontant = montant.length;
- updateFields();
-}
 function addGame(){
  if (!numero.trim()) return;
  if (!montant.trim()) return;
@@ -1372,19 +1363,19 @@ function addGame(){
  var entries = buildGameEntries(numero);
 
  if (!entries) {
- alert("Jeu pa valid");
- return;
+   alert("Jeu pa valid");
+   return;
  }
 
  selectedLoteries.forEach(function(lot){
- entries.forEach(function(entry){
- mergeOrPushGame({
- type: entry.type,
- numero: entry.numero,
- loterie: lot,
- montant: parseFloat(montant) || 0
- });
- });
+   entries.forEach(function(entry){
+     mergeOrPushGame({
+       type: entry.type,
+       numero: entry.numero,
+       loterie: lot,
+       montant: parseFloat(montant) || 0
+     });
+   });
  });
 
  numero = "";
@@ -1401,49 +1392,49 @@ function renderJeux(){
  var area = document.getElementById("ticketsArea");
 
  if (jeux.length === 0) {
- area.innerHTML = '<div class="empty-zone">Pas de jeux</div>';
- document.getElementById("ticketCount").textContent = "0";
- document.getElementById("ticketTotal").textContent = "0.00";
- return;
+   area.innerHTML = '<div class="empty-zone">Pas de jeux</div>';
+   document.getElementById("ticketCount").textContent = "0";
+   document.getElementById("ticketTotal").textContent = "0.00";
+   return;
  }
 
  var grouped = {};
  var total = 0;
 
  jeux.forEach(function(j){
- if (!grouped[j.loterie]) grouped[j.loterie] = [];
- grouped[j.loterie].push(j);
- total += Number(j.montant) || 0;
+   if (!grouped[j.loterie]) grouped[j.loterie] = [];
+   grouped[j.loterie].push(j);
+   total += Number(j.montant) || 0;
  });
 
  area.innerHTML = "";
 
  Object.keys(grouped).forEach(function(name){
- var title = document.createElement("div");
- title.className = "group-title";
- title.textContent = name;
- area.appendChild(title);
+   var title = document.createElement("div");
+   title.className = "group-title";
+   title.textContent = name;
+   area.appendChild(title);
 
- grouped[name].forEach(function(j){
- var row = document.createElement("div");
- row.className = "ticket-row";
- row.innerHTML =
- '<div>' + j.type + '</div>' +
- '<div>' + j.numero + '</div>' +
- '<div>' + Number(j.montant).toFixed(2) + '</div>';
+   grouped[name].forEach(function(j){
+     var row = document.createElement("div");
+     row.className = "ticket-row";
+     row.innerHTML =
+       '<div>' + j.type + '</div>' +
+       '<div>' + j.numero + '</div>' +
+       '<div>' + Number(j.montant).toFixed(2) + '</div>';
 
- row.onclick = function(){
- if (confirm("Supprimer ?")) {
- var idx = jeux.indexOf(j);
- if (idx >= 0) {
- jeux.splice(idx, 1);
- renderJeux();
- }
- }
- };
+     row.onclick = function(){
+       if (confirm("Supprimer ?")) {
+         var idx = jeux.indexOf(j);
+         if (idx >= 0) {
+           jeux.splice(idx, 1);
+           renderJeux();
+         }
+       }
+     };
 
- area.appendChild(row);
- });
+     area.appendChild(row);
+   });
  });
 
  document.getElementById("ticketCount").textContent = String(jeux.length);
@@ -1457,8 +1448,8 @@ function buildPrintText(){
  var lines = [];
 
  jeux.forEach(function(j){
- total += Number(j.montant) || 0;
- lines.push(j.type + " " + j.numero + " " + j.montant + " - " + j.loterie);
+   total += Number(j.montant) || 0;
+   lines.push(j.type + " " + j.numero + " " + j.montant + " - " + j.loterie);
  });
 
  lines.push("------------------------------");
@@ -1472,8 +1463,8 @@ function buildPrintText(){
 function submitPrint(){
  var text = buildPrintText();
  if (!text) {
- alert("Pa gen jwèt pou enprime.");
- return;
+   alert("Pa gen jwèt pou enprime.");
+   return;
  }
 
  document.getElementById("printData").value = text;
@@ -1483,8 +1474,8 @@ function submitPrint(){
 function shareWhatsApp(){
  var text = buildPrintText();
  if (!text) {
- alert("Pa gen jwèt pou voye.");
- return;
+   alert("Pa gen jwèt pou voye.");
+   return;
  }
 
  var url = "https://wa.me/?text=" + encodeURIComponent(text);
@@ -1520,7 +1511,6 @@ function deleteAllGames(){
  updateFields();
 }
 
-
 renderJeux();
 updateFields();
 </script>
@@ -1530,55 +1520,54 @@ updateFields();
 });
 
 app.post("/print", (req, res) => {
- const raw = req.body.data || "";
+  const raw = req.body.data || "";
 
- const lines = raw
- .split("\n")
- .map(x => x.trim())
- .filter(x => x.length > 0);
+  const lines = raw
+    .split("\\n")
+    .map(x => x.trim())
+    .filter(x => x.length > 0);
 
- let total = 0;
- const tiragesSet = new Set();
- const gameLines = [];
+  let total = 0;
+  const tiragesSet = new Set();
+  const gameLines = [];
 
- lines.forEach(line => {
- // pran sèlman liy jwèt yo: TYPE NUMERO MONTAN - LOTERIE
- const m = line.match(/^([A-Z0-9]+)\s+(.+?)\s+([0-9]+(?:\.[0-9]+)?)\s*-\s*(.+)$/i);
- if (!m) return;
+  lines.forEach(line => {
+    const m = line.match(/^([A-Z0-9]+)\s+(.+?)\s+([0-9]+(?:\.[0-9]+)?)\s*-\s*(.+)$/i);
+    if (!m) return;
 
- let type = (m[1] || "").toUpperCase();
- const numero = (m[2] || "").trim();
- const amount = parseFloat(m[3]);
- const loterie = (m[4] || "").trim();
+    let type = (m[1] || "").toUpperCase();
+    const numero = (m[2] || "").trim();
+    const amount = parseFloat(m[3]);
+    const loterie = (m[4] || "").trim();
 
- if (Number.isNaN(amount)) return;
+    if (Number.isNaN(amount)) return;
 
- total += amount;
- if (loterie) tiragesSet.add(loterie);
+    total += amount;
+    if (loterie) tiragesSet.add(loterie);
 
- if (type === "BOR") type = "Borlette";
+    if (type === "BOR") type = "Borlette";
 
- const typeTxt = String(type).padEnd(9, " ");
- const numTxt = String(numero).padEnd(6, " ");
- const amtTxt = amount.toFixed(2).padStart(6, " ");
+    const typeTxt = String(type).padEnd(9, " ");
+    const numTxt = String(numero).padEnd(6, " ");
+    const amtTxt = amount.toFixed(2).padStart(6, " ");
 
- gameLines.push(`${typeTxt} ${numTxt} ${amtTxt} G`);
- });
+    gameLines.push(`${typeTxt} ${numTxt} ${amtTxt} G`);
+  });
 
- const now = new Date();
- const dateStr = now.toLocaleDateString("fr-FR");
- const timeStr = now.toLocaleTimeString("fr-FR", {
- hour: "2-digit",
- minute: "2-digit"
- });
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("fr-FR");
+  const timeStr = now.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 
- const sellerName = currentVendorId || "SELLER";
- const ticketCode =
- String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
- const tirages = Array.from(tiragesSet).join(" / ");
+  const sellerName = "VENDEUR";
+  const ticketCode =
+    String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
+  const tirages = Array.from(tiragesSet).join(" / ");
 
- res.set("Content-Type", "text/html; charset=utf-8");
- res.send(`
+  res.set("Content-Type", "text/html; charset=utf-8");
+  res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -1587,47 +1576,47 @@ app.post("/print", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html,body{
- margin:0;
- padding:0;
- background:#fff;
+  margin:0;
+  padding:0;
+  background:#fff;
 }
 body{
- width:55mm;
- margin:0 auto;
- padding:2px 1px 4px 1px;
- font-family: monospace;
- font-size:9px;
- font-weight:400;
- color:#000;
- overflow:hidden;
+  width:55mm;
+  margin:0 auto;
+  padding:2px 1px 4px 1px;
+  font-family: monospace;
+  font-size:9px;
+  font-weight:400;
+  color:#000;
+  overflow:hidden;
 }
 .title{
- text-align:center;
- font-size:7px;
- font-weight:600;
- margin:0 0 4px 0;
- white-space:nowrap;
+  text-align:center;
+  font-size:7px;
+  font-weight:600;
+  margin:0 0 4px 0;
+  white-space:nowrap;
 }
 .meta{
- margin:0;
- white-space:pre-wrap;
- word-break:break-word;
- line-height:1.25;
- font-size:9px;
- font-weight:400;
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-word;
+  line-height:1.25;
+  font-size:9px;
+  font-weight:400;
 }
 .games{
- margin:0;
- white-space:pre-wrap;
- word-break:break-word;
- line-height:1.25;
- font-size:9px;
- font-weight:400;
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-word;
+  line-height:1.25;
+  font-size:9px;
+  font-weight:400;
 }
 .footer{
- margin-top:4px;
- font-size:9px;
- font-weight:400;
+  margin-top:4px;
+  font-size:9px;
+  font-weight:400;
 }
 </style>
 </head>
@@ -1640,7 +1629,7 @@ DATE ${dateStr} ${timeStr}
 TIRAGES ${tirages}
 --------------------------------</pre>
 
-<pre class="games">${gameLines.join("\n")}</pre>
+<pre class="games">${gameLines.join("\\n")}</pre>
 
 <pre class="meta">--------------------------------
 TOTAL: ${total.toFixed(2)} G</pre>
@@ -1649,17 +1638,17 @@ TOTAL: ${total.toFixed(2)} G</pre>
 
 <script>
 setTimeout(function(){
- try { window.print(); } catch(e) {}
+  try { window.print(); } catch(e) {}
 }, 300);
 </script>
 </body>
 </html>
- `);
+  `);
 });
 
 const adminRoutes = require("./admin");
 app.use(adminRoutes);
 
 app.listen(3000, "0.0.0.0", () => {
-console.log("Server ap mache sou rezo a");
+ console.log("Server ap mache sou rezo a");
 });

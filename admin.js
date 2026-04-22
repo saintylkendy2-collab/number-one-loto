@@ -767,10 +767,6 @@ font-size:17px;
 </div>
 
 <script>
-/* =========================
-🔥 FULL FIX VENDORS SYSTEM
-========================= */
-
 let vendors = [];
 let currentVendorIndex = null;
 

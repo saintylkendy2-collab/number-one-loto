@@ -1,4 +1,10 @@
 {
+  "NOC06": {
+    "nom": "Gg",
+    "password": "1234",
+    "groupe": "Junior",
+    "status": "Activo"
+  },
   "NOC100": {
     "nom": "Rodolphe 8",
     "password": "1234",
@@ -10,5 +16,17 @@
     "password": "1234",
     "groupe": "Junior",
     "status": "Activo"
+  },
+  "NOC110": {
+    "nom": "Densert",
+    "password": "1234",
+    "groupe": "Junior",
+    "status": "Activo"
+  },
+  "NOC150": {
+    "nom": "Toto",
+    "password": "1234",
+    "groupe": "",
+    "status": "Bloqueado"
   }
 }

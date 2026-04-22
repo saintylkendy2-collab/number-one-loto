@@ -89,6 +89,94 @@ font-weight:700;
 `;
 }
 
+function formatDateTimeFR(date = new Date()) {
+  return date.toLocaleString("fr-FR");
+}
+
+function detectDeviceInfo(userAgent = "") {
+  const ua = String(userAgent || "");
+  const low = ua.toLowerCase();
+
+  let marca = "DESCONOCIDO";
+  let modelo = "WEB";
+  let version = "?";
+  let place = "?";
+
+  if (low.includes("iphone")) {
+    marca = "APPLE";
+    modelo = "IPHONE";
+    place = "TEL";
+  } else if (low.includes("ipad")) {
+    marca = "APPLE";
+    modelo = "IPAD";
+    place = "TAB";
+  } else if (low.includes("android")) {
+    marca = "ANDROID";
+    modelo = "ANDROID";
+    place = "TEL";
+  } else if (low.includes("windows")) {
+    marca = "PC";
+    modelo = "WINDOWS";
+    place = "PC";
+  } else if (low.includes("macintosh") || low.includes("mac os")) {
+    marca = "APPLE";
+    modelo = "MAC";
+    place = "PC";
+  } else if (low.includes("linux")) {
+    marca = "PC";
+    modelo = "LINUX";
+    place = "PC";
+  }
+
+  const chromeMatch = ua.match(/Chrome\/(\d+)/i);
+  const safariMatch = ua.match(/Version\/(\d+)/i);
+  const firefoxMatch = ua.match(/Firefox\/(\d+)/i);
+  const edgMatch = ua.match(/Edg\/(\d+)/i);
+
+  if (chromeMatch) version = chromeMatch[1];
+  else if (safariMatch) version = safariMatch[1];
+  else if (firefoxMatch) version = firefoxMatch[1];
+  else if (edgMatch) version = edgMatch[1];
+
+  return { marca, modelo, version, place };
+}
+
+function getClientIp(req) {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (forwarded) {
+    return String(forwarded).split(",")[0].trim();
+  }
+  return (
+    req.socket?.remoteAddress ||
+    req.connection?.remoteAddress ||
+    req.ip ||
+    "?"
+  );
+}
+
+function buildConnectionRow(req, vendeur) {
+  const ua = req.headers["user-agent"] || "";
+  const device = detectDeviceInfo(ua);
+  const now = new Date();
+
+  return {
+    id: "DEV-" + Date.now(),
+    marca: device.marca,
+    modelo: device.modelo,
+    version: device.version,
+    app: vendeur.app || "2.9.32",
+    vinculado: formatDateTimeFR(now),
+    last: formatDateTimeFR(now),
+    pin: Math.floor(Math.random() * 900) + 100,
+    place: device.place,
+    ip: getClientIp(req),
+    userAgent: ua,
+    co: true,
+    on: true,
+    st: true
+  };
+}
+
 app.get("/", (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -176,7 +264,7 @@ text-align:center;
 });
 
 app.post("/login", (req, res) => {
-  const id = String(req.body.id || "").trim();
+  const id = String(req.body.id || "").trim().toUpperCase();
   const password = String(req.body.password || "").trim();
 
   const vendeurs = loadVendeursForLogin();
@@ -199,21 +287,14 @@ app.post("/login", (req, res) => {
     vendeur.conexiones = [];
   }
 
-  if (vendeur.conexiones.length > 0) {
+  const activeConn = vendeur.conexiones.find(c => c && c.st === true);
+  if (activeConn) {
     return res.send(loginErrorPage("ID sa konekte deja ✖"));
   }
 
-  const now = new Date();
-  vendeur.conexiones.push({
-    id: "DEV-" + Date.now(),
-    last: now.toLocaleString("fr-FR"),
-    pin: Math.floor(Math.random() * 900) + 100,
-    co: true,
-    on: true,
-    st: true
-  });
-
-  vendeur.conexion = now.toLocaleString("fr-FR");
+  const connRow = buildConnectionRow(req, vendeur);
+  vendeur.conexiones.push(connRow);
+  vendeur.conexion = connRow.last;
   if (!vendeur.app) vendeur.app = "2.9.32";
 
   saveVendeursForLogin(vendeurs);
@@ -226,7 +307,7 @@ app.get("/logout", (req, res) => {
 });
 
 app.get("/dashboard", (req, res) => {
-  const sellerId = String(req.query.id || "").trim();
+  const sellerId = String(req.query.id || "").trim().toUpperCase();
   const vendeurs = loadVendeursForLogin();
   const vendeur = vendeurs[sellerId] || {};
   const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "VENDEUR");
@@ -1564,55 +1645,56 @@ updateFields();
 });
 
 app.post("/print", (req, res) => {
- const raw = req.body.data || "";
+  const raw = String(req.body.data || "");
+  const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
+  const vendeurs = loadVendeursForLogin();
+  const vendeur = vendeurs[sellerId] || {};
+  const sellerName = sellerId || vendeur.nom || vendeur.nombre || "SELLER";
 
- const lines = raw
- .split("\n")
- .map(x => x.trim())
- .filter(x => x.length > 0);
+  const lines = raw
+    .split("\n")
+    .map(x => x.trim())
+    .filter(x => x.length > 0);
 
- let total = 0;
- const tiragesSet = new Set();
- const gameLines = [];
+  let total = 0;
+  const tiragesSet = new Set();
+  const gameLines = [];
 
- lines.forEach(line => {
- // pran sèlman liy jwèt yo: TYPE NUMERO MONTAN - LOTERIE
- const m = line.match(/^([A-Z0-9]+)\s+(.+?)\s+([0-9]+(?:\.[0-9]+)?)\s*-\s*(.+)$/i);
- if (!m) return;
+  lines.forEach(line => {
+    const m = line.match(/^([A-Z0-9]+)\s+(.+?)\s+([0-9]+(?:\.[0-9]+)?)\s*-\s*(.+)$/i);
+    if (!m) return;
 
- let type = (m[1] || "").toUpperCase();
- const numero = (m[2] || "").trim();
- const amount = parseFloat(m[3]);
- const loterie = (m[4] || "").trim();
+    let type = (m[1] || "").toUpperCase();
+    const numero = (m[2] || "").trim();
+    const amount = parseFloat(m[3]);
+    const loterie = (m[4] || "").trim();
 
- if (Number.isNaN(amount)) return;
+    if (Number.isNaN(amount)) return;
 
- total += amount;
- if (loterie) tiragesSet.add(loterie);
+    total += amount;
+    if (loterie) tiragesSet.add(loterie);
 
- if (type === "BOR") type = "Borlette";
+    if (type === "BOR") type = "Borlette";
 
- const typeTxt = String(type).padEnd(9, " ");
- const numTxt = String(numero).padEnd(6, " ");
- const amtTxt = amount.toFixed(2).padStart(6, " ");
+    const typeTxt = String(type).padEnd(9, " ");
+    const numTxt = String(numero).padEnd(6, " ");
+    const amtTxt = amount.toFixed(2).padStart(6, " ");
 
- gameLines.push(`${typeTxt} ${numTxt} ${amtTxt} G`);
- });
+    gameLines.push(`${typeTxt} ${numTxt} ${amtTxt} G`);
+  });
 
- const now = new Date();
- const dateStr = now.toLocaleDateString("fr-FR");
- const timeStr = now.toLocaleTimeString("fr-FR", {
- hour: "2-digit",
- minute: "2-digit"
- });
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("fr-FR");
+  const timeStr = now.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 
- const sellerName = LOGIN_ID || "SELLER";
- const ticketCode =
- String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
- const tirages = Array.from(tiragesSet).join(" / ");
+  const ticketCode = String(Date.now()).slice(-6) + "-" + Math.floor(1000 + Math.random() * 9000);
+  const tirages = Array.from(tiragesSet).join(" / ");
 
- res.set("Content-Type", "text/html; charset=utf-8");
- res.send(`
+  res.set("Content-Type", "text/html; charset=utf-8");
+  res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -1621,47 +1703,47 @@ app.post("/print", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html,body{
- margin:0;
- padding:0;
- background:#fff;
+  margin:0;
+  padding:0;
+  background:#fff;
 }
 body{
- width:55mm;
- margin:0 auto;
- padding:2px 1px 4px 1px;
- font-family: monospace;
- font-size:9px;
- font-weight:400;
- color:#000;
- overflow:hidden;
+  width:55mm;
+  margin:0 auto;
+  padding:2px 1px 4px 1px;
+  font-family:monospace;
+  font-size:9px;
+  font-weight:400;
+  color:#000;
+  overflow:hidden;
 }
 .title{
- text-align:center;
- font-size:7px;
- font-weight:600;
- margin:0 0 4px 0;
- white-space:nowrap;
+  text-align:center;
+  font-size:7px;
+  font-weight:600;
+  margin:0 0 4px 0;
+  white-space:nowrap;
 }
 .meta{
- margin:0;
- white-space:pre-wrap;
- word-break:break-word;
- line-height:1.25;
- font-size:9px;
- font-weight:400;
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-word;
+  line-height:1.25;
+  font-size:9px;
+  font-weight:400;
 }
 .games{
- margin:0;
- white-space:pre-wrap;
- word-break:break-word;
- line-height:1.25;
- font-size:9px;
- font-weight:400;
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-word;
+  line-height:1.25;
+  font-size:9px;
+  font-weight:400;
 }
 .footer{
- margin-top:4px;
- font-size:9px;
- font-weight:400;
+  margin-top:4px;
+  font-size:9px;
+  font-weight:400;
 }
 </style>
 </head>
@@ -1683,17 +1765,17 @@ TOTAL: ${total.toFixed(2)} G</pre>
 
 <script>
 setTimeout(function(){
- try { window.print(); } catch(e) {}
+  try { window.print(); } catch(e) {}
 }, 300);
 </script>
 </body>
 </html>
- `);
+  `);
 });
 
 const adminRoutes = require("./admin");
 app.use(adminRoutes);
 
 app.listen(3000, "0.0.0.0", () => {
-console.log("Server ap mache sou rezo a");
+  console.log("Server ap mache sou rezo a");
 });

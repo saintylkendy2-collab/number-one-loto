@@ -97,6 +97,7 @@ app.post("/login", (req, res) => {
   const id = (req.body.id || "").trim();
   const password = (req.body.password || "").trim();
 
+  const vendors = require("./vendeurs.json");
   const vendor = vendors[id];
 
   if (!vendor || String(vendor.password || "").trim() !== password) {
@@ -152,9 +153,9 @@ font-weight:700;
     `);
   }
 
-  currentVendorId = id;
   return res.redirect("/dashboard");
 });
+
 
 app.get("/logout", (req, res) => {
 currentVendorId = "";

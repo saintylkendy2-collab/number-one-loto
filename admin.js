@@ -767,146 +767,154 @@ font-size:17px;
 </div>
 
 <script>
+/* =========================
+🔥 FULL FIX VENDORS SYSTEM
+========================= */
+
 let vendors = [];
 let currentVendorIndex = null;
 
-function byId(id){
-  return document.getElementById(id);
-}
-
-function safe(v){
-  return v == null ? "" : String(v);
-}
-
-function updateClock(){
-  const d = new Date();
-  const h = String(d.getHours()).padStart(2,"0");
-  const m = String(d.getMinutes()).padStart(2,"0");
-  const box = byId("clockBox");
-  if(box) box.textContent = h + ":" + m;
-}
-setInterval(updateClock,1000);
-updateClock();
-
-function loginMaster() {
-  const user = byId("username");
-  const pass = byId("password");
-  const loginPage = byId("loginPage");
-  const appPage = byId("appPage");
-
-  if (!user || !pass || !loginPage || !appPage) return;
-
-  const u = user.value.trim();
-  const p = pass.value.trim();
-
-  if (u === "Number" && p === "1234") {
-    loginPage.style.display = "none";
-    appPage.classList.remove("hidden");
-    appPage.style.display = "block";
-    loadVendorsFromServer();
-  } else {
-    alert("Login incorrect");
-  }
-}
-
-function logoutMaster(){
-  const loginPage = byId("loginPage");
-  const appPage = byId("appPage");
-  if(loginPage) loginPage.style.display = "flex";
-  if(appPage) appPage.style.display = "none";
-}
-
-function openSideMenu(){
-  const menu = byId("sideMenu");
-  const overlay = byId("menuOverlay");
-  if(menu) menu.classList.add("open");
-  if(overlay) overlay.classList.add("show");
-}
-
-function closeSideMenu(){
-  const menu = byId("sideMenu");
-  const overlay = byId("menuOverlay");
-  if(menu) menu.classList.remove("open");
-  if(overlay) overlay.classList.remove("show");
-}
-
-function goPage(page){
-  const vendorsPage = byId("vendorsPage");
-  const editorPage = byId("vendorEditorPage");
-
-  if(vendorsPage) vendorsPage.classList.add("hidden");
-  if(editorPage) editorPage.classList.add("hidden");
-
-  if(page === "vendors"){
-    vendorsPage.classList.remove("hidden");
-  }else if(page === "editor"){
-    editorPage.classList.remove("hidden");
-  }
-
-  closeSideMenu();
-}
-
+/* LOAD FROM SERVER */
 async function loadVendorsFromServer(){
   try{
     const res = await fetch("/api/vendors");
     const data = await res.json();
     vendors = Array.isArray(data) ? data : [];
     renderVendorTable();
-  }catch(err){
-    console.error(err);
+  }catch(e){
+    console.error(e);
     vendors = [];
     renderVendorTable();
   }
 }
 
-function renderVendorTable(){
-  const tbody = byId("vendorsTableBody");
-  if(!tbody) return;
+/* SAVE */
+async function saveVendor(){
+  const vendor = readVendorForm();
 
-  const idFilter = safe(byId("vendorFilterId")?.value).toLowerCase();
-  const nameFilter = safe(byId("vendorFilterNombre")?.value).toLowerCase();
-  const grupoFilter = safe(byId("vendorFilterGrupo")?.value).toLowerCase();
-  const estadoFilter = safe(byId("vendorFilterEstado")?.value);
-
-  const filtered = vendors.filter(v=>{
-    const okId = !idFilter || safe(v.id).toLowerCase().includes(idFilter);
-    const okName = !nameFilter || safe(v.nombre || v.nom).toLowerCase().includes(nameFilter);
-    const okGrupo = !grupoFilter || safe(v.zona || v.groupe).toLowerCase().includes(grupoFilter);
-    const okEstado = !estadoFilter || safe(v.estatus) === estadoFilter;
-    return okId && okName && okGrupo && okEstado;
-  });
-
-  tbody.innerHTML = "";
-
-  if(!filtered.length){
-    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay vendedores</td></tr>';
+  if(!vendor.id || !vendor.nombre || !vendor.clave){
+    alert("ID, Nombre y Clave son obligatorios");
     return;
   }
 
-  filtered.forEach(v=>{
-    const originalIndex = vendors.findIndex(x=>x.id === v.id);
-    const statusDot = v.estatus === "Activo"
-      ? '<span class="status-dot green">●</span>'
-      : '<span class="status-dot gray">●</span>';
+  try{
+    let res;
 
-    tbody.innerHTML += \`
-      <tr class="clickable-row" onclick="openVendorByIndex(\${originalIndex})">
-        <td>\${statusDot}<strong>\${safe(v.id)}</strong></td>
-        <td>\${safe(v.nombre || v.nom)}</td>
-        <td>\${safe(v.zona || v.groupe)}</td>
-        <td>\${safe(v.app || "2.9.32")}</td>
-        <td>\${safe(v.conexion || "")}</td>
-        <td>\${safe(v.estatus || "Activo")}</td>
-        <td>
-          <button class="mini-btn" onclick="event.stopPropagation();openVendorByIndex(\${originalIndex})">✎</button>
-        </td>
-        <td>
-          <button class="mini-btn" onclick="event.stopPropagation();deleteVendorByIndex(\${originalIndex})">🗑</button>
-        </td>
-      </tr>
-    \`;
-  });
+    if(currentVendorIndex === null){
+      res = await fetch("/api/vendors",{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify(vendor)
+      });
+    }else{
+      const oldId = vendors[currentVendorIndex].id;
+      res = await fetch("/api/vendors/"+oldId,{
+        method:"PUT",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify(vendor)
+      });
+    }
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.message || "Erreur");
+      return;
+    }
+
+    alert("Vendedor guardado ✔");
+    await loadVendorsFromServer();
+    goPage("vendors");
+
+  }catch(e){
+    console.error(e);
+    alert("Erreur save");
+  }
 }
+
+/* DELETE */
+async function deleteVendorByIndex(index){
+  if(!confirm("Eliminar vendedor?")) return;
+
+  try{
+    const id = vendors[index].id;
+
+    const res = await fetch("/api/vendors/"+id,{
+      method:"DELETE"
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.message || "Erreur");
+      return;
+    }
+
+    await loadVendorsFromServer();
+
+  }catch(e){
+    console.error(e);
+    alert("Erreur delete");
+  }
+}
+
+/* CLONE */
+async function cloneVendor(){
+  const vendor = readVendorForm();
+
+  if(!vendor.id){
+    alert("Selecciona un vendedor");
+    return;
+  }
+
+  const copy = {
+    ...vendor,
+    id: vendor.id + "_copy",
+    nombre: vendor.nombre + "_copy"
+  };
+
+  try{
+    const res = await fetch("/api/vendors",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify(copy)
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.message || "Erreur");
+      return;
+    }
+
+    alert("Clonado ✔");
+    await loadVendorsFromServer();
+    goPage("vendors");
+
+  }catch(e){
+    console.error(e);
+    alert("Erreur clone");
+  }
+}
+
+/* OPEN */
+function openVendorByIndex(index){
+  currentVendorIndex = index;
+  fillVendorForm(vendors[index]);
+  goPage("editor");
+}
+
+/* NEW */
+function openNewVendor(){
+  currentVendorIndex = null;
+  fillVendorForm(blankVendor());
+  goPage("editor");
+}
+
+/* AUTO LOAD */
+document.addEventListener("DOMContentLoaded",()=>{
+  loadVendorsFromServer();
+});
 
 function blankVendor(){
   return {

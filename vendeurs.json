@@ -16,5 +16,14 @@
     "estatus": "Activo",
     "app": "2.9.32",
     "conexion": ""
+  },
+  "NOC110": {
+    "nom": "Toto",
+    "groupe": "",
+    "password": "1234",
+    "clave": "1234",
+    "estatus": "Activo",
+    "app": "2.9.32",
+    "conexion": ""
   }
 }

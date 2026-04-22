@@ -243,5 +243,114 @@
       }
     },
     "conexiones": []
+  },
+  "NOC113": {
+    "nom": "DA",
+    "nombre": "DA",
+    "groupe": "",
+    "zona": "",
+    "password": "1234",
+    "clave": "1234",
+    "estatus": "Bloqueado",
+    "app": "2.9.32",
+    "conexion": "",
+    "apellido": "",
+    "cedula": "",
+    "telefono": "",
+    "direccion": "",
+    "sexo": "-",
+    "config": {
+      "limiteDiario": "0",
+      "credito": "0",
+      "deshabilitarLoterias": "",
+      "deshabilitarJugadas": "",
+      "mezclaNumeros": "0",
+      "habilitarCuadre": false,
+      "ventasWhatsapp": false,
+      "usarNombreTicket": false,
+      "deshabilitarDecimales": "0",
+      "deshabilitarTerminales": "0",
+      "habilitarPrepago": false,
+      "activarBono": false,
+      "bonoTipo": "Mariage"
+    },
+    "comision": {
+      "retener": false,
+      "general": "0",
+      "borlette": "0",
+      "mariage": "0",
+      "loto3": "0",
+      "loto4": "0",
+      "loto5": "0",
+      "loto5o2": "0",
+      "loto5o3": "0",
+      "zona": "0",
+      "porLoteria": false
+    },
+    "premios": {
+      "habilitar": true,
+      "loteria": "TODAS",
+      "applyAll": true,
+      "borlette": [
+        "",
+        "",
+        ""
+      ],
+      "mariage": [
+        "",
+        "",
+        ""
+      ],
+      "loto3": [
+        "",
+        "",
+        ""
+      ],
+      "loto4": [
+        "",
+        "",
+        ""
+      ],
+      "loto5": [
+        "",
+        "",
+        ""
+      ],
+      "loto5o2": [
+        "",
+        "",
+        ""
+      ],
+      "loto5o3": [
+        "",
+        "",
+        ""
+      ]
+    },
+    "limites": {
+      "loteria": "TODAS",
+      "applyAll": false,
+      "borlette": "0",
+      "mariage": "0",
+      "loto3": "0",
+      "loto4_l1": "0",
+      "loto4_l2": "0",
+      "loto4_l3": "0",
+      "loto5_l1": "0",
+      "loto5_l2": "0",
+      "loto5_l3": "0",
+      "limitarNumeros": [],
+      "bloqueoNumeros": [],
+      "limitarCantidad": {
+        "borlette": "0",
+        "mariage": "0",
+        "loto3": "0",
+        "loto4": "0",
+        "loto5": "0",
+        "loto5o2": "0",
+        "loto5o3": "0"
+      }
+    },
+    "conexiones": []
   }
 }

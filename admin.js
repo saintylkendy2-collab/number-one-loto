@@ -1583,6 +1583,43 @@ function makeOption(value,text){
  return opt;
 }
 
+function canConnectVendor(vendor){
+  if(vendor.conexiones && vendor.conexiones.length > 0){
+    return false; // deja konekte
+  }
+  return true;
+}
+
+async function blockConn(i){
+  if(currentVendorIndex == null) return;
+
+  const vendor = vendors[currentVendorIndex];
+  if(!vendor) return;
+
+  vendor.estatus = "Bloqueado";
+
+  try{
+    const res = await fetch("/api/vendors/" + encodeURIComponent(vendor.id), {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(vendor)
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.message || "Erreur blocage");
+      return;
+    }
+
+    alert("Vendedor bloqueado");
+    await loadVendorsFromServer();
+  }catch(err){
+    console.error(err);
+    alert("Erreur blocage vendeur");
+  }
+}
+
 /* =========================
  LOAD SELECTS
 ========================= */
@@ -2150,7 +2187,11 @@ function blockConn(i){
  alert("Bloquear conexión " + i);
 }
 function deleteConn(i){
- alert("Eliminar conexión " + i);
+  if(currentVendorIndex == null) return;
+
+  vendors[currentVendorIndex].conexiones.splice(i,1);
+
+  renderConexiones(vendors[currentVendorIndex].conexiones);
 }
 function pinConn(i){
  alert("PIN conexión " + i);

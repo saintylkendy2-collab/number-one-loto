@@ -32,6 +32,14 @@ function loadVendeursForLogin() {
   }
 }
 
+function saveVendeursForLogin(vendeurs) {
+  try {
+    fs.writeFileSync(VENDEURS_FILE, JSON.stringify(vendeurs, null, 2), "utf8");
+  } catch (err) {
+    console.error("Erreur sauvegarde vendeurs :", err);
+  }
+}
+
 app.get("/", (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -125,12 +133,41 @@ app.post("/login", (req, res) => {
   const vendeurs = loadVendeursForLogin();
   const vendeur = vendeurs[id];
 
-  if (vendeur) {
-    const savedPassword = String(vendeur.password || vendeur.clave || "").trim();
-    if (password === savedPassword) {
-      return res.redirect("/dashboard");
-    }
+  if (!vendeur) {
+    return res.send("ID pa egziste");
   }
+
+  const savedPassword = String(vendeur.password || vendeur.clave || "").trim();
+
+  if (password !== savedPassword) {
+    return res.send("Modpas pa bon");
+  }
+
+  if (vendeur.estatus && String(vendeur.estatus).toLowerCase() === "bloqueado") {
+    return res.send("Vandè sa bloke");
+  }
+
+  if (vendeur.conexiones && vendeur.conexiones.length > 0) {
+    return res.send("ID sa konekte deja");
+  }
+
+  if (!vendeur.conexiones || !Array.isArray(vendeur.conexiones)) {
+    vendeur.conexiones = [];
+  }
+
+  vendeur.conexiones.push({
+    id: "DEV-" + Date.now(),
+    last: new Date().toLocaleString(),
+    pin: Math.floor(Math.random() * 900) + 100,
+    co: true,
+    on: true,
+    st: true
+  });
+
+  saveVendeursForLogin(vendeurs);
+
+  return res.redirect("/dashboard");
+});
 
   res.send(`
 <!DOCTYPE html>
@@ -182,7 +219,6 @@ font-weight:700;
 </body>
 </html>
 `);
-});
 
 app.get("/logout", (req, res) => {
   res.redirect("/");

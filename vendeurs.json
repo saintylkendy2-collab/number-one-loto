@@ -689,5 +689,131 @@
       }
     },
     "conexiones": []
+  },
+  "NOC125": {
+    "nom": "jn",
+    "nombre": "jn",
+    "groupe": "",
+    "zona": "",
+    "password": "1234",
+    "clave": "1234",
+    "estatus": "Activo",
+    "app": "2.9.32",
+    "conexion": "22/04/2026 14:05:22",
+    "apellido": "",
+    "cedula": "",
+    "telefono": "",
+    "direccion": "",
+    "sexo": "-",
+    "config": {
+      "limiteDiario": "0",
+      "credito": "0",
+      "deshabilitarLoterias": "",
+      "deshabilitarJugadas": "",
+      "mezclaNumeros": "0",
+      "habilitarCuadre": false,
+      "ventasWhatsapp": false,
+      "usarNombreTicket": false,
+      "deshabilitarDecimales": "0",
+      "deshabilitarTerminales": "0",
+      "habilitarPrepago": false,
+      "activarBono": false,
+      "bonoTipo": "Mariage"
+    },
+    "comision": {
+      "retener": false,
+      "general": "0",
+      "borlette": "0",
+      "mariage": "0",
+      "loto3": "0",
+      "loto4": "0",
+      "loto5": "0",
+      "loto5o2": "0",
+      "loto5o3": "0",
+      "zona": "0",
+      "porLoteria": false
+    },
+    "premios": {
+      "habilitar": true,
+      "loteria": "TODAS",
+      "applyAll": true,
+      "borlette": [
+        "",
+        "",
+        ""
+      ],
+      "mariage": [
+        "",
+        "",
+        ""
+      ],
+      "loto3": [
+        "",
+        "",
+        ""
+      ],
+      "loto4": [
+        "",
+        "",
+        ""
+      ],
+      "loto5": [
+        "",
+        "",
+        ""
+      ],
+      "loto5o2": [
+        "",
+        "",
+        ""
+      ],
+      "loto5o3": [
+        "",
+        "",
+        ""
+      ]
+    },
+    "limites": {
+      "loteria": "TODAS",
+      "applyAll": true,
+      "borlette": "0",
+      "mariage": "0",
+      "loto3": "0",
+      "loto4_l1": "0",
+      "loto4_l2": "0",
+      "loto4_l3": "0",
+      "loto5_l1": "0",
+      "loto5_l2": "0",
+      "loto5_l3": "0",
+      "limitarNumeros": [],
+      "bloqueoNumeros": [],
+      "limitarCantidad": {
+        "borlette": "0",
+        "mariage": "0",
+        "loto3": "0",
+        "loto4": "0",
+        "loto5": "0",
+        "loto5o2": "0",
+        "loto5o3": "0"
+      }
+    },
+    "conexiones": [
+      {
+        "id": "DEV-1776881122666",
+        "marca": "APPLE",
+        "modelo": "MAC",
+        "version": "17",
+        "app": "2.9.32",
+        "vinculado": "22/04/2026 14:05:22",
+        "last": "22/04/2026 14:05:22",
+        "pin": 287,
+        "place": "PC",
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15",
+        "co": true,
+        "on": true,
+        "st": true
+      }
+    ]
   }
 }

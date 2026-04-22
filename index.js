@@ -168,58 +168,7 @@ app.post("/login", (req, res) => {
 
   return res.redirect("/dashboard");
 });
-
-  res.send(`
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login échoué</title>
-<style>
-body{
-margin:0;
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#f2f2f2;
-font-family:Arial,sans-serif;
-padding:20px;
-}
-.box{
-width:100%;
-max-width:360px;
-background:#fff;
-border-radius:14px;
-padding:24px;
-box-shadow:0 8px 22px rgba(0,0,0,.08);
-text-align:center;
-}
-.msg{
-color:#d93025;
-font-size:20px;
-font-weight:700;
-margin-bottom:16px;
-}
-a{
-display:inline-block;
-margin-top:6px;
-text-decoration:none;
-color:#3f7fe8;
-font-weight:700;
-}
-</style>
-</head>
-<body>
-<div class="box">
-<div class="msg">Identifiant ou mot de passe incorrect ✖</div>
-<a href="/">Retour</a>
-</div>
-</body>
-</html>
-`);
-
+ 
 app.get("/logout", (req, res) => {
   res.redirect("/");
 });

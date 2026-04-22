@@ -1,11 +1,14 @@
 {
   "NOC100": {
-    "nom": "MAMA",
-    "password": "1234"
+    "nom": "Rodolphe 8",
+    "password": "1234",
+    "groupe": "Brasser Dollar",
+    "status": "Bloqueado"
   },
   "NOC101": {
-    "nom": "Gaga",
-    "groupe": "",
-    "password": "1234"
+    "nom": "Odil",
+    "password": "1234",
+    "groupe": "Junior",
+    "status": "Activo"
   }
 }

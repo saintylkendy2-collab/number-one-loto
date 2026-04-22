@@ -1,5 +1,26 @@
 const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const router = express.Router();
+
+const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
+
+function saveVendeursForLogin(list) {
+  const data = {};
+
+  list.forEach(v => {
+    if (!v || !v.id) return;
+
+    data[String(v.id).trim()] = {
+      nom: v.nombre || "",
+      password: v.clave || "",
+      groupe: v.zona || "",
+      status: v.estatus || "Bloqueado"
+    };
+  });
+
+  fs.writeFileSync(VENDEURS_FILE, JSON.stringify(data, null, 2), "utf8");
+}
 
 router.get("/master/vendors", (req, res) => {
   res.send(`
@@ -2049,8 +2070,8 @@ function readVendorForm(){
 function saveVendor(){
   const vendor = readVendorForm();
 
-  if(!vendor.id || !vendor.nombre){
-    alert("ID y Nombre son obligatorios");
+  if(!vendor.id || !vendor.nombre || !vendor.clave){
+    alert("ID, Nombre y Clave son obligatorios");
     return;
   }
 
@@ -2060,8 +2081,27 @@ function saveVendor(){
     vendors[currentVendorIndex] = vendor;
   }
 
-  alert("Vendedor guardado ✔");
-  goPage("vendors");
+  fetch("/master/vendors/save", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(vendors)
+  })
+  .then(r => r.json())
+  .then(data => {
+    if(!data.ok){
+      alert("Error al guardar");
+      return;
+    }
+
+    alert("Vendedor guardado ✔");
+    goPage("vendors");
+    renderVendorTable();
+  })
+  .catch(() => {
+    alert("Error al guardar");
+  });
 }
 
 function deleteVendorByIndex(index){
@@ -2305,6 +2345,17 @@ goPage("vendors");
 </body>
 </html>
   `);
+});
+
+router.post("/master/vendors/save", (req, res) => {
+  try {
+    const list = Array.isArray(req.body) ? req.body : [];
+    saveVendeursForLogin(list);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false });
+  }
 });
 
 module.exports = router;

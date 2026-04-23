@@ -2146,7 +2146,6 @@ function renderBillets(){
  }
 
  wrap.innerHTML = "";
-// BOUTON RETOUR
 var back = document.createElement("div");
 back.style.marginBottom = "10px";
 back.innerHTML =

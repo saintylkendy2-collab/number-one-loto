@@ -2340,36 +2340,33 @@ app.get("/print", (req, res) => {
   });
 
   const grouped = {};
-  (ticket.jeux || []).forEach(function (j) {
+  (ticket.jeux || []).forEach(function(j){
     const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
     if (!grouped[lot]) grouped[lot] = [];
     grouped[lot].push(j);
   });
 
-  const lines = [];
+  let gamesHtml = "";
 
-  Object.keys(grouped).forEach(function (loterie) {
-    lines.push(loterie);
-    lines.push("");
+  Object.keys(grouped).forEach(function(loterie){
+    gamesHtml += '<div class="tirage">' + loterie + '</div>';
 
-    grouped[loterie].forEach(function (j) {
+    grouped[loterie].forEach(function(j){
       let type = String(j.type || "").toUpperCase();
       if (type === "BOR") type = "Borlette";
       else if (type === "MAR") type = "Mariage";
       else if (type === "L3") type = "Loto 3";
       else if (type === "L4") type = "Loto 4";
-      else if (type === "L1") type = "L1";
-      else if (type === "L2") type = "L2";
-      else if (type === "L3") type = "L3";
 
-      const typeTxt = type.padEnd(10, " ");
-      const numTxt = String(j.numero || "").padEnd(10, " ");
-      const amtTxt = Number(j.montant || 0).toFixed(2).padStart(8, " ");
-
-      lines.push(typeTxt + numTxt + amtTxt);
+      gamesHtml +=
+        '<div class="game-row">' +
+          '<div class="col-type">' + type + '</div>' +
+          '<div class="col-num">' + String(j.numero || "") + '</div>' +
+          '<div class="col-amt">' + Number(j.montant || 0).toFixed(2) + '</div>' +
+        '</div>';
     });
 
-    lines.push("------------------------------");
+    gamesHtml += '<div class="line"></div>';
   });
 
   res.set("Content-Type", "text/html; charset=utf-8");
@@ -2387,39 +2384,81 @@ html,body{
   background:#fff;
 }
 body{
-  width:58mm;
+  width:48mm;
   margin:0 auto;
-  padding:4px 3px 8px 3px;
+  padding:2mm 2mm 4mm 2mm;
   font-family:monospace;
-  font-size:11px;
-  line-height:1.35;
   color:#000;
+  font-size:10px;
+  line-height:1.25;
+}
+.ticket{
+  width:100%;
 }
 .title{
   text-align:center;
-  font-size:18px;
+  font-size:12px;
   font-weight:700;
-  margin:0 0 8px 0;
+  margin-bottom:6px;
 }
-.meta,.games{
-  margin:0;
-  white-space:pre-wrap;
-  word-break:normal;
-  overflow-wrap:normal;
+.meta{
+  white-space:pre-line;
+  margin-bottom:4px;
+}
+.line{
+  border-top:1px dashed #000;
+  margin:4px 0;
+}
+.tirage{
+  font-size:10px;
+  font-weight:700;
+  margin:4px 0 3px 0;
+}
+.game-row{
+  display:grid;
+  grid-template-columns: 1fr 32px 44px;
+  column-gap:4px;
+  align-items:center;
+  margin:1px 0;
+}
+.col-type{
+  overflow:hidden;
+  white-space:nowrap;
+}
+.col-num{
+  text-align:left;
+  white-space:nowrap;
+}
+.col-amt{
+  text-align:right;
+  white-space:nowrap;
+}
+.total{
+  font-size:11px;
+  font-weight:700;
+  margin-top:2px;
+}
+@media print{
+  html,body{
+    width:48mm;
+  }
 }
 </style>
 </head>
 <body>
-<div class="title">NUMBER ONE LOTO</div>
+<div class="ticket">
+  <div class="title">NUMBER ONE LOTO</div>
 
-<pre class="meta">SELLER ${sellerName}
+  <div class="meta">SELLER ${sellerName}
 TICKET ${ticket.id}
-DATE ${dateStr} ${timeStr}
-------------------------------</pre>
+DATE ${dateStr} ${timeStr}</div>
 
-<pre class="games">${lines.join("\n")}</pre>
+  <div class="line"></div>
 
-<pre class="meta">TOTAL: ${total.toFixed(2)} G</pre>
+  ${gamesHtml}
+
+  <div class="total">TOTAL: ${total.toFixed(2)} G</div>
+</div>
 
 <script>
 setTimeout(function(){
@@ -2430,6 +2469,8 @@ setTimeout(function(){
 </html>
   `);
 });
+
+
 
 const adminRoutes = require("./admin");
 app.use(adminRoutes);

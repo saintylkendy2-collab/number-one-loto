@@ -825,12 +825,16 @@
     "clave": "1234",
     "estatus": "Activo",
     "app": "2.9.32",
-    "conexion": "22/04/2026 15:47:40",
+    "conexion": "",
     "apellido": "",
     "cedula": "",
     "telefono": "",
     "direccion": "",
     "sexo": "-",
+    "venta": 0,
+    "premiosMonto": 0,
+    "balance": 0,
+    "movimientos": [],
     "config": {
       "limiteDiario": "0",
       "credito": "0",
@@ -923,23 +927,6 @@
         "loto5o3": "0"
       }
     },
-    "conexiones": [
-      {
-        "id": "DEV-1776887260989",
-        "marca": "APPLE",
-        "modelo": "MAC",
-        "version": "17",
-        "app": "2.9.32",
-        "vinculado": "22/04/2026 15:47:40",
-        "last": "22/04/2026 15:47:40",
-        "pin": 513,
-        "place": "PC",
-        "ip": "127.0.0.1",
-        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15",
-        "co": true,
-        "on": true,
-        "st": true
-      }
-    ]
+    "conexiones": []
   }
 }

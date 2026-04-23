@@ -1941,11 +1941,17 @@ function buildPrintableTextFromTicket(ticket){
 function resetAfterSend(){
  jeux = [];
  numero = "";
+ montant = "";
  cursorNumero = 0;
+ cursorMontant = 0;
+ selectedLoteries = [];
+
  activeField = "numero";
+
  renderJeux();
  updateFields();
 }
+
 
 function saveCurrentTicket(channel){
  if(jeux.length === 0){
@@ -1976,14 +1982,17 @@ function saveCurrentTicket(channel){
  });
 }
 
-function submitPrint(){
+unction submitPrint(){
  saveCurrentTicket("PRINT").then(function(ticket){
    if(!ticket) return;
 
-   document.getElementById("printTicketId").value = ticket.id;
-   document.getElementById("printForm").submit();
+   // OUVRI PRINT SAN BLOKE APP
+   window.open("/print?ticketId=" + ticket.id + "&sellerId=" + sellerId, "_blank");
 
+   // REFRESH HISTORIK
    loadBillets();
+
+   // VIDE EKRAN
    resetAfterSend();
  });
 }
@@ -1994,12 +2003,18 @@ function shareWhatsApp(){
 
    var text = buildPrintableTextFromTicket(ticket);
    var url = "https://wa.me/?text=" + encodeURIComponent(text);
+
+   // OUVRI WHATSAPP
    window.open(url, "_blank");
 
+   // REFRESH HISTORIK
    loadBillets();
+
+   // VIDE EKRAN
    resetAfterSend();
  });
 }
+
 
 function toggleDrawer(){
  document.getElementById("drawer").classList.toggle("open");

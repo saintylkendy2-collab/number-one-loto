@@ -2378,52 +2378,60 @@ app.get("/print", (req, res) => {
 <title>Print</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+@page{
+  size: 58mm auto;
+  margin: 0;
+}
 html,body{
   margin:0;
   padding:0;
   background:#fff;
 }
 body{
-  width:48mm;
+  width:42mm;
   margin:0 auto;
-  padding:2mm 2mm 4mm 2mm;
+  padding:1mm 1mm 2mm 1mm;
   font-family:monospace;
   color:#000;
-  font-size:10px;
-  line-height:1.25;
+  font-size:9px;
+  line-height:1.15;
 }
 .ticket{
   width:100%;
 }
 .title{
   text-align:center;
-  font-size:12px;
+  font-size:10px;
   font-weight:700;
-  margin-bottom:6px;
+  margin:0 0 4px 0;
+  white-space:nowrap;
 }
 .meta{
-  white-space:pre-line;
-  margin-bottom:4px;
+  margin:0 0 3px 0;
+}
+.meta-line{
+  white-space:nowrap;
 }
 .line{
   border-top:1px dashed #000;
-  margin:4px 0;
+  margin:3px 0;
 }
 .tirage{
-  font-size:10px;
+  font-size:9px;
   font-weight:700;
-  margin:4px 0 3px 0;
+  margin:3px 0 2px 0;
+  white-space:nowrap;
 }
 .game-row{
   display:grid;
-  grid-template-columns: 1fr 32px 44px;
-  column-gap:4px;
+  grid-template-columns: 1fr 24px 32px;
+  column-gap:3px;
   align-items:center;
-  margin:1px 0;
+  margin:0;
 }
 .col-type{
-  overflow:hidden;
   white-space:nowrap;
+  overflow:hidden;
 }
 .col-num{
   text-align:left;
@@ -2434,14 +2442,10 @@ body{
   white-space:nowrap;
 }
 .total{
-  font-size:11px;
+  font-size:10px;
   font-weight:700;
   margin-top:2px;
-}
-@media print{
-  html,body{
-    width:48mm;
-  }
+  white-space:nowrap;
 }
 </style>
 </head>
@@ -2449,9 +2453,11 @@ body{
 <div class="ticket">
   <div class="title">NUMBER ONE LOTO</div>
 
-  <div class="meta">SELLER ${sellerName}
-TICKET ${ticket.id}
-DATE ${dateStr} ${timeStr}</div>
+  <div class="meta">
+    <div class="meta-line">SELLER ${sellerName}</div>
+    <div class="meta-line">TICKET ${ticket.id}</div>
+    <div class="meta-line">DATE ${dateStr} ${timeStr}</div>
+  </div>
 
   <div class="line"></div>
 

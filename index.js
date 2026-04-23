@@ -2255,9 +2255,9 @@ loadBillets();
 `);
 });
 
-app.post("/print", (req, res) => {
-  const ticketId = String(req.body.ticketId || "").trim();
-  const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
+app.get("/print", (req, res) => {
+  const ticketId = String(req.query.ticketId || "").trim();
+  const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
 
   const tickets = loadTickets();
   const ticket = tickets.find((t) => String(t.id) === ticketId);
@@ -2298,49 +2298,17 @@ app.post("/print", (req, res) => {
 <title>Print</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-html,body{
-  margin:0;
-  padding:0;
-  background:#fff;
-}
+html,body{margin:0;padding:0;background:#fff;}
 body{
   width:55mm;
   margin:0 auto;
   padding:2px 1px 4px 1px;
   font-family:monospace;
   font-size:9px;
-  font-weight:400;
   color:#000;
-  overflow:hidden;
 }
-.title{
-  text-align:center;
-  font-size:7px;
-  font-weight:600;
-  margin:0 0 4px 0;
-  white-space:nowrap;
-}
-.meta{
-  margin:0;
-  white-space:pre-wrap;
-  word-break:break-word;
-  line-height:1.25;
-  font-size:9px;
-  font-weight:400;
-}
-.games{
-  margin:0;
-  white-space:pre-wrap;
-  word-break:break-word;
-  line-height:1.25;
-  font-size:9px;
-  font-weight:400;
-}
-.footer{
-  margin-top:4px;
-  font-size:9px;
-  font-weight:400;
-}
+.title{text-align:center;font-size:11px;font-weight:700;margin:0 0 4px 0;}
+.meta,.games{margin:0;white-space:pre-wrap;line-height:1.25;font-size:9px;}
 </style>
 </head>
 <body>
@@ -2349,15 +2317,12 @@ body{
 <pre class="meta">SELLER ${sellerName}
 TICKET ${ticket.id}
 DATE ${dateStr} ${timeStr}
-TIRAGES ${tirages}
 --------------------------------</pre>
 
 <pre class="games">${gameLines.join("\\n")}</pre>
 
 <pre class="meta">--------------------------------
 TOTAL: ${total.toFixed(2)} G</pre>
-
-<div class="footer">Bon chans</div>
 
 <script>
 setTimeout(function(){
@@ -2368,6 +2333,7 @@ setTimeout(function(){
 </html>
   `);
 });
+
 
 const adminRoutes = require("./admin");
 app.use(adminRoutes);

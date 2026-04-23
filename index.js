@@ -2316,59 +2316,64 @@ loadBillets();
 });
 
 app.get("/print", (req, res) => {
- const ticketId = String(req.query.ticketId || "").trim();
- const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
+  const ticketId = String(req.query.ticketId || "").trim();
+  const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
 
- const tickets = loadTickets();
- const ticket = tickets.find((t) => String(t.id) === ticketId);
+  const tickets = loadTickets();
+  const ticket = tickets.find((t) => String(t.id) === ticketId);
 
- if (!ticket) {
- return res.status(404).send("Ticket introuvable");
- }
+  if (!ticket) {
+    return res.status(404).send("Ticket introuvable");
+  }
 
- const vendeurs = loadVendeursForLogin();
- const vendeur = vendeurs[sellerId] || {};
- const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
+  const vendeurs = loadVendeursForLogin();
+  const vendeur = vendeurs[sellerId] || {};
+  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
 
- const total = Number(ticket.total || 0);
- const now = new Date(ticket.createdAt || Date.now());
+  const total = Number(ticket.total || 0);
+  const now = new Date(ticket.createdAt || Date.now());
 
- const dateStr = now.toLocaleDateString("fr-FR");
- const timeStr = now.toLocaleTimeString("fr-FR", {
- hour: "2-digit",
- minute: "2-digit"
- });
+  const dateStr = now.toLocaleDateString("fr-FR");
+  const timeStr = now.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 
- const grouped = {};
- (ticket.jeux || []).forEach(function(j){
- const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
- if (!grouped[lot]) grouped[lot] = [];
- grouped[lot].push(j);
- });
+  const grouped = {};
+  (ticket.jeux || []).forEach(function (j) {
+    const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
+    if (!grouped[lot]) grouped[lot] = [];
+    grouped[lot].push(j);
+  });
 
- const printLines = [];
+  const lines = [];
 
- Object.keys(grouped).forEach(function(loterie){
- printLines.push(loterie);
- printLines.push("");
+  Object.keys(grouped).forEach(function (loterie) {
+    lines.push(loterie);
+    lines.push("");
 
- grouped[loterie].forEach(function(j){
- let type = String(j.type || "").toUpperCase();
- if (type === "BOR") type = "Borlette";
- if (type === "MAR") type = "Mariage";
+    grouped[loterie].forEach(function (j) {
+      let type = String(j.type || "").toUpperCase();
+      if (type === "BOR") type = "Borlette";
+      else if (type === "MAR") type = "Mariage";
+      else if (type === "L3") type = "Loto 3";
+      else if (type === "L4") type = "Loto 4";
+      else if (type === "L1") type = "L1";
+      else if (type === "L2") type = "L2";
+      else if (type === "L3") type = "L3";
 
- const typeTxt = type.padEnd(10, " ");
- const numTxt = String(j.numero || "").padEnd(8, " ");
- const amtTxt = Number(j.montant || 0).toFixed(2).padStart(7, " ");
+      const typeTxt = type.padEnd(10, " ");
+      const numTxt = String(j.numero || "").padEnd(10, " ");
+      const amtTxt = Number(j.montant || 0).toFixed(2).padStart(8, " ");
 
- printLines.push(typeTxt + numTxt + amtTxt);
- });
+      lines.push(typeTxt + numTxt + amtTxt);
+    });
 
- printLines.push("------------------------------");
- });
+    lines.push("------------------------------");
+  });
 
- res.set("Content-Type", "text/html; charset=utf-8");
- res.send(`
+  res.set("Content-Type", "text/html; charset=utf-8");
+  res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -2377,29 +2382,30 @@ app.get("/print", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html,body{
- margin:0;
- padding:0;
- background:#fff;
+  margin:0;
+  padding:0;
+  background:#fff;
 }
 body{
- width:58mm;
- margin:0 auto;
- padding:4px 3px 8px 3px;
- font-family:monospace;
- font-size:12px;
- line-height:1.35;
- color:#000;
+  width:58mm;
+  margin:0 auto;
+  padding:4px 3px 8px 3px;
+  font-family:monospace;
+  font-size:11px;
+  line-height:1.35;
+  color:#000;
 }
 .title{
- text-align:center;
- font-size:18px;
- font-weight:700;
- margin:0 0 8px 0;
+  text-align:center;
+  font-size:18px;
+  font-weight:700;
+  margin:0 0 8px 0;
 }
 .meta,.games{
- margin:0;
- white-space:pre-wrap;
- word-break:keep-all;
+  margin:0;
+  white-space:pre-wrap;
+  word-break:normal;
+  overflow-wrap:normal;
 }
 </style>
 </head>
@@ -2411,18 +2417,18 @@ TICKET ${ticket.id}
 DATE ${dateStr} ${timeStr}
 ------------------------------</pre>
 
-<pre class="games">${printLines.join("\\n")}</pre>
+<pre class="games">${lines.join("\n")}</pre>
 
 <pre class="meta">TOTAL: ${total.toFixed(2)} G</pre>
 
 <script>
 setTimeout(function(){
- try { window.print(); } catch(e) {}
+  try { window.print(); } catch(e) {}
 }, 300);
 </script>
 </body>
 </html>
- `);
+  `);
 });
 
 const adminRoutes = require("./admin");

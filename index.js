@@ -2266,15 +2266,15 @@ function renderRapports(){
     });
   });
 
-  var commission = vente * 0.15;
-  var resultat = vente - prime - commission;
+  var commission = 0; // kite master panel jere sa
+var resultat = vente - prime;
 
   var daysHtml = "";
   var sortedDays = Object.keys(byDay).sort();
   sortedDays.forEach(function(day){
     var d = byDay[day];
-    var dCommission = d.vente * 0.15;
-    var dBalance = d.vente - d.prime - dCommission;
+    var dCommission = 0;
+var dBalance = d.vente - d.prime;
 
     daysHtml +=
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +

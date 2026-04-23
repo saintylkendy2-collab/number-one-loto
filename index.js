@@ -2257,19 +2257,19 @@ function renderRapports(){
   '<div style="height:100%;display:flex;flex-direction:column;background:#f5f5f5;">' +
 
     '<div style="height:58px;min-height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;">' +
-      '<div onclick="switchPage(\'billetsPage\', document.getElementById(\'nav-billets\'))" style="font-size:24px;cursor:pointer;">←</div>' +
+      '<button id="rapportBackBtn" type="button" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">←</button>' +
       '<div style="font-size:22px;font-weight:700;">Rapports</div>' +
       '<div style="display:flex;gap:18px;align-items:center;">' +
-        '<div onclick="loadBillets()" style="font-size:22px;cursor:pointer;">↻</div>' +
-        '<div onclick="window.print()" style="font-size:20px;cursor:pointer;">🖨️</div>' +
+        '<button id="rapportRefreshBtn" type="button" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;">↻</button>' +
+        '<button id="rapportPrintBtn" type="button" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">🖨️</button>' +
       '</div>' +
     '</div>' +
 
     '<div style="padding:14px;overflow:auto;flex:1;">' +
 
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">' +
-        '<input id="rapportDateStart" type="date" value="' + startValue + '" onchange="renderRapports()" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
-        '<input id="rapportDateEnd" type="date" value="' + endValue + '" onchange="renderRapports()" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
+        '<input id="rapportDateStart" type="date" value="' + startValue + '" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
+        '<input id="rapportDateEnd" type="date" value="' + endValue + '" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
       '</div>' +
 
       '<div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 4px 12px rgba(0,0,0,.05);">' +
@@ -2297,7 +2297,44 @@ function renderRapports(){
 
     '</div>' +
   '</div>';
+
+  var backBtn = document.getElementById("rapportBackBtn");
+  var refreshBtn = document.getElementById("rapportRefreshBtn");
+  var printBtn = document.getElementById("rapportPrintBtn");
+  var startInput = document.getElementById("rapportDateStart");
+  var endInput = document.getElementById("rapportDateEnd");
+
+  if(backBtn){
+    backBtn.addEventListener("click", function(){
+      switchPage("billetsPage", document.getElementById("nav-billets"));
+    });
+  }
+
+  if(refreshBtn){
+    refreshBtn.addEventListener("click", function(){
+      loadBillets();
+    });
+  }
+
+  if(printBtn){
+    printBtn.addEventListener("click", function(){
+      window.print();
+    });
+  }
+
+  if(startInput){
+    startInput.addEventListener("change", function(){
+      renderRapports();
+    });
+  }
+
+  if(endInput){
+    endInput.addEventListener("change", function(){
+      renderRapports();
+    });
+  }
 }
+
 
 function updateTicketStatus(id, status, premio){
  fetch("/api/ticket-status", {

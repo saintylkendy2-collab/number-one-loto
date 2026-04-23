@@ -2339,35 +2339,49 @@ app.get("/print", (req, res) => {
     minute: "2-digit"
   });
 
+  function normalizeType(type) {
+    const t = String(type || "").toUpperCase();
+    if (t === "BOR") return "Borlette";
+    if (t === "MAR") return "Mariage";
+    if (t === "L3") return "Loto 3";
+    if (t === "L4") return "Loto 4";
+    return t || "";
+  }
+
+  function formatLine(type, num, amount) {
+    const t = normalizeType(type).padEnd(10, " ");
+    const n = String(num || "").padStart(3, " ");
+    const a = Number(amount || 0).toFixed(2).padStart(7, " ");
+    return t + " " + n + "  " + a;
+  }
+
   const grouped = {};
-  (ticket.jeux || []).forEach(function(j){
+  (ticket.jeux || []).forEach(function (j) {
     const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
     if (!grouped[lot]) grouped[lot] = [];
     grouped[lot].push(j);
   });
 
+  const lines = [];
+  lines.push("NUMBER ONE LOTO");
+  lines.push("");
+  lines.push("SELLER " + sellerName);
+  lines.push("TICKET " + ticket.id);
+  lines.push("DATE " + dateStr + " " + timeStr);
+  lines.push("--------------------------------");
 
-  function formatLine(type, num, amount){
- let t = (type === "BOR" ? "Borlette" : type).padEnd(10, " ");
- let n = String(num).padStart(3, " ");
- let a = Number(amount).toFixed(2).padStart(7, " ");
- return t + n + "  " + a;
-}
+  Object.keys(grouped).forEach(function (loterie) {
+    lines.push(loterie);
+    lines.push("");
 
-let gamesHtml = "";
+    grouped[loterie].forEach(function (j) {
+      lines.push(formatLine(j.type, j.numero, j.montant));
+    });
 
-Object.keys(grouped).forEach(function(loterie){
+    lines.push("--------------------------------");
+  });
 
- gamesHtml += loterie + "\n";
- gamesHtml += "--------------------------------\n";
-
- grouped[loterie].forEach(function(j){
-  gamesHtml += formatLine(j.type, j.numero, j.montant) + "\n";
- });
-
- gamesHtml += "--------------------------------\n";
-});
-
+  lines.push("TOTAL: " + total.toFixed(2) + " G");
 
   res.set("Content-Type", "text/html; charset=utf-8");
   res.send(`
@@ -2378,94 +2392,28 @@ Object.keys(grouped).forEach(function(loterie){
 <title>Print</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-@page{
-  size: 58mm auto;
-  margin: 0;
-}
 html,body{
   margin:0;
   padding:0;
   background:#fff;
 }
 body{
-  width:42mm;
+  width:58mm;
   margin:0 auto;
-  padding:1mm 1mm 2mm 1mm;
-  font-family:monospace;
+  padding:4px 2px 6px 2px;
+  font-family: monospace;
+  font-size:10px;
+  line-height:1.25;
   color:#000;
-  font-size:9px;
-  line-height:1.15;
 }
 .ticket{
-  width:100%;
-}
-.title{
-  text-align:center;
-  font-size:10px;
-  font-weight:700;
-  margin:0 0 4px 0;
-  white-space:nowrap;
-}
-.meta{
-  margin:0 0 3px 0;
-}
-.meta-line{
-  white-space:nowrap;
-}
-.line{
-  border-top:1px dashed #000;
-  margin:3px 0;
-}
-.tirage{
-  font-size:9px;
-  font-weight:700;
-  margin:3px 0 2px 0;
-  white-space:nowrap;
-}
-.game-row{
-  display:grid;
-  grid-template-columns: 1fr 24px 32px;
-  column-gap:3px;
-  align-items:center;
+  white-space:pre;
   margin:0;
-}
-.col-type{
-  white-space:nowrap;
-  overflow:hidden;
-}
-.col-num{
-  text-align:left;
-  white-space:nowrap;
-}
-.col-amt{
-  text-align:right;
-  white-space:nowrap;
-}
-.total{
-  font-size:10px;
-  font-weight:700;
-  margin-top:2px;
-  white-space:nowrap;
 }
 </style>
 </head>
 <body>
-<div class="ticket">
-  <div class="title">NUMBER ONE LOTO</div>
-
-  <div class="meta">
-    <div class="meta-line">SELLER ${sellerName}</div>
-    <div class="meta-line">TICKET ${ticket.id}</div>
-    <div class="meta-line">DATE ${dateStr} ${timeStr}</div>
-  </div>
-
-  <div class="line"></div>
-
-  ${gamesHtml}
-
-  <div class="total">TOTAL: ${total.toFixed(2)} G</div>
-</div>
-
+<pre class="ticket">${lines.join("\n")}</pre>
 <script>
 setTimeout(function(){
   try { window.print(); } catch(e) {}
@@ -2496,7 +2444,7 @@ app.get("/tickets/:vendeur", (req, res) => {
  const vendeurId = String(req.params.vendeur || "").toUpperCase();
  const tickets = loadTickets();
 
- const result = tickets.filter(t => 
+ const result = tickets.filter(t =>
  String(t.vendeur || "").toUpperCase() === vendeurId
  );
 
@@ -2506,5 +2454,4 @@ app.get("/tickets/:vendeur", (req, res) => {
 
 app.listen(3000, "0.0.0.0", () => {
  console.log("Server ap mache sou rezo a");
-});
-
+ });

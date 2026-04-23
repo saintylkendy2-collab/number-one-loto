@@ -220,5 +220,127 @@
         "montant": 2
       }
     ]
+  },
+  {
+    "id": "11635219-3663",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-23T02:33:55.219Z",
+    "createdAtLabel": "22/04/2026 22:33:55",
+    "dateLabel": "22/04/2026",
+    "timeLabel": "22:33",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "WHATSAPP",
+    "total": 49,
+    "tirages": [
+      "KING LOTTERY DIA",
+      "ANGUILLA 01:00 PM",
+      "GEORGIA MIDDAY"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "58",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "78",
+        "loterie": "ANGUILLA 01:00 PM",
+        "montant": 25
+      },
+      {
+        "type": "BOR",
+        "numero": "25",
+        "loterie": "ANGUILLA 01:00 PM",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "85",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "58",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 5
+      },
+      {
+        "type": "BOR",
+        "numero": "47",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 5
+      }
+    ]
+  },
+  {
+    "id": "11736615-1601",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-23T02:35:36.615Z",
+    "createdAtLabel": "22/04/2026 22:35:36",
+    "dateLabel": "22/04/2026",
+    "timeLabel": "22:35",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 54,
+    "tirages": [
+      "KING LOTTERY DIA"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "14",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "41",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 25
+      },
+      {
+        "type": "BOR",
+        "numero": "47",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 25
+      }
+    ]
   }
 ]

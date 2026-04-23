@@ -2124,178 +2124,187 @@ function statusLabel(status){
 
 function loadBillets(){
  fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
-   .then(function(res){ return res.json(); })
-   .then(function(rows){
-     savedTickets = Array.isArray(rows) ? rows : [];
-     renderBillets();
-   })
-   .catch(function(){
-     savedTickets = [];
-     renderBillets();
-   });
+ .then(function(res){ return res.json(); })
+ .then(function(rows){
+ savedTickets = Array.isArray(rows) ? rows : [];
+ renderBillets();
+ renderRapports();
+ })
+ .catch(function(){
+ savedTickets = [];
+ renderBillets();
+ renderRapports();
+ });
 }
 
 function renderBillets(){
  var wrap = document.getElementById("billetsWrap");
 
  if(!savedTickets.length){
-   wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
-   return;
+ wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
+ return;
  }
 
  wrap.innerHTML = "";
 
  savedTickets.forEach(function(t){
-   var card = document.createElement("div");
-   card.className = "billet-card";
+ var card = document.createElement("div");
+ card.className = "billet-card";
 
-   var premioTxt = Number(t.premio || 0) > 0 ? ('<div class="billet-meta">Premio: ' + Number(t.premio || 0).toFixed(2) + '</div>') : '';
+ var premioTxt = Number(t.premio || 0) > 0
+ ? ('<div class="billet-meta">Premio: ' + Number(t.premio || 0).toFixed(2) + '</div>')
+ : '';
 
-   card.innerHTML =
-     '<div class="billet-head">' +
-       '<div>' +
-         '<div class="billet-code">#' + t.id + '</div>' +
-         '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
-         '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
-         premioTxt +
-       '</div>' +
-       '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
-     '</div>';
+ card.innerHTML =
+ '<div class="billet-head">' +
+   '<div>' +
+     '<div class="billet-code">#' + t.id + '</div>' +
+     '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
+     '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
+     premioTxt +
+   '</div>' +
+   '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
+ '</div>';
 
-   if(Array.isArray(t.jeux)){
-     t.jeux.forEach(function(j){
-       var row = document.createElement("div");
-       row.className = "billet-game";
-       row.innerHTML =
-         '<div>' + j.type + '</div>' +
-         '<div>' + j.numero + ' - ' + j.loterie + '</div>' +
-         '<div style="text-align:right">' + Number(j.montant || 0).toFixed(2) + '</div>';
-       card.appendChild(row);
-     });
-   }
-
-   var actions = document.createElement("div");
-   actions.className = "billet-actions";
-   actions.innerHTML =
-     '<button class="small-btn btn-yellow">AN ATAN</button>' +
-     '<button class="small-btn btn-green">GANYE</button>' +
-     '<button class="small-btn btn-red">PEDI</button>' +
-     '<button class="small-btn btn-gray">ANILE</button>';
-
-   var btns = actions.querySelectorAll("button");
-
-   btns[0].onclick = function(){ updateTicketStatus(t.id, "ANATAN"); };
-   btns[1].onclick = function(){
-     var premio = prompt("Konbyen ticket sa genyen?", Number(t.premio || t.total || 0));
-     if(premio === null) return;
-     updateTicketStatus(t.id, "GANYE", premio);
-   };
-   btns[2].onclick = function(){ updateTicketStatus(t.id, "PEDI"); };
-   btns[3].onclick = function(){ updateTicketStatus(t.id, "ANILE"); };
-
-   card.appendChild(actions);
-   wrap.appendChild(card);
+ if(Array.isArray(t.jeux)){
+ t.jeux.forEach(function(j){
+ var row = document.createElement("div");
+ row.className = "billet-game";
+ row.innerHTML =
+   '<div>' + j.type + '</div>' +
+   '<div>' + j.numero + ' - ' + j.loterie + '</div>' +
+   '<div style="text-align:right">' + Number(j.montant || 0).toFixed(2) + '</div>';
+ card.appendChild(row);
  });
+ }
+
+ var actions = document.createElement("div");
+ actions.className = "billet-actions";
+ actions.innerHTML =
+ '<button class="small-btn btn-yellow">AN ATAN</button>' +
+ '<button class="small-btn btn-green">GANYE</button>' +
+ '<button class="small-btn btn-red">PEDI</button>' +
+ '<button class="small-btn btn-gray">ANILE</button>';
+
+ var btns = actions.querySelectorAll("button");
+ btns[0].onclick = function(){ updateTicketStatus(t.id, "ANATAN"); };
+ btns[1].onclick = function(){
+   var premio = prompt("Konbyen ticket sa genyen?", Number(t.premio || 0));
+   if(premio === null) return;
+   updateTicketStatus(t.id, "GANYE", premio);
+ };
+ btns[2].onclick = function(){ updateTicketStatus(t.id, "PEDI"); };
+ btns[3].onclick = function(){ updateTicketStatus(t.id, "ANILE"); };
+
+ card.appendChild(actions);
+ wrap.appendChild(card);
+ });
+}
+
+function renderRapports(){
+ var box = document.getElementById("rapportsPage");
+ if(!box) return;
+
+ if(!savedTickets.length){
+ box.innerHTML = '<div class="empty-zone">Pa gen rapport</div>';
+ return;
+ }
+
+ var vente = 0;
+ var prime = 0;
+ var annule = 0;
+
+ savedTickets.forEach(function(t){
+   var st = String(t.status || "").toUpperCase();
+   if(st === "ANILE"){
+     annule += Number(t.total || 0);
+     return;
+   }
+   vente += Number(t.total || 0);
+   if(st === "GANYE"){
+     prime += Number(t.premio || 0);
+   }
+ });
+
+ var balance = vente - prime;
+
+ box.innerHTML =
+ '<div style="padding:16px;overflow:auto">' +
+   '<div style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,.05)">' +
+     '<div style="font-size:22px;font-weight:800;margin-bottom:12px">Rapport</div>' +
+     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:16px">' +
+       '<div><b>Ventes</b></div><div style="text-align:right">' + vente.toFixed(2) + '</div>' +
+       '<div><b>Prime</b></div><div style="text-align:right">' + prime.toFixed(2) + '</div>' +
+       '<div><b>Anile</b></div><div style="text-align:right">' + annule.toFixed(2) + '</div>' +
+       '<div><b>Balance</b></div><div style="text-align:right">' + balance.toFixed(2) + '</div>' +
+       '<div><b>Billets</b></div><div style="text-align:right">' + savedTickets.length + '</div>' +
+     '</div>' +
+   '</div>' +
+ '</div>';
 }
 
 function updateTicketStatus(id, status, premio){
  fetch("/api/ticket-status", {
-   method: "POST",
-   headers: { "Content-Type": "application/json" },
-   body: JSON.stringify({
-     id: id,
-     status: status,
-     premio: premio || 0
-   })
+ method: "POST",
+ headers: { "Content-Type": "application/json" },
+ body: JSON.stringify({
+   id: id,
+   status: status,
+   premio: premio || 0
+ })
  }).then(function(res){
-   return res.json();
+ return res.json();
  }).then(function(){
-   loadBillets();
+ loadBillets();
  }).catch(function(){
-   alert("Erreur mise à jour status");
+ alert("Erreur mise à jour status");
  });
 }
 
 function copyTicketById(){
  var id = document.getElementById("copyTicketId").value.trim();
  if(!id){
-   alert("Mete nimewo seri a");
-   return;
+ alert("Mete nimewo seri a");
+ return;
  }
 
  fetch("/api/ticket/" + encodeURIComponent(id))
-   .then(function(res){ return res.json(); })
-   .then(function(ticket){
-     if(!ticket || !ticket.id){
-       alert("Ticket pa jwenn");
-       return;
+ .then(function(res){ return res.json(); })
+ .then(function(ticket){
+ if(!ticket || !ticket.id){
+   alert("Ticket pa jwenn");
+   return;
+ }
+
+ jeux = [];
+ selectedLoteries = [];
+ numero = "";
+ cursorNumero = 0;
+ activeField = "numero";
+
+ if(Array.isArray(ticket.jeux)){
+   ticket.jeux.forEach(function(j){
+     jeux.push({
+       type: j.type,
+       numero: j.numero,
+       loterie: j.loterie,
+       montant: Number(j.montant || 0)
+     });
+
+     if(selectedLoteries.indexOf(j.loterie) < 0){
+       selectedLoteries.push(j.loterie);
      }
-
-     jeux = [];
-     selectedLoteries = [];
-     numero = "";
-     cursorNumero = 0;
-     activeField = "numero";
-
-     if(Array.isArray(ticket.jeux)){
-       ticket.jeux.forEach(function(j){
-         jeux.push({
-           type: j.type,
-           numero: j.numero,
-           loterie: j.loterie,
-           montant: Number(j.montant || 0)
-         });
-
-         if(selectedLoteries.indexOf(j.loterie) < 0){
-           selectedLoteries.push(j.loterie);
-         }
-       });
-     }
-
-     renderJeux();
-     updateFields();
-     switchPage("salePage", document.getElementById("nav-billets"));
-   })
-   .catch(function(){
-     alert("Erreur lecture ticket");
    });
+ }
+
+ renderJeux();
+ updateFields();
+ switchPage("salePage", document.getElementById("nav-billets"));
+ })
+ .catch(function(){
+ alert("Erreur lecture ticket");
+ });
 }
-
-function loadBillets() {
-  const id = new URLSearchParams(window.location.search).get("id");
-
-  fetch("/tickets/" + encodeURIComponent(id))
-    .then(function(res){ return res.json(); })
-    .then(function(data){
-      console.log("TICKETS:", data);
-
-      jeux = [];
-
-      if (!data || !data.length) {
-        renderJeux();
-        updateFields();
-        return;
-      }
-
-      data.forEach(function(t){
-        if (!t.jeux) return;
-
-        t.jeux.forEach(function(j){
-          jeux.push({
-            type: j.type,
-            numero: j.numero,
-            loterie: j.loterie,
-            montant: j.montant
-          });
-        });
-      });
-
-    })
-    .catch(function(){
-      alert("Erreur lecture ticket");
-    });
-}
-
 
 renderJeux();
 updateFields();
@@ -2307,41 +2316,40 @@ loadBillets();
 });
 
 app.get("/print", (req, res) => {
-  const ticketId = String(req.query.ticketId || "").trim();
-  const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
+ const ticketId = String(req.query.ticketId || "").trim();
+ const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
 
-  const tickets = loadTickets();
-  const ticket = tickets.find((t) => String(t.id) === ticketId);
+ const tickets = loadTickets();
+ const ticket = tickets.find((t) => String(t.id) === ticketId);
 
-  if(!ticket){
-    return res.status(404).send("Ticket introuvable");
-  }
+ if(!ticket){
+ return res.status(404).send("Ticket introuvable");
+ }
 
-  const vendeurs = loadVendeursForLogin();
-  const vendeur = vendeurs[sellerId] || {};
-  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
+ const vendeurs = loadVendeursForLogin();
+ const vendeur = vendeurs[sellerId] || {};
+ const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
 
-  const total = Number(ticket.total || 0);
-  const tirages = Array.isArray(ticket.tirages) ? ticket.tirages.join(" / ") : "";
+ const total = Number(ticket.total || 0);
+ const now = new Date(ticket.createdAt || Date.now());
 
-  const now = new Date(ticket.createdAt || Date.now());
-  const dateStr = now.toLocaleDateString("fr-FR");
-  const timeStr = now.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+ const dateStr = now.toLocaleDateString("fr-FR");
+ const timeStr = now.toLocaleTimeString("fr-FR", {
+ hour: "2-digit",
+ minute: "2-digit"
+ });
 
-  const gameLines = (ticket.jeux || []).map(function(j){
-    let type = String(j.type || "").toUpperCase();
-    if(type === "BOR") type = "Borlette";
-    const typeTxt = type.padEnd(9, " ");
-    const numTxt = String(j.numero || "").padEnd(6, " ");
-    const amtTxt = Number(j.montant || 0).toFixed(2).padStart(6, " ");
-    return typeTxt + " " + numTxt + " " + amtTxt + " G";
-  });
+ const gameLines = (ticket.jeux || []).map(function(j){
+ let type = String(j.type || "").toUpperCase();
+ if(type === "BOR") type = "Borlette";
+ const typeTxt = type.padEnd(9, " ");
+ const numTxt = String(j.numero || "").padEnd(6, " ");
+ const amtTxt = Number(j.montant || 0).toFixed(2).padStart(6, " ");
+ return typeTxt + " " + numTxt + " " + amtTxt + " G";
+ });
 
-  res.set("Content-Type", "text/html; charset=utf-8");
-  res.send(`
+ res.set("Content-Type", "text/html; charset=utf-8");
+ res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -2351,12 +2359,12 @@ app.get("/print", (req, res) => {
 <style>
 html,body{margin:0;padding:0;background:#fff;}
 body{
-  width:55mm;
-  margin:0 auto;
-  padding:2px 1px 4px 1px;
-  font-family:monospace;
-  font-size:9px;
-  color:#000;
+ width:55mm;
+ margin:0 auto;
+ padding:2px 1px 4px 1px;
+ font-family:monospace;
+ font-size:9px;
+ color:#000;
 }
 .title{text-align:center;font-size:11px;font-weight:700;margin:0 0 4px 0;}
 .meta,.games{margin:0;white-space:pre-wrap;line-height:1.25;font-size:9px;}
@@ -2377,41 +2385,17 @@ TOTAL: ${total.toFixed(2)} G</pre>
 
 <script>
 setTimeout(function(){
-  try { window.print(); } catch(e) {}
+ try { window.print(); } catch(e) {}
 }, 300);
 </script>
 </body>
 </html>
-  `);
+ `);
 });
-
 
 const adminRoutes = require("./admin");
 app.use(adminRoutes);
 
-function loadTickets() {
-  try {
-    if (!fs.existsSync(TICKETS_FILE)) return [];
-    const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
-    if (!raw) return [];
-    return JSON.parse(raw);
-  } catch (e) {
-    return [];
-  }
-}
-
-app.get("/tickets/:vendeur", (req, res) => {
-  const vendeurId = String(req.params.vendeur || "").toUpperCase();
-  const tickets = loadTickets();
-
-  const result = tickets.filter(t => 
-    String(t.vendeur || "").toUpperCase() === vendeurId
-  );
-
-  res.json(result);
-});
-
-
 app.listen(3000, "0.0.0.0", () => {
-  console.log("Server ap mache sou rezo a");
+ console.log("Server ap mache sou rezo a");
 });

@@ -1230,7 +1230,7 @@ Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran 
 </form>
 
 <div class="bottom-nav">
-<div id="nav-billets" class="nav-item active" onclick="switchPage('salePage', this)">Billets</div>
+<div id="nav-billets" class="nav-item active" onclick="switchPage('billetsPage', this)">Billets</div>
 <div id="nav-copier" class="nav-item" onclick="switchPage('copierPage', this)">Copier</div>
 <div id="nav-payer" class="nav-item" onclick="switchPage('payerPage', this)">Payer</div>
 <div id="nav-rapports" class="nav-item" onclick="switchPage('rapportsPage', this)">Rapports</div>

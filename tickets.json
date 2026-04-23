@@ -342,5 +342,35 @@
         "montant": 25
       }
     ]
+  },
+  {
+    "id": "53050646-4003",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-23T14:04:10.646Z",
+    "createdAtLabel": "23/04/2026 10:04:10",
+    "dateLabel": "23/04/2026",
+    "timeLabel": "10:04",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 50,
+    "tirages": [
+      "ANGUILLA 01:00 PM"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "ANGUILLA 01:00 PM",
+        "montant": 25
+      },
+      {
+        "type": "BOR",
+        "numero": "08",
+        "loterie": "ANGUILLA 01:00 PM",
+        "montant": 25
+      }
+    ]
   }
 ]

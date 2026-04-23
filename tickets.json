@@ -466,5 +466,29 @@
       }
     ],
     "updatedAt": "2026-04-23T23:29:08.307Z"
+  },
+  {
+    "id": "88140924-4157",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-23T23:49:00.924Z",
+    "createdAtLabel": "23/04/2026 19:49:00",
+    "dateLabel": "23/04/2026",
+    "timeLabel": "19:49",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "WHATSAPP",
+    "total": 50,
+    "tirages": [
+      "KING LOTTERY DIA"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "44",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 50
+      }
+    ]
   }
 ]

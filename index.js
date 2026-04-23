@@ -1230,7 +1230,7 @@ Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran 
 </form>
 
 <div class="bottom-nav">
-<div id="nav-billets" class="nav-item active" onclick="switchPage('salePage', this)">Billets</div>
+<div id="nav-billets" class="nav-item active" onclick="switchPage('billetsPage', this)">Billets</div>
 <div id="nav-copier" class="nav-item" onclick="switchPage('copierPage', this)">Copier</div>
 <div id="nav-payer" class="nav-item" onclick="switchPage('payerPage', this)">Payer</div>
 <div id="nav-rapports" class="nav-item" onclick="switchPage('rapportsPage', this)">Rapports</div>
@@ -2146,7 +2146,14 @@ function renderBillets(){
  }
 
  wrap.innerHTML = "";
+// BOUTON RETOUR
+var back = document.createElement("div");
+back.style.marginBottom = "10px";
+back.innerHTML =
+  '<button onclick="switchPage(\'salePage\', document.getElementById(\'nav-billets\'))" ' +
+  'style="border:none;background:#3452aa;color:#fff;padding:10px 14px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;">← Retour jeux</button>';
 
+wrap.appendChild(back);
  savedTickets.forEach(function(t){
  var card = document.createElement("div");
  card.className = "billet-card";

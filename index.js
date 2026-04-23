@@ -2010,37 +2010,52 @@ function saveCurrentTicket(channel){
 }
 
 function submitPrint(){
- saveCurrentTicket("PRINT").then(function(ticket){
-   if(!ticket) return;
+  var printWin = window.open("", "_blank");
 
-   // OUVRI PRINT SAN BLOKE APP
-   window.open("/print?ticketId=" + ticket.id + "&sellerId=" + sellerId, "_blank");
+  saveCurrentTicket("PRINT").then(function(ticket){
+    if(!ticket){
+      if(printWin) printWin.close();
+      return;
+    }
 
-   // REFRESH HISTORIK
-   loadBillets();
+    if(printWin){
+      printWin.location.href =
+        "/print?ticketId=" + encodeURIComponent(ticket.id) +
+        "&sellerId=" + encodeURIComponent(sellerId);
+    }
 
-   // VIDE EKRAN
-   resetAfterSend();
- });
+    loadBillets();
+    resetAfterSend();
+  }).catch(function(){
+    if(printWin) printWin.close();
+    alert("Erreur impression");
+  });
 }
 
 function shareWhatsApp(){
- saveCurrentTicket("WHATSAPP").then(function(ticket){
-   if(!ticket) return;
+  var waWin = window.open("", "_blank");
 
-   var text = buildPrintableTextFromTicket(ticket);
-   var url = "https://wa.me/?text=" + encodeURIComponent(text);
+  saveCurrentTicket("WHATSAPP").then(function(ticket){
+    if(!ticket){
+      if(waWin) waWin.close();
+      return;
+    }
 
-   // OUVRI WHATSAPP
-   window.open(url, "_blank");
+    var text = buildPrintableTextFromTicket(ticket);
+    var url = "https://wa.me/?text=" + encodeURIComponent(text);
 
-   // REFRESH HISTORIK
-   loadBillets();
+    if(waWin){
+      waWin.location.href = url;
+    }
 
-   // VIDE EKRAN
-   resetAfterSend();
- });
+    loadBillets();
+    resetAfterSend();
+  }).catch(function(){
+    if(waWin) waWin.close();
+    alert("Erreur WhatsApp");
+  });
 }
+
 
 function toggleDrawer(){
  document.getElementById("drawer").classList.toggle("open");

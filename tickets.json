@@ -142,5 +142,59 @@
         "montant": 2
       }
     ]
+  },
+  {
+    "id": "09175914-3544",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-23T01:52:55.914Z",
+    "createdAtLabel": "22/04/2026 21:52:55",
+    "dateLabel": "22/04/2026",
+    "timeLabel": "21:52",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 2,
+    "tirages": [
+      "KING LOTTERY DIA"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 2
+      }
+    ]
+  },
+  {
+    "id": "09195096-6206",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-23T01:53:15.096Z",
+    "createdAtLabel": "22/04/2026 21:53:15",
+    "dateLabel": "22/04/2026",
+    "timeLabel": "21:53",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "WHATSAPP",
+    "total": 4,
+    "tirages": [
+      "KING LOTTERY DIA"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "85",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "58",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 2
+      }
+    ]
   }
 ]

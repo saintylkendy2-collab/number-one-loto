@@ -382,7 +382,7 @@
     "createdAtLabel": "23/04/2026 11:05:11",
     "dateLabel": "23/04/2026",
     "timeLabel": "11:05",
-    "status": "ANATAN",
+    "status": "ANILE",
     "premio": 0,
     "channel": "PRINT",
     "total": 16,
@@ -403,7 +403,7 @@
         "montant": 8
       }
     ],
-    "updatedAt": "2026-04-23T15:05:34.038Z"
+    "updatedAt": "2026-04-23T23:26:42.670Z"
   },
   {
     "id": "75632417-7006",
@@ -413,7 +413,7 @@
     "createdAtLabel": "23/04/2026 16:20:32",
     "dateLabel": "23/04/2026",
     "timeLabel": "16:20",
-    "status": "ANATAN",
+    "status": "ANILE",
     "premio": 0,
     "channel": "WHATSAPP",
     "total": 116,
@@ -434,6 +434,37 @@
         "montant": 58
       }
     ],
-    "updatedAt": "2026-04-23T23:20:13.448Z"
+    "updatedAt": "2026-04-23T23:26:35.676Z"
+  },
+  {
+    "id": "86889441-7085",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-23T23:28:09.441Z",
+    "createdAtLabel": "23/04/2026 19:28:09",
+    "dateLabel": "23/04/2026",
+    "timeLabel": "19:28",
+    "status": "ANILE",
+    "premio": 0,
+    "channel": "WHATSAPP",
+    "total": 10,
+    "tirages": [
+      "GEORGIA MIDDAY"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "42",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 5
+      },
+      {
+        "type": "BOR",
+        "numero": "24",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 5
+      }
+    ],
+    "updatedAt": "2026-04-23T23:29:08.307Z"
   }
 ]

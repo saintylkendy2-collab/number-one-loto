@@ -549,17 +549,41 @@ app.post("/api/ticket-status", (req, res) => {
     return res.status(404).json({ ok: false, message: "Ticket introuvable" });
   }
 
+  const currentStatus = normalizeStatus(ticket.status);
+
+  if (status === "ANILE") {
+    const createdAt = new Date(ticket.createdAt || Date.now()).getTime();
+    const now = Date.now();
+    const diffMinutes = (now - createdAt) / 60000;
+
+    if (diffMinutes > 10) {
+      return res.json({
+        ok: false,
+        message: "Ou pa ka anile ticket sa ankò. 10 minit yo pase."
+      });
+    }
+
+    if (currentStatus === "GANYE" || currentStatus === "PEDI") {
+      return res.json({
+        ok: false,
+        message: "Ticket sa deja trete."
+      });
+    }
+  }
+
   ticket.status = status;
   ticket.updatedAt = new Date().toISOString();
+
   if (status === "GANYE") {
     ticket.premio = premio > 0 ? premio : Number(ticket.premio || 0);
-  } else if (status !== "GANYE") {
+  } else {
     ticket.premio = 0;
   }
 
   saveTickets(tickets);
   res.json({ ok: true, ticket });
 });
+
 
 app.get("/api/master/ventas-summary", (req, res) => {
   res.json(computeSummaries());

@@ -217,9 +217,11 @@ function buildConnectionRow(req, vendeur) {
 
 function normalizeStatus(status = "") {
   const s = String(status || "").trim().toUpperCase();
-  if (s === "GANE" || s === "GANADO" || s === "GAGNE" || s === "WON") return "GANYE";
-  if (s === "PERDU" || s === "PERDIDO" || s === "LOST") return "PEDI";
-  if (s === "ANULE" || s === "ANULADO" || s === "CANCELED") return "ANILE";
+
+  if (s === "GANE" || s === "GANADO" || s === "GAGNE" || s === "WON" || s === "GANYE") return "GANYE";
+  if (s === "PERDU" || s === "PERDIDO" || s === "LOST" || s === "PEDI") return "PEDI";
+  if (s === "ANILE" || s === "ANULE" || s === "ANULADO" || s === "CANCELED") return "ANILE";
+
   return "ANATAN";
 }
 

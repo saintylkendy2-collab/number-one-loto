@@ -2208,19 +2208,21 @@ function renderRapports(){
   var today = new Date();
   var todayStr = today.toISOString().slice(0,10);
 
-  var existingStart = document.getElementById("rapportDateStart");
-  var existingEnd = document.getElementById("rapportDateEnd");
+  var oldStart = document.getElementById("rapportDateStart");
+  var oldEnd = document.getElementById("rapportDateEnd");
 
-  var startValue = existingStart ? existingStart.value : todayStr;
-  var endValue = existingEnd ? existingEnd.value : todayStr;
+  var startValue = oldStart ? oldStart.value : todayStr;
+  var endValue = oldEnd ? oldEnd.value : todayStr;
 
-  function toDateOnlyValue(d){
-    var x = new Date(d);
-    if (isNaN(x.getTime())) return "";
-    return x.toISOString().slice(0,10);
+  function toIsoDay(value){
+    var d = new Date(value || new Date());
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
   }
 
-  function toFrDateDisplay(iso){
+  function toFr(iso){
     if(!iso) return "";
     var p = iso.split("-");
     if(p.length !== 3) return iso;
@@ -2228,75 +2230,77 @@ function renderRapports(){
   }
 
   var filtered = savedTickets.filter(function(t){
-    var d = toDateOnlyValue(t.createdAt || t.createdAtLabel || new Date());
+    var d = toIsoDay(t.createdAt || new Date());
     return d >= startValue && d <= endValue;
   });
 
   var vente = 0;
-  var prime = 0;
+  var prix = 0;
   var commission = 0;
   var balance = 0;
 
   filtered.forEach(function(t){
     var st = String(t.status || "").toUpperCase();
+
     if(st === "ANILE") return;
+
     vente += Number(t.total || 0);
+
     if(st === "GANYE"){
-      prime += Number(t.premio || 0);
+      prix += Number(t.premio || 0);
     }
   });
 
   commission = vente * 0.15;
-  balance = vente - prime - commission;
+  balance = vente - prix - commission;
 
   box.innerHTML =
-    '<div style="height:100%;overflow:auto;background:#fff">' +
-      '<div style="height:60px;background:#2246d3;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:20px;font-weight:700">' +
-        '<div onclick="switchPage(\'salePage\', document.getElementById(\'nav-billets\'))" style="cursor:pointer">←</div>' +
-        '<div>Rapports</div>' +
-        '<div style="display:flex;gap:20px;align-items:center">' +
-          '<div onclick="printRapport()" style="cursor:pointer">🖨️</div>' +
-          '<div onclick="refreshRapport()" style="cursor:pointer">↻</div>' +
+    '<div style="height:100%;display:flex;flex-direction:column;background:#f5f5f5;">' +
+
+      '<div style="height:58px;min-height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;">' +
+        '<div onclick="switchPage(\'billetsPage\', document.getElementById(\'nav-billets\'))" style="font-size:24px;cursor:pointer;">←</div>' +
+        '<div style="font-size:22px;font-weight:700;">Rapports</div>' +
+        '<div style="display:flex;align-items:center;gap:18px;">' +
+          '<div onclick="printRapport()" style="font-size:22px;cursor:pointer;">🖨️</div>' +
+          '<div onclick="renderRapports()" style="font-size:22px;cursor:pointer;">↻</div>' +
         '</div>' +
       '</div>' +
 
-      '<div style="padding:14px 12px 40px 12px">' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">' +
-          '<div>' +
-            '<input type="date" id="rapportDateStart" value="' + startValue + '" onchange="renderRapports()" style="width:100%;border:none;border-bottom:1px solid #999;padding:8px 0;font-size:18px;background:transparent">' +
-          '</div>' +
-          '<div>' +
-            '<input type="date" id="rapportDateEnd" value="' + endValue + '" onchange="renderRapports()" style="width:100%;border:none;border-bottom:1px solid #999;padding:8px 0;font-size:18px;background:transparent">' +
-          '</div>' +
+      '<div style="padding:14px;overflow:auto;flex:1;">' +
+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">' +
+          '<input id="rapportDateStart" type="date" value="' + startValue + '" onchange="renderRapports()" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
+          '<input id="rapportDateEnd" type="date" value="' + endValue + '" onchange="renderRapports()" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
         '</div>' +
 
-        '<div style="max-width:420px;margin:0 auto;text-align:center;font-size:18px;line-height:1.55">' +
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:22px">' +
-            '<div style="font-weight:700;text-align:right;padding-right:10px">Ventes</div><div style="font-weight:700;text-align:left;padding-left:10px">' + vente.toFixed(2) + '</div>' +
-            '<div style="font-weight:700;text-align:right;padding-right:10px">Prix</div><div style="font-weight:700;text-align:left;padding-left:10px">' + prime.toFixed(2) + '</div>' +
-            '<div style="font-weight:700;text-align:right;padding-right:10px">Commission</div><div style="font-weight:700;text-align:left;padding-left:10px">' + commission.toFixed(2) + '</div>' +
-            '<div style="font-weight:700;text-align:right;padding-right:10px">Résultat</div><div style="font-weight:700;text-align:left;padding-left:10px">' + balance.toFixed(2) + '</div>' +
+        '<div style="background:#fff;padding:22px 16px;border-radius:0;min-height:420px;">' +
+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;row-gap:14px;font-size:22px;font-weight:700;margin-bottom:34px;">' +
+            '<div style="text-align:right;padding-right:18px;">Ventes</div><div style="text-align:left;padding-left:18px;">' + vente.toFixed(2) + '</div>' +
+            '<div style="text-align:right;padding-right:18px;">Prix</div><div style="text-align:left;padding-left:18px;">' + prix.toFixed(2) + '</div>' +
+            '<div style="text-align:right;padding-right:18px;">Commission</div><div style="text-align:left;padding-left:18px;">' + commission.toFixed(2) + '</div>' +
+            '<div style="text-align:right;padding-right:18px;">Balance</div><div style="text-align:left;padding-left:18px;">' + balance.toFixed(2) + '</div>' +
           '</div>' +
 
-          '<div style="border-top:1px solid #ccc;margin:18px 0"></div>' +
-          '<div style="font-size:22px;font-weight:700;margin:10px 0 18px 0">RESUMEN POR DÍA</div>' +
+          '<div style="text-align:center;font-size:26px;font-weight:700;margin:28px 0 18px 0;">RESUMEN POR DÍA</div>' +
 
-          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:17px">' +
-            '<div>VENTE</div><div>PRIME</div><div>BALANCE</div>' +
-            '<div style="font-weight:700">' + vente.toFixed(2) + '<div style="font-weight:400;color:#777">' + commission.toFixed(2) + '</div></div>' +
-            '<div style="font-weight:700">' + prime.toFixed(2) + '</div>' +
-            '<div style="font-weight:700">' + balance.toFixed(2) + '<div style="font-weight:400;color:#777">' + toFrDateDisplay(endValue) + '</div></div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:20px;margin-bottom:10px;">' +
+            '<div>VENTE</div>' +
+            '<div>PRIME</div>' +
+            '<div>BALANCE</div>' +
           '</div>' +
 
-          '<div style="border-top:1px solid #ccc;margin:26px 0"></div>' +
-          '<div style="font-size:22px;font-weight:700;margin:10px 0 18px 0">RESUMEN POR LOTERÍA</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:20px;font-weight:700;">' +
+            '<div>' + vente.toFixed(2) + '<div style="font-size:16px;font-weight:400;color:#666;margin-top:6px;">' + commission.toFixed(2) + '</div></div>' +
+            '<div>' + prix.toFixed(2) + '</div>' +
+            '<div>' + balance.toFixed(2) + '<div style="font-size:16px;font-weight:400;color:#666;margin-top:6px;">' + toFr(endValue) + '</div></div>' +
+          '</div>' +
+
+          '<div style="text-align:center;font-size:26px;font-weight:700;margin:42px 0 0 0;">RESUMEN POR LOTERÍA</div>' +
+
         '</div>' +
       '</div>' +
     '</div>';
-}
-
-function refreshRapport(){
-  loadBillets();
 }
 
 function printRapport(){
@@ -2306,50 +2310,69 @@ function printRapport(){
   var startValue = startEl ? startEl.value : new Date().toISOString().slice(0,10);
   var endValue = endEl ? endEl.value : new Date().toISOString().slice(0,10);
 
-  function fr(iso){
+  function toIsoDay(value){
+    var d = new Date(value || new Date());
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
+  }
+
+  function toFr(iso){
     if(!iso) return "";
     var p = iso.split("-");
+    if(p.length !== 3) return iso;
     return p[2] + "/" + p[1] + "/" + p[0];
   }
 
   var filtered = savedTickets.filter(function(t){
-    var d = new Date(t.createdAt || new Date()).toISOString().slice(0,10);
+    var d = toIsoDay(t.createdAt || new Date());
     return d >= startValue && d <= endValue;
   });
 
   var vente = 0;
-  var prime = 0;
+  var prix = 0;
 
   filtered.forEach(function(t){
     var st = String(t.status || "").toUpperCase();
     if(st === "ANILE") return;
     vente += Number(t.total || 0);
     if(st === "GANYE"){
-      prime += Number(t.premio || 0);
+      prix += Number(t.premio || 0);
     }
   });
 
   var commission = vente * 0.15;
-  var balance = vente - prime - commission;
+  var balance = vente - prix - commission;
 
   var now = new Date();
   var printText = "";
   printText += "Gg\n";
   printText += "------------------------------\n";
   printText += "RECAPITULATIF DES VENTES\n";
-  printText += fr(startValue) + " - " + fr(endValue) + "\n";
+  printText += toFr(startValue) + " - " + toFr(endValue) + "\n";
   printText += "[ " + now.toLocaleDateString("fr-FR") + " " + now.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) + " ]\n";
   printText += "------------------------------\n";
   printText += "| Ventes      " + vente.toFixed(2).padStart(8) + " |\n";
-  printText += "| Prix        " + prime.toFixed(2).padStart(8) + " |\n";
+  printText += "| Prix        " + prix.toFixed(2).padStart(8) + " |\n";
   printText += "| Commission  " + commission.toFixed(2).padStart(8) + " |\n";
   printText += "| Balance     " + balance.toFixed(2).padStart(8) + " |\n";
   printText += "------------------------------\n";
 
   var w = window.open("", "_blank");
   if(!w) return alert("Popup bloquée");
-  w.document.write("<html><head><title>Rapport</title></head><body><pre style='font-family:monospace;font-size:14px'>" + printText + "</pre><script>window.onload=function(){setTimeout(function(){window.print();},300)}<\/script></body></html>");
+
+  w.document.open();
+  w.document.write(
+    "<html><head><title>Rapport</title></head><body>" +
+    "<pre style='font-family:monospace;font-size:14px'>" + printText + "</pre>" +
+    "</body></html>"
+  );
   w.document.close();
+
+  setTimeout(function(){
+    try { w.focus(); w.print(); } catch(e) {}
+  }, 300);
 }
 
 function updateTicketStatus(id, status, premio){

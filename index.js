@@ -2436,26 +2436,29 @@ var dBalance = d.vente - d.prime;
 
 function updateTicketStatus(id, status, premio){
  fetch("/api/ticket-status", {
- method: "POST",
- headers: { "Content-Type": "application/json" },
- body: JSON.stringify({
-   id: id,
-   status: status,
-   premio: premio || 0
- })
- }).then(function(res){
- return res.json();
- }).then(function(res){
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    id: id,
+    status: status,
+    premio: premio || 0
+  })
+})
+.then(function(res){
+  return res.json();
+})
+.then(function(res){
   if(!res.ok){
     alert(res.message);
     return;
   }
-  loadBillets();
+
+  renderBillets();   // 🔥 enpòtan
 })
- }).catch(function(){
- alert("Erreur mise à jour status");
- });
-}
+.catch(function(){
+  alert("Erreur mise à jour status");
+});
+
 
 function copyTicketById(){
  var id = document.getElementById("copyTicketId").value.trim();

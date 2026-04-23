@@ -2234,24 +2234,88 @@ function renderRapports(){
 
   var vente = 0;
   var prime = 0;
-  var annule = 0;
+
+  var byDay = {};
+  var byLoterie = {};
 
   filtered.forEach(function(t){
     var st = String(t.status || "").toUpperCase();
+    if(st === "ANILE") return;
 
-    if(st === "ANILE"){
-      annule += Number(t.total || 0);
-      return;
+    var total = Number(t.total || 0);
+    var premio = st === "GANYE" ? Number(t.premio || 0) : 0;
+    var dayKey = toIsoDay(t.createdAt || new Date());
+
+    vente += total;
+    prime += premio;
+
+    if(!byDay[dayKey]){
+      byDay[dayKey] = { vente: 0, prime: 0 };
     }
+    byDay[dayKey].vente += total;
+    byDay[dayKey].prime += premio;
 
-    vente += Number(t.total || 0);
+    (t.jeux || []).forEach(function(j){
+      var lot = String(j.loterie || "").trim() || "SANS TIRAGE";
+      var amt = Number(j.montant || 0);
 
-    if(st === "GANYE"){
-      prime += Number(t.premio || 0);
-    }
+      if(!byLoterie[lot]){
+        byLoterie[lot] = { vente: 0, prime: 0 };
+      }
+      byLoterie[lot].vente += amt;
+    });
   });
 
-  var balance = vente - prime;
+  var commission = vente * 0.15;
+  var resultat = vente - prime - commission;
+
+  var daysHtml = "";
+  var sortedDays = Object.keys(byDay).sort();
+  sortedDays.forEach(function(day){
+    var d = byDay[day];
+    var dCommission = d.vente * 0.15;
+    var dBalance = d.vente - d.prime - dCommission;
+
+    daysHtml +=
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+        '<div>' + d.vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + dCommission.toFixed(2) + '</div></div>' +
+        '<div>' + d.prime.toFixed(2) + '</div>' +
+        '<div>' + dBalance.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(day) + '</div></div>' +
+      '</div>';
+  });
+
+  if(!daysHtml){
+    daysHtml =
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+        '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">0.00</div></div>' +
+        '<div>0.00</div>' +
+        '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(endValue) + '</div></div>' +
+      '</div>';
+  }
+
+  var loterieHtml = "";
+  var lotKeys = Object.keys(byLoterie).sort();
+  lotKeys.forEach(function(lot){
+    var l = byLoterie[lot];
+    var lCommission = l.vente * 0.15;
+    var lBalance = l.vente - l.prime - lCommission;
+
+    loterieHtml +=
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+        '<div>' + l.vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + lCommission.toFixed(2) + '</div></div>' +
+        '<div>' + l.prime.toFixed(2) + '</div>' +
+        '<div>' + lBalance.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + lot + '</div></div>' +
+      '</div>';
+  });
+
+  if(!loterieHtml){
+    loterieHtml =
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+        '<div>' + vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + commission.toFixed(2) + '</div></div>' +
+        '<div>' + prime.toFixed(2) + '</div>' +
+        '<div>' + resultat.toFixed(2) + '</div>' +
+      '</div>';
+  }
 
   box.innerHTML =
   '<div style="height:100%;display:flex;flex-direction:column;background:#f5f5f5;">' +
@@ -2260,8 +2324,8 @@ function renderRapports(){
       '<button id="rapportBackBtn" type="button" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">←</button>' +
       '<div style="font-size:22px;font-weight:700;">Rapports</div>' +
       '<div style="display:flex;gap:18px;align-items:center;">' +
-        '<button id="rapportRefreshBtn" type="button" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;">↻</button>' +
         '<button id="rapportPrintBtn" type="button" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">🖨️</button>' +
+        '<button id="rapportRefreshBtn" type="button" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;">↻</button>' +
       '</div>' +
     '</div>' +
 
@@ -2272,27 +2336,33 @@ function renderRapports(){
         '<input id="rapportDateEnd" type="date" value="' + endValue + '" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
       '</div>' +
 
-      '<div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 4px 12px rgba(0,0,0,.05);">' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:18px;line-height:1.7;">' +
-          '<div><b>Ventes</b></div><div style="text-align:right">' + vente.toFixed(2) + '</div>' +
-          '<div><b>Prime</b></div><div style="text-align:right">' + prime.toFixed(2) + '</div>' +
-          '<div><b>Anile</b></div><div style="text-align:right">' + annule.toFixed(2) + '</div>' +
-          '<div><b>Balance</b></div><div style="text-align:right">' + balance.toFixed(2) + '</div>' +
+      '<div style="background:#fff;padding:18px 16px;margin-bottom:18px;">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;row-gap:8px;font-size:18px;line-height:1.5;">' +
+          '<div style="text-align:center;font-weight:700;">Ventes</div><div style="text-align:center;font-weight:700;">' + vente.toFixed(2) + '</div>' +
+          '<div style="text-align:center;font-weight:700;">Prix</div><div style="text-align:center;font-weight:700;">' + prime.toFixed(2) + '</div>' +
+          '<div style="text-align:center;font-weight:700;">Commission</div><div style="text-align:center;font-weight:700;">' + commission.toFixed(2) + '</div>' +
+          '<div style="text-align:center;font-weight:700;">Résultat</div><div style="text-align:center;font-weight:700;">' + resultat.toFixed(2) + '</div>' +
         '</div>' +
       '</div>' +
 
-      '<div style="height:18px;"></div>' +
-
-      '<div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 4px 12px rgba(0,0,0,.05);text-align:center;">' +
-        '<div style="font-size:22px;font-weight:700;margin-bottom:16px;">RESUMEN POR DÍA</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:17px;">' +
+      '<div style="background:#fff;padding:18px 16px;margin-bottom:18px;text-align:center;">' +
+        '<div style="font-size:22px;font-weight:700;margin-bottom:18px;">RESUMEN POR DÍA</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:14px;">' +
           '<div>VENTE</div>' +
           '<div>PRIME</div>' +
           '<div>BALANCE</div>' +
-          '<div style="font-weight:700;">' + vente.toFixed(2) + '</div>' +
-          '<div style="font-weight:700;">' + prime.toFixed(2) + '</div>' +
-          '<div style="font-weight:700;">' + balance.toFixed(2) + '<div style="font-size:14px;font-weight:400;color:#666;margin-top:6px;">' + toFr(endValue) + '</div></div>' +
         '</div>' +
+        daysHtml +
+      '</div>' +
+
+      '<div style="background:#fff;padding:18px 16px;text-align:center;">' +
+        '<div style="font-size:22px;font-weight:700;margin-bottom:18px;">RESUMEN POR LOTERÍA</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:14px;">' +
+          '<div>VENTE</div>' +
+          '<div>PRIME</div>' +
+          '<div>BALANCE</div>' +
+        '</div>' +
+        loterieHtml +
       '</div>' +
 
     '</div>' +

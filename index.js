@@ -1982,7 +1982,7 @@ function saveCurrentTicket(channel){
  });
 }
 
-unction submitPrint(){
+function submitPrint(){
  saveCurrentTicket("PRINT").then(function(ticket){
    if(!ticket) return;
 
@@ -2014,7 +2014,6 @@ function shareWhatsApp(){
    resetAfterSend();
  });
 }
-
 
 function toggleDrawer(){
  document.getElementById("drawer").classList.toggle("open");

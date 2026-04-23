@@ -2322,7 +2322,7 @@ app.get("/print", (req, res) => {
  const tickets = loadTickets();
  const ticket = tickets.find((t) => String(t.id) === ticketId);
 
- if(!ticket){
+ if (!ticket) {
  return res.status(404).send("Ticket introuvable");
  }
 
@@ -2339,13 +2339,32 @@ app.get("/print", (req, res) => {
  minute: "2-digit"
  });
 
- const gameLines = (ticket.jeux || []).map(function(j){
+ const grouped = {};
+ (ticket.jeux || []).forEach(function(j){
+ const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
+ if (!grouped[lot]) grouped[lot] = [];
+ grouped[lot].push(j);
+ });
+
+ const printLines = [];
+
+ Object.keys(grouped).forEach(function(loterie){
+ printLines.push(loterie);
+ printLines.push("");
+
+ grouped[loterie].forEach(function(j){
  let type = String(j.type || "").toUpperCase();
- if(type === "BOR") type = "Borlette";
- const typeTxt = type.padEnd(9, " ");
- const numTxt = String(j.numero || "").padEnd(6, " ");
- const amtTxt = Number(j.montant || 0).toFixed(2).padStart(6, " ");
- return typeTxt + " " + numTxt + " " + amtTxt + " G";
+ if (type === "BOR") type = "Borlette";
+ if (type === "MAR") type = "Mariage";
+
+ const typeTxt = type.padEnd(10, " ");
+ const numTxt = String(j.numero || "").padEnd(8, " ");
+ const amtTxt = Number(j.montant || 0).toFixed(2).padStart(7, " ");
+
+ printLines.push(typeTxt + numTxt + amtTxt);
+ });
+
+ printLines.push("------------------------------");
  });
 
  res.set("Content-Type", "text/html; charset=utf-8");
@@ -2357,17 +2376,31 @@ app.get("/print", (req, res) => {
 <title>Print</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-html,body{margin:0;padding:0;background:#fff;}
+html,body{
+ margin:0;
+ padding:0;
+ background:#fff;
+}
 body{
- width:55mm;
+ width:58mm;
  margin:0 auto;
- padding:2px 1px 4px 1px;
+ padding:4px 3px 8px 3px;
  font-family:monospace;
- font-size:9px;
+ font-size:12px;
+ line-height:1.35;
  color:#000;
 }
-.title{text-align:center;font-size:11px;font-weight:700;margin:0 0 4px 0;}
-.meta,.games{margin:0;white-space:pre-wrap;line-height:1.25;font-size:9px;}
+.title{
+ text-align:center;
+ font-size:18px;
+ font-weight:700;
+ margin:0 0 8px 0;
+}
+.meta,.games{
+ margin:0;
+ white-space:pre-wrap;
+ word-break:keep-all;
+}
 </style>
 </head>
 <body>
@@ -2376,12 +2409,11 @@ body{
 <pre class="meta">SELLER ${sellerName}
 TICKET ${ticket.id}
 DATE ${dateStr} ${timeStr}
---------------------------------</pre>
+------------------------------</pre>
 
-<pre class="games">${gameLines.join("\\n")}</pre>
+<pre class="games">${printLines.join("\\n")}</pre>
 
-<pre class="meta">--------------------------------
-TOTAL: ${total.toFixed(2)} G</pre>
+<pre class="meta">TOTAL: ${total.toFixed(2)} G</pre>
 
 <script>
 setTimeout(function(){
@@ -2396,6 +2428,30 @@ setTimeout(function(){
 const adminRoutes = require("./admin");
 app.use(adminRoutes);
 
+function loadTickets() {
+ try {
+ if (!fs.existsSync(TICKETS_FILE)) return [];
+ const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
+ if (!raw) return [];
+ return JSON.parse(raw);
+ } catch (e) {
+ return [];
+ }
+}
+
+app.get("/tickets/:vendeur", (req, res) => {
+ const vendeurId = String(req.params.vendeur || "").toUpperCase();
+ const tickets = loadTickets();
+
+ const result = tickets.filter(t => 
+ String(t.vendeur || "").toUpperCase() === vendeurId
+ );
+
+ res.json(result);
+});
+
+
 app.listen(3000, "0.0.0.0", () => {
  console.log("Server ap mache sou rezo a");
 });
+

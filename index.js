@@ -2290,8 +2290,6 @@ function loadBillets() {
         });
       });
 
-      renderJeux();
-      updateFields();
     })
     .catch(function(){
       alert("Erreur lecture ticket");
@@ -2390,8 +2388,6 @@ setTimeout(function(){
 
 const adminRoutes = require("./admin");
 app.use(adminRoutes);
-
-const TICKETS_FILE = path.join(__dirname, "tickets.json");
 
 function loadTickets() {
   try {

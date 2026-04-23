@@ -547,8 +547,30 @@ app.post("/api/ticket-status", (req, res) => {
     return res.status(404).json({ ok: false, message: "Ticket introuvable" });
   }
 
+  // ⏱️ VERIFYE TAN (10 MIN)
+  const created = new Date(ticket.createdAt || Date.now()).getTime();
+  const now = Date.now();
+  const diffMinutes = (now - created) / 60000;
+
+  // ❌ BLOKE ANILE APRE 10 MIN
+  if (status === "ANILE" && diffMinutes > 10) {
+    return res.json({
+      ok: false,
+      message: "Ou pa ka anile ticket sa ankò (tan an pase)"
+    });
+  }
+
+  // ❌ PA KA CHANJE SI LI DEJA FINAL
+  if (["GANYE", "PEDI"].includes(ticket.status) && status === "ANILE") {
+    return res.json({
+      ok: false,
+      message: "Ticket sa deja trete"
+    });
+  }
+
   ticket.status = status;
   ticket.updatedAt = new Date().toISOString();
+
   if (status === "GANYE") {
     ticket.premio = premio > 0 ? premio : Number(ticket.premio || 0);
   } else if (status !== "GANYE") {
@@ -556,8 +578,10 @@ app.post("/api/ticket-status", (req, res) => {
   }
 
   saveTickets(tickets);
+
   res.json({ ok: true, ticket });
 });
+
 
 app.get("/api/master/ventas-summary", (req, res) => {
   res.json(computeSummaries());
@@ -2421,8 +2445,13 @@ function updateTicketStatus(id, status, premio){
  })
  }).then(function(res){
  return res.json();
- }).then(function(){
- loadBillets();
+ }).then(function(res){
+  if(!res.ok){
+    alert(res.message);
+    return;
+  }
+  loadBillets();
+})
  }).catch(function(){
  alert("Erreur mise à jour status");
  });

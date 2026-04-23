@@ -2348,26 +2348,27 @@ app.get("/print", (req, res) => {
 
   let gamesHtml = "";
 
-  Object.keys(grouped).forEach(function(loterie){
-    gamesHtml += '<div class="tirage">' + loterie + '</div>';
+  function formatLine(type, num, amount){
+ let t = (type === "BOR" ? "Borlette" : type).padEnd(10, " ");
+ let n = String(num).padStart(3, " ");
+ let a = Number(amount).toFixed(2).padStart(7, " ");
+ return t + n + "  " + a;
+}
 
-    grouped[loterie].forEach(function(j){
-      let type = String(j.type || "").toUpperCase();
-      if (type === "BOR") type = "Borlette";
-      else if (type === "MAR") type = "Mariage";
-      else if (type === "L3") type = "Loto 3";
-      else if (type === "L4") type = "Loto 4";
+let gamesHtml = "";
 
-      gamesHtml +=
-        '<div class="game-row">' +
-          '<div class="col-type">' + type + '</div>' +
-          '<div class="col-num">' + String(j.numero || "") + '</div>' +
-          '<div class="col-amt">' + Number(j.montant || 0).toFixed(2) + '</div>' +
-        '</div>';
-    });
+Object.keys(grouped).forEach(function(loterie){
 
-    gamesHtml += '<div class="line"></div>';
-  });
+ gamesHtml += loterie + "\n";
+ gamesHtml += "--------------------------------\n";
+
+ grouped[loterie].forEach(function(j){
+  gamesHtml += formatLine(j.type, j.numero, j.montant) + "\n";
+ });
+
+ gamesHtml += "--------------------------------\n";
+});
+
 
   res.set("Content-Type", "text/html; charset=utf-8");
   res.send(`

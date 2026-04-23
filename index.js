@@ -2202,45 +2202,101 @@ function renderBillets(){
 }
 
 function renderRapports(){
- var box = document.getElementById("rapportsPage");
- if(!box) return;
+  var box = document.getElementById("rapportsPage");
+  if(!box) return;
 
- if(!savedTickets.length){
- box.innerHTML = '<div class="empty-zone">Pa gen rapport</div>';
- return;
- }
+  function toIsoDay(value){
+    var d = new Date(value || new Date());
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
+  }
 
- var vente = 0;
- var prime = 0;
- var annule = 0;
+  function toFr(iso){
+    if(!iso) return "";
+    var p = iso.split("-");
+    if(p.length !== 3) return iso;
+    return p[2] + "/" + p[1] + "/" + p[0];
+  }
 
- savedTickets.forEach(function(t){
-   var st = String(t.status || "").toUpperCase();
-   if(st === "ANILE"){
-     annule += Number(t.total || 0);
-     return;
-   }
-   vente += Number(t.total || 0);
-   if(st === "GANYE"){
-     prime += Number(t.premio || 0);
-   }
- });
+  var oldStart = document.getElementById("rapportDateStart");
+  var oldEnd = document.getElementById("rapportDateEnd");
 
- var balance = vente - prime;
+  var todayStr = toIsoDay(new Date());
+  var startValue = oldStart ? oldStart.value : todayStr;
+  var endValue = oldEnd ? oldEnd.value : todayStr;
 
- box.innerHTML =
- '<div style="padding:16px;overflow:auto">' +
-   '<div style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,.05)">' +
-     '<div style="font-size:22px;font-weight:800;margin-bottom:12px">Rapport</div>' +
-     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:16px">' +
-       '<div><b>Ventes</b></div><div style="text-align:right">' + vente.toFixed(2) + '</div>' +
-       '<div><b>Prime</b></div><div style="text-align:right">' + prime.toFixed(2) + '</div>' +
-       '<div><b>Anile</b></div><div style="text-align:right">' + annule.toFixed(2) + '</div>' +
-       '<div><b>Balance</b></div><div style="text-align:right">' + balance.toFixed(2) + '</div>' +
-       '<div><b>Billets</b></div><div style="text-align:right">' + savedTickets.length + '</div>' +
-     '</div>' +
-   '</div>' +
- '</div>';
+  var filtered = savedTickets.filter(function(t){
+    var d = toIsoDay(t.createdAt || new Date());
+    return d >= startValue && d <= endValue;
+  });
+
+  var vente = 0;
+  var prime = 0;
+  var annule = 0;
+
+  filtered.forEach(function(t){
+    var st = String(t.status || "").toUpperCase();
+
+    if(st === "ANILE"){
+      annule += Number(t.total || 0);
+      return;
+    }
+
+    vente += Number(t.total || 0);
+
+    if(st === "GANYE"){
+      prime += Number(t.premio || 0);
+    }
+  });
+
+  var balance = vente - prime;
+
+  box.innerHTML =
+  '<div style="height:100%;display:flex;flex-direction:column;background:#f5f5f5;">' +
+
+    '<div style="height:58px;min-height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;">' +
+      '<div onclick="switchPage(\'billetsPage\', document.getElementById(\'nav-billets\'))" style="font-size:24px;cursor:pointer;">←</div>' +
+      '<div style="font-size:22px;font-weight:700;">Rapports</div>' +
+      '<div style="display:flex;gap:18px;align-items:center;">' +
+        '<div onclick="loadBillets()" style="font-size:22px;cursor:pointer;">↻</div>' +
+        '<div onclick="window.print()" style="font-size:20px;cursor:pointer;">🖨️</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div style="padding:14px;overflow:auto;flex:1;">' +
+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">' +
+        '<input id="rapportDateStart" type="date" value="' + startValue + '" onchange="renderRapports()" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
+        '<input id="rapportDateEnd" type="date" value="' + endValue + '" onchange="renderRapports()" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
+      '</div>' +
+
+      '<div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 4px 12px rgba(0,0,0,.05);">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:18px;line-height:1.7;">' +
+          '<div><b>Ventes</b></div><div style="text-align:right">' + vente.toFixed(2) + '</div>' +
+          '<div><b>Prime</b></div><div style="text-align:right">' + prime.toFixed(2) + '</div>' +
+          '<div><b>Anile</b></div><div style="text-align:right">' + annule.toFixed(2) + '</div>' +
+          '<div><b>Balance</b></div><div style="text-align:right">' + balance.toFixed(2) + '</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="height:18px;"></div>' +
+
+      '<div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 4px 12px rgba(0,0,0,.05);text-align:center;">' +
+        '<div style="font-size:22px;font-weight:700;margin-bottom:16px;">RESUMEN POR DÍA</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:17px;">' +
+          '<div>VENTE</div>' +
+          '<div>PRIME</div>' +
+          '<div>BALANCE</div>' +
+          '<div style="font-weight:700;">' + vente.toFixed(2) + '</div>' +
+          '<div style="font-weight:700;">' + prime.toFixed(2) + '</div>' +
+          '<div style="font-weight:700;">' + balance.toFixed(2) + '<div style="font-size:14px;font-weight:400;color:#666;margin-top:6px;">' + toFr(endValue) + '</div></div>' +
+        '</div>' +
+      '</div>' +
+
+    '</div>' +
+  '</div>';
 }
 
 function updateTicketStatus(id, status, premio){

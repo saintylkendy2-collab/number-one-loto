@@ -70,5 +70,29 @@
         "montant": 2
       }
     ]
+  },
+  {
+    "id": "04994763-4905",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-23T00:43:14.763Z",
+    "createdAtLabel": "22/04/2026 20:43:14",
+    "dateLabel": "22/04/2026",
+    "timeLabel": "20:43",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 2,
+    "tirages": [
+      "KING LOTTERY DIA"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 2
+      }
+    ]
   }
 ]

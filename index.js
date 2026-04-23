@@ -2346,7 +2346,6 @@ app.get("/print", (req, res) => {
     grouped[lot].push(j);
   });
 
-  let gamesHtml = "";
 
   function formatLine(type, num, amount){
  let t = (type === "BOR" ? "Borlette" : type).padEnd(10, " ");

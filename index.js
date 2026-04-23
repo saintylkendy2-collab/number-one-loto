@@ -436,7 +436,7 @@ if (activeConn) {
     return res.redirect("/dashboard?id=" + encodeURIComponent(id));
   }
 
-  return res.send(loginErrorPage("ID sa konekte deja ✖"));
+    return res.send(loginErrorPage("ID sa konekte deja ✖"));
 }
 
 vendeur.conexiones.push(connRow);
@@ -445,14 +445,6 @@ if (!vendeur.app) vendeur.app = "2.9.32";
 
 saveVendeursForLogin(vendeurs);
 return res.redirect("/dashboard?id=" + encodeURIComponent(id));
-
-  const connRow = buildConnectionRow(req, vendeur);
-  vendeur.conexiones.push(connRow);
-  vendeur.conexion = connRow.last;
-  if (!vendeur.app) vendeur.app = "2.9.32";
-
-  saveVendeursForLogin(vendeurs);
-  return res.redirect("/dashboard?id=" + encodeURIComponent(id));
 });
 
 app.get("/logout", (req, res) => {

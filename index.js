@@ -2146,13 +2146,7 @@ function renderBillets(){
  }
 
  wrap.innerHTML = "";
-var back = document.createElement("div");
-back.style.marginBottom = "10px";
-back.innerHTML =
-  '<button onclick="switchPage(\'salePage\', document.getElementById(\'nav-billets\'))" ' +
-  'style="border:none;background:#3452aa;color:#fff;padding:10px 14px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;">← Retour jeux</button>';
 
-wrap.appendChild(back);
  savedTickets.forEach(function(t){
  var card = document.createElement("div");
  card.className = "billet-card";

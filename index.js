@@ -2085,26 +2085,30 @@ function deleteAllGames(){
  renderJeux();
  updateFields();
 }
-
 function switchPage(pageId, el){
- currentPageName = pageId;
+  currentPageName = pageId;
 
- document.querySelectorAll(".page").forEach(function(p){
-   p.classList.remove("active");
- });
+  document.querySelectorAll(".page").forEach(function(p){
+    p.classList.remove("active");
+  });
 
- document.getElementById(pageId).classList.add("active");
+  document.getElementById(pageId).classList.add("active");
 
- document.querySelectorAll(".nav-item").forEach(function(n){
-   n.classList.remove("active");
- });
+  document.querySelectorAll(".nav-item").forEach(function(n){
+    n.classList.remove("active");
+  });
 
- if(el) el.classList.add("active");
+  if(el) el.classList.add("active");
 
- if(pageId === "billetsPage"){
-   loadBillets();
- }
+  if(pageId === "billetsPage"){
+    loadBillets();
+  }
+
+  if(pageId === "rapportsPage"){
+    renderRapports();
+  }
 }
+
 
 function statusClass(status){
  var s = String(status || "").toUpperCase();

@@ -2085,30 +2085,26 @@ function deleteAllGames(){
  renderJeux();
  updateFields();
 }
+
 function switchPage(pageId, el){
-  currentPageName = pageId;
+ currentPageName = pageId;
 
-  document.querySelectorAll(".page").forEach(function(p){
-    p.classList.remove("active");
-  });
+ document.querySelectorAll(".page").forEach(function(p){
+   p.classList.remove("active");
+ });
 
-  document.getElementById(pageId).classList.add("active");
+ document.getElementById(pageId).classList.add("active");
 
-  document.querySelectorAll(".nav-item").forEach(function(n){
-    n.classList.remove("active");
-  });
+ document.querySelectorAll(".nav-item").forEach(function(n){
+   n.classList.remove("active");
+ });
 
-  if(el) el.classList.add("active");
+ if(el) el.classList.add("active");
 
-  if(pageId === "billetsPage"){
-    loadBillets();
-  }
-
-  if(pageId === "rapportsPage"){
-    renderRapports();
-  }
+ if(pageId === "billetsPage"){
+   loadBillets();
+ }
 }
-
 
 function statusClass(status){
  var s = String(status || "").toUpperCase();
@@ -2206,177 +2202,45 @@ function renderBillets(){
 }
 
 function renderRapports(){
-  var box = document.getElementById("rapportsPage");
-  if(!box) return;
+ var box = document.getElementById("rapportsPage");
+ if(!box) return;
 
-  var today = new Date();
-  var todayStr = today.toISOString().slice(0,10);
+ if(!savedTickets.length){
+ box.innerHTML = '<div class="empty-zone">Pa gen rapport</div>';
+ return;
+ }
 
-  var oldStart = document.getElementById("rapportDateStart");
-  var oldEnd = document.getElementById("rapportDateEnd");
+ var vente = 0;
+ var prime = 0;
+ var annule = 0;
 
-  var startValue = oldStart ? oldStart.value : todayStr;
-  var endValue = oldEnd ? oldEnd.value : todayStr;
+ savedTickets.forEach(function(t){
+   var st = String(t.status || "").toUpperCase();
+   if(st === "ANILE"){
+     annule += Number(t.total || 0);
+     return;
+   }
+   vente += Number(t.total || 0);
+   if(st === "GANYE"){
+     prime += Number(t.premio || 0);
+   }
+ });
 
-  function toIsoDay(value){
-    var d = new Date(value || new Date());
-    var y = d.getFullYear();
-    var m = String(d.getMonth() + 1).padStart(2, "0");
-    var day = String(d.getDate()).padStart(2, "0");
-    return y + "-" + m + "-" + day;
-  }
+ var balance = vente - prime;
 
-  function toFr(iso){
-    if(!iso) return "";
-    var p = iso.split("-");
-    if(p.length !== 3) return iso;
-    return p[2] + "/" + p[1] + "/" + p[0];
-  }
-
-  var filtered = savedTickets.filter(function(t){
-    var d = toIsoDay(t.createdAt || new Date());
-    return d >= startValue && d <= endValue;
-  });
-
-  var vente = 0;
-  var prix = 0;
-  var commission = 0;
-  var balance = 0;
-
-  filtered.forEach(function(t){
-    var st = String(t.status || "").toUpperCase();
-
-    if(st === "ANILE") return;
-
-    vente += Number(t.total || 0);
-
-    if(st === "GANYE"){
-      prix += Number(t.premio || 0);
-    }
-  });
-
-  commission = vente * 0.15;
-  balance = vente - prix - commission;
-
-  box.innerHTML =
-    '<div style="height:100%;display:flex;flex-direction:column;background:#f5f5f5;">' +
-
-      '<div style="height:58px;min-height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;">' +
-        '<div onclick="switchPage(\'billetsPage\', document.getElementById(\'nav-billets\'))" style="font-size:24px;cursor:pointer;">←</div>' +
-        '<div style="font-size:22px;font-weight:700;">Rapports</div>' +
-        '<div style="display:flex;align-items:center;gap:18px;">' +
-          '<div onclick="printRapport()" style="font-size:22px;cursor:pointer;">🖨️</div>' +
-          '<div onclick="renderRapports()" style="font-size:22px;cursor:pointer;">↻</div>' +
-        '</div>' +
-      '</div>' +
-
-      '<div style="padding:14px;overflow:auto;flex:1;">' +
-
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">' +
-          '<input id="rapportDateStart" type="date" value="' + startValue + '" onchange="renderRapports()" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
-          '<input id="rapportDateEnd" type="date" value="' + endValue + '" onchange="renderRapports()" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
-        '</div>' +
-
-        '<div style="background:#fff;padding:22px 16px;border-radius:0;min-height:420px;">' +
-
-          '<div style="display:grid;grid-template-columns:1fr 1fr;row-gap:14px;font-size:22px;font-weight:700;margin-bottom:34px;">' +
-            '<div style="text-align:right;padding-right:18px;">Ventes</div><div style="text-align:left;padding-left:18px;">' + vente.toFixed(2) + '</div>' +
-            '<div style="text-align:right;padding-right:18px;">Prix</div><div style="text-align:left;padding-left:18px;">' + prix.toFixed(2) + '</div>' +
-            '<div style="text-align:right;padding-right:18px;">Commission</div><div style="text-align:left;padding-left:18px;">' + commission.toFixed(2) + '</div>' +
-            '<div style="text-align:right;padding-right:18px;">Balance</div><div style="text-align:left;padding-left:18px;">' + balance.toFixed(2) + '</div>' +
-          '</div>' +
-
-          '<div style="text-align:center;font-size:26px;font-weight:700;margin:28px 0 18px 0;">RESUMEN POR DÍA</div>' +
-
-          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:20px;margin-bottom:10px;">' +
-            '<div>VENTE</div>' +
-            '<div>PRIME</div>' +
-            '<div>BALANCE</div>' +
-          '</div>' +
-
-          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:20px;font-weight:700;">' +
-            '<div>' + vente.toFixed(2) + '<div style="font-size:16px;font-weight:400;color:#666;margin-top:6px;">' + commission.toFixed(2) + '</div></div>' +
-            '<div>' + prix.toFixed(2) + '</div>' +
-            '<div>' + balance.toFixed(2) + '<div style="font-size:16px;font-weight:400;color:#666;margin-top:6px;">' + toFr(endValue) + '</div></div>' +
-          '</div>' +
-
-          '<div style="text-align:center;font-size:26px;font-weight:700;margin:42px 0 0 0;">RESUMEN POR LOTERÍA</div>' +
-
-        '</div>' +
-      '</div>' +
-    '</div>';
-}
-
-function printRapport(){
-  var startEl = document.getElementById("rapportDateStart");
-  var endEl = document.getElementById("rapportDateEnd");
-
-  var startValue = startEl ? startEl.value : new Date().toISOString().slice(0,10);
-  var endValue = endEl ? endEl.value : new Date().toISOString().slice(0,10);
-
-  function toIsoDay(value){
-    var d = new Date(value || new Date());
-    var y = d.getFullYear();
-    var m = String(d.getMonth() + 1).padStart(2, "0");
-    var day = String(d.getDate()).padStart(2, "0");
-    return y + "-" + m + "-" + day;
-  }
-
-  function toFr(iso){
-    if(!iso) return "";
-    var p = iso.split("-");
-    if(p.length !== 3) return iso;
-    return p[2] + "/" + p[1] + "/" + p[0];
-  }
-
-  var filtered = savedTickets.filter(function(t){
-    var d = toIsoDay(t.createdAt || new Date());
-    return d >= startValue && d <= endValue;
-  });
-
-  var vente = 0;
-  var prix = 0;
-
-  filtered.forEach(function(t){
-    var st = String(t.status || "").toUpperCase();
-    if(st === "ANILE") return;
-    vente += Number(t.total || 0);
-    if(st === "GANYE"){
-      prix += Number(t.premio || 0);
-    }
-  });
-
-  var commission = vente * 0.15;
-  var balance = vente - prix - commission;
-
-  var now = new Date();
-  var printText = "";
-  printText += "Gg\n";
-  printText += "------------------------------\n";
-  printText += "RECAPITULATIF DES VENTES\n";
-  printText += toFr(startValue) + " - " + toFr(endValue) + "\n";
-  printText += "[ " + now.toLocaleDateString("fr-FR") + " " + now.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) + " ]\n";
-  printText += "------------------------------\n";
-  printText += "| Ventes      " + vente.toFixed(2).padStart(8) + " |\n";
-  printText += "| Prix        " + prix.toFixed(2).padStart(8) + " |\n";
-  printText += "| Commission  " + commission.toFixed(2).padStart(8) + " |\n";
-  printText += "| Balance     " + balance.toFixed(2).padStart(8) + " |\n";
-  printText += "------------------------------\n";
-
-  var w = window.open("", "_blank");
-  if(!w) return alert("Popup bloquée");
-
-  w.document.open();
-  w.document.write(
-    "<html><head><title>Rapport</title></head><body>" +
-    "<pre style='font-family:monospace;font-size:14px'>" + printText + "</pre>" +
-    "</body></html>"
-  );
-  w.document.close();
-
-  setTimeout(function(){
-    try { w.focus(); w.print(); } catch(e) {}
-  }, 300);
+ box.innerHTML =
+ '<div style="padding:16px;overflow:auto">' +
+   '<div style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,.05)">' +
+     '<div style="font-size:22px;font-weight:800;margin-bottom:12px">Rapport</div>' +
+     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:16px">' +
+       '<div><b>Ventes</b></div><div style="text-align:right">' + vente.toFixed(2) + '</div>' +
+       '<div><b>Prime</b></div><div style="text-align:right">' + prime.toFixed(2) + '</div>' +
+       '<div><b>Anile</b></div><div style="text-align:right">' + annule.toFixed(2) + '</div>' +
+       '<div><b>Balance</b></div><div style="text-align:right">' + balance.toFixed(2) + '</div>' +
+       '<div><b>Billets</b></div><div style="text-align:right">' + savedTickets.length + '</div>' +
+     '</div>' +
+   '</div>' +
+ '</div>';
 }
 
 function updateTicketStatus(id, status, premio){
@@ -2643,3 +2507,4 @@ app.get("/tickets/:vendeur", (req, res) => {
 app.listen(3000, "0.0.0.0", () => {
  console.log("Server ap mache sou rezo a");
 });
+

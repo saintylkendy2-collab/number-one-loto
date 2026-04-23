@@ -825,7 +825,7 @@
     "clave": "1234",
     "estatus": "Activo",
     "app": "2.9.32",
-    "conexion": "",
+    "conexion": "22/04/2026 20:39:18",
     "apellido": "",
     "cedula": "",
     "telefono": "",
@@ -927,7 +927,24 @@
         "loto5o3": "0"
       }
     },
-    "conexiones": []
+    "conexiones": [
+      {
+        "id": "DEV-1776904758299",
+        "marca": "APPLE",
+        "modelo": "MAC",
+        "version": "17",
+        "app": "2.9.32",
+        "vinculado": "22/04/2026 20:39:18",
+        "last": "22/04/2026 20:39:18",
+        "pin": 513,
+        "place": "PC",
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15",
+        "co": true,
+        "on": true,
+        "st": true
+      }
+    ]
   },
   "NOC130": {
     "nom": "Makis",
@@ -938,7 +955,7 @@
     "clave": "1234",
     "estatus": "Activo",
     "app": "2.9.32",
-    "conexion": "22/04/2026 20:26:06",
+    "conexion": "",
     "apellido": "",
     "cedula": "",
     "telefono": "",
@@ -1042,20 +1059,20 @@
     },
     "conexiones": [
       {
-        "id": "DEV-1776903966404",
+        "id": "DEV-1776904488717",
         "marca": "APPLE",
         "modelo": "MAC",
         "version": "17",
         "app": "2.9.32",
-        "vinculado": "22/04/2026 20:26:06",
-        "last": "22/04/2026 20:26:06",
-        "pin": 898,
+        "vinculado": "22/04/2026 20:34:48",
+        "last": "22/04/2026 20:39:04",
+        "pin": 952,
         "place": "PC",
         "ip": "127.0.0.1",
         "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15",
-        "co": true,
-        "on": true,
-        "st": true
+        "co": false,
+        "on": false,
+        "st": false
       }
     ]
   }

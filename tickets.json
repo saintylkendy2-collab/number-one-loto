@@ -1,0 +1,74 @@
+[
+  {
+    "id": "04505808-4141",
+    "vendeur": "NOC130",
+    "vendeurNom": "Makis",
+    "createdAt": "2026-04-23T00:35:05.808Z",
+    "createdAtLabel": "22/04/2026 20:35:05",
+    "dateLabel": "22/04/2026",
+    "timeLabel": "20:35",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 500,
+    "tirages": [
+      "KING LOTTERY DIA"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "47",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 500
+      }
+    ]
+  },
+  {
+    "id": "04533740-1164",
+    "vendeur": "NOC130",
+    "vendeurNom": "Makis",
+    "createdAt": "2026-04-23T00:35:33.740Z",
+    "createdAtLabel": "22/04/2026 20:35:33",
+    "dateLabel": "22/04/2026",
+    "timeLabel": "20:35",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "WHATSAPP",
+    "total": 25,
+    "tirages": [
+      "KING LOTTERY DIA"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "87",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 25
+      }
+    ]
+  },
+  {
+    "id": "04774260-2181",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-23T00:39:34.260Z",
+    "createdAtLabel": "22/04/2026 20:39:34",
+    "dateLabel": "22/04/2026",
+    "timeLabel": "20:39",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 2,
+    "tirages": [
+      "KING LOTTERY DIA"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "58",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 2
+      }
+    ]
+  }
+]

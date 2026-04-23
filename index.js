@@ -2261,6 +2261,44 @@ function copyTicketById(){
    });
 }
 
+function loadBillets() {
+  const id = new URLSearchParams(window.location.search).get("id");
+
+  fetch("/tickets/" + encodeURIComponent(id))
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      console.log("TICKETS:", data);
+
+      jeux = [];
+
+      if (!data || !data.length) {
+        renderJeux();
+        updateFields();
+        return;
+      }
+
+      data.forEach(function(t){
+        if (!t.jeux) return;
+
+        t.jeux.forEach(function(j){
+          jeux.push({
+            type: j.type,
+            numero: j.numero,
+            loterie: j.loterie,
+            montant: j.montant
+          });
+        });
+      });
+
+      renderJeux();
+      updateFields();
+    })
+    .catch(function(){
+      alert("Erreur lecture ticket");
+    });
+}
+
+
 renderJeux();
 updateFields();
 loadBillets();
@@ -2352,6 +2390,31 @@ setTimeout(function(){
 
 const adminRoutes = require("./admin");
 app.use(adminRoutes);
+
+const TICKETS_FILE = path.join(__dirname, "tickets.json");
+
+function loadTickets() {
+  try {
+    if (!fs.existsSync(TICKETS_FILE)) return [];
+    const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch (e) {
+    return [];
+  }
+}
+
+app.get("/tickets/:vendeur", (req, res) => {
+  const vendeurId = String(req.params.vendeur || "").toUpperCase();
+  const tickets = loadTickets();
+
+  const result = tickets.filter(t => 
+    String(t.vendeur || "").toUpperCase() === vendeurId
+  );
+
+  res.json(result);
+});
+
 
 app.listen(3000, "0.0.0.0", () => {
   console.log("Server ap mache sou rezo a");

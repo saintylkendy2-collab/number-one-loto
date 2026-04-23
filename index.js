@@ -2087,23 +2087,27 @@ function deleteAllGames(){
 }
 
 function switchPage(pageId, el){
- currentPageName = pageId;
+  if(pageId === "billetsPage" && currentPageName === "billetsPage"){
+    pageId = "salePage";
+  }
 
- document.querySelectorAll(".page").forEach(function(p){
-   p.classList.remove("active");
- });
+  currentPageName = pageId;
 
- document.getElementById(pageId).classList.add("active");
+  document.querySelectorAll(".page").forEach(function(p){
+    p.classList.remove("active");
+  });
 
- document.querySelectorAll(".nav-item").forEach(function(n){
-   n.classList.remove("active");
- });
+  document.getElementById(pageId).classList.add("active");
 
- if(el) el.classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(function(n){
+    n.classList.remove("active");
+  });
 
- if(pageId === "billetsPage"){
-   loadBillets();
- }
+  if(el) el.classList.add("active");
+
+  if(pageId === "billetsPage"){
+    loadBillets();
+  }
 }
 
 function statusClass(status){

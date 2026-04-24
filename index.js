@@ -2167,7 +2167,9 @@ function loadBillets(){
  renderRapports();
  });
 }
+
 var selectedTicketToCopy = null;
+var copyMode = false;
 
 function renderBillets(){
   var wrap = document.getElementById("billetsWrap");
@@ -2190,15 +2192,19 @@ function renderBillets(){
 
       document.querySelectorAll(".billet-card").forEach(function(c){
         c.classList.remove("selected");
+        c.style.border = "";
+        c.style.background = "#fff";
       });
 
       card.classList.add("selected");
+      card.style.border = "2px solid #3452aa";
+      card.style.background = "#eef3ff";
     };
 
     var premioTotal = Number(t.premio || 0);
 
     var premioTxt = premioTotal > 0
-      ? ('<div class="billet-meta" style="font-weight:800;color:#157347;">Gain total: ' + premioTotal.toFixed(2) + '</div>')
+      ? '<div class="billet-meta" style="font-weight:800;color:#157347;">Gain total: ' + premioTotal.toFixed(2) + '</div>'
       : '';
 
     card.innerHTML =
@@ -2245,33 +2251,101 @@ function renderBillets(){
   });
 }
 
-function handleCopyLoterie(){
-  var id = document.getElementById("copyTicketId").value.trim();
-
-  if(!id){
-    alert("Mete nimewo seri a");
+function copyFromTicket(ticket){
+  if(!ticket || !Array.isArray(ticket.jeux)){
+    alert("Ticket pa valid");
     return;
   }
 
-  fetch("/api/ticket/" + encodeURIComponent(id))
-  .then(res => res.json())
-  .then(ticket => {
-    if(!ticket || !ticket.id){
-      alert("Ticket pa jwenn");
-      return;
+  jeux = [];
+  selectedLoteries = [];
+  numero = "";
+  montant = "";
+  cursorNumero = 0;
+  cursorMontant = 0;
+  activeField = "numero";
+
+  ticket.jeux.forEach(function(j){
+    jeux.push({
+      type: j.type,
+      numero: j.numero,
+      loterie: j.loterie,
+      montant: Number(j.montant || 0)
+    });
+
+    if(selectedLoteries.indexOf(j.loterie) < 0){
+      selectedLoteries.push(j.loterie);
     }
-
-    selectedTicketToCopy = ticket;
-
-    // aktive mode copy
-    copyMode = true;
-
-    // ouvri loterie modal ou deja genyen
-    openLoterieModal();
-  })
-  .catch(() => {
-    alert("Erreur");
   });
+
+  renderJeux();
+  updateFields();
+  switchPage("salePage", document.getElementById("nav-billets"));
+}
+
+function handleCopyButton(){
+  if(!selectedTicketToCopy){
+    alert("Chwazi yon ticket avan.");
+    return;
+  }
+
+  copyFromTicket(selectedTicketToCopy);
+}
+
+function handleCopyLoterie(){
+  if(!selectedTicketToCopy){
+    alert("Chwazi yon ticket avan.");
+    return;
+  }
+
+  copyMode = true;
+  selectedLoteries = [];
+  activeField = "loterie";
+  updateFields();
+  openLoterieModal();
+}
+
+function validateLoteries(){
+  document.getElementById("loterieModal").classList.remove("show");
+  document.getElementById("overlay").classList.remove("show");
+
+  if(selectedLoteries.length === 0){
+    activeField = "loterie";
+    updateFields();
+    openLoterieModal();
+    return;
+  }
+
+  if(copyMode && selectedTicketToCopy){
+    jeux = [];
+    numero = "";
+    montant = "";
+    cursorNumero = 0;
+    cursorMontant = 0;
+    activeField = "numero";
+
+    selectedTicketToCopy.jeux.forEach(function(j){
+      selectedLoteries.forEach(function(lot){
+        jeux.push({
+          type: j.type,
+          numero: j.numero,
+          loterie: lot,
+          montant: Number(j.montant || 0)
+        });
+      });
+    });
+
+    copyMode = false;
+
+    renderJeux();
+    updateFields();
+    switchPage("salePage", document.getElementById("nav-billets"));
+    return;
+  }
+
+  activeField = "montant";
+  cursorMontant = montant.length;
+  updateFields();
 }
 
 

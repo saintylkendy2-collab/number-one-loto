@@ -2511,23 +2511,6 @@ function copyFromTicket(ticket){
     return;
   }
 
-  var choix = prompt(
-    "1 - Copie exacte\n" +
-    "2 - Modifier les montants"
-  );
-
-  if(choix !== "1" && choix !== "2"){
-    return;
-  }
-
-  var newMontant = null;
-
-  if(choix === "2"){
-    newMontant = prompt("Mete nouvo montant lan:");
-    if(newMontant === null) return;
-    newMontant = Number(newMontant || 0);
-  }
-
   jeux = [];
   selectedLoteries = [];
   numero = "";
@@ -2541,7 +2524,7 @@ function copyFromTicket(ticket){
       type: j.type,
       numero: j.numero,
       loterie: j.loterie,
-      montant: choix === "2" ? newMontant : Number(j.montant || 0)
+      montant: Number(j.montant || 0)
     });
 
     if(selectedLoteries.indexOf(j.loterie) < 0){

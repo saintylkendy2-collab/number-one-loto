@@ -2250,9 +2250,86 @@ function handleCopyButton(){
     return;
   }
 
-  copyFromTicket(selectedTicketToCopy);
-}
+  var choix = prompt(
+    "1 - Copie exacte\n" +
+    "2 - Modifier montant\n" +
+    "3 - Changer loterie"
+  );
 
+  if(choix !== "1" && choix !== "2" && choix !== "3"){
+    return;
+  }
+
+  var newMontant = null;
+  var newLoteries = null;
+
+  if(choix === "2"){
+    newMontant = prompt("Mete nouvo montant lan:");
+    if(newMontant === null) return;
+    newMontant = Number(newMontant || 0);
+  }
+
+  if(choix === "3"){
+    var list = loteries.map(function(l, i){
+      return (i + 1) + " - " + l.name;
+    }).join("\n");
+
+    var rep = prompt("Chwazi loterie yo:\n" + list + "\n\nEgzanp: 1,4,7");
+    if(rep === null) return;
+
+    newLoteries = rep.split(",").map(function(x){
+      var idx = Number(x.trim()) - 1;
+      return loteries[idx] ? loteries[idx].name : null;
+    }).filter(Boolean);
+
+    if(!newLoteries.length){
+      alert("Ou pa chwazi loterie");
+      return;
+    }
+  }
+
+  jeux = [];
+  selectedLoteries = [];
+  numero = "";
+  montant = "";
+  cursorNumero = 0;
+  cursorMontant = 0;
+  activeField = "numero";
+
+  selectedTicketToCopy.jeux.forEach(function(j){
+    var lots = newLoteries || [j.loterie];
+
+    lots.forEach(function(lot){
+      jeux.push({
+        type: j.type,
+        numero: j.numero,
+        loterie: lot,
+        montant: choix === "2" ? newMontant : Number(j.montant || 0)
+      });
+
+      if(selectedLoteries.indexOf(lot) < 0){
+        selectedLoteries.push(lot);
+      }
+    });
+  });
+
+  renderJeux();
+  updateFields();
+
+  document.querySelectorAll(".page").forEach(function(p){
+    p.classList.remove("active");
+  });
+
+  document.getElementById("salePage").classList.add("active");
+
+  document.querySelectorAll(".nav-item").forEach(function(n){
+    n.classList.remove("active");
+  });
+
+  document.getElementById("nav-billets").classList.add("active");
+
+  currentPageName = "salePage";
+}
 
 function renderRapports(){
   var box = document.getElementById("rapportsPage");

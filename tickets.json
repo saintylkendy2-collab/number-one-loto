@@ -525,7 +525,7 @@
     "createdAtLabel": "24/04/2026 01:37:48",
     "dateLabel": "24/04/2026",
     "timeLabel": "01:37",
-    "status": "PEDI",
+    "status": "ANATAN",
     "premio": 0,
     "channel": "WHATSAPP",
     "total": 25,
@@ -540,6 +540,31 @@
         "montant": 25
       }
     ],
-    "updatedAt": "2026-04-24T05:38:40.754Z"
+    "updatedAt": "2026-04-24T06:32:08.539Z"
+  },
+  {
+    "id": "12245196-6553",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-24T06:30:45.196Z",
+    "createdAtLabel": "24/04/2026 02:30:45",
+    "dateLabel": "24/04/2026",
+    "timeLabel": "02:30",
+    "status": "ANILE",
+    "premio": 0,
+    "channel": "WHATSAPP",
+    "total": 25,
+    "tirages": [
+      "GEORGIA MIDDAY"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "44",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 25
+      }
+    ],
+    "updatedAt": "2026-04-24T06:31:54.094Z"
   }
 ]

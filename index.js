@@ -2251,15 +2251,31 @@ function handleCopyLoterie(){
     return;
   }
 
-  var list = loteries.map(function(l, i){
-    return (i + 1) + " - " + l.name;
+  var lotList = [
+    "LA PRIMERA DIA",
+    "LOTEDOM",
+    "LA SUERTE DIA",
+    "GEORGIA MIDDAY",
+    "KING LOTTERY DIA",
+    "ANGUILLA 01:00 PM",
+    "REAL",
+    "FLORIDA MIDDAY",
+    "NEW YORK MIDDAY",
+    "GANAMAS",
+    "LA SUERTE NOCHE",
+    "ANGUILLA 6:00 PM",
+    "GEORGIA EVENING"
+  ];
+
+  var list = lotList.map(function(name, i){
+    return (i + 1) + " - " + name;
   }).join("\n");
 
   var rep = prompt("Chwazi nouvo loterie a:\n\n" + list + "\n\nEgzanp: 9");
   if(rep === null) return;
 
   var idx = Number(rep.trim()) - 1;
-  var newLot = loteries[idx] ? loteries[idx].name : "";
+  var newLot = lotList[idx];
 
   if(!newLot){
     alert("Loterie pa valid");

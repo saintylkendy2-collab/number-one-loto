@@ -2174,7 +2174,7 @@ var copyMode = false;
 
 function feedbackTouch(){
   if(navigator.vibrate){
-    navigator.vibrate(30);
+    navigator.vibrate(40);
   }
 }
 
@@ -2229,22 +2229,20 @@ function renderBillets(){
     actions.className = "billet-actions";
     actions.style.gridTemplateColumns = "repeat(4,1fr)";
     actions.innerHTML =
-      '<button type="button" class="small-btn btn-green">COPIE</button>' +
-      '<button type="button" class="small-btn btn-yellow">LOTERIE</button>' +
-      '<button type="button" class="small-btn btn-yellow">MONTANT</button>' +
-      '<button type="button" class="small-btn btn-gray">ANILE</button>';
+      '<button class="small-btn btn-green">COPIE</button>' +
+      '<button class="small-btn btn-yellow">LOTERIE</button>' +
+      '<button class="small-btn btn-yellow">MONTANT</button>' +
+      '<button class="small-btn btn-gray">ANILE</button>';
 
     var btns = actions.querySelectorAll("button");
 
     btns[0].onclick = function(e){
-      e.preventDefault();
       e.stopPropagation();
       feedbackTouch();
       copyFromTicket(t);
     };
 
     btns[1].onclick = function(e){
-      e.preventDefault();
       e.stopPropagation();
       feedbackTouch();
       selectedTicketToCopy = t;
@@ -2256,14 +2254,22 @@ function renderBillets(){
     };
 
     btns[2].onclick = function(e){
-      e.preventDefault();
       e.stopPropagation();
       feedbackTouch();
-      copyMontantApart(t);
+
+      var newMontant = prompt("Mete nouvo montant lan:");
+      if(newMontant === null) return;
+
+      newMontant = Number(newMontant || 0);
+      if(newMontant <= 0){
+        alert("Montant pa valid");
+        return;
+      }
+
+      copyFromTicketWithMontant(t, newMontant);
     };
 
     btns[3].onclick = function(e){
-      e.preventDefault();
       e.stopPropagation();
       feedbackTouch();
 
@@ -2309,58 +2315,9 @@ function copyFromTicket(ticket){
   switchPage("salePage", document.getElementById("nav-billets"));
 }
 
-function copyMontantApart(ticket){
+function copyFromTicketWithMontant(ticket, newMontant){
   if(!ticket || !Array.isArray(ticket.jeux)){
     alert("Ticket pa valid");
-    return;
-  }
-
-  var typeChoix = prompt(
-    "Ki jwèt ou vle chanje montant lan?\n" +
-    "1 - BOR / Bolèt\n" +
-    "2 - MAR / Maryaj\n" +
-    "3 - L3\n" +
-    "4 - L4\n" +
-    "5 - TOUT"
-  );
-
-  if(typeChoix === null) return;
-
-  var targetType = "";
-  if(typeChoix === "1") targetType = "BOR";
-  if(typeChoix === "2") targetType = "MAR";
-  if(typeChoix === "3") targetType = "L3";
-  if(typeChoix === "4") targetType = "L4";
-  if(typeChoix === "5") targetType = "TOUT";
-
-  if(!targetType){
-    alert("Chwa pa valid");
-    return;
-  }
-
-  var newMontant = prompt("Mete nouvo montant lan:");
-  if(newMontant === null) return;
-
-  newMontant = Number(newMontant || 0);
-  if(newMontant <= 0){
-    alert("Montant pa valid");
-    return;
-  }
-
-  var list = loteries.map(function(l, i){
-    return (i + 1) + " - " + l.name;
-  }).join("\n");
-
-  var rep = prompt("Chwazi loterie yo:\n\n" + list + "\n\nEgzanp: 8,9");
-  if(rep === null) return;
-
-  var newLots = rep.split(",").map(function(x){
-    var idx = Number(x.trim()) - 1;
-    return loteries[idx] ? loteries[idx].name : null;
-  }).filter(Boolean);
-
-  if(!newLots.length){
-    alert("Ou pa chwazi loterie valid");
     return;
   }
 
@@ -2373,22 +2330,16 @@ function copyMontantApart(ticket){
   activeField = "numero";
 
   ticket.jeux.forEach(function(j){
-    var oldType = String(j.type || "").toUpperCase();
-
-    newLots.forEach(function(lot){
-      jeux.push({
-        type: j.type,
-        numero: j.numero,
-        loterie: lot,
-        montant: (targetType === "TOUT" || oldType === targetType)
-          ? Number(newMontant || 0)
-          : Number(j.montant || 0)
-      });
-
-      if(selectedLoteries.indexOf(lot) < 0){
-        selectedLoteries.push(lot);
-      }
+    jeux.push({
+      type: j.type,
+      numero: j.numero,
+      loterie: j.loterie,
+      montant: Number(newMontant || 0)
     });
+
+    if(selectedLoteries.indexOf(j.loterie) < 0){
+      selectedLoteries.push(j.loterie);
+    }
   });
 
   renderJeux();
@@ -2441,11 +2392,11 @@ function validateLoteries(){
 }
 
 function handleCopyButton(){
-  alert("Kopye fèt dirèk sou biyè a.");
+  alert("Kounya kopye fèt dirèk sou biyè a.");
 }
 
 function handleCopyLoterie(){
-  alert("Chanje loterie fèt dirèk sou biyè a.");
+  alert("Kounya chanje loterie fèt dirèk sou biyè a.");
 }
 
 

@@ -2251,11 +2251,28 @@ function handleCopyLoterie(){
     return;
   }
 
-  var newLot = prompt("Ekri nouvo loterie a:");
-  if(!newLot) return;
+  var list = loteries.map(function(l, i){
+    return (i + 1) + " - " + l.name;
+  }).join("\n");
+
+  var rep = prompt("Chwazi nouvo loterie a:\n\n" + list + "\n\nEgzanp: 9");
+  if(rep === null) return;
+
+  var idx = Number(rep.trim()) - 1;
+  var newLot = loteries[idx] ? loteries[idx].name : "";
+
+  if(!newLot){
+    alert("Loterie pa valid");
+    return;
+  }
 
   jeux = [];
   selectedLoteries = [];
+  numero = "";
+  montant = "";
+  cursorNumero = 0;
+  cursorMontant = 0;
+  activeField = "numero";
 
   selectedTicketToCopy.jeux.forEach(function(j){
     jeux.push({

@@ -2458,11 +2458,141 @@ function updateTicketStatus(id, status, premio){
  });
 }
 
+function copyTypeCategory(type){
+  var t = String(type || "").toUpperCase();
+
+  if(t === "BOR") return "BOR";
+  if(t === "MAR") return "MAR";
+  if(t === "L1" || t === "L2" || t === "L3" || t === "L4" || t === "L5"){
+    return "LOTO";
+  }
+
+  return "OTHER";
+}
+
+function askCopyLoteries(){
+  var list = loteries.map(function(l, i){
+    return (i + 1) + " - " + l.name;
+  }).join("\n");
+
+  var rep = prompt("Chwazi loterie yo:\n" + list + "\n\nEgzanp: 1,4,7");
+
+  if(rep === null) return null;
+
+  return rep.split(",").map(function(x){
+    var idx = Number(x.trim()) - 1;
+    return loteries[idx] ? loteries[idx].name : null;
+  }).filter(Boolean);
+}
+
+function applyCopyTicket(ticket, amounts, newLoteries){
+  jeux = [];
+  selectedLoteries = [];
+  numero = "";
+  cursorNumero = 0;
+  activeField = "numero";
+
+  ticket.jeux.forEach(function(j){
+    var lots = newLoteries && newLoteries.length ? newLoteries : [j.loterie];
+
+    lots.forEach(function(lot){
+      var cat = copyTypeCategory(j.type);
+      var finalMontant = Number(j.montant || 0);
+
+      if(amounts && amounts[cat] !== undefined){
+        finalMontant = Number(amounts[cat] || 0);
+      }
+
+      jeux.push({
+        type: j.type,
+        numero: j.numero,
+        loterie: lot,
+        montant: finalMontant
+      });
+
+      if(selectedLoteries.indexOf(lot) < 0){
+        selectedLoteries.push(lot);
+      }
+    });
+  });
+
+  renderJeux();
+  updateFields();
+  switchPage("salePage", document.getElementById("nav-billets"));
+}
+
 function copyFromTicket(ticket){
-  if(!ticket || !ticket.jeux){
+  if(!ticket || !Array.isArray(ticket.jeux)){
     alert("Ticket pa valid");
     return;
   }
+
+  var choix = prompt(
+    "1 - Copie exacte\n" +
+    "2 - Modifier les montants\n" +
+    "3 - Changer de loterie"
+  );
+
+  if(choix === "1"){
+    applyCopyTicket(ticket, null, null);
+    return;
+  }
+
+  if(choix === "2"){
+    var amounts = {};
+    var hasBor = false;
+    var hasMar = false;
+    var hasLoto = false;
+
+    ticket.jeux.forEach(function(j){
+      var cat = copyTypeCategory(j.type);
+
+      if(cat === "BOR") hasBor = true;
+      if(cat === "MAR") hasMar = true;
+      if(cat === "LOTO") hasLoto = true;
+    });
+
+    if(hasBor){
+      var bor = prompt("Montant Bolèt:");
+      if(bor === null) return;
+      amounts.BOR = Number(bor || 0);
+    }
+
+    if(hasMar){
+      var mar = prompt("Montant Maryaj:");
+      if(mar === null) return;
+      amounts.MAR = Number(mar || 0);
+    }
+
+    if(hasLoto){
+      var loto = prompt("Montant Loto:");
+      if(loto === null) return;
+      amounts.LOTO = Number(loto || 0);
+    }
+
+    var lots2 = askCopyLoteries();
+    if(lots2 === null) return;
+    if(!lots2.length){
+      alert("Ou pa chwazi loterie");
+      return;
+    }
+
+    applyCopyTicket(ticket, amounts, lots2);
+    return;
+  }
+
+  if(choix === "3"){
+    var lots3 = askCopyLoteries();
+    if(lots3 === null) return;
+    if(!lots3.length){
+      alert("Ou pa chwazi loterie");
+      return;
+    }
+
+    applyCopyTicket(ticket, null, lots3);
+    return;
+  }
+}
 
   jeux = [];
   selectedLoteries = [];

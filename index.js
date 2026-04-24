@@ -2500,43 +2500,7 @@ function copyTicketById(){
 }
 
 function copyFromTicket(ticket){
-  if(!ticket || !Array.isArray(ticket.jeux)){
-    alert("Ticket pa valid");
-    return;
-  }
-
-  var choix = prompt(
-    "1 - Copie exacte\n" +
-    "2 - Modifier les montants\n" +
-    "3 - Changer de loterie"
-  );
-
-  if(choix !== "1"){
-    return;
-  }
-
-  jeux = [];
-  selectedLoteries = [];
-  numero = "";
-  cursorNumero = 0;
-  activeField = "numero";
-
-  ticket.jeux.forEach(function(j){
-    jeux.push({
-      type: j.type,
-      numero: j.numero,
-      loterie: j.loterie,
-      montant: Number(j.montant || 0)
-    });
-
-    if(selectedLoteries.indexOf(j.loterie) < 0){
-      selectedLoteries.push(j.loterie);
-    }
-  });
-
-  renderJeux();
-  updateFields();
-  switchPage("salePage", document.getElementById("nav-billets"));
+  alert("Copy mache");
 }
 
 renderJeux();

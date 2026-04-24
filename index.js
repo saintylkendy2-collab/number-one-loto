@@ -2173,6 +2173,7 @@ function loadBillets(){
  });
 }
 
+
 function getCopyCategory(type){
   var t = String(type || "").toUpperCase();
   if(t === "BOR") return "BOR";
@@ -2184,13 +2185,9 @@ function getCopyCategory(type){
 function askNewLoteries(){
   var list = loteries.map(function(l, i){
     return (i + 1) + " - " + l.name;
-  }).join("
-");
+  }).join("\n");
 
-  var rep = prompt("Chwazi loterie yo:
-" + list + "
-
-Egzanp: 1,4,7");
+  var rep = prompt("Chwazi loterie yo:\n" + list + "\n\nEgzanp: 1,4,7");
   if(!rep) return null;
 
   return rep.split(",").map(function(x){
@@ -2200,13 +2197,13 @@ Egzanp: 1,4,7");
 }
 
 function copyTicketToJeux(ticket, amounts, newLoteries){
-  if(!ticket || !Array.isArray(ticket.jeux)) return;
-
   jeux = [];
   selectedLoteries = [];
   numero = "";
   cursorNumero = 0;
   activeField = "numero";
+
+  if(!ticket || !Array.isArray(ticket.jeux)) return;
 
   ticket.jeux.forEach(function(j){
     var lots = newLoteries && newLoteries.length ? newLoteries : [j.loterie];
@@ -2239,10 +2236,8 @@ function copyTicketToJeux(ticket, amounts, newLoteries){
 
 function openCopyOptions(ticket){
   var choix = prompt(
-    "1 - Copie exacte
-" +
-    "2 - Modifier les montants
-" +
+    "1 - Copie exacte\n" +
+    "2 - Modifier les montants\n" +
     "3 - Changer de loterie"
   );
 
@@ -2257,12 +2252,14 @@ function openCopyOptions(ticket){
     var hasMar = false;
     var hasLoto = false;
 
-    (ticket.jeux || []).forEach(function(j){
-      var cat = getCopyCategory(j.type);
-      if(cat === "BOR") hasBor = true;
-      if(cat === "MAR") hasMar = true;
-      if(cat === "LOTO") hasLoto = true;
-    });
+    if(Array.isArray(ticket.jeux)){
+      ticket.jeux.forEach(function(j){
+        var cat = getCopyCategory(j.type);
+        if(cat === "BOR") hasBor = true;
+        if(cat === "MAR") hasMar = true;
+        if(cat === "LOTO") hasLoto = true;
+      });
+    }
 
     if(hasBor){
       var bor = prompt("Montant Bolèt:");
@@ -2299,72 +2296,69 @@ function openCopyOptions(ticket){
 }
 
 function renderBillets(){
-  var wrap = document.getElementById("billetsWrap");
+ var wrap = document.getElementById("billetsWrap");
 
-  if(!savedTickets.length){
-    wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
-    return;
-  }
+ if(!savedTickets.length){
+ wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
+ return;
+ }
 
-  wrap.innerHTML = "";
+ wrap.innerHTML = "";
 
-  savedTickets.forEach(function(t){
-    var card = document.createElement("div");
-    card.className = "billet-card";
+ savedTickets.forEach(function(t){
+ var card = document.createElement("div");
+ card.className = "billet-card";
 
-    var premioTxt = Number(t.premio || 0) > 0
-      ? ('<div class="billet-meta">Premio: ' + Number(t.premio || 0).toFixed(2) + '</div>')
-      : '';
+ var premioTxt = Number(t.premio || 0) > 0
+ ? ('<div class="billet-meta">Premio: ' + Number(t.premio || 0).toFixed(2) + '</div>')
+ : '';
 
-    card.innerHTML =
-      '<div class="billet-head">' +
-        '<div>' +
-          '<div class="billet-code">#' + t.id + '</div>' +
-          '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
-          '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
-          premioTxt +
-        '</div>' +
-        '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
-      '</div>';
+ card.innerHTML =
+ '<div class="billet-head">' +
+   '<div>' +
+     '<div class="billet-code">#' + t.id + '</div>' +
+     '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
+     '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
+     premioTxt +
+   '</div>' +
+   '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
+ '</div>';
 
-    if(Array.isArray(t.jeux)){
-      t.jeux.forEach(function(j){
-        var row = document.createElement("div");
-        row.className = "billet-game";
-        row.innerHTML =
-          '<div>' + j.type + '</div>' +
-          '<div>' + j.numero + ' - ' + j.loterie + '</div>' +
-          '<div style="text-align:right">' + Number(j.montant || 0).toFixed(2) + '</div>';
-        card.appendChild(row);
-      });
-    }
+ if(Array.isArray(t.jeux)){
+ t.jeux.forEach(function(j){
+ var row = document.createElement("div");
+ row.className = "billet-game";
+ row.innerHTML =
+   '<div>' + j.type + '</div>' +
+   '<div>' + j.numero + ' - ' + j.loterie + '</div>' +
+   '<div style="text-align:right">' + Number(j.montant || 0).toFixed(2) + '</div>';
+ card.appendChild(row);
+ });
+ }
 
-    var actions = document.createElement("div");
-    actions.className = "billet-actions";
-    actions.style.gridTemplateColumns = "repeat(5,1fr)";
+ var actions = document.createElement("div");
+ actions.className = "billet-actions";
+ actions.innerHTML =
+ '<button class="small-btn btn-yellow">AN ATAN</button>' +
+ '<button class="small-btn btn-green">GANYE</button>' +
+ '<button class="small-btn btn-red">PEDI</button>' +
+ '<button class="small-btn btn-gray">ANILE</button>';
 
-    actions.innerHTML =
-      '<button class="small-btn btn-yellow">AN ATAN</button>' +
-      '<button class="small-btn btn-green">GANYE</button>' +
-      '<button class="small-btn btn-red">PEDI</button>' +
-      '<button class="small-btn btn-gray">ANILE</button>' +
-      '<button class="small-btn btn-yellow">COPIER</button>';
+ var btns = actions.querySelectorAll("button");
+ btns[0].onclick = function(){ updateTicketStatus(t.id, "ANATAN"); };
+ btns[1].onclick = function(){
+   var premio = prompt("Konbyen ticket sa genyen?", Number(t.premio || 0));
+   if(premio === null) return;
+   updateTicketStatus(t.id, "GANYE", premio);
+ };
+ btns[2].onclick = function(){ updateTicketStatus(t.id, "PEDI"); };
+ btns[3].onclick = function(){ updateTicketStatus(t.id, "ANILE"); };
 
-    var btns = actions.querySelectorAll("button");
-    btns[0].onclick = function(){ updateTicketStatus(t.id, "ANATAN"); };
-    btns[1].onclick = function(){
-      var premio = prompt("Konbyen ticket sa genyen?", Number(t.premio || 0));
-      if(premio === null) return;
-      updateTicketStatus(t.id, "GANYE", premio);
-    };
-    btns[2].onclick = function(){ updateTicketStatus(t.id, "PEDI"); };
-    btns[3].onclick = function(){ updateTicketStatus(t.id, "ANILE"); };
-    btns[4].onclick = function(){ openCopyOptions(t); };
-
-    card.appendChild(actions);
-    wrap.appendChild(card);
-  });
+ card.appendChild(actions);
+ wrap.appendChild(card);
+ });
 }
+
 
 function renderRapports(){
   var box = document.getElementById("rapportsPage");
@@ -2489,7 +2483,9 @@ var dBalance = d.vente - d.prime;
       '<button id="rapportBackBtn" type="button" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">←</button>' +
       '<div style="font-size:22px;font-weight:700;">Rapports</div>' +
       '<div style="display:flex;gap:18px;align-items:center;">' +
-        '<button id="rapportPrintBtn" type="button" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">🖨️</button>' +
+        '<button id="rapportPrintBtn" type="button" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">
+
+</button>' +
         '<button id="rapportRefreshBtn" type="button" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;">↻</button>' +
       '</div>' +
     '</div>' +
@@ -2590,48 +2586,130 @@ function updateTicketStatus(id, status, premio){
 }
 
 function copyTicketById(){
- var id = document.getElementById("copyTicketId").value.trim();
- if(!id){
- alert("Mete nimewo seri a");
- return;
- }
+ var id = document.getElementById("copyTicketId").value.trim();
+ if(!id){
+ alert("Mete nimewo seri a");
+ return;
+ }
 
- fetch("/api/ticket/" + encodeURIComponent(id))
- .then(function(res){ return res.json(); })
- .then(function(ticket){
- if(!ticket || !ticket.id){
-   alert("Ticket pa jwenn");
-   return;
- }
+ fetch("/api/ticket/" + encodeURIComponent(id))
+ .then(function(res){ return res.json(); })
+ .then(function(ticket){
+ if(!ticket || !ticket.id){
+   alert("Ticket pa jwenn");
+   return;
+ }
 
- jeux = [];
- selectedLoteries = [];
- numero = "";
- cursorNumero = 0;
- activeField = "numero";
+ var choix = prompt(
+   "1 - Copie exacte\n" +
+   "2 - Modifier les montants\n" +
+   "3 - Changer de loterie"
+ );
 
- if(Array.isArray(ticket.jeux)){
-   ticket.jeux.forEach(function(j){
-     jeux.push({
-       type: j.type,
-       numero: j.numero,
-       loterie: j.loterie,
-       montant: Number(j.montant || 0)
-     });
+ if(choix === null) return;
 
-     if(selectedLoteries.indexOf(j.loterie) < 0){
-       selectedLoteries.push(j.loterie);
-     }
-   });
- }
+ if(choix !== "1" && choix !== "2" && choix !== "3"){
+   alert("Chwazi 1, 2 ou 3");
+   return;
+ }
 
- renderJeux();
- updateFields();
- switchPage("salePage", document.getElementById("nav-billets"));
- })
- .catch(function(){
- alert("Erreur lecture ticket");
- });
+ var amounts = null;
+ var newLoteries = null;
+
+ if(choix === "2"){
+   amounts = {};
+   var hasBor = false;
+   var hasMar = false;
+   var hasLoto = false;
+
+   (ticket.jeux || []).forEach(function(j){
+     var t = String(j.type || "").toUpperCase();
+     if(t === "BOR") hasBor = true;
+     if(t === "MAR") hasMar = true;
+     if(t === "L1" || t === "L2" || t === "L3" || t === "L4" || t === "L5") hasLoto = true;
+   });
+
+   if(hasBor){
+     var bor = prompt("Montant Bolèt:");
+     if(bor === null) return;
+     amounts.BOR = Number(bor || 0);
+   }
+
+   if(hasMar){
+     var mar = prompt("Montant Maryaj:");
+     if(mar === null) return;
+     amounts.MAR = Number(mar || 0);
+   }
+
+   if(hasLoto){
+     var loto = prompt("Montant Loto:");
+     if(loto === null) return;
+     amounts.LOTO = Number(loto || 0);
+   }
+ }
+
+ if(choix === "2" || choix === "3"){
+   var list = loteries.map(function(l, i){
+     return (i + 1) + " - " + l.name;
+   }).join("\n");
+
+   var rep = prompt("Chwazi loterie yo:\n" + list + "\n\nEgzanp: 1,4,7");
+   if(!rep) return;
+
+   newLoteries = rep.split(",").map(function(x){
+     var idx = Number(x.trim()) - 1;
+     return loteries[idx] ? loteries[idx].name : null;
+   }).filter(Boolean);
+
+   if(!newLoteries.length){
+     alert("Ou pa chwazi okenn loterie valid");
+     return;
+   }
+ }
+
+ jeux = [];
+ selectedLoteries = [];
+ numero = "";
+ cursorNumero = 0;
+ activeField = "numero";
+
+ if(Array.isArray(ticket.jeux)){
+   ticket.jeux.forEach(function(j){
+     var lots = newLoteries && newLoteries.length ? newLoteries : [j.loterie];
+
+     lots.forEach(function(lot){
+       var t = String(j.type || "").toUpperCase();
+       var cat = "OTHER";
+       if(t === "BOR") cat = "BOR";
+       if(t === "MAR") cat = "MAR";
+       if(t === "L1" || t === "L2" || t === "L3" || t === "L4" || t === "L5") cat = "LOTO";
+
+       var montantFinal = Number(j.montant || 0);
+       if(amounts && amounts[cat] !== undefined){
+         montantFinal = Number(amounts[cat] || 0);
+       }
+
+       jeux.push({
+         type: j.type,
+         numero: j.numero,
+         loterie: lot,
+         montant: montantFinal
+       });
+
+       if(selectedLoteries.indexOf(lot) < 0){
+         selectedLoteries.push(lot);
+       }
+     });
+   });
+ }
+
+ renderJeux();
+ updateFields();
+ switchPage("salePage", document.getElementById("nav-billets"));
+ })
+ .catch(function(){
+ alert("Erreur lecture ticket");
+ });
 }
 
 renderJeux();
@@ -2835,3 +2913,4 @@ app.get("/tickets/:vendeur", (req, res) => {
 app.listen(3000, "0.0.0.0", () => {
  console.log("Server ap mache sou rezo a");
 });
+

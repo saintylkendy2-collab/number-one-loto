@@ -1205,7 +1205,8 @@ border-right:1px solid #ddd;
 <div id="copierPage" class="page">
 <div class="copy-wrap">
 <input id="copyTicketId" class="copy-input" placeholder="Mete nimewo seri ticket la">
-<button class="copy-btn" onclick="handleCopyButton()">Copier ticket chwazi</button>
+<button class="copy-btn" onclick="handleCopyButton()">Copie exacte</button>
+<button class="copy-btn" onclick="handleCopyLoterie()">Changer loterie</button>
 <div class="copy-note">
 Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran an pou rekopye yo.
 </div>
@@ -2244,51 +2245,35 @@ function renderBillets(){
   });
 }
 
-function handleCopyButton(){
+function handleCopyLoterie(){
   if(!selectedTicketToCopy){
     alert("Chwazi yon ticket avan.");
     return;
   }
 
-  var choix = prompt(
-    "1 - Copie exacte\n" +
-    "2 - Modifier montant\n" +
-    "3 - Changer loterie"
-  );
+  var newLot = prompt("Ekri nouvo loterie a:");
+  if(!newLot) return;
 
-  if(choix !== "1" && choix !== "2" && choix !== "3"){
-    return;
-  }
-
-  var newMontant = null;
-  var newLoteries = null;
-
-  if(choix === "2"){
-    newMontant = prompt("Mete nouvo montant lan:");
-    if(newMontant === null) return;
-    newMontant = Number(newMontant || 0);
-  }
-
-  if(choix === "3"){
-  var uniqueLots = [];
+  jeux = [];
+  selectedLoteries = [];
 
   selectedTicketToCopy.jeux.forEach(function(j){
-    if(uniqueLots.indexOf(j.loterie) < 0){
-      uniqueLots.push(j.loterie);
+    jeux.push({
+      type: j.type,
+      numero: j.numero,
+      loterie: newLot,
+      montant: Number(j.montant || 0)
+    });
+
+    if(selectedLoteries.indexOf(newLot) < 0){
+      selectedLoteries.push(newLot);
     }
   });
 
-  var list = uniqueLots.map(function(l, i){
-    return (i + 1) + " - " + l;
-  }).join("\n");
-
-    var rep = prompt("Chwazi loterie yo:\n" + list + "\n\nEgzanp: 1,4,7");
-    if(rep === null) return;
-
-    newLoteries = rep.split(",").map(function(x){
-  var idx = Number(x.trim()) - 1;
-  return uniqueLots[idx] || null;
-}).filter(Boolean);
+  renderJeux();
+  updateFields();
+  switchPage("salePage", document.getElementById("nav-billets"));
+}
 
 
 function renderRapports(){

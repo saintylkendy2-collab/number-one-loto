@@ -2238,8 +2238,8 @@ card.addEventListener("click", function(e){
   );
 
   if(choix === "1"){
-    copyTicketByIdDirect(t);
-  }
+  copyTicketToJeux(t, null, null);
+}
 });
 
 wrap.appendChild(card);

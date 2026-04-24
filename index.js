@@ -2251,6 +2251,9 @@ function renderBillets(){
   });
 }
 
+var selectedTicketToCopy = null;
+var copyMode = false;
+
 function copyFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)){
     alert("Ticket pa valid");

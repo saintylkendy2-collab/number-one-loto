@@ -752,5 +752,84 @@
         "montant": 25
       }
     ]
+  },
+  {
+    "id": "65016453-5194",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-24T21:10:16.453Z",
+    "createdAtLabel": "24/04/2026 17:10:16",
+    "dateLabel": "24/04/2026",
+    "timeLabel": "17:10",
+    "status": "ANILE",
+    "premio": 0,
+    "channel": "WHATSAPP",
+    "total": 49,
+    "tirages": [
+      "GEORGIA MIDDAY"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "58",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "78",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 25
+      },
+      {
+        "type": "BOR",
+        "numero": "25",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "85",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "58",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 5
+      },
+      {
+        "type": "BOR",
+        "numero": "47",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 5
+      }
+    ],
+    "updatedAt": "2026-04-24T21:10:28.845Z"
   }
 ]

@@ -2245,61 +2245,30 @@ function renderBillets(){
   });
 }
 
-function handleCopyLoterie(){
-  if(!selectedTicketToCopy){
-    alert("Chwazi yon ticket avan.");
+function copyFromTicket(ticket){
+
+  if(!ticket || !Array.isArray(ticket.jeux)){
+    alert("Ticket pa valid");
     return;
   }
 
-  var lotList = [
-    "LA PRIMERA DIA",
-    "LOTEDOM",
-    "LA SUERTE DIA",
-    "GEORGIA MIDDAY",
-    "KING LOTTERY DIA",
-    "ANGUILLA 01:00 PM",
-    "REAL",
-    "FLORIDA MIDDAY",
-    "NEW YORK MIDDAY",
-    "GANAMAS",
-    "LA SUERTE NOCHE",
-    "ANGUILLA 6:00 PM",
-    "GEORGIA EVENING"
-  ];
-
-  var list = lotList.map(function(name, i){
-    return (i + 1) + " - " + name;
-  }).join("\n");
-
-  var rep = prompt("Chwazi nouvo loterie a:\n\n" + list + "\n\nEgzanp: 9");
-  if(rep === null) return;
-
-  var idx = Number(rep.trim()) - 1;
-  var newLot = lotList[idx];
-
-  if(!newLot){
-    alert("Loterie pa valid");
-    return;
-  }
-
+  // reset tout bagay
   jeux = [];
   selectedLoteries = [];
   numero = "";
   montant = "";
-  cursorNumero = 0;
-  cursorMontant = 0;
-  activeField = "numero";
 
-  selectedTicketToCopy.jeux.forEach(function(j){
+  ticket.jeux.forEach(function(j){
+
     jeux.push({
       type: j.type,
       numero: j.numero,
-      loterie: newLot,
+      loterie: j.loterie,
       montant: Number(j.montant || 0)
     });
 
-    if(selectedLoteries.indexOf(newLot) < 0){
-      selectedLoteries.push(newLot);
+    if(selectedLoteries.indexOf(j.loterie) < 0){
+      selectedLoteries.push(j.loterie);
     }
   });
 

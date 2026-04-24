@@ -444,7 +444,7 @@
     "createdAtLabel": "23/04/2026 19:28:09",
     "dateLabel": "23/04/2026",
     "timeLabel": "19:28",
-    "status": "ANILE",
+    "status": "ANATAN",
     "premio": 0,
     "channel": "WHATSAPP",
     "total": 10,
@@ -465,7 +465,7 @@
         "montant": 5
       }
     ],
-    "updatedAt": "2026-04-23T23:29:08.307Z"
+    "updatedAt": "2026-04-24T05:27:00.550Z"
   },
   {
     "id": "88140924-4157",
@@ -475,7 +475,7 @@
     "createdAtLabel": "23/04/2026 19:49:00",
     "dateLabel": "23/04/2026",
     "timeLabel": "19:49",
-    "status": "ANATAN",
+    "status": "PEDI",
     "premio": 0,
     "channel": "WHATSAPP",
     "total": 50,
@@ -489,6 +489,32 @@
         "loterie": "KING LOTTERY DIA",
         "montant": 50
       }
-    ]
+    ],
+    "updatedAt": "2026-04-24T05:26:51.219Z"
+  },
+  {
+    "id": "08210196-1605",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-24T05:23:30.196Z",
+    "createdAtLabel": "24/04/2026 01:23:30",
+    "dateLabel": "24/04/2026",
+    "timeLabel": "01:23",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "WHATSAPP",
+    "total": 12,
+    "tirages": [
+      "KING LOTTERY DIA"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "44",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 12
+      }
+    ],
+    "updatedAt": "2026-04-24T05:26:35.918Z"
   }
 ]

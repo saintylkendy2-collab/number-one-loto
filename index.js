@@ -2506,7 +2506,7 @@ function copyTicketById(){
 }
 
 function copyFromTicket(ticket){
-     if(!ticket || !Array.isArray(ticket.jeux)){
+  if(!ticket || !Array.isArray(ticket.jeux)){
     alert("Ticket pa valid");
     return;
   }
@@ -2554,7 +2554,13 @@ function copyFromTicket(ticket){
     if(selectedLoteries.indexOf(loterie) < 0){
       selectedLoteries.push(loterie);
     }
-      
+  });
+
+  renderJeux();
+  updateFields();
+  switchPage("salePage", document.getElementById("nav-billets"));
+}
+
 renderJeux();
 updateFields();
 loadBillets();

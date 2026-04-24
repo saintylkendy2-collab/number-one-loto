@@ -2186,15 +2186,25 @@ function renderBillets(){
  : '';
 
  card.innerHTML =
- '<div class="billet-head">' +
-   '<div>' +
-     '<div class="billet-code">#' + t.id + '</div>' +
-     '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
-     '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
-     premioTxt +
-   '</div>' +
-   '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
- '</div>';
+'<div class="billet-head">' +
+  '<div>' +
+    '<div class="billet-code">#' + t.id + '</div>' +
+    '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
+    '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
+    premioTxt +
+  '</div>' +
+  '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
+'</div>';
+
+card.onclick = function(e){
+  if(e.target && e.target.tagName === "BUTTON") return;
+
+  var choix = prompt("1 - Copie exacte\n2 - Modifier les montants\n3 - Changer de loterie");
+
+  if(choix === "1"){
+    copyTicketByIdDirect(t);
+  }
+};
 
  if(Array.isArray(t.jeux)){
  t.jeux.forEach(function(j){

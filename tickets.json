@@ -831,5 +831,114 @@
       }
     ],
     "updatedAt": "2026-04-24T21:10:28.845Z"
+  },
+  {
+    "id": "66572269-6550",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-24T21:36:12.269Z",
+    "createdAtLabel": "24/04/2026 17:36:12",
+    "dateLabel": "24/04/2026",
+    "timeLabel": "17:36",
+    "status": "ANILE",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 59,
+    "tirages": [
+      "GEORGIA MIDDAY"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "58",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "78",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 25
+      },
+      {
+        "type": "BOR",
+        "numero": "25",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "85",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "58",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 5
+      },
+      {
+        "type": "BOR",
+        "numero": "47",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 5
+      },
+      {
+        "type": "L3",
+        "numero": "412",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "MAR",
+        "numero": "47*41",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "MAR",
+        "numero": "47*14",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "MAR",
+        "numero": "74*41",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      },
+      {
+        "type": "MAR",
+        "numero": "74*14",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 2
+      }
+    ],
+    "updatedAt": "2026-04-24T21:37:19.061Z"
   }
 ]

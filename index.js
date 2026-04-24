@@ -2555,11 +2555,7 @@ function copyFromTicket(ticket){
       selectedLoteries.push(loterie);
     }
   });
-
-  renderJeux();
-  updateFields();
-  switchPage("salePage", document.getElementById("nav-billets"));
-}
+  
 renderJeux();
 updateFields();
 loadBillets();

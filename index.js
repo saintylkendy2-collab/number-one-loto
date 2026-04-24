@@ -2511,6 +2511,36 @@ function copyFromTicket(ticket){
     return;
   }
 
+  var choix = prompt(
+    "1 - Copie exacte\n" +
+    "3 - Changer de loterie"
+  );
+
+  if(choix !== "1" && choix !== "3"){
+    return;
+  }
+
+  var lotsChoisis = null;
+
+  if(choix === "3"){
+    var list = loteries.map(function(l, i){
+      return (i + 1) + " - " + l.name;
+    }).join("\n");
+
+    var rep = prompt("Chwazi loterie yo:\n" + list + "\n\nEgzanp: 1,4,7");
+    if(rep === null) return;
+
+    lotsChoisis = rep.split(",").map(function(x){
+      var idx = Number(x.trim()) - 1;
+      return loteries[idx] ? loteries[idx].name : null;
+    }).filter(Boolean);
+
+    if(!lotsChoisis.length){
+      alert("Ou pa chwazi loterie");
+      return;
+    }
+  }
+
   jeux = [];
   selectedLoteries = [];
   numero = "";
@@ -2520,16 +2550,20 @@ function copyFromTicket(ticket){
   activeField = "numero";
 
   ticket.jeux.forEach(function(j){
-    jeux.push({
-      type: j.type,
-      numero: j.numero,
-      loterie: j.loterie,
-      montant: Number(j.montant || 0)
-    });
+    var lots = lotsChoisis || [j.loterie];
 
-    if(selectedLoteries.indexOf(j.loterie) < 0){
-      selectedLoteries.push(j.loterie);
-    }
+    lots.forEach(function(lot){
+      jeux.push({
+        type: j.type,
+        numero: j.numero,
+        loterie: lot,
+        montant: Number(j.montant || 0)
+      });
+
+      if(selectedLoteries.indexOf(lot) < 0){
+        selectedLoteries.push(lot);
+      }
+    });
   });
 
   renderJeux();

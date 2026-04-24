@@ -1068,7 +1068,7 @@ border-bottom:1px dashed #eee;
 .billet-game:last-child{border-bottom:none;}
 .billet-actions{
 display:grid;
-grid-template-columns:repeat(5,1fr);
+grid-template-columns:repeat(4,1fr);
 gap:8px;
 margin-top:10px;
 }
@@ -2185,9 +2185,13 @@ function getCopyCategory(type){
 function askNewLoteries(){
   var list = loteries.map(function(l, i){
     return (i + 1) + " - " + l.name;
-  }).join("\n");
+  }).join("
+");
 
-  var rep = prompt("Chwazi loterie yo:\n" + list + "\n\nEgzanp: 1,4,7");
+  var rep = prompt("Chwazi loterie yo:
+" + list + "
+
+Egzanp: 1,4,7");
   if(!rep) return null;
 
   return rep.split(",").map(function(x){
@@ -2236,8 +2240,10 @@ function copyTicketToJeux(ticket, amounts, newLoteries){
 
 function openCopyOptions(ticket){
   var choix = prompt(
-    "1 - Copie exacte\n" +
-    "2 - Modifier les montants\n" +
+    "1 - Copie exacte
+" +
+    "2 - Modifier les montants
+" +
     "3 - Changer de loterie"
   );
 
@@ -2252,14 +2258,12 @@ function openCopyOptions(ticket){
     var hasMar = false;
     var hasLoto = false;
 
-    if(Array.isArray(ticket.jeux)){
-      ticket.jeux.forEach(function(j){
-        var cat = getCopyCategory(j.type);
-        if(cat === "BOR") hasBor = true;
-        if(cat === "MAR") hasMar = true;
-        if(cat === "LOTO") hasLoto = true;
-      });
-    }
+    (ticket.jeux || []).forEach(function(j){
+      var cat = getCopyCategory(j.type);
+      if(cat === "BOR") hasBor = true;
+      if(cat === "MAR") hasMar = true;
+      if(cat === "LOTO") hasLoto = true;
+    });
 
     if(hasBor){
       var bor = prompt("Montant Bolèt:");
@@ -2314,15 +2318,15 @@ function renderBillets(){
       : '';
 
     card.innerHTML =
-      '<div class="billet-head">' +
-        '<div>' +
-          '<div class="billet-code">#' + t.id + '</div>' +
-          '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
-          '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
-          premioTxt +
-        '</div>' +
-        '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
-      '</div>';
+    '<div class="billet-head">' +
+      '<div>' +
+        '<div class="billet-code">#' + t.id + '</div>' +
+        '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
+        '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
+        premioTxt +
+      '</div>' +
+      '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
+    '</div>';
 
     if(Array.isArray(t.jeux)){
       t.jeux.forEach(function(j){
@@ -2339,30 +2343,29 @@ function renderBillets(){
     var actions = document.createElement("div");
     actions.className = "billet-actions";
     actions.style.gridTemplateColumns = "repeat(5,1fr)";
+
     actions.innerHTML =
-      '<button type="button" class="small-btn btn-yellow">AN ATAN</button>' +
-      '<button type="button" class="small-btn btn-green">GANYE</button>' +
-      '<button type="button" class="small-btn btn-red">PEDI</button>' +
-      '<button type="button" class="small-btn btn-gray">ANILE</button>' +
-      '<button type="button" class="small-btn btn-yellow">COPIER</button>';
+    '<button class="small-btn btn-yellow">AN ATAN</button>' +
+    '<button class="small-btn btn-green">GANYE</button>' +
+    '<button class="small-btn btn-red">PEDI</button>' +
+    '<button class="small-btn btn-gray">ANILE</button>' +
+    '<button class="small-btn btn-yellow">COPIER</button>';
 
     var btns = actions.querySelectorAll("button");
-    btns[0].onclick = function(e){ if(e) e.stopPropagation(); updateTicketStatus(t.id, "ANATAN"); };
-    btns[1].onclick = function(e){
-      if(e) e.stopPropagation();
+    btns[0].onclick = function(){ updateTicketStatus(t.id, "ANATAN"); };
+    btns[1].onclick = function(){
       var premio = prompt("Konbyen ticket sa genyen?", Number(t.premio || 0));
       if(premio === null) return;
       updateTicketStatus(t.id, "GANYE", premio);
     };
-    btns[2].onclick = function(e){ if(e) e.stopPropagation(); updateTicketStatus(t.id, "PEDI"); };
-    btns[3].onclick = function(e){ if(e) e.stopPropagation(); updateTicketStatus(t.id, "ANILE"); };
-    btns[4].onclick = function(e){ if(e) e.stopPropagation(); openCopyOptions(t); };
+    btns[2].onclick = function(){ updateTicketStatus(t.id, "PEDI"); };
+    btns[3].onclick = function(){ updateTicketStatus(t.id, "ANILE"); };
+    btns[4].onclick = function(){ openCopyOptions(t); };
 
     card.appendChild(actions);
     wrap.appendChild(card);
   });
 }
-
 
 function renderRapports(){
   var box = document.getElementById("rapportsPage");

@@ -10,81 +10,81 @@ const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 const TICKETS_FILE = path.join(__dirname, "tickets.json");
 
 function ensureVendeursFile() {
-  if (!fs.existsSync(VENDEURS_FILE)) {
-    fs.writeFileSync(VENDEURS_FILE, JSON.stringify({}, null, 2), "utf8");
-  }
+  if (!fs.existsSync(VENDEURS_FILE)) {
+    fs.writeFileSync(VENDEURS_FILE, JSON.stringify({}, null, 2), "utf8");
+  }
 }
 
 function ensureTicketsFile() {
-  if (!fs.existsSync(TICKETS_FILE)) {
-    fs.writeFileSync(TICKETS_FILE, JSON.stringify([], null, 2), "utf8");
-  }
+  if (!fs.existsSync(TICKETS_FILE)) {
+    fs.writeFileSync(TICKETS_FILE, JSON.stringify([], null, 2), "utf8");
+  }
 }
 
 function loadVendeursForLogin() {
-  try {
-    ensureVendeursFile();
-    const raw = fs.readFileSync(VENDEURS_FILE, "utf8").trim();
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
-    return parsed;
-  } catch (err) {
-    console.error("Erreur lecture vendeurs :", err);
-    return {};
-  }
+  try {
+    ensureVendeursFile();
+    const raw = fs.readFileSync(VENDEURS_FILE, "utf8").trim();
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return parsed;
+  } catch (err) {
+    console.error("Erreur lecture vendeurs :", err);
+    return {};
+  }
 }
 
 function saveVendeursForLogin(vendeurs) {
-  try {
-    fs.writeFileSync(VENDEURS_FILE, JSON.stringify(vendeurs, null, 2), "utf8");
-  } catch (err) {
-    console.error("Erreur sauvegarde vendeurs :", err);
-  }
+  try {
+    fs.writeFileSync(VENDEURS_FILE, JSON.stringify(vendeurs, null, 2), "utf8");
+  } catch (err) {
+    console.error("Erreur sauvegarde vendeurs :", err);
+  }
 }
 
 function loadTickets() {
-  try {
-    ensureTicketsFile();
-    const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.error("Erreur lecture tickets :", err);
-    return [];
-  }
+  try {
+    ensureTicketsFile();
+    const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error("Erreur lecture tickets :", err);
+    return [];
+  }
 }
 
 function saveTickets(tickets) {
-  try {
-    fs.writeFileSync(TICKETS_FILE, JSON.stringify(tickets, null, 2), "utf8");
-  } catch (err) {
-    console.error("Erreur sauvegarde tickets :", err);
-  }
+  try {
+    fs.writeFileSync(TICKETS_FILE, JSON.stringify(tickets, null, 2), "utf8");
+  } catch (err) {
+    console.error("Erreur sauvegarde tickets :", err);
+  }
 }
 
 function formatDateTimeFR(date = new Date()) {
-  return date.toLocaleString("fr-FR");
+  return date.toLocaleString("fr-FR");
 }
 
 function formatDateFR(date = new Date()) {
-  return date.toLocaleDateString("fr-FR");
+  return date.toLocaleDateString("fr-FR");
 }
 
 function formatTimeFR(date = new Date()) {
-  return date.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  return date.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 function money(n) {
-  return Number(n || 0).toFixed(2);
+  return Number(n || 0).toFixed(2);
 }
 
 function loginErrorPage(message) {
-  return `
+  return `
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -137,171 +137,171 @@ font-weight:700;
 }
 
 function detectDeviceInfo(userAgent = "") {
-  const ua = String(userAgent || "");
-  const low = ua.toLowerCase();
+  const ua = String(userAgent || "");
+  const low = ua.toLowerCase();
 
-  let marca = "DESCONOCIDO";
-  let modelo = "WEB";
-  let version = "?";
-  let place = "?";
+  let marca = "DESCONOCIDO";
+  let modelo = "WEB";
+  let version = "?";
+  let place = "?";
 
-  if (low.includes("iphone")) {
-    marca = "APPLE";
-    modelo = "IPHONE";
-    place = "TEL";
-  } else if (low.includes("ipad")) {
-    marca = "APPLE";
-    modelo = "IPAD";
-    place = "TAB";
-  } else if (low.includes("android")) {
-    marca = "ANDROID";
-    modelo = "ANDROID";
-    place = "TEL";
-  } else if (low.includes("windows")) {
-    marca = "PC";
-    modelo = "WINDOWS";
-    place = "PC";
-  } else if (low.includes("macintosh") || low.includes("mac os")) {
-    marca = "APPLE";
-    modelo = "MAC";
-    place = "PC";
-  } else if (low.includes("linux")) {
-    marca = "PC";
-    modelo = "LINUX";
-    place = "PC";
-  }
+  if (low.includes("iphone")) {
+    marca = "APPLE";
+    modelo = "IPHONE";
+    place = "TEL";
+  } else if (low.includes("ipad")) {
+    marca = "APPLE";
+    modelo = "IPAD";
+    place = "TAB";
+  } else if (low.includes("android")) {
+    marca = "ANDROID";
+    modelo = "ANDROID";
+    place = "TEL";
+  } else if (low.includes("windows")) {
+    marca = "PC";
+    modelo = "WINDOWS";
+    place = "PC";
+  } else if (low.includes("macintosh") || low.includes("mac os")) {
+    marca = "APPLE";
+    modelo = "MAC";
+    place = "PC";
+  } else if (low.includes("linux")) {
+    marca = "PC";
+    modelo = "LINUX";
+    place = "PC";
+  }
 
-  const chromeMatch = ua.match(/Chrome\/(\d+)/i);
-  const safariMatch = ua.match(/Version\/(\d+)/i);
-  const firefoxMatch = ua.match(/Firefox\/(\d+)/i);
-  const edgMatch = ua.match(/Edg\/(\d+)/i);
+  const chromeMatch = ua.match(/Chrome\/(\d+)/i);
+  const safariMatch = ua.match(/Version\/(\d+)/i);
+  const firefoxMatch = ua.match(/Firefox\/(\d+)/i);
+  const edgMatch = ua.match(/Edg\/(\d+)/i);
 
-  if (chromeMatch) version = chromeMatch[1];
-  else if (safariMatch) version = safariMatch[1];
-  else if (firefoxMatch) version = firefoxMatch[1];
-  else if (edgMatch) version = edgMatch[1];
+  if (chromeMatch) version = chromeMatch[1];
+  else if (safariMatch) version = safariMatch[1];
+  else if (firefoxMatch) version = firefoxMatch[1];
+  else if (edgMatch) version = edgMatch[1];
 
-  return { marca, modelo, version, place };
+  return { marca, modelo, version, place };
 }
 
 function getClientIp(req) {
-  const forwarded = req.headers["x-forwarded-for"];
-  if (forwarded) {
-    return String(forwarded).split(",")[0].trim();
-  }
-  return req.socket?.remoteAddress || req.connection?.remoteAddress || req.ip || "?";
+  const forwarded = req.headers["x-forwarded-for"];
+  if (forwarded) {
+    return String(forwarded).split(",")[0].trim();
+  }
+  return req.socket?.remoteAddress || req.connection?.remoteAddress || req.ip || "?";
 }
 
 function buildConnectionRow(req, vendeur) {
-  const ua = req.headers["user-agent"] || "";
-  const device = detectDeviceInfo(ua);
-  const now = new Date();
+  const ua = req.headers["user-agent"] || "";
+  const device = detectDeviceInfo(ua);
+  const now = new Date();
 
-  return {
-    id: "DEV-" + Date.now(),
-    marca: device.marca,
-    modelo: device.modelo,
-    version: device.version,
-    app: vendeur.app || "2.9.32",
-    vinculado: formatDateTimeFR(now),
-    last: formatDateTimeFR(now),
-    pin: Math.floor(Math.random() * 900) + 100,
-    place: device.place,
-    ip: getClientIp(req),
-    userAgent: ua,
-    co: true,
-    on: true,
-    st: true
-  };
+  return {
+    id: "DEV-" + Date.now(),
+    marca: device.marca,
+    modelo: device.modelo,
+    version: device.version,
+    app: vendeur.app || "2.9.32",
+    vinculado: formatDateTimeFR(now),
+    last: formatDateTimeFR(now),
+    pin: Math.floor(Math.random() * 900) + 100,
+    place: device.place,
+    ip: getClientIp(req),
+    userAgent: ua,
+    co: true,
+    on: true,
+    st: true
+  };
 }
 
 function normalizeStatus(status = "") {
-  const s = String(status || "").trim().toUpperCase();
+  const s = String(status || "").trim().toUpperCase();
 
-  if (s === "GANE" || s === "GANADO" || s === "GAGNE" || s === "WON" || s === "GANYE") return "GANYE";
-  if (s === "PERDU" || s === "PERDIDO" || s === "LOST" || s === "PEDI") return "PEDI";
-  if (s === "ANILE" || s === "ANULE" || s === "ANULADO" || s === "CANCELED") return "ANILE";
+  if (s === "GANE" || s === "GANADO" || s === "GAGNE" || s === "WON" || s === "GANYE") return "GANYE";
+  if (s === "PERDU" || s === "PERDIDO" || s === "LOST" || s === "PEDI") return "PEDI";
+  if (s === "ANILE" || s === "ANULE" || s === "ANULADO" || s === "CANCELED") return "ANILE";
 
-  return "ANATAN";
+  return "ANATAN";
 }
 
 function statusLabel(status = "") {
-  const s = normalizeStatus(status);
-  if (s === "GANYE") return "GANYE";
-  if (s === "PEDI") return "PEDI";
-  if (s === "ANILE") return "ANILE";
-  return "AN ATAN";
+  const s = normalizeStatus(status);
+  if (s === "GANYE") return "GANYE";
+  if (s === "PEDI") return "PEDI";
+  if (s === "ANILE") return "ANILE";
+  return "AN ATAN";
 }
 
 function getVendorCommissionRate(vendeurObj) {
-  const general = Number(
-    vendeurObj?.comision?.general ||
-    vendeurObj?.comision?.generalComision ||
-    vendeurObj?.comision?.generale ||
-    0
-  );
-  if (general > 0) return general / 100;
-  return 0.05;
+  const general = Number(
+    vendeurObj?.comision?.general ||
+    vendeurObj?.comision?.generalComision ||
+    vendeurObj?.comision?.generale ||
+    0
+  );
+  if (general > 0) return general / 100;
+  return 0.05;
 }
 
 function getTicketPremioValue(ticket) {
-  const status = normalizeStatus(ticket.status);
-  if (status !== "GANYE") return 0;
-  return Number(ticket.premio || 0);
+  const status = normalizeStatus(ticket.status);
+  if (status !== "GANYE") return 0;
+  return Number(ticket.premio || 0);
 }
 
 function computeSummaries() {
-  const vendeurs = loadVendeursForLogin();
-  const tickets = loadTickets();
-  const map = {};
+  const vendeurs = loadVendeursForLogin();
+  const tickets = loadTickets();
+  const map = {};
 
-  tickets.forEach((ticket) => {
-    const vendeurId = String(ticket.vendeur || "").trim().toUpperCase();
-    if (!vendeurId) return;
+  tickets.forEach((ticket) => {
+    const vendeurId = String(ticket.vendeur || "").trim().toUpperCase();
+    if (!vendeurId) return;
 
-    if (!map[vendeurId]) {
-      const vendeurObj = vendeurs[vendeurId] || {};
-      map[vendeurId] = {
-        vendeur: vendeurId,
-        nombre: String(vendeurObj.nom || vendeurObj.nombre || vendeurId),
-        zona: String(vendeurObj.zona || vendeurObj.groupe || ""),
-        venta: 0,
-        premios: 0,
-        comision: 0,
-        resultado: 0,
-        tickets: 0,
-        balanceAnterior: Number(vendeurObj.config?.credito || 0),
-        balanceFinal: 0
-      };
-    }
+    if (!map[vendeurId]) {
+      const vendeurObj = vendeurs[vendeurId] || {};
+      map[vendeurId] = {
+        vendeur: vendeurId,
+        nombre: String(vendeurObj.nom || vendeurObj.nombre || vendeurId),
+        zona: String(vendeurObj.zona || vendeurObj.groupe || ""),
+        venta: 0,
+        premios: 0,
+        comision: 0,
+        resultado: 0,
+        tickets: 0,
+        balanceAnterior: Number(vendeurObj.config?.credito || 0),
+        balanceFinal: 0
+      };
+    }
 
-    const status = normalizeStatus(ticket.status);
-    const total = Number(ticket.total || 0);
-    const premio = getTicketPremioValue(ticket);
+    const status = normalizeStatus(ticket.status);
+    const total = Number(ticket.total || 0);
+    const premio = getTicketPremioValue(ticket);
 
-    if (status !== "ANILE") {
-      map[vendeurId].venta += total;
-      map[vendeurId].tickets += 1;
-    }
+    if (status !== "ANILE") {
+      map[vendeurId].venta += total;
+      map[vendeurId].tickets += 1;
+    }
 
-    if (status === "GANYE") {
-      map[vendeurId].premios += premio;
-    }
-  });
+    if (status === "GANYE") {
+      map[vendeurId].premios += premio;
+    }
+  });
 
-  Object.keys(map).forEach((id) => {
-    const vendeurObj = vendeurs[id] || {};
-    const rate = getVendorCommissionRate(vendeurObj);
-    map[id].comision = map[id].venta * rate;
-    map[id].resultado = map[id].venta - map[id].comision - map[id].premios;
-    map[id].balanceFinal = map[id].balanceAnterior + map[id].resultado;
-  });
+  Object.keys(map).forEach((id) => {
+    const vendeurObj = vendeurs[id] || {};
+    const rate = getVendorCommissionRate(vendeurObj);
+    map[id].comision = map[id].venta * rate;
+    map[id].resultado = map[id].venta - map[id].comision - map[id].premios;
+    map[id].balanceFinal = map[id].balanceAnterior + map[id].resultado;
+  });
 
-  return Object.values(map);
+  return Object.values(map);
 }
 
 app.get("/", (req, res) => {
-  res.send(`
+  res.send(`
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -387,58 +387,58 @@ text-align:center;
 });
 
 app.post("/login", (req, res) => {
-  const id = String(req.body.id || "").trim().toUpperCase();
-  const password = String(req.body.password || "").trim();
+  const id = String(req.body.id || "").trim().toUpperCase();
+  const password = String(req.body.password || "").trim();
 
-  const vendeurs = loadVendeursForLogin();
-  const vendeur = vendeurs[id];
+  const vendeurs = loadVendeursForLogin();
+  const vendeur = vendeurs[id];
 
-  if (!vendeur) {
-    return res.send(loginErrorPage("ID pa egziste"));
-  }
+  if (!vendeur) {
+    return res.send(loginErrorPage("ID pa egziste ✖"));
+  }
 
-  const savedPassword = String(vendeur.password || vendeur.clave || "").trim();
-  if (password !== savedPassword) {
-    return res.send(loginErrorPage("Identifiant ou mot de passe incorrect"));
-  }
+  const savedPassword = String(vendeur.password || vendeur.clave || "").trim();
+  if (password !== savedPassword) {
+    return res.send(loginErrorPage("Identifiant ou mot de passe incorrect ✖"));
+  }
 
-  if (String(vendeur.estatus || "").toLowerCase() === "bloqueado") {
-    return res.send(loginErrorPage("Vandè sa bloke"));
-  }
+  if (String(vendeur.estatus || "").toLowerCase() === "bloqueado") {
+    return res.send(loginErrorPage("Vandè sa bloke ✖"));
+  }
 
-  if (!Array.isArray(vendeur.conexiones)) vendeur.conexiones = [];
+  if (!Array.isArray(vendeur.conexiones)) vendeur.conexiones = [];
 
-  const connRow = buildConnectionRow(req, vendeur);
+  const connRow = buildConnectionRow(req, vendeur);
 
 const activeConn = Array.isArray(vendeur.conexiones)
-  ? vendeur.conexiones.find(c => c && c.st === true)
-  : null;
+  ? vendeur.conexiones.find(c => c && c.st === true)
+  : null;
 
 if (activeConn) {
-  const sameDevice =
-    String(activeConn.userAgent || "") === String(connRow.userAgent || "") &&
-    String(activeConn.place || "") === String(connRow.place || "") &&
-    String(activeConn.marca || "") === String(connRow.marca || "") &&
-    String(activeConn.modelo || "") === String(connRow.modelo || "");
+  const sameDevice =
+    String(activeConn.userAgent || "") === String(connRow.userAgent || "") &&
+    String(activeConn.place || "") === String(connRow.place || "") &&
+    String(activeConn.marca || "") === String(connRow.marca || "") &&
+    String(activeConn.modelo || "") === String(connRow.modelo || "");
 
-  if (sameDevice) {
-    activeConn.last = connRow.last;
-    activeConn.vinculado = activeConn.vinculado || connRow.vinculado;
-    activeConn.ip = connRow.ip;
-    activeConn.userAgent = connRow.userAgent;
-    activeConn.app = connRow.app;
-    activeConn.co = true;
-    activeConn.on = true;
-    activeConn.st = true;
+  if (sameDevice) {
+    activeConn.last = connRow.last;
+    activeConn.vinculado = activeConn.vinculado || connRow.vinculado;
+    activeConn.ip = connRow.ip;
+    activeConn.userAgent = connRow.userAgent;
+    activeConn.app = connRow.app;
+    activeConn.co = true;
+    activeConn.on = true;
+    activeConn.st = true;
 
-    vendeur.conexion = activeConn.last;
-    if (!vendeur.app) vendeur.app = "2.9.32";
+    vendeur.conexion = activeConn.last;
+    if (!vendeur.app) vendeur.app = "2.9.32";
 
-    saveVendeursForLogin(vendeurs);
-    return res.redirect("/dashboard?id=" + encodeURIComponent(id));
-  }
+    saveVendeursForLogin(vendeurs);
+    return res.redirect("/dashboard?id=" + encodeURIComponent(id));
+  }
 
-    return res.send(loginErrorPage("ID sa konekte deja"));
+    return res.send(loginErrorPage("ID sa konekte deja ✖"));
 }
 
 vendeur.conexiones.push(connRow);
@@ -450,163 +450,163 @@ return res.redirect("/dashboard?id=" + encodeURIComponent(id));
 });
 
 app.get("/logout", (req, res) => {
-  const sellerId = String(req.query.id || "").trim().toUpperCase();
-  if (sellerId) {
-    const vendeurs = loadVendeursForLogin();
-    const vendeur = vendeurs[sellerId];
-    if (vendeur && Array.isArray(vendeur.conexiones)) {
-      vendeur.conexiones = vendeur.conexiones.map((c) => ({
-        ...c,
-        co: false,
-        on: false,
-        st: false,
-        last: formatDateTimeFR(new Date())
-      }));
-      vendeur.conexion = "";
-      saveVendeursForLogin(vendeurs);
-    }
-  }
-  res.redirect("/");
+  const sellerId = String(req.query.id || "").trim().toUpperCase();
+  if (sellerId) {
+    const vendeurs = loadVendeursForLogin();
+    const vendeur = vendeurs[sellerId];
+    if (vendeur && Array.isArray(vendeur.conexiones)) {
+      vendeur.conexiones = vendeur.conexiones.map((c) => ({
+        ...c,
+        co: false,
+        on: false,
+        st: false,
+        last: formatDateTimeFR(new Date())
+      }));
+      vendeur.conexion = "";
+      saveVendeursForLogin(vendeurs);
+    }
+  }
+  res.redirect("/");
 });
 
 app.get("/api/vendor/:id/tickets", (req, res) => {
-  const sellerId = String(req.params.id || "").trim().toUpperCase();
-  const tickets = loadTickets()
-    .filter((t) => String(t.vendeur || "").trim().toUpperCase() === sellerId)
-    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-  res.json(tickets);
+  const sellerId = String(req.params.id || "").trim().toUpperCase();
+  const tickets = loadTickets()
+    .filter((t) => String(t.vendeur || "").trim().toUpperCase() === sellerId)
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  res.json(tickets);
 });
 
 app.get("/api/ticket/:id", (req, res) => {
-  const id = String(req.params.id || "").trim();
-  const tickets = loadTickets();
-  const ticket = tickets.find((t) => String(t.id) === id);
-  res.json(ticket || {});
+  const id = String(req.params.id || "").trim();
+  const tickets = loadTickets();
+  const ticket = tickets.find((t) => String(t.id) === id);
+  res.json(ticket || {});
 });
 
 app.post("/api/tickets", (req, res) => {
-  const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
-  const sellerName = String(req.body.sellerName || sellerId || "VENDEUR");
-  const jeux = Array.isArray(req.body.jeux) ? req.body.jeux : [];
-  const channel = String(req.body.channel || "MANUEL").trim().toUpperCase();
+  const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
+  const sellerName = String(req.body.sellerName || sellerId || "VENDEUR");
+  const jeux = Array.isArray(req.body.jeux) ? req.body.jeux : [];
+  const channel = String(req.body.channel || "MANUEL").trim().toUpperCase();
 
-  if (!sellerId) {
-    return res.status(400).json({ ok: false, message: "sellerId obligatoire" });
-  }
+  if (!sellerId) {
+    return res.status(400).json({ ok: false, message: "sellerId obligatoire" });
+  }
 
-  if (!jeux.length) {
-    return res.status(400).json({ ok: false, message: "Pa gen jwèt" });
-  }
+  if (!jeux.length) {
+    return res.status(400).json({ ok: false, message: "Pa gen jwèt" });
+  }
 
-  const safeJeux = jeux.map((j) => ({
-    type: String(j.type || "").trim(),
-    numero: String(j.numero || "").trim(),
-    loterie: String(j.loterie || "").trim(),
-    montant: Number(j.montant || 0)
-  })).filter((j) => j.type && j.numero && j.loterie && j.montant > 0);
+  const safeJeux = jeux.map((j) => ({
+    type: String(j.type || "").trim(),
+    numero: String(j.numero || "").trim(),
+    loterie: String(j.loterie || "").trim(),
+    montant: Number(j.montant || 0)
+  })).filter((j) => j.type && j.numero && j.loterie && j.montant > 0);
 
-  if (!safeJeux.length) {
-    return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
-  }
+  if (!safeJeux.length) {
+    return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
+  }
 
-  const now = new Date();
-  const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
-  const tirages = [...new Set(safeJeux.map((j) => j.loterie))];
-  const ticketId = String(Date.now()).slice(-8) + "-" + Math.floor(1000 + Math.random() * 9000);
+  const now = new Date();
+  const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
+  const tirages = [...new Set(safeJeux.map((j) => j.loterie))];
+  const ticketId = String(Date.now()).slice(-8) + "-" + Math.floor(1000 + Math.random() * 9000);
 
-  const ticket = {
-    id: ticketId,
-    vendeur: sellerId,
-    vendeurNom: sellerName,
-    createdAt: now.toISOString(),
-    createdAtLabel: formatDateTimeFR(now),
-    dateLabel: formatDateFR(now),
-    timeLabel: formatTimeFR(now),
-    status: "ANATAN",
-    premio: 0,
-    channel,
-    total,
-    tirages,
-    jeux: safeJeux
-  };
+  const ticket = {
+    id: ticketId,
+    vendeur: sellerId,
+    vendeurNom: sellerName,
+    createdAt: now.toISOString(),
+    createdAtLabel: formatDateTimeFR(now),
+    dateLabel: formatDateFR(now),
+    timeLabel: formatTimeFR(now),
+    status: "ANATAN",
+    premio: 0,
+    channel,
+    total,
+    tirages,
+    jeux: safeJeux
+  };
 
-  const tickets = loadTickets();
-  tickets.push(ticket);
-  saveTickets(tickets);
+  const tickets = loadTickets();
+  tickets.push(ticket);
+  saveTickets(tickets);
 
-  res.json({ ok: true, ticket });
+  res.json({ ok: true, ticket });
 });
 
 app.post("/api/ticket-status", (req, res) => {
-  const ticketId = String(req.body.id || "").trim();
-  const status = normalizeStatus(req.body.status);
-  const premio = Number(req.body.premio || 0);
+  const ticketId = String(req.body.id || "").trim();
+  const status = normalizeStatus(req.body.status);
+  const premio = Number(req.body.premio || 0);
 
-  const tickets = loadTickets();
-  const ticket = tickets.find((t) => String(t.id) === ticketId);
+  const tickets = loadTickets();
+  const ticket = tickets.find((t) => String(t.id) === ticketId);
 
-  if (!ticket) {
-    return res.status(404).json({ ok: false, message: "Ticket introuvable" });
-  }
+  if (!ticket) {
+    return res.status(404).json({ ok: false, message: "Ticket introuvable" });
+  }
 
-  const currentStatus = normalizeStatus(ticket.status);
+  const currentStatus = normalizeStatus(ticket.status);
 
-  if (status === "ANILE") {
-    const createdAt = new Date(ticket.createdAt || Date.now()).getTime();
-    const now = Date.now();
-    const diffMinutes = (now - createdAt) / 60000;
+  if (status === "ANILE") {
+    const createdAt = new Date(ticket.createdAt || Date.now()).getTime();
+    const now = Date.now();
+    const diffMinutes = (now - createdAt) / 60000;
 
-    if (diffMinutes > 10) {
-      return res.json({
-        ok: false,
-        message: "Ou pa ka anile ticket sa ankò. 10 minit yo pase."
-      });
-    }
+    if (diffMinutes > 10) {
+      return res.json({
+        ok: false,
+        message: "Ou pa ka anile ticket sa ankò. 10 minit yo pase."
+      });
+    }
 
-    if (currentStatus === "GANYE" || currentStatus === "PEDI") {
-      return res.json({
-        ok: false,
-        message: "Ticket sa deja trete."
-      });
-    }
-  }
+    if (currentStatus === "GANYE" || currentStatus === "PEDI") {
+      return res.json({
+        ok: false,
+        message: "Ticket sa deja trete."
+      });
+    }
+  }
 
-  ticket.status = status;
-  ticket.updatedAt = new Date().toISOString();
+  ticket.status = status;
+  ticket.updatedAt = new Date().toISOString();
 
-  if (status === "GANYE") {
-    ticket.premio = premio > 0 ? premio : Number(ticket.premio || 0);
-  } else {
-    ticket.premio = 0;
-  }
+  if (status === "GANYE") {
+    ticket.premio = premio > 0 ? premio : Number(ticket.premio || 0);
+  } else {
+    ticket.premio = 0;
+  }
 
-  saveTickets(tickets);
-  res.json({ ok: true, ticket });
+  saveTickets(tickets);
+  res.json({ ok: true, ticket });
 });
 
 
 app.get("/api/master/ventas-summary", (req, res) => {
-  res.json(computeSummaries());
+  res.json(computeSummaries());
 });
 
 app.get("/api/master/balance-summary", (req, res) => {
-  const summaries = computeSummaries().map((x) => ({
-    vendeur: x.vendeur,
-    nombre: x.nombre,
-    balanceAnterior: x.balanceAnterior,
-    resultado: x.resultado,
-    balanceFinal: x.balanceFinal
-  }));
-  res.json(summaries);
+  const summaries = computeSummaries().map((x) => ({
+    vendeur: x.vendeur,
+    nombre: x.nombre,
+    balanceAnterior: x.balanceAnterior,
+    resultado: x.resultado,
+    balanceFinal: x.balanceFinal
+  }));
+  res.json(summaries);
 });
 
 app.get("/dashboard", (req, res) => {
-  const sellerId = String(req.query.id || "").trim().toUpperCase();
-  const vendeurs = loadVendeursForLogin();
-  const vendeur = vendeurs[sellerId] || {};
-  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "VENDEUR");
+  const sellerId = String(req.query.id || "").trim().toUpperCase();
+  const vendeurs = loadVendeursForLogin();
+  const vendeur = vendeurs[sellerId] || {};
+  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "VENDEUR");
 
-  res.send(`
+  res.send(`
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1141,12 +1141,8 @@ border-right:1px solid #ddd;
 </div>
 <div class="top-title">${sellerName}</div>
 <div class="top-right">
-<span class="icon-btn" onclick="submitPrint()">
-
-</span>
-<span class="icon-btn" onclick="shareWhatsApp()">
-
-</span>
+<span class="icon-btn" onclick="submitPrint()">🖨️</span>
+<span class="icon-btn" onclick="shareWhatsApp()">🟢</span>
 <span class="icon-btn" onclick="openOptions()">⋮</span>
 </div>
 </div>
@@ -1166,7 +1162,7 @@ border-right:1px solid #ddd;
 <div id="selectedLoteriesLine" class="selected-loteries-line"></div>
 
 <div id="choicePanel" class="choice-panel">
- <div id="choiceList" class="choice-grid"></div>
+ <div id="choiceList" class="choice-grid"></div>
 </div>
 
 <div class="fields">
@@ -1247,9 +1243,7 @@ Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran 
 <div class="loterie-box">
 <div id="loterieList" class="loterie-list"></div>
 <div class="modal-actions">
-<div class="circle-btn btn-clear" onclick="clearLoteries()">
-
-</div>
+<div class="circle-btn btn-clear" onclick="clearLoteries()">🚫</div>
 <div class="circle-btn btn-ok" onclick="validateLoteries()">✓</div>
 <div class="circle-btn btn-close" onclick="closeLoterieModal()">✕</div>
 </div>
@@ -1303,996 +1297,874 @@ var loteries = [
 ];
 
 function getSelectedLoteriesText(){
- return selectedLoteries.length ? selectedLoteries.join(", ") : "";
+ return selectedLoteries.length ? selectedLoteries.join(", ") : "";
 }
 
 function measureTextWidth(text, el){
- const canvas = measureTextWidth.canvas || (measureTextWidth.canvas = document.createElement("canvas"));
- const ctx = canvas.getContext("2d");
- const style = window.getComputedStyle(el);
- ctx.font = style.fontWeight + " " + style.fontSize + " " + style.fontFamily;
- return ctx.measureText(text).width;
+ const canvas = measureTextWidth.canvas || (measureTextWidth.canvas = document.createElement("canvas"));
+ const ctx = canvas.getContext("2d");
+ const style = window.getComputedStyle(el);
+ ctx.font = style.fontWeight + " " + style.fontSize + " " + style.fontFamily;
+ return ctx.measureText(text).width;
 }
 
 function getFieldValue(field){
- return field === "numero" ? numero : montant;
+ return field === "numero" ? numero : montant;
 }
 
 function getCursorValue(field){
- return field === "numero" ? cursorNumero : cursorMontant;
+ return field === "numero" ? cursorNumero : cursorMontant;
 }
 
 function setCursorValue(field, value){
- if(field === "numero") cursorNumero = value;
- else cursorMontant = value;
+ if(field === "numero") cursorNumero = value;
+ else cursorMontant = value;
 }
 
 function tapField(event, field){
- activeField = field;
- var el = document.getElementById(field === "numero" ? "numeroLine" : "montantLine");
- var value = getFieldValue(field);
- var rect = el.getBoundingClientRect();
- var clickX = event.clientX;
+ activeField = field;
+ var el = document.getElementById(field === "numero" ? "numeroLine" : "montantLine");
+ var value = getFieldValue(field);
+ var rect = el.getBoundingClientRect();
+ var clickX = event.clientX;
 
- if(!value.length){
-   setCursorValue(field, 0);
-   updateFields();
-   return;
- }
+ if(!value.length){
+   setCursorValue(field, 0);
+   updateFields();
+   return;
+ }
 
- var textWidth = measureTextWidth(value, el);
- var startX = rect.left + ((rect.width - textWidth) / 2);
+ var textWidth = measureTextWidth(value, el);
+ var startX = rect.left + ((rect.width - textWidth) / 2);
 
- var bestIndex = 0;
- var bestDistance = Infinity;
+ var bestIndex = 0;
+ var bestDistance = Infinity;
 
- for(var i = 0; i <= value.length; i++){
-   var part = value.slice(0, i);
-   var x = startX + measureTextWidth(part, el);
-   var dist = Math.abs(clickX - x);
+ for(var i = 0; i <= value.length; i++){
+   var part = value.slice(0, i);
+   var x = startX + measureTextWidth(part, el);
+   var dist = Math.abs(clickX - x);
 
-   if(dist < bestDistance){
-     bestDistance = dist;
-     bestIndex = i;
-   }
- }
+   if(dist < bestDistance){
+     bestDistance = dist;
+     bestIndex = i;
+   }
+ }
 
- setCursorValue(field, bestIndex);
- updateFields();
+ setCursorValue(field, bestIndex);
+ updateFields();
 }
 
 function moveCaret(){
- var caret = document.getElementById("activeCaret");
- var fieldsWrap = document.querySelector(".fields");
+ var caret = document.getElementById("activeCaret");
+ var fieldsWrap = document.querySelector(".fields");
 
- if(activeField === "loterie"){
-   caret.style.display = "none";
-   return;
- }
+ if(activeField === "loterie"){
+   caret.style.display = "none";
+   return;
+ }
 
- var fieldEl = document.getElementById(activeField === "numero" ? "numeroLine" : "montantLine");
- var value = getFieldValue(activeField);
- var cursorPos = getCursorValue(activeField);
+ var fieldEl = document.getElementById(activeField === "numero" ? "numeroLine" : "montantLine");
+ var value = getFieldValue(activeField);
+ var cursorPos = getCursorValue(activeField);
 
- var wrapRect = fieldsWrap.getBoundingClientRect();
- var fieldRect = fieldEl.getBoundingClientRect();
+ var wrapRect = fieldsWrap.getBoundingClientRect();
+ var fieldRect = fieldEl.getBoundingClientRect();
 
- var shownText = value || (activeField === "numero" ? "Numero" : "Montant");
- var fullWidth = measureTextWidth(shownText, fieldEl);
- var textStart = fieldRect.left + ((fieldRect.width - fullWidth) / 2);
+ var shownText = value || (activeField === "numero" ? "Numero" : "Montant");
+ var fullWidth = measureTextWidth(shownText, fieldEl);
+ var textStart = fieldRect.left + ((fieldRect.width - fullWidth) / 2);
 
- var realText = value || "";
- var beforeCursor = realText.slice(0, cursorPos);
- var beforeWidth = measureTextWidth(beforeCursor, fieldEl);
+ var realText = value || "";
+ var beforeCursor = realText.slice(0, cursorPos);
+ var beforeWidth = measureTextWidth(beforeCursor, fieldEl);
 
- var caretX = textStart + beforeWidth;
+ var caretX = textStart + beforeWidth;
 
- caret.style.display = "block";
- caret.style.left = (caretX - wrapRect.left) + "px";
+ caret.style.display = "block";
+ caret.style.left = (caretX - wrapRect.left) + "px";
 }
 
 function updateFields(){
- var numeroLine = document.getElementById("numeroLine");
- var loterieLine = document.getElementById("loterieLine");
- var montantLine = document.getElementById("montantLine");
- var selectedLine = document.getElementById("selectedLoteriesLine");
- var activeLine = document.getElementById("activeLine");
+ var numeroLine = document.getElementById("numeroLine");
+ var loterieLine = document.getElementById("loterieLine");
+ var montantLine = document.getElementById("montantLine");
+ var selectedLine = document.getElementById("selectedLoteriesLine");
+ var activeLine = document.getElementById("activeLine");
 
- numeroLine.textContent = numero || "Numero";
- loterieLine.textContent = "Loterie";
- montantLine.textContent = montant || "Montant";
- selectedLine.textContent = getSelectedLoteriesText();
+ numeroLine.textContent = numero || "Numero";
+ loterieLine.textContent = "Loterie";
+ montantLine.textContent = montant || "Montant";
+ selectedLine.textContent = getSelectedLoteriesText();
 
- numeroLine.classList.remove("active");
- loterieLine.classList.remove("active");
- montantLine.classList.remove("active");
+ numeroLine.classList.remove("active");
+ loterieLine.classList.remove("active");
+ montantLine.classList.remove("active");
 
- var lineLeft = "1%";
+ var lineLeft = "1%";
 
- if(activeField === "numero"){
-   numeroLine.classList.add("active");
-   lineLeft = "1%";
- }
+ if(activeField === "numero"){
+   numeroLine.classList.add("active");
+   lineLeft = "1%";
+ }
 
- if(activeField === "loterie"){
-   loterieLine.classList.add("active");
-   lineLeft = "34.5%";
- }
+ if(activeField === "loterie"){
+   loterieLine.classList.add("active");
+   lineLeft = "34.5%";
+ }
 
- if(activeField === "montant"){
-   montantLine.classList.add("active");
-   lineLeft = "68%";
- }
+ if(activeField === "montant"){
+   montantLine.classList.add("active");
+   lineLeft = "68%";
+ }
 
- activeLine.style.left = lineLeft;
- moveCaret();
+ activeLine.style.left = lineLeft;
+ moveCaret();
 }
 
 function setField(field){
- activeField = field;
+ activeField = field;
 
- if(field === "numero") cursorNumero = numero.length;
- if(field === "montant") cursorMontant = montant.length;
+ if(field === "numero") cursorNumero = numero.length;
+ if(field === "montant") cursorMontant = montant.length;
 
- updateFields();
+ updateFields();
 
- if(field === "loterie"){
-   openLoterieModal();
- }
+ if(field === "loterie"){
+   openLoterieModal();
+ }
 }
 
 function showChoicePanel(options){
- var panel = document.getElementById("choicePanel");
- var list = document.getElementById("choiceList");
- tempChoices = [];
- list.innerHTML = "";
+ var panel = document.getElementById("choicePanel");
+ var list = document.getElementById("choiceList");
+ tempChoices = [];
+ list.innerHTML = "";
 
- options.forEach(function(opt){
-   var div = document.createElement("div");
-   div.className = "choice-chip";
-   div.textContent = opt;
-   div.onclick = function(){
-     if(tempChoices.indexOf(opt) >= 0){
-       tempChoices = tempChoices.filter(function(x){ return x !== opt; });
-       div.classList.remove("active");
-     }else{
-       tempChoices.push(opt);
-       div.classList.add("active");
-     }
-   };
-   list.appendChild(div);
- });
+ options.forEach(function(opt){
+   var div = document.createElement("div");
+   div.className = "choice-chip";
+   div.textContent = opt;
+   div.onclick = function(){
+     if(tempChoices.indexOf(opt) >= 0){
+       tempChoices = tempChoices.filter(function(x){ return x !== opt; });
+       div.classList.remove("active");
+     }else{
+       tempChoices.push(opt);
+       div.classList.add("active");
+     }
+   };
+   list.appendChild(div);
+ });
 
- panel.style.display = "block";
+ panel.style.display = "block";
 }
 
 function hideChoicePanel(){
- document.getElementById("choicePanel").style.display = "none";
- document.getElementById("choiceList").innerHTML = "";
- tempChoices = [];
+ document.getElementById("choicePanel").style.display = "none";
+ document.getElementById("choiceList").innerHTML = "";
+ tempChoices = [];
 }
 
 function press(val){
- val = String(val);
+ val = String(val);
 
- if(activeField === "numero"){
-   if(val === "+"){
-     if(numero.length === 4){
-       pendingChoiceNumber = numero;
-       showChoicePanel(["L1","L2","L3"]);
-       return;
-     }
+ if(activeField === "numero"){
+   if(val === "+"){
+     if(numero.length === 4){
+       pendingChoiceNumber = numero;
+       showChoicePanel(["L1","L2","L3"]);
+       return;
+     }
 
-     if(numero.length === 5){
-       pendingChoiceNumber = numero;
-       showChoicePanel(["L1","L2","L3"]);
-       return;
-     }
+     if(numero.length === 5){
+       pendingChoiceNumber = numero;
+       showChoicePanel(["L1","L2","L3"]);
+       return;
+     }
 
-     return;
-   }
+     return;
+   }
 
-   if(val === "/"){
-     if(/^\\d{2}$/.test(numero) || /^\\d{4}$/.test(numero)){
-       numero = numero + "/";
-       cursorNumero = numero.length;
-       activeField = "montant";
-       cursorMontant = montant.length;
-       updateFields();
-       return;
-     }
-     return;
-   }
+   if(val === "/"){
+     if(/^\\d{2}$/.test(numero) || /^\\d{4}$/.test(numero)){
+       numero = numero + "/";
+       cursorNumero = numero.length;
+       activeField = "montant";
+       cursorMontant = montant.length;
+       updateFields();
+       return;
+     }
+     return;
+   }
 
-   if(!/[0-9]/.test(val)) return;
-   if(numero.indexOf("/") >= 0) return;
-   if(numero.length >= 5) return;
+   if(!/[0-9]/.test(val)) return;
+   if(numero.indexOf("/") >= 0) return;
+   if(numero.length >= 5) return;
 
-   numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
-   cursorNumero += val.length;
- }else if(activeField === "montant"){
-   if(!/[0-9.]/.test(val)) return;
-   montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
-   cursorMontant += val.length;
- }
+   numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
+   cursorNumero += val.length;
+ }else if(activeField === "montant"){
+   if(!/[0-9.]/.test(val)) return;
+   montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
+   cursorMontant += val.length;
+ }
 
- updateFields();
+ updateFields();
 }
 
 function backspaceKey(){
- if(activeField === "numero"){
-   if(cursorNumero > 0){
-     numero = numero.slice(0, cursorNumero - 1) + numero.slice(cursorNumero);
-     cursorNumero--;
-   }
- }else if(activeField === "montant"){
-   if(cursorMontant > 0){
-     montant = montant.slice(0, cursorMontant - 1) + montant.slice(cursorMontant);
-     cursorMontant--;
-   }
- }
+ if(activeField === "numero"){
+   if(cursorNumero > 0){
+     numero = numero.slice(0, cursorNumero - 1) + numero.slice(cursorNumero);
+     cursorNumero--;
+   }
+ }else if(activeField === "montant"){
+   if(cursorMontant > 0){
+     montant = montant.slice(0, cursorMontant - 1) + montant.slice(cursorMontant);
+     cursorMontant--;
+   }
+ }
 
- updateFields();
+ updateFields();
 }
 
 function handleEnter(){
- if(document.getElementById("choicePanel").style.display === "block"){
-   if(tempChoices.length === 0){
-     alert("Chwazi omwen youn");
-     return;
-   }
-   numero = pendingChoiceNumber + "+" + tempChoices.join(",");
-   cursorNumero = numero.length;
-   hideChoicePanel();
-   activeField = "montant";
-   cursorMontant = montant.length;
-   updateFields();
-   return;
- }
+ if(document.getElementById("choicePanel").style.display === "block"){
+   if(tempChoices.length === 0){
+     alert("Chwazi omwen youn");
+     return;
+   }
+   numero = pendingChoiceNumber + "+" + tempChoices.join(",");
+   cursorNumero = numero.length;
+   hideChoicePanel();
+   activeField = "montant";
+   cursorMontant = montant.length;
+   updateFields();
+   return;
+ }
 
- if(activeField === "numero"){
-   if(!numero.trim()) return;
-   activeField = "loterie";
-   updateFields();
-   openLoterieModal();
-   return;
- }
+ if(activeField === "numero"){
+   if(!numero.trim()) return;
+   activeField = "loterie";
+   updateFields();
+   openLoterieModal();
+   return;
+ }
 
- if(activeField === "loterie"){
-   validateLoteries();
-   return;
- }
+ if(activeField === "loterie"){
+   validateLoteries();
+   return;
+ }
 
- if(activeField === "montant"){
-   if(!montant.trim()) return;
-   addGame();
-   return;
- }
+ if(activeField === "montant"){
+   if(!montant.trim()) return;
+   addGame();
+   return;
+ }
 }
 
 function openLoterieModal(){
- document.getElementById("loterieModal").classList.add("show");
- document.getElementById("overlay").classList.add("show");
- renderLoterieList();
+ document.getElementById("loterieModal").classList.add("show");
+ document.getElementById("overlay").classList.add("show");
+ renderLoterieList();
 }
 
 function closeLoterieModal(){
- document.getElementById("loterieModal").classList.remove("show");
- document.getElementById("overlay").classList.remove("show");
- activeField = "numero";
- updateFields();
+ document.getElementById("loterieModal").classList.remove("show");
+ document.getElementById("overlay").classList.remove("show");
+ activeField = "numero";
+ updateFields();
 }
 
 function clearLoteries(){
- selectedLoteries = [];
- renderLoterieList();
- updateFields();
+ selectedLoteries = [];
+ renderLoterieList();
+ updateFields();
 }
 
 function validateLoteries(){
- document.getElementById("loterieModal").classList.remove("show");
- document.getElementById("overlay").classList.remove("show");
+ document.getElementById("loterieModal").classList.remove("show");
+ document.getElementById("overlay").classList.remove("show");
 
- if(selectedLoteries.length === 0){
-   activeField = "loterie";
-   updateFields();
-   openLoterieModal();
-   return;
- }
+ if(selectedLoteries.length === 0){
+   activeField = "loterie";
+   updateFields();
+   openLoterieModal();
+   return;
+ }
 
- activeField = "montant";
- cursorMontant = montant.length;
- updateFields();
+ activeField = "montant";
+ cursorMontant = montant.length;
+ updateFields();
 }
 
 function toggleLoterie(name){
- var idx = selectedLoteries.indexOf(name);
+ var idx = selectedLoteries.indexOf(name);
 
- if(idx >= 0) selectedLoteries.splice(idx, 1);
- else selectedLoteries.push(name);
+ if(idx >= 0) selectedLoteries.splice(idx, 1);
+ else selectedLoteries.push(name);
 
- renderLoterieList();
- updateFields();
+ renderLoterieList();
+ updateFields();
 }
 
 function renderLoterieList(){
- var list = document.getElementById("loterieList");
- list.innerHTML = "";
+ var list = document.getElementById("loterieList");
+ list.innerHTML = "";
 
- loteries.forEach(function(item){
-   var row = document.createElement("div");
-   row.className = "loterie-item" + (selectedLoteries.indexOf(item.name) >= 0 ? " selected" : "");
-   row.onclick = function(){
-     toggleLoterie(item.name);
-   };
+ loteries.forEach(function(item){
+   var row = document.createElement("div");
+   row.className = "loterie-item" + (selectedLoteries.indexOf(item.name) >= 0 ? " selected" : "");
+   row.onclick = function(){
+     toggleLoterie(item.name);
+   };
 
-   var left = document.createElement("div");
-   left.className = "loterie-check";
-   left.textContent = selectedLoteries.indexOf(item.name) >= 0 ? "✓" : "";
+   var left = document.createElement("div");
+   left.className = "loterie-check";
+   left.textContent = selectedLoteries.indexOf(item.name) >= 0 ? "✓" : "";
 
-   var center = document.createElement("div");
-   center.innerHTML =
-     '<div class="loterie-name">' + item.name + '</div>' +
-     '<div class="loterie-sub">' + item.sub + '</div>';
+   var center = document.createElement("div");
+   center.innerHTML =
+     '<div class="loterie-name">' + item.name + '</div>' +
+     '<div class="loterie-sub">' + item.sub + '</div>';
 
-   var right = document.createElement("div");
-   right.className = "loterie-time";
-   right.textContent = item.time;
+   var right = document.createElement("div");
+   right.className = "loterie-time";
+   right.textContent = item.time;
 
-   row.appendChild(left);
-   row.appendChild(center);
-   row.appendChild(right);
-   list.appendChild(row);
- });
+   row.appendChild(left);
+   row.appendChild(center);
+   row.appendChild(right);
+   list.appendChild(row);
+ });
 }
 
 function reverse2(s){
- return s.charAt(1) + s.charAt(0);
+ return s.charAt(1) + s.charAt(0);
 }
 
 function uniqueStrings(arr){
- var out = [];
- var seen = {};
- arr.forEach(function(x){
-   if(!seen[x]){
-     seen[x] = true;
-     out.push(x);
-   }
- });
- return out;
+ var out = [];
+ var seen = {};
+ arr.forEach(function(x){
+   if(!seen[x]){
+     seen[x] = true;
+     out.push(x);
+   }
+ });
+ return out;
 }
 
 function buildSlashMarriageEntries(num){
- var raw = num.slice(0, -1);
+ var raw = num.slice(0, -1);
 
- if(/^\\d{2}$/.test(raw)){
-   var a2 = raw;
-   var ar2 = reverse2(a2);
+ if(/^\\d{2}$/.test(raw)){
+   var a2 = raw;
+   var ar2 = reverse2(a2);
 
-   return uniqueStrings([a2, ar2]).map(function(x){
-     return { type: "BOR", numero: x };
-   });
- }
+   return uniqueStrings([a2, ar2]).map(function(x){
+     return { type: "BOR", numero: x };
+   });
+ }
 
- if(/^\\d{4}$/.test(raw)){
-   var a = raw.slice(0,2);
-   var b = raw.slice(2,4);
-   var ar = reverse2(a);
-   var br = reverse2(b);
+ if(/^\\d{4}$/.test(raw)){
+   var a = raw.slice(0,2);
+   var b = raw.slice(2,4);
+   var ar = reverse2(a);
+   var br = reverse2(b);
 
-   return uniqueStrings([
-     a + "*" + b,
-     a + "*" + br,
-     ar + "*" + b,
-     ar + "*" + br
-   ]).map(function(x){
-     var parts = x.split("*");
-     if(parts[0] === parts[1]) return null;
-     if(parts[0] === reverse2(parts[1])) return null;
-     return { type: "MAR", numero: x };
-   }).filter(Boolean);
- }
+   return uniqueStrings([
+     a + "*" + b,
+     a + "*" + br,
+     ar + "*" + b,
+     ar + "*" + br
+   ]).map(function(x){
+     var parts = x.split("*");
+     if(parts[0] === parts[1]) return null;
+     if(parts[0] === reverse2(parts[1])) return null;
+     return { type: "MAR", numero: x };
+   }).filter(Boolean);
+ }
 
- return null;
+ return null;
 }
 
 function buildGameEntries(num){
- num = num.trim();
+ num = num.trim();
 
- if(/^\\d{2}$/.test(num)){
-   return [{ type: "BOR", numero: num }];
- }
+ if(/^\\d{2}$/.test(num)){
+   return [{ type: "BOR", numero: num }];
+ }
 
- if(/^\\d{2}\\/$/.test(num)){
-   return buildSlashMarriageEntries(num);
- }
+ if(/^\\d{2}\\/$/.test(num)){
+   return buildSlashMarriageEntries(num);
+ }
 
- if(/^\\d{3}$/.test(num)){
-   return [{ type: "L3", numero: num }];
- }
+ if(/^\\d{3}$/.test(num)){
+   return [{ type: "L3", numero: num }];
+ }
 
- if(/^\\d{4}$/.test(num)){
-   return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
- }
+ if(/^\\d{4}$/.test(num)){
+   return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
+ }
 
- if(/^\\d{4}\\/$/.test(num)){
-   return buildSlashMarriageEntries(num);
- }
+ if(/^\\d{4}\\/$/.test(num)){
+   return buildSlashMarriageEntries(num);
+ }
 
- if(/^\\d{4}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
-   var raw4 = num.split("+")[0];
-   var types4 = uniqueStrings(num.split("+")[1].split(","));
-   return types4.map(function(t){
-     return { type: t, numero: raw4 };
-   });
- }
+ if(/^\\d{4}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
+   var raw4 = num.split("+")[0];
+   var types4 = uniqueStrings(num.split("+")[1].split(","));
+   return types4.map(function(t){
+     return { type: t, numero: raw4 };
+   });
+ }
 
- if(/^\\d{5}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
-   var raw5 = num.split("+")[0];
-   var types5 = uniqueStrings(num.split("+")[1].split(","));
-   return types5.map(function(t){
-     return { type: t, numero: raw5 };
-   });
- }
+ if(/^\\d{5}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
+   var raw5 = num.split("+")[0];
+   var types5 = uniqueStrings(num.split("+")[1].split(","));
+   return types5.map(function(t){
+     return { type: t, numero: raw5 };
+   });
+ }
 
- return null;
+ return null;
 }
 
 function mergeOrPushGame(entry){
- var found = jeux.find(function(j){
-   return j.type === entry.type && j.numero === entry.numero && j.loterie === entry.loterie;
- });
+ var found = jeux.find(function(j){
+   return j.type === entry.type && j.numero === entry.numero && j.loterie === entry.loterie;
+ });
 
- if(found){
-   found.montant = Number(found.montant) + Number(entry.montant);
- }else{
-   jeux.push(entry);
- }
+ if(found){
+   found.montant = Number(found.montant) + Number(entry.montant);
+ }else{
+   jeux.push(entry);
+ }
 }
 
 function getAutoSourceBalls(){
- var counts = {};
+ var counts = {};
 
- jeux.forEach(function(j){
-   if(j.type === "BOR" && /^\\d{2}$/.test(j.numero)){
-     counts[j.numero] = (counts[j.numero] || 0) + 1;
-   }
- });
+ jeux.forEach(function(j){
+   if(j.type === "BOR" && /^\\d{2}$/.test(j.numero)){
+     counts[j.numero] = (counts[j.numero] || 0) + 1;
+   }
+ });
 
- return counts;
+ return counts;
 }
 
 function autoMarriage(){
- var counts = getAutoSourceBalls();
- var nums = Object.keys(counts);
+ var counts = getAutoSourceBalls();
+ var nums = Object.keys(counts);
 
- if(nums.length === 0){
-   alert("Pa gen boul 2 chif pou maryaj otomatik");
-   return;
- }
- if(selectedLoteries.length === 0){
-   alert("Chwazi omwen yon loterie");
-   return;
- }
- if(!montant.trim()){
-   alert("Mete montan an");
-   return;
- }
+ if(nums.length === 0){
+   alert("Pa gen boul 2 chif pou maryaj otomatik");
+   return;
+ }
+ if(selectedLoteries.length === 0){
+   alert("Chwazi omwen yon loterie");
+   return;
+ }
+ if(!montant.trim()){
+   alert("Mete montan an");
+   return;
+ }
 
- var results = {};
+ var results = {};
 
- for(var i=0;i<nums.length;i++){
-   for(var j=i+1;j<nums.length;j++){
-     var a = nums[i];
-     var b = nums[j];
-     var ar = reverse2(a);
-     var br = reverse2(b);
+ for(var i=0;i<nums.length;i++){
+   for(var j=i+1;j<nums.length;j++){
+     var a = nums[i];
+     var b = nums[j];
+     var ar = reverse2(a);
+     var br = reverse2(b);
 
-     if(a === b) continue;
-     if(a === br) continue;
-     if(ar === b) continue;
+     if(a === b) continue;
+     if(a === br) continue;
+     if(ar === b) continue;
 
-     [
-       a + "*" + b,
-       a + "*" + br,
-       ar + "*" + b,
-       ar + "*" + br
-     ].forEach(function(m){
-       var parts = m.split("*");
-       if(parts[0] !== parts[1] && parts[0] !== reverse2(parts[1])){
-         results[m] = true;
-       }
-     });
-   }
- }
+     [
+       a + "*" + b,
+       a + "*" + br,
+       ar + "*" + b,
+       ar + "*" + br
+     ].forEach(function(m){
+       var parts = m.split("*");
+       if(parts[0] !== parts[1] && parts[0] !== reverse2(parts[1])){
+         results[m] = true;
+       }
+     });
+   }
+ }
 
- Object.keys(results).forEach(function(numeroAuto){
-   selectedLoteries.forEach(function(lot){
-     mergeOrPushGame({
-       type: "MAR",
-       numero: numeroAuto,
-       loterie: lot,
-       montant: parseFloat(montant) || 0
-     });
-   });
- });
+ Object.keys(results).forEach(function(numeroAuto){
+   selectedLoteries.forEach(function(lot){
+     mergeOrPushGame({
+       type: "MAR",
+       numero: numeroAuto,
+       loterie: lot,
+       montant: parseFloat(montant) || 0
+     });
+   });
+ });
 
- closeOptions();
- document.getElementById("overlay").classList.remove("show");
- renderJeux();
- updateFields();
+ closeOptions();
+ document.getElementById("overlay").classList.remove("show");
+ renderJeux();
+ updateFields();
 }
 
 function autoLoto4(){
- var counts = getAutoSourceBalls();
- var nums = Object.keys(counts);
+ var counts = getAutoSourceBalls();
+ var nums = Object.keys(counts);
 
- if(nums.length === 0){
-   alert("Pa gen boul 2 chif pou loto otomatik");
-   return;
- }
- if(selectedLoteries.length === 0){
-   alert("Chwazi omwen yon loterie");
-   return;
- }
- if(!montant.trim()){
-   alert("Mete montan an");
-   return;
- }
+ if(nums.length === 0){
+   alert("Pa gen boul 2 chif pou loto otomatik");
+   return;
+ }
+ if(selectedLoteries.length === 0){
+   alert("Chwazi omwen yon loterie");
+   return;
+ }
+ if(!montant.trim()){
+   alert("Mete montan an");
+   return;
+ }
 
- var results = {};
+ var results = {};
 
- for(var i=0;i<nums.length;i++){
-   for(var j=i+1;j<nums.length;j++){
-     var a = nums[i];
-     var b = nums[j];
-     var ar = reverse2(a);
-     var br = reverse2(b);
+ for(var i=0;i<nums.length;i++){
+   for(var j=i+1;j<nums.length;j++){
+     var a = nums[i];
+     var b = nums[j];
+     var ar = reverse2(a);
+     var br = reverse2(b);
 
-     if(a === b) continue;
-     if(a === br) continue;
-     if(ar === b) continue;
+     if(a === b) continue;
+     if(a === br) continue;
+     if(ar === b) continue;
 
-     [
-       a + b,
-       a + br,
-       ar + b,
-       ar + br,
-       b + a,
-       b + ar,
-       br + a,
-       br + ar
-     ].forEach(function(l4){
-       var left = l4.slice(0,2);
-       var right = l4.slice(2,4);
+     [
+       a + b,
+       a + br,
+       ar + b,
+       ar + br,
+       b + a,
+       b + ar,
+       br + a,
+       br + ar
+     ].forEach(function(l4){
+       var left = l4.slice(0,2);
+       var right = l4.slice(2,4);
 
-       if(left !== right && left !== reverse2(right)){
-         results[l4] = true;
-       }
-     });
-   }
- }
+       if(left !== right && left !== reverse2(right)){
+         results[l4] = true;
+       }
+     });
+   }
+ }
 
- Object.keys(results).forEach(function(numeroAuto){
-   selectedLoteries.forEach(function(lot){
-     mergeOrPushGame({
-       type: "L4",
-       numero: numeroAuto,
-       loterie: lot,
-       montant: parseFloat(montant) || 0
-     });
-   });
- });
+ Object.keys(results).forEach(function(numeroAuto){
+   selectedLoteries.forEach(function(lot){
+     mergeOrPushGame({
+       type: "L4",
+       numero: numeroAuto,
+       loterie: lot,
+       montant: parseFloat(montant) || 0
+     });
+   });
+ });
 
- closeOptions();
- document.getElementById("overlay").classList.remove("show");
- renderJeux();
- updateFields();
+ closeOptions();
+ document.getElementById("overlay").classList.remove("show");
+ renderJeux();
+ updateFields();
 }
 
 function addGame(){
- if(!numero.trim()) return;
- if(!montant.trim()) return;
- if(selectedLoteries.length === 0) return;
+ if(!numero.trim()) return;
+ if(!montant.trim()) return;
+ if(selectedLoteries.length === 0) return;
 
- var entries = buildGameEntries(numero);
+ var entries = buildGameEntries(numero);
 
- if(!entries){
-   alert("Jeu pa valid");
-   return;
- }
+ if(!entries){
+   alert("Jeu pa valid");
+   return;
+ }
 
- selectedLoteries.forEach(function(lot){
-   entries.forEach(function(entry){
-     mergeOrPushGame({
-       type: entry.type,
-       numero: entry.numero,
-       loterie: lot,
-       montant: parseFloat(montant) || 0
-     });
-   });
- });
+ selectedLoteries.forEach(function(lot){
+   entries.forEach(function(entry){
+     mergeOrPushGame({
+       type: entry.type,
+       numero: entry.numero,
+       loterie: lot,
+       montant: parseFloat(montant) || 0
+     });
+   });
+ });
 
- numero = "";
- cursorNumero = 0;
- activeField = "numero";
+ numero = "";
+ cursorNumero = 0;
+ activeField = "numero";
 
- renderJeux();
- updateFields();
+ renderJeux();
+ updateFields();
 }
 
 function renderJeux(){
- var area = document.getElementById("ticketsArea");
+ var area = document.getElementById("ticketsArea");
 
- if(jeux.length === 0){
-   area.innerHTML = '<div class="empty-zone">Pas de jeux</div>';
-   document.getElementById("ticketCount").textContent = "0";
-   document.getElementById("ticketTotal").textContent = "0.00";
-   return;
- }
+ if(jeux.length === 0){
+   area.innerHTML = '<div class="empty-zone">Pas de jeux</div>';
+   document.getElementById("ticketCount").textContent = "0";
+   document.getElementById("ticketTotal").textContent = "0.00";
+   return;
+ }
 
- var grouped = {};
- var total = 0;
+ var grouped = {};
+ var total = 0;
 
- jeux.forEach(function(j){
-   if(!grouped[j.loterie]) grouped[j.loterie] = [];
-   grouped[j.loterie].push(j);
-   total += Number(j.montant) || 0;
- });
+ jeux.forEach(function(j){
+   if(!grouped[j.loterie]) grouped[j.loterie] = [];
+   grouped[j.loterie].push(j);
+   total += Number(j.montant) || 0;
+ });
 
- area.innerHTML = "";
+ area.innerHTML = "";
 
- Object.keys(grouped).forEach(function(name){
-   var title = document.createElement("div");
-   title.className = "group-title";
-   title.textContent = name;
-   area.appendChild(title);
+ Object.keys(grouped).forEach(function(name){
+   var title = document.createElement("div");
+   title.className = "group-title";
+   title.textContent = name;
+   area.appendChild(title);
 
-   grouped[name].forEach(function(j){
-     var row = document.createElement("div");
-     row.className = "ticket-row";
-     row.innerHTML =
-       '<div>' + j.type + '</div>' +
-       '<div>' + j.numero + '</div>' +
-       '<div>' + Number(j.montant).toFixed(2) + '</div>';
+   grouped[name].forEach(function(j){
+     var row = document.createElement("div");
+     row.className = "ticket-row";
+     row.innerHTML =
+       '<div>' + j.type + '</div>' +
+       '<div>' + j.numero + '</div>' +
+       '<div>' + Number(j.montant).toFixed(2) + '</div>';
 
-     row.onclick = function(){
-       if(confirm("Supprimer ?")){
-         var idx = jeux.indexOf(j);
-         if(idx >= 0){
-           jeux.splice(idx, 1);
-           renderJeux();
-         }
-       }
-     };
+     row.onclick = function(){
+       if(confirm("Supprimer ?")){
+         var idx = jeux.indexOf(j);
+         if(idx >= 0){
+           jeux.splice(idx, 1);
+           renderJeux();
+         }
+       }
+     };
 
-     area.appendChild(row);
-   });
- });
+     area.appendChild(row);
+   });
+ });
 
- document.getElementById("ticketCount").textContent = String(jeux.length);
- document.getElementById("ticketTotal").textContent = total.toFixed(2);
+ document.getElementById("ticketCount").textContent = String(jeux.length);
+ document.getElementById("ticketTotal").textContent = total.toFixed(2);
 }
 
 function buildPayloadGames(){
- return jeux.map(function(j){
-   return {
-     type: j.type,
-     numero: j.numero,
-     loterie: j.loterie,
-     montant: Number(j.montant || 0)
-   };
- });
+ return jeux.map(function(j){
+   return {
+     type: j.type,
+     numero: j.numero,
+     loterie: j.loterie,
+     montant: Number(j.montant || 0)
+   };
+ });
 }
 
 function buildPrintableTextFromTicket(ticket){
- if(!ticket || !Array.isArray(ticket.jeux)) return "";
+ if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
- var lines = [];
+ var lines = [];
 
- ticket.jeux.forEach(function(j){
-   lines.push(j.type + " " + j.numero + " " + Number(j.montant).toFixed(2) + " - " + j.loterie);
- });
+ ticket.jeux.forEach(function(j){
+   lines.push(j.type + " " + j.numero + " " + Number(j.montant).toFixed(2) + " - " + j.loterie);
+ });
 
- return lines.join("\\n");
+ return lines.join("\\n");
 }
 
 function resetAfterSend(){
- jeux = [];
- numero = "";
- montant = "";
- cursorNumero = 0;
- cursorMontant = 0;
- selectedLoteries = [];
+ jeux = [];
+ numero = "";
+ montant = "";
+ cursorNumero = 0;
+ cursorMontant = 0;
+ selectedLoteries = [];
 
- activeField = "numero";
+ activeField = "numero";
 
- renderJeux();
- updateFields();
+ renderJeux();
+ updateFields();
 }
 
 
 function saveCurrentTicket(channel){
- if(jeux.length === 0){
-   alert("Pa gen jwèt pou voye.");
-   return Promise.resolve(null);
- }
+ if(jeux.length === 0){
+   alert("Pa gen jwèt pou voye.");
+   return Promise.resolve(null);
+ }
 
- return fetch("/api/tickets", {
-   method: "POST",
-   headers: { "Content-Type": "application/json" },
-   body: JSON.stringify({
-     sellerId: sellerId,
-     sellerName: sellerName,
-     jeux: buildPayloadGames(),
-     channel: channel || "MANUEL"
-   })
- }).then(function(res){
-   return res.json();
- }).then(function(data){
-   if(!data.ok){
-     alert(data.message || "Erreur save ticket");
-     return null;
-   }
-   return data.ticket;
- }).catch(function(){
-   alert("Erreur save ticket");
-   return null;
- });
+ return fetch("/api/tickets", {
+   method: "POST",
+   headers: { "Content-Type": "application/json" },
+   body: JSON.stringify({
+     sellerId: sellerId,
+     sellerName: sellerName,
+     jeux: buildPayloadGames(),
+     channel: channel || "MANUEL"
+   })
+ }).then(function(res){
+   return res.json();
+ }).then(function(data){
+   if(!data.ok){
+     alert(data.message || "Erreur save ticket");
+     return null;
+   }
+   return data.ticket;
+ }).catch(function(){
+   alert("Erreur save ticket");
+   return null;
+ });
 }
 
 function submitPrint(){
-  var printWin = window.open("", "_blank");
+  var printWin = window.open("", "_blank");
 
-  saveCurrentTicket("PRINT").then(function(ticket){
-    if(!ticket){
-      if(printWin) printWin.close();
-      return;
-    }
+  saveCurrentTicket("PRINT").then(function(ticket){
+    if(!ticket){
+      if(printWin) printWin.close();
+      return;
+    }
 
-    if(printWin){
-      printWin.location.href =
-        "/print?ticketId=" + encodeURIComponent(ticket.id) +
-        "&sellerId=" + encodeURIComponent(sellerId);
-    }
+    if(printWin){
+      printWin.location.href =
+        "/print?ticketId=" + encodeURIComponent(ticket.id) +
+        "&sellerId=" + encodeURIComponent(sellerId);
+    }
 
-    loadBillets();
-    resetAfterSend();
-  }).catch(function(){
-    if(printWin) printWin.close();
-    alert("Erreur impression");
-  });
+    loadBillets();
+    resetAfterSend();
+  }).catch(function(){
+    if(printWin) printWin.close();
+    alert("Erreur impression");
+  });
 }
 
 function shareWhatsApp(){
-  var waWin = window.open("", "_blank");
+  var waWin = window.open("", "_blank");
 
-  saveCurrentTicket("WHATSAPP").then(function(ticket){
-    if(!ticket){
-      if(waWin) waWin.close();
-      return;
-    }
+  saveCurrentTicket("WHATSAPP").then(function(ticket){
+    if(!ticket){
+      if(waWin) waWin.close();
+      return;
+    }
 
-    var text = buildPrintableTextFromTicket(ticket);
-    var url = "https://wa.me/?text=" + encodeURIComponent(text);
+    var text = buildPrintableTextFromTicket(ticket);
+    var url = "https://wa.me/?text=" + encodeURIComponent(text);
 
-    if(waWin){
-      waWin.location.href = url;
-    }
+    if(waWin){
+      waWin.location.href = url;
+    }
 
-    loadBillets();
-    resetAfterSend();
-  }).catch(function(){
-    if(waWin) waWin.close();
-    alert("Erreur WhatsApp");
-  });
+    loadBillets();
+    resetAfterSend();
+  }).catch(function(){
+    if(waWin) waWin.close();
+    alert("Erreur WhatsApp");
+  });
 }
 
 
 function toggleDrawer(){
- document.getElementById("drawer").classList.toggle("open");
- document.getElementById("overlay").classList.toggle("show");
- closeOptions();
+ document.getElementById("drawer").classList.toggle("open");
+ document.getElementById("overlay").classList.toggle("show");
+ closeOptions();
 }
 
 function closeDrawer(){
- document.getElementById("drawer").classList.remove("open");
- document.getElementById("overlay").classList.remove("show");
+ document.getElementById("drawer").classList.remove("open");
+ document.getElementById("overlay").classList.remove("show");
 }
 
 function openOptions(){
- document.getElementById("optionsSheet").classList.add("open");
- document.getElementById("overlay").classList.add("show");
- closeDrawer();
+ document.getElementById("optionsSheet").classList.add("open");
+ document.getElementById("overlay").classList.add("show");
+ closeDrawer();
 }
 
 function closeOptions(){
- document.getElementById("optionsSheet").classList.remove("open");
+ document.getElementById("optionsSheet").classList.remove("open");
 }
 
 function deleteAllGames(){
- jeux = [];
- closeOptions();
- document.getElementById("overlay").classList.remove("show");
- renderJeux();
- updateFields();
+ jeux = [];
+ closeOptions();
+ document.getElementById("overlay").classList.remove("show");
+ renderJeux();
+ updateFields();
 }
 
 function switchPage(pageId, el){
-  if(pageId === "billetsPage" && currentPageName === "billetsPage"){
-    pageId = "salePage";
-  }
+  if(pageId === "billetsPage" && currentPageName === "billetsPage"){
+    pageId = "salePage";
+  }
 
-  currentPageName = pageId;
+  currentPageName = pageId;
 
-  document.querySelectorAll(".page").forEach(function(p){
-    p.classList.remove("active");
-  });
+  document.querySelectorAll(".page").forEach(function(p){
+    p.classList.remove("active");
+  });
 
-  document.getElementById(pageId).classList.add("active");
+  document.getElementById(pageId).classList.add("active");
 
-  document.querySelectorAll(".nav-item").forEach(function(n){
-    n.classList.remove("active");
-  });
+  document.querySelectorAll(".nav-item").forEach(function(n){
+    n.classList.remove("active");
+  });
 
-  if(el) el.classList.add("active");
+  if(el) el.classList.add("active");
 
-  if(pageId === "billetsPage"){
-    loadBillets();
-  }
+  if(pageId === "billetsPage"){
+    loadBillets();
+  }
 }
 
 function statusClass(status){
- var s = String(status || "").toUpperCase();
- if(s === "GANYE") return "st-ganye";
- if(s === "PEDI") return "st-pedi";
- if(s === "ANILE") return "st-anile";
- return "st-anatan";
+ var s = String(status || "").toUpperCase();
+ if(s === "GANYE") return "st-ganye";
+ if(s === "PEDI") return "st-pedi";
+ if(s === "ANILE") return "st-anile";
+ return "st-anatan";
 }
 
 function statusLabel(status){
- var s = String(status || "").toUpperCase();
- if(s === "GANYE") return "GANYE";
- if(s === "PEDI") return "PEDI";
- if(s === "ANILE") return "ANILE";
- return "AN ATAN";
+ var s = String(status || "").toUpperCase();
+ if(s === "GANYE") return "GANYE";
+ if(s === "PEDI") return "PEDI";
+ if(s === "ANILE") return "ANILE";
+ return "AN ATAN";
 }
 
 function loadBillets(){
- fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
- .then(function(res){ return res.json(); })
- .then(function(rows){
- savedTickets = Array.isArray(rows) ? rows : [];
- renderBillets();
- renderRapports();
- })
- .catch(function(){
- savedTickets = [];
- renderBillets();
- renderRapports();
- });
-}
-
-
-function getCopyCategory(type){
-  var t = String(type || "").toUpperCase();
-  if(t === "BOR") return "BOR";
-  if(t === "MAR") return "MAR";
-  if(t === "L1" || t === "L2" || t === "L3" || t === "L4" || t === "L5") return "LOTO";
-  return "OTHER";
-}
-
-function askNewLoteries(){
-  var list = loteries.map(function(l, i){
-    return (i + 1) + " - " + l.name;
-  }).join("\n");
-
-  var rep = prompt("Chwazi loterie yo:\n" + list + "\n\nEgzanp: 1,4,7");
-  if(!rep) return null;
-
-  return rep.split(",").map(function(x){
-    var idx = Number(x.trim()) - 1;
-    return loteries[idx] ? loteries[idx].name : null;
-  }).filter(Boolean);
-}
-
-function copyTicketToJeux(ticket, amounts, newLoteries){
-  jeux = [];
-  selectedLoteries = [];
-  numero = "";
-  cursorNumero = 0;
-  activeField = "numero";
-
-  if(!ticket || !Array.isArray(ticket.jeux)) return;
-
-  ticket.jeux.forEach(function(j){
-    var lots = newLoteries && newLoteries.length ? newLoteries : [j.loterie];
-
-    lots.forEach(function(lot){
-      var cat = getCopyCategory(j.type);
-      var montantFinal = Number(j.montant || 0);
-
-      if(amounts && amounts[cat] !== undefined){
-        montantFinal = Number(amounts[cat] || 0);
-      }
-
-      jeux.push({
-        type: j.type,
-        numero: j.numero,
-        loterie: lot,
-        montant: montantFinal
-      });
-
-      if(selectedLoteries.indexOf(lot) < 0){
-        selectedLoteries.push(lot);
-      }
-    });
-  });
-
-  renderJeux();
-  updateFields();
-  switchPage("salePage", document.getElementById("nav-billets"));
-}
-
-function openCopyOptions(ticket){
-  var choix = prompt(
-    "1 - Copie exacte\n" +
-    "2 - Modifier les montants\n" +
-    "3 - Changer de loterie"
-  );
-
-  if(choix === "1"){
-    copyTicketToJeux(ticket, null, null);
-    return;
-  }
-
-  if(choix === "2"){
-    var amounts = {};
-    var hasBor = false;
-    var hasMar = false;
-    var hasLoto = false;
-
-    if(Array.isArray(ticket.jeux)){
-      ticket.jeux.forEach(function(j){
-        var cat = getCopyCategory(j.type);
-        if(cat === "BOR") hasBor = true;
-        if(cat === "MAR") hasMar = true;
-        if(cat === "LOTO") hasLoto = true;
-      });
-    }
-
-    if(hasBor){
-      var bor = prompt("Montant Bolèt:");
-      if(bor === null) return;
-      amounts.BOR = Number(bor || 0);
-    }
-
-    if(hasMar){
-      var mar = prompt("Montant Maryaj:");
-      if(mar === null) return;
-      amounts.MAR = Number(mar || 0);
-    }
-
-    if(hasLoto){
-      var loto = prompt("Montant Loto:");
-      if(loto === null) return;
-      amounts.LOTO = Number(loto || 0);
-    }
-
-    var lots2 = askNewLoteries();
-    if(!lots2 || !lots2.length) return;
-
-    copyTicketToJeux(ticket, amounts, lots2);
-    return;
-  }
-
-  if(choix === "3"){
-    var lots3 = askNewLoteries();
-    if(!lots3 || !lots3.length) return;
-
-    copyTicketToJeux(ticket, null, lots3);
-    return;
-  }
+ fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
+ .then(function(res){ return res.json(); })
+ .then(function(rows){
+ savedTickets = Array.isArray(rows) ? rows : [];
+ renderBillets();
+ renderRapports();
+ })
+ .catch(function(){
+ savedTickets = [];
+ renderBillets();
+ renderRapports();
+ });
 }
 
 function renderBillets(){
@@ -2359,230 +2231,258 @@ function renderBillets(){
  });
 }
 
-
 function renderRapports(){
-  var box = document.getElementById("rapportsPage");
-  if(!box) return;
+  var box = document.getElementById("rapportsPage");
+  if(!box) return;
 
-  function toIsoDay(value){
-    var d = new Date(value || new Date());
-    var y = d.getFullYear();
-    var m = String(d.getMonth() + 1).padStart(2, "0");
-    var day = String(d.getDate()).padStart(2, "0");
-    return y + "-" + m + "-" + day;
-  }
+  function toIsoDay(value){
+    var d = new Date(value || new Date());
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
+  }
 
-  function toFr(iso){
-    if(!iso) return "";
-    var p = iso.split("-");
-    if(p.length !== 3) return iso;
-    return p[2] + "/" + p[1] + "/" + p[0];
-  }
+  function toFr(iso){
+    if(!iso) return "";
+    var p = iso.split("-");
+    if(p.length !== 3) return iso;
+    return p[2] + "/" + p[1] + "/" + p[0];
+  }
 
-  var oldStart = document.getElementById("rapportDateStart");
-  var oldEnd = document.getElementById("rapportDateEnd");
+  var oldStart = document.getElementById("rapportDateStart");
+  var oldEnd = document.getElementById("rapportDateEnd");
 
-  var todayStr = toIsoDay(new Date());
-  var startValue = oldStart ? oldStart.value : todayStr;
-  var endValue = oldEnd ? oldEnd.value : todayStr;
+  var todayStr = toIsoDay(new Date());
+  var startValue = oldStart ? oldStart.value : todayStr;
+  var endValue = oldEnd ? oldEnd.value : todayStr;
 
-  var filtered = savedTickets.filter(function(t){
-    var d = toIsoDay(t.createdAt || new Date());
-    return d >= startValue && d <= endValue;
-  });
+  var filtered = savedTickets.filter(function(t){
+    var d = toIsoDay(t.createdAt || new Date());
+    return d >= startValue && d <= endValue;
+  });
 
-  var vente = 0;
-  var prime = 0;
+  var vente = 0;
+  var prime = 0;
 
-  var byDay = {};
-  var byLoterie = {};
+  var byDay = {};
+  var byLoterie = {};
 
-  filtered.forEach(function(t){
-    var st = String(t.status || "").toUpperCase();
-    if(st === "ANILE") return;
+  filtered.forEach(function(t){
+    var st = String(t.status || "").toUpperCase();
+    if(st === "ANILE") return;
 
-    var total = Number(t.total || 0);
-    var premio = st === "GANYE" ? Number(t.premio || 0) : 0;
-    var dayKey = toIsoDay(t.createdAt || new Date());
+    var total = Number(t.total || 0);
+    var premio = st === "GANYE" ? Number(t.premio || 0) : 0;
+    var dayKey = toIsoDay(t.createdAt || new Date());
 
-    vente += total;
-    prime += premio;
+    vente += total;
+    prime += premio;
 
-    if(!byDay[dayKey]){
-      byDay[dayKey] = { vente: 0, prime: 0 };
-    }
-    byDay[dayKey].vente += total;
-    byDay[dayKey].prime += premio;
+    if(!byDay[dayKey]){
+      byDay[dayKey] = { vente: 0, prime: 0 };
+    }
+    byDay[dayKey].vente += total;
+    byDay[dayKey].prime += premio;
 
-    (t.jeux || []).forEach(function(j){
-      var lot = String(j.loterie || "").trim() || "SANS TIRAGE";
-      var amt = Number(j.montant || 0);
+    (t.jeux || []).forEach(function(j){
+      var lot = String(j.loterie || "").trim() || "SANS TIRAGE";
+      var amt = Number(j.montant || 0);
 
-      if(!byLoterie[lot]){
-        byLoterie[lot] = { vente: 0, prime: 0 };
-      }
-      byLoterie[lot].vente += amt;
-    });
-  });
+      if(!byLoterie[lot]){
+        byLoterie[lot] = { vente: 0, prime: 0 };
+      }
+      byLoterie[lot].vente += amt;
+    });
+  });
 
-  var commission = 0; // kite master panel jere sa
+  var commission = 0; // kite master panel jere sa
 var resultat = vente - prime;
 
-  var daysHtml = "";
-  var sortedDays = Object.keys(byDay).sort();
-  sortedDays.forEach(function(day){
-    var d = byDay[day];
-    var dCommission = 0;
+  var daysHtml = "";
+  var sortedDays = Object.keys(byDay).sort();
+  sortedDays.forEach(function(day){
+    var d = byDay[day];
+    var dCommission = 0;
 var dBalance = d.vente - d.prime;
 
-    daysHtml +=
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-        '<div>' + d.vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + dCommission.toFixed(2) + '</div></div>' +
-        '<div>' + d.prime.toFixed(2) + '</div>' +
-        '<div>' + dBalance.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(day) + '</div></div>' +
-      '</div>';
-  });
+    daysHtml +=
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+        '<div>' + d.vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + dCommission.toFixed(2) + '</div></div>' +
+        '<div>' + d.prime.toFixed(2) + '</div>' +
+        '<div>' + dBalance.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(day) + '</div></div>' +
+      '</div>';
+  });
 
-  if(!daysHtml){
-    daysHtml =
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-        '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">0.00</div></div>' +
-        '<div>0.00</div>' +
-        '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(endValue) + '</div></div>' +
-      '</div>';
-  }
+  if(!daysHtml){
+    daysHtml =
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+        '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">0.00</div></div>' +
+        '<div>0.00</div>' +
+        '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(endValue) + '</div></div>' +
+      '</div>';
+  }
 
-  var loterieHtml = "";
-  var lotKeys = Object.keys(byLoterie).sort();
-  lotKeys.forEach(function(lot){
-    var l = byLoterie[lot];
-    var lCommission = l.vente * 0.15;
-    var lBalance = l.vente - l.prime - lCommission;
+  var loterieHtml = "";
+  var lotKeys = Object.keys(byLoterie).sort();
+  lotKeys.forEach(function(lot){
+    var l = byLoterie[lot];
+    var lCommission = l.vente * 0.15;
+    var lBalance = l.vente - l.prime - lCommission;
 
-    loterieHtml +=
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-        '<div>' + l.vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + lCommission.toFixed(2) + '</div></div>' +
-        '<div>' + l.prime.toFixed(2) + '</div>' +
-        '<div>' + lBalance.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + lot + '</div></div>' +
-      '</div>';
-  });
+    loterieHtml +=
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+        '<div>' + l.vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + lCommission.toFixed(2) + '</div></div>' +
+        '<div>' + l.prime.toFixed(2) + '</div>' +
+        '<div>' + lBalance.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + lot + '</div></div>' +
+      '</div>';
+  });
 
-  if(!loterieHtml){
-    loterieHtml =
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-        '<div>' + vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + commission.toFixed(2) + '</div></div>' +
-        '<div>' + prime.toFixed(2) + '</div>' +
-        '<div>' + resultat.toFixed(2) + '</div>' +
-      '</div>';
-  }
+  if(!loterieHtml){
+    loterieHtml =
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+        '<div>' + vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + commission.toFixed(2) + '</div></div>' +
+        '<div>' + prime.toFixed(2) + '</div>' +
+        '<div>' + resultat.toFixed(2) + '</div>' +
+      '</div>';
+  }
 
-  box.innerHTML =
-  '<div style="height:100%;display:flex;flex-direction:column;background:#f5f5f5;">' +
+  box.innerHTML =
+  '<div style="height:100%;display:flex;flex-direction:column;background:#f5f5f5;">' +
 
-    '<div style="height:58px;min-height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;">' +
-      '<button id="rapportBackBtn" type="button" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">←</button>' +
-      '<div style="font-size:22px;font-weight:700;">Rapports</div>' +
-      '<div style="display:flex;gap:18px;align-items:center;">' +
-        '<button id="rapportPrintBtn" type="button" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">
+    '<div style="height:58px;min-height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;">' +
+      '<button id="rapportBackBtn" type="button" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">←</button>' +
+      '<div style="font-size:22px;font-weight:700;">Rapports</div>' +
+      '<div style="display:flex;gap:18px;align-items:center;">' +
+        '<button id="rapportPrintBtn" type="button" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">🖨️</button>' +
+        '<button id="rapportRefreshBtn" type="button" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;">↻</button>' +
+      '</div>' +
+    '</div>' +
 
-</button>' +
-        '<button id="rapportRefreshBtn" type="button" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;">↻</button>' +
-      '</div>' +
-    '</div>' +
+    '<div style="padding:14px;overflow:auto;flex:1;">' +
 
-    '<div style="padding:14px;overflow:auto;flex:1;">' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">' +
+        '<input id="rapportDateStart" type="date" value="' + startValue + '" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
+        '<input id="rapportDateEnd" type="date" value="' + endValue + '" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
+      '</div>' +
 
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">' +
-        '<input id="rapportDateStart" type="date" value="' + startValue + '" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
-        '<input id="rapportDateEnd" type="date" value="' + endValue + '" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
-      '</div>' +
+      '<div style="background:#fff;padding:18px 16px;margin-bottom:18px;">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;row-gap:8px;font-size:18px;line-height:1.5;">' +
+          '<div style="text-align:center;font-weight:700;">Ventes</div><div style="text-align:center;font-weight:700;">' + vente.toFixed(2) + '</div>' +
+          '<div style="text-align:center;font-weight:700;">Prix</div><div style="text-align:center;font-weight:700;">' + prime.toFixed(2) + '</div>' +
+          '<div style="text-align:center;font-weight:700;">Commission</div><div style="text-align:center;font-weight:700;">' + commission.toFixed(2) + '</div>' +
+          '<div style="text-align:center;font-weight:700;">Résultat</div><div style="text-align:center;font-weight:700;">' + resultat.toFixed(2) + '</div>' +
+        '</div>' +
+      '</div>' +
 
-      '<div style="background:#fff;padding:18px 16px;margin-bottom:18px;">' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;row-gap:8px;font-size:18px;line-height:1.5;">' +
-          '<div style="text-align:center;font-weight:700;">Ventes</div><div style="text-align:center;font-weight:700;">' + vente.toFixed(2) + '</div>' +
-          '<div style="text-align:center;font-weight:700;">Prix</div><div style="text-align:center;font-weight:700;">' + prime.toFixed(2) + '</div>' +
-          '<div style="text-align:center;font-weight:700;">Commission</div><div style="text-align:center;font-weight:700;">' + commission.toFixed(2) + '</div>' +
-          '<div style="text-align:center;font-weight:700;">Résultat</div><div style="text-align:center;font-weight:700;">' + resultat.toFixed(2) + '</div>' +
-        '</div>' +
-      '</div>' +
+      '<div style="background:#fff;padding:18px 16px;margin-bottom:18px;text-align:center;">' +
+        '<div style="font-size:22px;font-weight:700;margin-bottom:18px;">RESUMEN POR DÍA</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:14px;">' +
+          '<div>VENTE</div>' +
+          '<div>PRIME</div>' +
+          '<div>BALANCE</div>' +
+        '</div>' +
+        daysHtml +
+      '</div>' +
 
-      '<div style="background:#fff;padding:18px 16px;margin-bottom:18px;text-align:center;">' +
-        '<div style="font-size:22px;font-weight:700;margin-bottom:18px;">RESUMEN POR DÍA</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:14px;">' +
-          '<div>VENTE</div>' +
-          '<div>PRIME</div>' +
-          '<div>BALANCE</div>' +
-        '</div>' +
-        daysHtml +
-      '</div>' +
+      '<div style="background:#fff;padding:18px 16px;text-align:center;">' +
+        '<div style="font-size:22px;font-weight:700;margin-bottom:18px;">RESUMEN POR LOTERÍA</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:14px;">' +
+          '<div>VENTE</div>' +
+          '<div>PRIME</div>' +
+          '<div>BALANCE</div>' +
+        '</div>' +
+        loterieHtml +
+      '</div>' +
 
-      '<div style="background:#fff;padding:18px 16px;text-align:center;">' +
-        '<div style="font-size:22px;font-weight:700;margin-bottom:18px;">RESUMEN POR LOTERÍA</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:14px;">' +
-          '<div>VENTE</div>' +
-          '<div>PRIME</div>' +
-          '<div>BALANCE</div>' +
-        '</div>' +
-        loterieHtml +
-      '</div>' +
+    '</div>' +
+  '</div>';
 
-    '</div>' +
-  '</div>';
+  var backBtn = document.getElementById("rapportBackBtn");
+  var refreshBtn = document.getElementById("rapportRefreshBtn");
+  var printBtn = document.getElementById("rapportPrintBtn");
+  var startInput = document.getElementById("rapportDateStart");
+  var endInput = document.getElementById("rapportDateEnd");
 
-  var backBtn = document.getElementById("rapportBackBtn");
-  var refreshBtn = document.getElementById("rapportRefreshBtn");
-  var printBtn = document.getElementById("rapportPrintBtn");
-  var startInput = document.getElementById("rapportDateStart");
-  var endInput = document.getElementById("rapportDateEnd");
+  if(backBtn){
+    backBtn.addEventListener("click", function(){
+      switchPage("billetsPage", document.getElementById("nav-billets"));
+    });
+  }
 
-  if(backBtn){
-    backBtn.addEventListener("click", function(){
-      switchPage("billetsPage", document.getElementById("nav-billets"));
-    });
-  }
+  if(refreshBtn){
+    refreshBtn.addEventListener("click", function(){
+      loadBillets();
+    });
+  }
 
-  if(refreshBtn){
-    refreshBtn.addEventListener("click", function(){
-      loadBillets();
-    });
-  }
+  if(printBtn){
+    printBtn.addEventListener("click", function(){
+      window.print();
+    });
+  }
 
-  if(printBtn){
-    printBtn.addEventListener("click", function(){
-      window.print();
-    });
-  }
+  if(startInput){
+    startInput.addEventListener("change", function(){
+      renderRapports();
+    });
+  }
 
-  if(startInput){
-    startInput.addEventListener("change", function(){
-      renderRapports();
-    });
-  }
-
-  if(endInput){
-    endInput.addEventListener("change", function(){
-      renderRapports();
-    });
-  }
+  if(endInput){
+    endInput.addEventListener("change", function(){
+      renderRapports();
+    });
+  }
 }
 
 
 function updateTicketStatus(id, status, premio){
- fetch("/api/ticket-status", {
- method: "POST",
- headers: { "Content-Type": "application/json" },
- body: JSON.stringify({
-   id: id,
-   status: status,
-   premio: premio || 0
- })
- }).then(function(res){
- return res.json();
- }).then(function(){
- loadBillets();
- }).catch(function(){
- alert("Erreur mise à jour status");
- });
+ fetch("/api/ticket-status", {
+ method: "POST",
+ headers: { "Content-Type": "application/json" },
+ body: JSON.stringify({
+   id: id,
+   status: status,
+   premio: premio || 0
+ })
+ }).then(function(res){
+ return res.json();
+ }).then(function(){
+ loadBillets();
+ }).catch(function(){
+ alert("Erreur mise à jour status");
+ });
+}
+
+function copyFromTicket(ticket){
+  if(!ticket || !ticket.jeux){
+    alert("Ticket pa valid");
+    return;
+  }
+
+  jeux = [];
+  selectedLoteries = [];
+  numero = "";
+  cursorNumero = 0;
+  activeField = "numero";
+
+  ticket.jeux.forEach(function(j){
+    jeux.push({
+      type: j.type,
+      numero: j.numero,
+      loterie: j.loterie,
+      montant: Number(j.montant || 0)
+    });
+
+    if(selectedLoteries.indexOf(j.loterie) < 0){
+      selectedLoteries.push(j.loterie);
+    }
+  });
+
+  renderJeux();
+  updateFields();
+
+  switchPage("salePage", document.getElementById("nav-billets"));
 }
 
 function copyTicketById(){
@@ -2600,73 +2500,6 @@ function copyTicketById(){
    return;
  }
 
- var choix = prompt(
-   "1 - Copie exacte\n" +
-   "2 - Modifier les montants\n" +
-   "3 - Changer de loterie"
- );
-
- if(choix === null) return;
-
- if(choix !== "1" && choix !== "2" && choix !== "3"){
-   alert("Chwazi 1, 2 ou 3");
-   return;
- }
-
- var amounts = null;
- var newLoteries = null;
-
- if(choix === "2"){
-   amounts = {};
-   var hasBor = false;
-   var hasMar = false;
-   var hasLoto = false;
-
-   (ticket.jeux || []).forEach(function(j){
-     var t = String(j.type || "").toUpperCase();
-     if(t === "BOR") hasBor = true;
-     if(t === "MAR") hasMar = true;
-     if(t === "L1" || t === "L2" || t === "L3" || t === "L4" || t === "L5") hasLoto = true;
-   });
-
-   if(hasBor){
-     var bor = prompt("Montant Bolèt:");
-     if(bor === null) return;
-     amounts.BOR = Number(bor || 0);
-   }
-
-   if(hasMar){
-     var mar = prompt("Montant Maryaj:");
-     if(mar === null) return;
-     amounts.MAR = Number(mar || 0);
-   }
-
-   if(hasLoto){
-     var loto = prompt("Montant Loto:");
-     if(loto === null) return;
-     amounts.LOTO = Number(loto || 0);
-   }
- }
-
- if(choix === "2" || choix === "3"){
-   var list = loteries.map(function(l, i){
-     return (i + 1) + " - " + l.name;
-   }).join("\n");
-
-   var rep = prompt("Chwazi loterie yo:\n" + list + "\n\nEgzanp: 1,4,7");
-   if(!rep) return;
-
-   newLoteries = rep.split(",").map(function(x){
-     var idx = Number(x.trim()) - 1;
-     return loteries[idx] ? loteries[idx].name : null;
-   }).filter(Boolean);
-
-   if(!newLoteries.length){
-     alert("Ou pa chwazi okenn loterie valid");
-     return;
-   }
- }
-
  jeux = [];
  selectedLoteries = [];
  numero = "";
@@ -2675,31 +2508,16 @@ function copyTicketById(){
 
  if(Array.isArray(ticket.jeux)){
    ticket.jeux.forEach(function(j){
-     var lots = newLoteries && newLoteries.length ? newLoteries : [j.loterie];
-
-     lots.forEach(function(lot){
-       var t = String(j.type || "").toUpperCase();
-       var cat = "OTHER";
-       if(t === "BOR") cat = "BOR";
-       if(t === "MAR") cat = "MAR";
-       if(t === "L1" || t === "L2" || t === "L3" || t === "L4" || t === "L5") cat = "LOTO";
-
-       var montantFinal = Number(j.montant || 0);
-       if(amounts && amounts[cat] !== undefined){
-         montantFinal = Number(amounts[cat] || 0);
-       }
-
-       jeux.push({
-         type: j.type,
-         numero: j.numero,
-         loterie: lot,
-         montant: montantFinal
-       });
-
-       if(selectedLoteries.indexOf(lot) < 0){
-         selectedLoteries.push(lot);
-       }
+     jeux.push({
+       type: j.type,
+       numero: j.numero,
+       loterie: j.loterie,
+       montant: Number(j.montant || 0)
      });
+
+     if(selectedLoteries.indexOf(j.loterie) < 0){
+       selectedLoteries.push(j.loterie);
+     }
    });
  }
 
@@ -2722,61 +2540,61 @@ loadBillets();
 });
 
 app.get("/print", (req, res) => {
-  const ticketId = String(req.query.ticketId || "").trim();
-  const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
+  const ticketId = String(req.query.ticketId || "").trim();
+  const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
 
-  const tickets = loadTickets();
-  const ticket = tickets.find((t) => String(t.id) === ticketId);
+  const tickets = loadTickets();
+  const ticket = tickets.find((t) => String(t.id) === ticketId);
 
-  if (!ticket) {
-    return res.status(404).send("Ticket introuvable");
-  }
+  if (!ticket) {
+    return res.status(404).send("Ticket introuvable");
+  }
 
-  const vendeurs = loadVendeursForLogin();
-  const vendeur = vendeurs[sellerId] || {};
-  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
+  const vendeurs = loadVendeursForLogin();
+  const vendeur = vendeurs[sellerId] || {};
+  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
 
-  const total = Number(ticket.total || 0);
-  const now = new Date(ticket.createdAt || Date.now());
+  const total = Number(ticket.total || 0);
+  const now = new Date(ticket.createdAt || Date.now());
 
-  const dateStr = now.toLocaleDateString("fr-FR");
-  const timeStr = now.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  const dateStr = now.toLocaleDateString("fr-FR");
+  const timeStr = now.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 
-  const grouped = {};
-  (ticket.jeux || []).forEach(function(j){
-    const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
-    if (!grouped[lot]) grouped[lot] = [];
-    grouped[lot].push(j);
-  });
+  const grouped = {};
+  (ticket.jeux || []).forEach(function(j){
+    const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
+    if (!grouped[lot]) grouped[lot] = [];
+    grouped[lot].push(j);
+  });
 
-  let gamesHtml = "";
+  let gamesHtml = "";
 
-  Object.keys(grouped).forEach(function(loterie){
-    gamesHtml += '<div class="tirage">' + loterie + '</div>';
+  Object.keys(grouped).forEach(function(loterie){
+    gamesHtml += '<div class="tirage">' + loterie + '</div>';
 
-    grouped[loterie].forEach(function(j){
-      let type = String(j.type || "").toUpperCase();
-      if (type === "BOR") type = "Borlette";
-      else if (type === "MAR") type = "Mariage";
-      else if (type === "L3") type = "Loto 3";
-      else if (type === "L4") type = "Loto 4";
+    grouped[loterie].forEach(function(j){
+      let type = String(j.type || "").toUpperCase();
+      if (type === "BOR") type = "Borlette";
+      else if (type === "MAR") type = "Mariage";
+      else if (type === "L3") type = "Loto 3";
+      else if (type === "L4") type = "Loto 4";
 
-      gamesHtml +=
-        '<div class="game-row">' +
-          '<div class="col-type">' + type + '</div>' +
-          '<div class="col-num">' + String(j.numero || "") + '</div>' +
-          '<div class="col-amt">' + Number(j.montant || 0).toFixed(2) + '</div>' +
-        '</div>';
-    });
+      gamesHtml +=
+        '<div class="game-row">' +
+          '<div class="col-type">' + type + '</div>' +
+          '<div class="col-num">' + String(j.numero || "") + '</div>' +
+          '<div class="col-amt">' + Number(j.montant || 0).toFixed(2) + '</div>' +
+        '</div>';
+    });
 
-    gamesHtml += '<div class="line"></div>';
-  });
+    gamesHtml += '<div class="line"></div>';
+  });
 
-  res.set("Content-Type", "text/html; charset=utf-8");
-  res.send(`
+  res.set("Content-Type", "text/html; charset=utf-8");
+  res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -2785,101 +2603,101 @@ app.get("/print", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 @page{
-  size: 58mm auto;
-  margin: 0;
+  size: 58mm auto;
+  margin: 0;
 }
 html,body{
-  margin:0;
-  padding:0;
-  background:#fff;
+  margin:0;
+  padding:0;
+  background:#fff;
 }
 body{
-  width:42mm;
-  margin:0 auto;
-  padding:1mm 1mm 2mm 1mm;
-  font-family:monospace;
-  color:#000;
-  font-size:9px;
-  line-height:1.15;
+  width:42mm;
+  margin:0 auto;
+  padding:1mm 1mm 2mm 1mm;
+  font-family:monospace;
+  color:#000;
+  font-size:9px;
+  line-height:1.15;
 }
 .ticket{
-  width:100%;
+  width:100%;
 }
 .title{
-  text-align:center;
-  font-size:10px;
-  font-weight:700;
-  margin:0 0 4px 0;
-  white-space:nowrap;
+  text-align:center;
+  font-size:10px;
+  font-weight:700;
+  margin:0 0 4px 0;
+  white-space:nowrap;
 }
 .meta{
-  margin:0 0 3px 0;
+  margin:0 0 3px 0;
 }
 .meta-line{
-  white-space:nowrap;
+  white-space:nowrap;
 }
 .line{
-  border-top:1px dashed #000;
-  margin:3px 0;
+  border-top:1px dashed #000;
+  margin:3px 0;
 }
 .tirage{
-  font-size:9px;
-  font-weight:700;
-  margin:3px 0 2px 0;
-  white-space:nowrap;
+  font-size:9px;
+  font-weight:700;
+  margin:3px 0 2px 0;
+  white-space:nowrap;
 }
 .game-row{
-  display:grid;
-  grid-template-columns: 1fr 24px 32px;
-  column-gap:3px;
-  align-items:center;
-  margin:0;
+  display:grid;
+  grid-template-columns: 1fr 24px 32px;
+  column-gap:3px;
+  align-items:center;
+  margin:0;
 }
 .col-type{
-  white-space:nowrap;
-  overflow:hidden;
+  white-space:nowrap;
+  overflow:hidden;
 }
 .col-num{
-  text-align:left;
-  white-space:nowrap;
+  text-align:left;
+  white-space:nowrap;
 }
 .col-amt{
-  text-align:right;
-  white-space:nowrap;
+  text-align:right;
+  white-space:nowrap;
 }
 .total{
-  font-size:10px;
-  font-weight:700;
-  margin-top:2px;
-  white-space:nowrap;
+  font-size:10px;
+  font-weight:700;
+  margin-top:2px;
+  white-space:nowrap;
 }
 </style>
 </head>
 <body>
 <div class="ticket">
-  <div class="title">NUMBER ONE LOTO</div>
+  <div class="title">NUMBER ONE LOTO</div>
 
-  <div class="meta">
-    <div class="meta-line">SELLER ${sellerName}</div>
-    <div class="meta-line">TICKET ${ticket.id}</div>
-    <div class="meta-line">DATE ${dateStr} ${timeStr}</div>
-  </div>
+  <div class="meta">
+    <div class="meta-line">SELLER ${sellerName}</div>
+    <div class="meta-line">TICKET ${ticket.id}</div>
+    <div class="meta-line">DATE ${dateStr} ${timeStr}</div>
+  </div>
 
-  <div class="line"></div>
+  <div class="line"></div>
 
-  ${gamesHtml}
+  ${gamesHtml}
 
-  <div class="total">TOTAL: ${total.toFixed(2)} G</div>
+  <div class="total">TOTAL: ${total.toFixed(2)} G</div>
 </div>
 
 <script>
 setTimeout(function(){
-  try { window.print(); } catch(e) {}
+  try { window.print(); } catch(e) {}
 }, 300);
 </script>
 </body>
 </html>
-  `);
+  `);
 });
 
 
@@ -2888,29 +2706,28 @@ const adminRoutes = require("./admin");
 app.use(adminRoutes);
 
 function loadTickets() {
- try {
- if (!fs.existsSync(TICKETS_FILE)) return [];
- const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
- if (!raw) return [];
- return JSON.parse(raw);
- } catch (e) {
- return [];
- }
+ try {
+ if (!fs.existsSync(TICKETS_FILE)) return [];
+ const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
+ if (!raw) return [];
+ return JSON.parse(raw);
+ } catch (e) {
+ return [];
+ }
 }
 
 app.get("/tickets/:vendeur", (req, res) => {
- const vendeurId = String(req.params.vendeur || "").toUpperCase();
- const tickets = loadTickets();
+ const vendeurId = String(req.params.vendeur || "").toUpperCase();
+ const tickets = loadTickets();
 
- const result = tickets.filter(t =>
- String(t.vendeur || "").toUpperCase() === vendeurId
- );
+ const result = tickets.filter(t =>
+ String(t.vendeur || "").toUpperCase() === vendeurId
+ );
 
- res.json(result);
+ res.json(result);
 });
 
 
 app.listen(3000, "0.0.0.0", () => {
- console.log("Server ap mache sou rezo a");
+ console.log("Server ap mache sou rezo a");
 });
-

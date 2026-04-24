@@ -2460,50 +2460,7 @@ function updateTicketStatus(id, status, premio){
  });
 }
 
-function copyTicketById(){
- var id = document.getElementById("copyTicketId").value.trim();
- if(!id){
- alert("Mete nimewo seri a");
- return;
- }
 
- fetch("/api/ticket/" + encodeURIComponent(id))
- .then(function(res){ return res.json(); })
- .then(function(ticket){
- if(!ticket || !ticket.id){
-   alert("Ticket pa jwenn");
-   return;
- }
-
- jeux = [];
- selectedLoteries = [];
- numero = "";
- cursorNumero = 0;
- activeField = "numero";
-
- if(Array.isArray(ticket.jeux)){
-   ticket.jeux.forEach(function(j){
-     jeux.push({
-       type: j.type,
-       numero: j.numero,
-       loterie: j.loterie,
-       montant: Number(j.montant || 0)
-     });
-
-     if(selectedLoteries.indexOf(j.loterie) < 0){
-       selectedLoteries.push(j.loterie);
-     }
-   });
- }
-
- renderJeux();
- updateFields();
- switchPage("salePage", document.getElementById("nav-billets"));
- })
- .catch(function(){
- alert("Erreur lecture ticket");
- });
-}
 
 function copyFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)){

@@ -2245,37 +2245,35 @@ function renderBillets(){
   });
 }
 
-function copyFromTicket(ticket){
+function handleCopyLoterie(){
+  var id = document.getElementById("copyTicketId").value.trim();
 
-  if(!ticket || !Array.isArray(ticket.jeux)){
-    alert("Ticket pa valid");
+  if(!id){
+    alert("Mete nimewo seri a");
     return;
   }
 
-  // reset tout bagay
-  jeux = [];
-  selectedLoteries = [];
-  numero = "";
-  montant = "";
-
-  ticket.jeux.forEach(function(j){
-
-    jeux.push({
-      type: j.type,
-      numero: j.numero,
-      loterie: j.loterie,
-      montant: Number(j.montant || 0)
-    });
-
-    if(selectedLoteries.indexOf(j.loterie) < 0){
-      selectedLoteries.push(j.loterie);
+  fetch("/api/ticket/" + encodeURIComponent(id))
+  .then(res => res.json())
+  .then(ticket => {
+    if(!ticket || !ticket.id){
+      alert("Ticket pa jwenn");
+      return;
     }
-  });
 
-  renderJeux();
-  updateFields();
-  switchPage("salePage", document.getElementById("nav-billets"));
+    selectedTicketToCopy = ticket;
+
+    // aktive mode copy
+    copyMode = true;
+
+    // ouvri loterie modal ou deja genyen
+    openLoterieModal();
+  })
+  .catch(() => {
+    alert("Erreur");
+  });
 }
+
 
 
 

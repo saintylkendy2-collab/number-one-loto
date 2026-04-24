@@ -2460,63 +2460,56 @@ function updateTicketStatus(id, status, premio){
  });
 }
 
+function copyTicketById(){
+ var id = document.getElementById("copyTicketId").value.trim();
+ if(!id){
+ alert("Mete nimewo seri a");
+ return;
+ }
 
+ fetch("/api/ticket/" + encodeURIComponent(id))
+ .then(function(res){ return res.json(); })
+ .then(function(ticket){
+ if(!ticket || !ticket.id){
+   alert("Ticket pa jwenn");
+   return;
+ }
+
+ jeux = [];
+ selectedLoteries = [];
+ numero = "";
+ cursorNumero = 0;
+ activeField = "numero";
+
+ if(Array.isArray(ticket.jeux)){
+   ticket.jeux.forEach(function(j){
+     jeux.push({
+       type: j.type,
+       numero: j.numero,
+       loterie: j.loterie,
+       montant: Number(j.montant || 0)
+     });
+
+     if(selectedLoteries.indexOf(j.loterie) < 0){
+       selectedLoteries.push(j.loterie);
+     }
+   });
+ }
+
+ renderJeux();
+ updateFields();
+ switchPage("salePage", document.getElementById("nav-billets"));
+ })
+ .catch(function(){
+ alert("Erreur lecture ticket");
+ });
+}
 
 function copyFromTicket(ticket){
-  if(!ticket || !Array.isArray(ticket.jeux)){
-    alert("Ticket pa valid");
-    return;
-  }
-
-  var choix = prompt(
-    "1 - Copie exacte\n" +
-    "2 - Modifier les montants\n" +
-    "3 - Changer de loterie"
-  );
-
-  if(!choix) return;
-
-  jeux = [];
-  selectedLoteries = [];
-  numero = "";
-  cursorNumero = 0;
-  activeField = "numero";
-
-  ticket.jeux.forEach(function(j){
-    var montant = Number(j.montant || 0);
-
-    if(choix === "2"){
-      var nouvo = prompt("Nouvo montant pou " + j.numero, montant);
-      if(nouvo !== null){
-        montant = Number(nouvo) || 0;
-      }
-    }
-
-    var loterie = j.loterie;
-
-    if(choix === "3"){
-      var nouvoLot = prompt("Nouvo loterie", j.loterie);
-      if(nouvoLot){
-        loterie = nouvoLot;
-      }
-    }
-
-    jeux.push({
-      type: j.type,
-      numero: j.numero,
-      loterie: loterie,
-      montant: montant
-    });
-
-    if(selectedLoteries.indexOf(loterie) < 0){
-      selectedLoteries.push(loterie);
-    }
-  });
-
-  renderJeux();
-  updateFields();
-  switchPage("salePage", document.getElementById("nav-billets"));
+    alert("Ticket chwazi pou kopye");
 }
+
+ 
 
 renderJeux();
 updateFields();

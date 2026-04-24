@@ -2254,6 +2254,12 @@ function renderBillets(){
 var selectedTicketToCopy = null;
 var copyMode = false;
 
+function feedbackTouch(){
+  if(navigator.vibrate){
+    navigator.vibrate(40);
+  }
+}
+
 function renderBillets(){
   var wrap = document.getElementById("billetsWrap");
 
@@ -2303,21 +2309,24 @@ function renderBillets(){
 
     var actions = document.createElement("div");
     actions.className = "billet-actions";
-    actions.style.gridTemplateColumns = "1fr 1fr 1fr";
+    actions.style.gridTemplateColumns = "repeat(4,1fr)";
     actions.innerHTML =
       '<button class="small-btn btn-green">COPIE</button>' +
       '<button class="small-btn btn-yellow">LOTERIE</button>' +
+      '<button class="small-btn btn-yellow">MONTANT</button>' +
       '<button class="small-btn btn-gray">ANILE</button>';
 
     var btns = actions.querySelectorAll("button");
 
     btns[0].onclick = function(e){
       e.stopPropagation();
+      feedbackTouch();
       copyFromTicket(t);
     };
 
     btns[1].onclick = function(e){
       e.stopPropagation();
+      feedbackTouch();
       selectedTicketToCopy = t;
       copyMode = true;
       selectedLoteries = [];
@@ -2328,7 +2337,27 @@ function renderBillets(){
 
     btns[2].onclick = function(e){
       e.stopPropagation();
-      updateTicketStatus(t.id, "ANILE");
+      feedbackTouch();
+
+      var newMontant = prompt("Mete nouvo montant lan:");
+      if(newMontant === null) return;
+
+      newMontant = Number(newMontant || 0);
+      if(newMontant <= 0){
+        alert("Montant pa valid");
+        return;
+      }
+
+      copyFromTicketWithMontant(t, newMontant);
+    };
+
+    btns[3].onclick = function(e){
+      e.stopPropagation();
+      feedbackTouch();
+
+      if(confirm("Ou sèten ou vle anile ticket sa?")){
+        updateTicketStatus(t.id, "ANILE");
+      }
     };
 
     card.appendChild(actions);
@@ -2356,6 +2385,38 @@ function copyFromTicket(ticket){
       numero: j.numero,
       loterie: j.loterie,
       montant: Number(j.montant || 0)
+    });
+
+    if(selectedLoteries.indexOf(j.loterie) < 0){
+      selectedLoteries.push(j.loterie);
+    }
+  });
+
+  renderJeux();
+  updateFields();
+  switchPage("salePage", document.getElementById("nav-billets"));
+}
+
+function copyFromTicketWithMontant(ticket, newMontant){
+  if(!ticket || !Array.isArray(ticket.jeux)){
+    alert("Ticket pa valid");
+    return;
+  }
+
+  jeux = [];
+  selectedLoteries = [];
+  numero = "";
+  montant = "";
+  cursorNumero = 0;
+  cursorMontant = 0;
+  activeField = "numero";
+
+  ticket.jeux.forEach(function(j){
+    jeux.push({
+      type: j.type,
+      numero: j.numero,
+      loterie: j.loterie,
+      montant: Number(newMontant || 0)
     });
 
     if(selectedLoteries.indexOf(j.loterie) < 0){

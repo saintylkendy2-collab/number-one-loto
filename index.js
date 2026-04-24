@@ -2276,6 +2276,7 @@ function handleCopyLoterie(){
 }
 
 
+
 function renderRapports(){
   var box = document.getElementById("rapportsPage");
   if(!box) return;

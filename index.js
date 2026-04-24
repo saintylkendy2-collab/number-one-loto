@@ -2154,16 +2154,6 @@ function loadBillets(){
 }
 
 
-var selectedTicketToCopy = null;
-var copyMode = "";
-var pendingCopyType = "";
-var pendingCopyMontant = 0;
-
-function feedbackTouch(){
-  if(navigator.vibrate){
-    navigator.vibrate(30);
-  }
-}
 
 function renderBillets(){
   var wrap = document.getElementById("billetsWrap");

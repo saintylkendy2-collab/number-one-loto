@@ -2181,9 +2181,11 @@ function renderBillets(){
  var card = document.createElement("div");
  card.className = "billet-card";
 
-card.onclick = function(){
-  alert("CLICK TEST");
+card.onclick = function(e){
+  if(e.target.closest("button")) return;
+  copyFromTicket(t);
 };
+
 
  var premioTxt = Number(t.premio || 0) > 0
  ? ('<div class="billet-meta">Premio: ' + Number(t.premio || 0).toFixed(2) + '</div>')
@@ -2504,7 +2506,7 @@ function copyTicketById(){
 }
 
 function copyFromTicket(ticket){
-  alert("Copy mache");
+    alert("Ticket chwazi pou kopye");
 }
 
 renderJeux();

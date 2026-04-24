@@ -1584,21 +1584,6 @@ function clearLoteries(){
  updateFields();
 }
 
-function validateLoteries(){
- document.getElementById("loterieModal").classList.remove("show");
- document.getElementById("overlay").classList.remove("show");
-
- if(selectedLoteries.length === 0){
-   activeField = "loterie";
-   updateFields();
-   openLoterieModal();
-   return;
- }
-
- activeField = "montant";
- cursorMontant = montant.length;
- updateFields();
-}
 
 function toggleLoterie(name){
  var idx = selectedLoteries.indexOf(name);

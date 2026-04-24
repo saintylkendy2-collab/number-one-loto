@@ -2227,22 +2227,9 @@ function renderBillets(){
  btns[3].onclick = function(){ updateTicketStatus(t.id, "ANILE"); };
 
  card.appendChild(actions);
-
-card.addEventListener("click", function(e){
-  if(e.target.closest("button")) return;
-
-  var choix = prompt(
-    "1 - Copie exacte\n" +
-    "2 - Modifier les montants\n" +
-    "3 - Changer de loterie"
-  );
-
-  if(choix === "1"){
-  copyTicketToJeux(t, null, null);
+ wrap.appendChild(card);
+ });
 }
-});
-
-wrap.appendChild(card);
 
 function renderRapports(){
   var box = document.getElementById("rapportsPage");
@@ -2510,6 +2497,54 @@ function copyTicketById(){
  .catch(function(){
  alert("Erreur lecture ticket");
  });
+}
+
+// ===== COPY SIMPLE SYSTEM =====
+var selectedTicketToCopy = null;
+
+document.addEventListener("click", function(e){
+  var card = e.target.closest(".billet-card");
+  if(!card) return;
+
+  if(e.target.closest("button")) return;
+
+  var index = Array.from(document.querySelectorAll(".billet-card")).indexOf(card);
+  if(index >= 0 && savedTickets[index]){
+    selectedTicketToCopy = savedTickets[index];
+    alert("Ticket pare pou kopye. Peze Copier.");
+  }
+});
+
+function copySelectedTicket(){
+  if(!selectedTicketToCopy){
+    switchPage("copierPage", document.getElementById("nav-copier"));
+    return;
+  }
+
+  jeux = [];
+  selectedLoteries = [];
+  numero = "";
+  cursorNumero = 0;
+  activeField = "numero";
+
+  selectedTicketToCopy.jeux.forEach(function(j){
+    jeux.push({
+      type: j.type,
+      numero: j.numero,
+      loterie: j.loterie,
+      montant: Number(j.montant || 0)
+    });
+
+    if(selectedLoteries.indexOf(j.loterie) < 0){
+      selectedLoteries.push(j.loterie);
+    }
+  });
+
+  selectedTicketToCopy = null;
+
+  renderJeux();
+  updateFields();
+  switchPage("salePage", document.getElementById("nav-billets"));
 }
 
 renderJeux();

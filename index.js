@@ -2197,7 +2197,7 @@ function renderBillets(){
 '</div>';
 
 card.onclick = function(e){
-  if(e.target && e.target.tagName === "BUTTON") return;
+  if(e.target.closest("button")) return;
 
   var choix = prompt("1 - Copie exacte\n2 - Modifier les montants\n3 - Changer de loterie");
 

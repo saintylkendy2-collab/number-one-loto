@@ -2186,25 +2186,15 @@ function renderBillets(){
  : '';
 
  card.innerHTML =
-'<div class="billet-head">' +
-  '<div>' +
-    '<div class="billet-code">#' + t.id + '</div>' +
-    '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
-    '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
-    premioTxt +
-  '</div>' +
-  '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
-'</div>';
-
-card.onclick = function(e){
-  if(e.target.closest("button")) return;
-
-  var choix = prompt("1 - Copie exacte\n2 - Modifier les montants\n3 - Changer de loterie");
-
-  if(choix === "1"){
-    copyTicketByIdDirect(t);
-  }
-};
+ '<div class="billet-head">' +
+   '<div>' +
+     '<div class="billet-code">#' + t.id + '</div>' +
+     '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
+     '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
+     premioTxt +
+   '</div>' +
+   '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
+ '</div>';
 
  if(Array.isArray(t.jeux)){
  t.jeux.forEach(function(j){
@@ -2237,9 +2227,22 @@ card.onclick = function(e){
  btns[3].onclick = function(){ updateTicketStatus(t.id, "ANILE"); };
 
  card.appendChild(actions);
- wrap.appendChild(card);
- });
-}
+
+card.addEventListener("click", function(e){
+  if(e.target.closest("button")) return;
+
+  var choix = prompt(
+    "1 - Copie exacte\n" +
+    "2 - Modifier les montants\n" +
+    "3 - Changer de loterie"
+  );
+
+  if(choix === "1"){
+    copyTicketByIdDirect(t);
+  }
+});
+
+wrap.appendChild(card);
 
 function renderRapports(){
   var box = document.getElementById("rapportsPage");

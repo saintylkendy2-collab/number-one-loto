@@ -2254,6 +2254,88 @@ function renderBillets(){
 var selectedTicketToCopy = null;
 var copyMode = false;
 
+function renderBillets(){
+  var wrap = document.getElementById("billetsWrap");
+
+  if(!savedTickets.length){
+    wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
+    return;
+  }
+
+  wrap.innerHTML = "";
+
+  savedTickets.forEach(function(t){
+    var card = document.createElement("div");
+    card.className = "billet-card";
+
+    var premioTotal = Number(t.premio || 0);
+    var premioTxt = premioTotal > 0
+      ? '<div class="billet-meta" style="font-weight:800;color:#157347;">Gain total: ' + premioTotal.toFixed(2) + '</div>'
+      : '';
+
+    card.innerHTML =
+      '<div class="billet-head">' +
+        '<div>' +
+          '<div class="billet-code">#' + t.id + '</div>' +
+          '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
+          '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
+          premioTxt +
+        '</div>' +
+        '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
+      '</div>';
+
+    if(Array.isArray(t.jeux)){
+      t.jeux.forEach(function(j){
+        var gain = Number(j.gain || j.premio || 0);
+
+        var row = document.createElement("div");
+        row.className = "billet-game";
+        row.innerHTML =
+          '<div>' + j.type + '</div>' +
+          '<div>' + j.numero + ' - ' + j.loterie +
+          (gain > 0 ? '<div style="font-size:13px;font-weight:800;color:#157347;margin-top:3px;">Gain: ' + gain.toFixed(2) + '</div>' : '') +
+          '</div>' +
+          '<div style="text-align:right">' + Number(j.montant || 0).toFixed(2) + '</div>';
+
+        card.appendChild(row);
+      });
+    }
+
+    var actions = document.createElement("div");
+    actions.className = "billet-actions";
+    actions.style.gridTemplateColumns = "1fr 1fr 1fr";
+    actions.innerHTML =
+      '<button class="small-btn btn-green">COPIE</button>' +
+      '<button class="small-btn btn-yellow">LOTERIE</button>' +
+      '<button class="small-btn btn-gray">ANILE</button>';
+
+    var btns = actions.querySelectorAll("button");
+
+    btns[0].onclick = function(e){
+      e.stopPropagation();
+      copyFromTicket(t);
+    };
+
+    btns[1].onclick = function(e){
+      e.stopPropagation();
+      selectedTicketToCopy = t;
+      copyMode = true;
+      selectedLoteries = [];
+      activeField = "loterie";
+      updateFields();
+      openLoterieModal();
+    };
+
+    btns[2].onclick = function(e){
+      e.stopPropagation();
+      updateTicketStatus(t.id, "ANILE");
+    };
+
+    card.appendChild(actions);
+    wrap.appendChild(card);
+  });
+}
+
 function copyFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)){
     alert("Ticket pa valid");
@@ -2284,28 +2366,6 @@ function copyFromTicket(ticket){
   renderJeux();
   updateFields();
   switchPage("salePage", document.getElementById("nav-billets"));
-}
-
-function handleCopyButton(){
-  if(!selectedTicketToCopy){
-    alert("Chwazi yon ticket avan.");
-    return;
-  }
-
-  copyFromTicket(selectedTicketToCopy);
-}
-
-function handleCopyLoterie(){
-  if(!selectedTicketToCopy){
-    alert("Chwazi yon ticket avan.");
-    return;
-  }
-
-  copyMode = true;
-  selectedLoteries = [];
-  activeField = "loterie";
-  updateFields();
-  openLoterieModal();
 }
 
 function validateLoteries(){
@@ -2339,6 +2399,7 @@ function validateLoteries(){
     });
 
     copyMode = false;
+    selectedTicketToCopy = null;
 
     renderJeux();
     updateFields();
@@ -2349,6 +2410,14 @@ function validateLoteries(){
   activeField = "montant";
   cursorMontant = montant.length;
   updateFields();
+}
+
+function handleCopyButton(){
+  alert("Kounya kopye fèt dirèk sou biyè a.");
+}
+
+function handleCopyLoterie(){
+  alert("Kounya chanje loterie fèt dirèk sou biyè a.");
 }
 
 

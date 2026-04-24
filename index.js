@@ -2554,8 +2554,7 @@ function copyFromTicket(ticket){
     if(selectedLoteries.indexOf(loterie) < 0){
       selectedLoteries.push(loterie);
     }
-  });
-  
+      
 renderJeux();
 updateFields();
 loadBillets();

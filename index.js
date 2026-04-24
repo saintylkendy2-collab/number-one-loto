@@ -2168,74 +2168,74 @@ function loadBillets(){
 }
 
 function renderBillets(){
- var wrap = document.getElementById("billetsWrap");
+  var wrap = document.getElementById("billetsWrap");
 
- if(!savedTickets.length){
- wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
- return;
- }
+  if(!savedTickets.length){
+    wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
+    return;
+  }
 
- wrap.innerHTML = "";
+  wrap.innerHTML = "";
 
- savedTickets.forEach(function(t){
- var card = document.createElement("div");
- card.className = "billet-card";
+  savedTickets.forEach(function(t){
+    var card = document.createElement("div");
+    card.className = "billet-card";
 
-card.onclick = function(e){
-  if(e.target.closest("button")) return;
-  copyFromTicket(t);
-};
+    card.onclick = function(e){
+      if(e.target.closest(".billet-actions")) return;
+      copyFromTicket(t);
+    };
 
+    var premioTotal = Number(t.premio || 0);
 
- var premioTxt = Number(t.premio || 0) > 0
- ? ('<div class="billet-meta">Premio: ' + Number(t.premio || 0).toFixed(2) + '</div>')
- : '';
+    var premioTxt = premioTotal > 0
+      ? ('<div class="billet-meta" style="font-weight:800;color:#157347;">Gain total: ' + premioTotal.toFixed(2) + '</div>')
+      : '';
 
- card.innerHTML =
- '<div class="billet-head">' +
-   '<div>' +
-     '<div class="billet-code">#' + t.id + '</div>' +
-     '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
-     '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
-     premioTxt +
-   '</div>' +
-   '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
- '</div>';
+    card.innerHTML =
+    '<div class="billet-head">' +
+      '<div>' +
+        '<div class="billet-code">#' + t.id + '</div>' +
+        '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
+        '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
+        premioTxt +
+      '</div>' +
+      '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
+    '</div>';
 
- if(Array.isArray(t.jeux)){
- t.jeux.forEach(function(j){
- var row = document.createElement("div");
- row.className = "billet-game";
- row.innerHTML =
-   '<div>' + j.type + '</div>' +
-   '<div>' + j.numero + ' - ' + j.loterie + '</div>' +
-   '<div style="text-align:right">' + Number(j.montant || 0).toFixed(2) + '</div>';
- card.appendChild(row);
- });
- }
+    if(Array.isArray(t.jeux)){
+      t.jeux.forEach(function(j){
+        var gain = Number(j.gain || j.premio || 0);
 
- var actions = document.createElement("div");
- actions.className = "billet-actions";
- actions.innerHTML =
- '<button class="small-btn btn-yellow">AN ATAN</button>' +
- '<button class="small-btn btn-green">GANYE</button>' +
- '<button class="small-btn btn-red">PEDI</button>' +
- '<button class="small-btn btn-gray">ANILE</button>';
+        var row = document.createElement("div");
+        row.className = "billet-game";
+        row.innerHTML =
+          '<div>' + j.type + '</div>' +
+          '<div>' + j.numero + ' - ' + j.loterie +
+            (gain > 0 ? '<div style="font-size:13px;font-weight:800;color:#157347;margin-top:3px;">Gain: ' + gain.toFixed(2) + '</div>' : '') +
+          '</div>' +
+          '<div style="text-align:right">' + Number(j.montant || 0).toFixed(2) + '</div>';
+        card.appendChild(row);
+      });
+    }
 
- var btns = actions.querySelectorAll("button");
- btns[0].onclick = function(){ updateTicketStatus(t.id, "ANATAN"); };
- btns[1].onclick = function(){
-   var premio = prompt("Konbyen ticket sa genyen?", Number(t.premio || 0));
-   if(premio === null) return;
-   updateTicketStatus(t.id, "GANYE", premio);
- };
- btns[2].onclick = function(){ updateTicketStatus(t.id, "PEDI"); };
- btns[3].onclick = function(){ updateTicketStatus(t.id, "ANILE"); };
+    var actions = document.createElement("div");
+    actions.className = "billet-actions";
+    actions.style.gridTemplateColumns = "1fr";
+    actions.innerHTML =
+      '<button class="small-btn btn-gray">ANILE</button>';
 
- card.appendChild(actions);
- wrap.appendChild(card);
- });
+    var btns = actions.querySelectorAll("button");
+    btns[0].onclick = function(e){
+      e.stopPropagation();
+      updateTicketStatus(t.id, "ANILE");
+    };
+
+    card.appendChild(actions);
+    wrap.appendChild(card);
+  });
 }
+
 
 function renderRapports(){
   var box = document.getElementById("rapportsPage");

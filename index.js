@@ -2270,17 +2270,25 @@ function handleCopyButton(){
   }
 
   if(choix === "3"){
-    var list = loteries.map(function(l, i){
-      return (i + 1) + " - " + l.name;
-    }).join("\n");
+  var uniqueLots = [];
+
+  selectedTicketToCopy.jeux.forEach(function(j){
+    if(uniqueLots.indexOf(j.loterie) < 0){
+      uniqueLots.push(j.loterie);
+    }
+  });
+
+  var list = uniqueLots.map(function(l, i){
+    return (i + 1) + " - " + l;
+  }).join("\n");
 
     var rep = prompt("Chwazi loterie yo:\n" + list + "\n\nEgzanp: 1,4,7");
     if(rep === null) return;
 
     newLoteries = rep.split(",").map(function(x){
-      var idx = Number(x.trim()) - 1;
-      return loteries[idx] ? loteries[idx].name : null;
-    }).filter(Boolean);
+  var idx = Number(x.trim()) - 1;
+  return uniqueLots[idx] || null;
+}).filter(Boolean);
 
     if(!newLoteries.length){
       alert("Ou pa chwazi loterie");

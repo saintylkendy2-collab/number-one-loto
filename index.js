@@ -1068,7 +1068,7 @@ border-bottom:1px dashed #eee;
 .billet-game:last-child{border-bottom:none;}
 .billet-actions{
 display:grid;
-grid-template-columns:repeat(4,1fr);
+grid-template-columns:repeat(5,1fr);
 gap:8px;
 margin-top:10px;
 }
@@ -2340,22 +2340,23 @@ function renderBillets(){
     actions.className = "billet-actions";
     actions.style.gridTemplateColumns = "repeat(5,1fr)";
     actions.innerHTML =
-      '<button class="small-btn btn-yellow">AN ATAN</button>' +
-      '<button class="small-btn btn-green">GANYE</button>' +
-      '<button class="small-btn btn-red">PEDI</button>' +
-      '<button class="small-btn btn-gray">ANILE</button>' +
-      '<button class="small-btn btn-yellow">COPIER</button>';
+      '<button type="button" class="small-btn btn-yellow">AN ATAN</button>' +
+      '<button type="button" class="small-btn btn-green">GANYE</button>' +
+      '<button type="button" class="small-btn btn-red">PEDI</button>' +
+      '<button type="button" class="small-btn btn-gray">ANILE</button>' +
+      '<button type="button" class="small-btn btn-yellow">COPIER</button>';
 
     var btns = actions.querySelectorAll("button");
-    btns[0].onclick = function(){ updateTicketStatus(t.id, "ANATAN"); };
-    btns[1].onclick = function(){
+    btns[0].onclick = function(e){ if(e) e.stopPropagation(); updateTicketStatus(t.id, "ANATAN"); };
+    btns[1].onclick = function(e){
+      if(e) e.stopPropagation();
       var premio = prompt("Konbyen ticket sa genyen?", Number(t.premio || 0));
       if(premio === null) return;
       updateTicketStatus(t.id, "GANYE", premio);
     };
-    btns[2].onclick = function(){ updateTicketStatus(t.id, "PEDI"); };
-    btns[3].onclick = function(){ updateTicketStatus(t.id, "ANILE"); };
-    btns[4].onclick = function(){ openCopyOptions(t); };
+    btns[2].onclick = function(e){ if(e) e.stopPropagation(); updateTicketStatus(t.id, "PEDI"); };
+    btns[3].onclick = function(e){ if(e) e.stopPropagation(); updateTicketStatus(t.id, "ANILE"); };
+    btns[4].onclick = function(e){ if(e) e.stopPropagation(); openCopyOptions(t); };
 
     card.appendChild(actions);
     wrap.appendChild(card);

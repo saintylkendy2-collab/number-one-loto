@@ -2506,7 +2506,48 @@ function copyTicketById(){
 }
 
 function copyFromTicket(ticket){
-    alert("Ticket chwazi pou kopye");
+  if(!ticket || !Array.isArray(ticket.jeux)){
+    alert("Ticket pa valid");
+    return;
+  }
+
+  jeux = [];
+  selectedLoteries = [];
+  numero = "";
+  montant = "";
+  cursorNumero = 0;
+  cursorMontant = 0;
+  activeField = "numero";
+
+  ticket.jeux.forEach(function(j){
+    jeux.push({
+      type: j.type,
+      numero: j.numero,
+      loterie: j.loterie,
+      montant: Number(j.montant || 0)
+    });
+
+    if(selectedLoteries.indexOf(j.loterie) < 0){
+      selectedLoteries.push(j.loterie);
+    }
+  });
+
+  renderJeux();
+  updateFields();
+
+  document.querySelectorAll(".page").forEach(function(p){
+    p.classList.remove("active");
+  });
+
+  document.getElementById("salePage").classList.add("active");
+
+  document.querySelectorAll(".nav-item").forEach(function(n){
+    n.classList.remove("active");
+  });
+
+  document.getElementById("nav-billets").classList.add("active");
+
+  currentPageName = "salePage";
 }
 
  

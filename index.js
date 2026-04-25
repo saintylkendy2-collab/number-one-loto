@@ -1133,7 +1133,7 @@ border-right:1px solid #ddd;
 </head>
 <body>
 <div class="app">
-<div id="overlay" class="overlay" onclick="forceCloseAll()"></div>
+<div id="overlay" class="overlay" onclick="closeAllScreens()"></div>
 
 <div class="topbar">
 <div class="top-left">
@@ -2963,11 +2963,16 @@ function closeAllScreens(){
   var drawer = document.getElementById("drawer");
   var overlay = document.getElementById("overlay");
   var sheet = document.getElementById("optionsSheet");
+  var loterieModal = document.getElementById("loterieModal");
 
   if(drawer) drawer.classList.remove("open");
   if(sheet) sheet.classList.remove("open");
+  if(loterieModal) loterieModal.classList.remove("show");
   if(overlay) overlay.classList.remove("show");
+
+  switchPage("salePage", document.getElementById("nav-billets"));
 }
+
 
 
 // ====== DRAWER FUNCTIONS ======

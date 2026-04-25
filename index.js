@@ -1207,7 +1207,7 @@ border-right:1px solid #ddd;
 <input id="copyTicketId" class="copy-input" placeholder="Mete nimewo seri ticket la">
 <button class="copy-btn" onclick="handleCopyButton()">Copie exacte</button>
 <button class="copy-btn" onclick="handleCopyLoterie()">Changer loterie</button>
-<button class="copy-btn" onclick="alert('test montant')">Modifier montant</button>
+<button class="copy-btn" onclick="handleCopyMontant()">Modifier montant</button>
 <div class="copy-note">
 Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran an pou rekopye yo.
 </div>
@@ -2393,117 +2393,11 @@ function validateLoteries(){
 }
 
 function handleCopyButton(){
-  copyTicketById();
+  alert("Kounya kopye fèt dirèk sou biyè a.");
 }
 
 function handleCopyLoterie(){
-  alert("Changer loterie rete sou bouton LOTERIE ki sou biyè a.");
-}
-
-function handleCopyMontant(){
-  var id = document.getElementById("copyTicketId").value.trim();
-
-  if(!id){
-    alert("Mete nimewo seri ticket la");
-    return;
-  }
-
-  fetch("/api/ticket/" + encodeURIComponent(id))
-  .then(function(res){ return res.json(); })
-  .then(function(ticket){
-    if(!ticket || !ticket.id || !Array.isArray(ticket.jeux)){
-      alert("Ticket pa jwenn");
-      return;
-    }
-
-    var typeChoix = prompt(
-      "Ki jwèt ou vle chanje montant lan?\n" +
-      "1 - BOR / Bolèt\n" +
-      "2 - MAR / Maryaj\n" +
-      "3 - L3\n" +
-      "4 - L4\n" +
-      "5 - TOUT"
-    );
-
-    if(typeChoix === null) return;
-
-    var targetType = "";
-    if(typeChoix === "1") targetType = "BOR";
-    if(typeChoix === "2") targetType = "MAR";
-    if(typeChoix === "3") targetType = "L3";
-    if(typeChoix === "4") targetType = "L4";
-    if(typeChoix === "5") targetType = "TOUT";
-
-    if(!targetType){
-      alert("Chwa pa valid");
-      return;
-    }
-
-    var newMontant = prompt("Mete nouvo montant lan:");
-    if(newMontant === null) return;
-
-    newMontant = Number(newMontant || 0);
-    if(newMontant <= 0){
-      alert("Montant pa valid");
-      return;
-    }
-
-    var lotList = loteries.map(function(l, i){
-      return (i + 1) + " - " + l.name;
-    }).join("\n");
-
-    var lotChoix = prompt(
-      "Chwazi loterie yo:\n\n" +
-      lotList +
-      "\n\nEgzanp: 8,9"
-    );
-
-    if(lotChoix === null) return;
-
-    var chosenLots = lotChoix.split(",").map(function(x){
-      var idx = Number(x.trim()) - 1;
-      return loteries[idx] ? loteries[idx].name : null;
-    }).filter(Boolean);
-
-    if(chosenLots.length === 0){
-      alert("Ou pa chwazi loterie valid");
-      return;
-    }
-
-    jeux = [];
-    selectedLoteries = [];
-    numero = "";
-    montant = "";
-    cursorNumero = 0;
-    cursorMontant = 0;
-    activeField = "numero";
-
-    ticket.jeux.forEach(function(j){
-      var oldType = String(j.type || "").toUpperCase();
-
-      chosenLots.forEach(function(lot){
-        jeux.push({
-          type: j.type,
-          numero: j.numero,
-          loterie: lot,
-          montant: (targetType === "TOUT" || oldType === targetType)
-            ? newMontant
-            : Number(j.montant || 0)
-        });
-
-        if(selectedLoteries.indexOf(lot) < 0){
-          selectedLoteries.push(lot);
-        }
-      });
-    });
-
-    renderJeux();
-    updateFields();
-    switchPage("salePage", document.getElementById("nav-billets"));
-  })
-  .catch(function(){
-    alert("Erreur lecture ticket");
-  });
+  alert("Kounya chanje loterie fèt dirèk sou biyè a.");
 }
 
 
@@ -2785,6 +2679,52 @@ function copyTicketById(){
 renderJeux();
 updateFields();
 loadBillets();
+function handleCopyMontant(){
+  var id = document.getElementById("copyTicketId").value.trim();
+
+  if(!id){
+    alert("Mete nimewo seri ticket la");
+    return;
+  }
+
+  fetch("/api/ticket/" + encodeURIComponent(id))
+  .then(function(res){ return res.json(); })
+  .then(function(ticket){
+    if(!ticket || !ticket.id){
+      alert("Ticket pa jwenn");
+      return;
+    }
+
+    var newMontant = prompt("Mete nouvo montant lan:");
+    if(newMontant === null) return;
+
+    newMontant = Number(newMontant || 0);
+    if(newMontant <= 0){
+      alert("Montant pa valid");
+      return;
+    }
+
+    jeux = [];
+    selectedLoteries = [];
+
+    ticket.jeux.forEach(function(j){
+      jeux.push({
+        type: j.type,
+        numero: j.numero,
+        loterie: j.loterie,
+        montant: newMontant
+      });
+
+      if(selectedLoteries.indexOf(j.loterie) < 0){
+        selectedLoteries.push(j.loterie);
+      }
+    });
+
+    renderJeux();
+    updateFields();
+    switchPage("salePage", document.getElementById("nav-billets"));
+  });
+}
 </script>
 </body>
 </html>

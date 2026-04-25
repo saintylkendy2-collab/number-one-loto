@@ -1221,6 +1221,23 @@ Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran 
 <div class="empty-zone">Rapports ap vini</div>
 </div>
 
+<div id="tiragesPage" class="page">
+<div id="tiragesWrap" class="billets-wrap"></div>
+</div>
+
+<div id="balancePage" class="page">
+<div id="balanceWrap" class="billets-wrap"></div>
+</div>
+
+<div id="parametrePage" class="page">
+<div id="parametreWrap" class="billets-wrap"></div>
+</div>
+
+<div id="imprimantePage" class="page">
+<div id="imprimanteWrap" class="billets-wrap"></div>
+</div>
+
+
 <div id="drawer" class="drawer">
 <div class="drawer-head">NUMBER ONE LOTO</div>
 <div class="drawer-item" onclick="openDrawerTirages()">Tirages</div>

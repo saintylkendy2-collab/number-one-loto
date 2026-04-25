@@ -2679,81 +2679,93 @@ renderJeux();
 updateFields();
 loadBillets();
 (function(){
-  var oldRenderBillets = renderBillets;
+  document.addEventListener("click", function(e){
+    var btn = e.target.closest("button");
+    if(!btn) return;
+    if(btn.textContent.trim().toUpperCase() !== "MONTANT") return;
 
-  renderBillets = function(){
-    oldRenderBillets();
+    var card = btn.closest(".billet-card");
+    if(!card) return;
 
-    document.querySelectorAll(".billet-card").forEach(function(card, index){
-      var actions = card.querySelector(".billet-actions");
-      if(!actions) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
 
-      var ticket = savedTickets[index];
-      if(!ticket) return;
+    var cards = Array.from(document.querySelectorAll(".billet-card"));
+    var ticket = savedTickets[cards.indexOf(card)];
+    if(!ticket) return;
 
-      var btns = actions.querySelectorAll("button");
-      var btnMontant = btns[2]; // bouton MONTANT ki deja la
-      if(!btnMontant) return;
+    var choix = prompt("Ki jwèt?\n1 BOR\n2 MAR\n3 L3\n4 L4\n5 TOUT");
+    if(choix === null) return;
 
-      btnMontant.onclick = function(e){
-        e.preventDefault();
-        e.stopPropagation();
+    var target = "";
+    if(choix === "1") target = "BOR";
+    if(choix === "2") target = "MAR";
+    if(choix === "3") target = "L3";
+    if(choix === "4") target = "L4";
+    if(choix === "5") target = "TOUT";
 
-        var choix = prompt("Ki jwèt?\n1 BOR\n2 MAR\n3 L3\n4 L4\n5 L5\n6 TOUT");
-        if(choix === null) return;
+    if(!target){
+      alert("Chwa pa valid");
+      return;
+    }
 
-        var target = "";
-        if(choix === "1") target = "BOR";
-        if(choix === "2") target = "MAR";
-        if(choix === "3") target = "L3";
-        if(choix === "4") target = "L4";
-        if(choix === "5") target = "L5";
-        if(choix === "6") target = "TOUT";
+    var newMontant = prompt("Mete nouvo montant lan:");
+    if(newMontant === null) return;
 
-        if(!target){
-          alert("Chwa pa valid");
-          return;
-        }
+    newMontant = Number(newMontant || 0);
+    if(newMontant <= 0){
+      alert("Montant pa valid");
+      return;
+    }
 
-        var m = prompt("Mete nouvo montant lan:");
-        if(m === null) return;
+    selectedLoteries = [];
+    activeField = "loterie";
+    updateFields();
+    openLoterieModal();
 
-        m = Number(m || 0);
-        if(m <= 0){
-          alert("Montant pa valid");
-          return;
-        }
+    var okBtn = document.querySelector(".btn-ok");
+    if(!okBtn) return;
 
-        jeux = [];
-        selectedLoteries = [];
-        numero = "";
-        montant = "";
-        cursorNumero = 0;
-        cursorMontant = 0;
-        activeField = "numero";
+    okBtn.onclick = function(){
+      if(selectedLoteries.length === 0){
+        alert("Chwazi omwen yon loterie");
+        return;
+      }
 
-        ticket.jeux.forEach(function(j){
-          var tj = String(j.type || "").toUpperCase();
-          var useM = (target === "TOUT" || tj === target) ? m : Number(j.montant || 0);
+      document.getElementById("loterieModal").classList.remove("show");
+      document.getElementById("overlay").classList.remove("show");
 
+      jeux = [];
+      numero = "";
+      montant = "";
+      cursorNumero = 0;
+      cursorMontant = 0;
+      activeField = "numero";
+
+      ticket.jeux.forEach(function(j){
+        var tj = String(j.type || "").toUpperCase();
+        var useMontant = (target === "TOUT" || tj === target)
+          ? newMontant
+          : Number(j.montant || 0);
+
+        selectedLoteries.forEach(function(lot){
           jeux.push({
             type: j.type,
             numero: j.numero,
-            loterie: j.loterie,
-            montant: useM
+            loterie: lot,
+            montant: useMontant
           });
-
-          if(selectedLoteries.indexOf(j.loterie) < 0){
-            selectedLoteries.push(j.loterie);
-          }
         });
+      });
 
-        renderJeux();
-        updateFields();
-        switchPage("salePage", document.getElementById("nav-billets"));
-      };
-    });
-  };
+      okBtn.onclick = validateLoteries;
+
+      renderJeux();
+      updateFields();
+      switchPage("salePage", document.getElementById("nav-billets"));
+    };
+  }, true);
 })();
 </script>
 </body>

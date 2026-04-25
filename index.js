@@ -2801,24 +2801,11 @@ loadBillets();
       montantCopyTicket = null;
       montantCopyValue = 0;
 
-     fetch("/api/update-ticket", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    ticketId: ticket.id,
-    patch: {
-      jeux: jeux,
-      total: jeux.reduce(function(s, j){ return s + Number(j.montant || 0); }, 0),
-      tirages: [...new Set(jeux.map(function(j){ return j.loterie; }))]
-    }
-  })
-});
-
-renderJeux();
+  renderJeux();
 updateFields();
-loadBillets();
 switchPage("salePage", document.getElementById("nav-billets"));
 return;
+}   
 
     oldValidateLoteries();
   };

@@ -2931,15 +2931,22 @@ loadBillets();
     oldValidateLoteries();
   };
 })();
+var sellerCommissionRate = ${Number(vendeur?.comision?.general || 0)};
 
 function cleanDrawerScreen(){
   var drawer = document.getElementById("drawer");
   var sheet = document.getElementById("optionsSheet");
   var overlay = document.getElementById("overlay");
+  var loterieModal = document.getElementById("loterieModal");
 
   if(drawer) drawer.classList.remove("open");
   if(sheet) sheet.classList.remove("open");
+  if(loterieModal) loterieModal.classList.remove("show");
   if(overlay) overlay.classList.remove("show");
+}
+
+function forceCloseAll(){
+  cleanDrawerScreen();
 }
 
 function openDrawerTirages(){
@@ -2954,7 +2961,7 @@ function openDrawerBalance(){
   setTimeout(function(){
     renderBalancePage();
     switchPage("balancePage", null);
-  }, 150);
+  }, 100);
 }
 
 function openDrawerParametre(){
@@ -2978,19 +2985,33 @@ function renderTiragesPage(){
   var box = document.getElementById("tiragesWrap");
   if(!box) return;
 
-  var html = '';
-  html += '<div style="background:#2f49d1;color:#fff;padding:16px;font-size:22px;font-weight:800;">Tirages</div>';
-  html += '<div style="padding:12px;">';
+  var today = new Date().toLocaleDateString("fr-FR");
+
+  var html = "";
+  html += '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;">';
+  html += '<button onclick="switchPage(\\'salePage\\', document.getElementById(\\'nav-billets\\'))" style="background:none;border:none;color:#fff;font-size:28px;">←</button>';
+  html += '<div style="font-size:24px;font-weight:800;">Tirages</div>';
+  html += '<div style="font-size:24px;">🖨️ ↻</div>';
+  html += '</div>';
+
+  html += '<div style="background:#fff;text-align:center;padding:12px 0;border-bottom:1px solid #aaa;">';
+  html += '<div style="font-size:16px;color:#777;">Date</div>';
+  html += '<div style="font-size:26px;font-weight:500;">' + today + '</div>';
+  html += '</div>';
+
+  html += '<div style="background:#fff;">';
 
   loteries.forEach(function(l){
     html +=
-      '<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:10px;">' +
-        '<div style="font-size:18px;font-weight:800;margin-bottom:8px;">' + l.name + '</div>' +
-        '<div style="color:#777;font-size:14px;margin-bottom:8px;">' + l.time + '</div>' +
-        '<div style="display:flex;gap:8px;">' +
-          '<div style="width:42px;height:42px;border-radius:50%;background:#2cbf5b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">--</div>' +
-          '<div style="width:42px;height:42px;border-radius:50%;background:#2cbf5b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">--</div>' +
-          '<div style="width:42px;height:42px;border-radius:50%;background:#2cbf5b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">--</div>' +
+      '<div style="display:grid;grid-template-columns:90px 1fr;align-items:center;min-height:92px;border-bottom:1px solid #ddd;padding:8px 10px;">' +
+        '<div style="font-size:12px;font-weight:800;color:#2f49d1;">LOGO</div>' +
+        '<div>' +
+          '<div style="font-size:22px;font-weight:800;color:#64b5e8;text-align:right;">' + l.name + '</div>' +
+          '<div style="display:flex;gap:10px;margin-top:8px;">' +
+            '<div style="width:54px;height:54px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;">--</div>' +
+            '<div style="width:54px;height:54px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;">--</div>' +
+            '<div style="width:54px;height:54px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;">--</div>' +
+          '</div>' +
         '</div>' +
       '</div>';
   });
@@ -2998,7 +3019,6 @@ function renderTiragesPage(){
   html += '</div>';
   box.innerHTML = html;
 }
-
 
 function renderBalancePage(){
   var box = document.getElementById("balanceWrap");
@@ -3018,8 +3038,9 @@ function renderBalancePage(){
     }
   });
 
-  var commission = vente * 0.05;
+  var commission = vente * (Number(sellerCommissionRate || 0) / 100);
   var resultat = vente - commission - prix;
+
   var initial = 0;
   var paiementRecu = 0;
   var sousTotal = initial + resultat + paiementRecu;
@@ -3029,28 +3050,45 @@ function renderBalancePage(){
   var disponible = credit - balance;
 
   function row(label, value){
-    return '<div style="display:flex;justify-content:space-between;padding:13px 4px;border-bottom:1px solid #eee;font-size:18px;">' +
+    return '<div style="display:flex;justify-content:space-between;padding:14px 4px;border-bottom:1px solid #eee;font-size:18px;">' +
       '<div>' + label + '</div>' +
       '<div style="font-weight:800;">' + Number(value || 0).toFixed(2) + '</div>' +
     '</div>';
   }
 
   box.innerHTML =
-    '<div style="background:#2f49d1;color:#fff;padding:16px;font-size:22px;font-weight:800;">Balance</div>' +
+    '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Balance</div>' +
+
     '<div style="padding:14px;">' +
+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">' +
+        '<input type="date" style="width:100%;height:44px;font-size:16px;border:1px solid #ccc;border-radius:8px;padding:0 8px;">' +
+        '<input type="date" style="width:100%;height:44px;font-size:16px;border:1px solid #ccc;border-radius:8px;padding:0 8px;">' +
+      '</div>' +
+
       '<div style="background:#fff;border-radius:14px;padding:12px;">' +
         row("Ventes", vente) +
         row("Prix", prix) +
-        row("Commission", commission) +
-        row("Résultat", resultat) +
+        row("Commission (" + Number(sellerCommissionRate || 0) + "%)", commission) +
+        row("RÉSULTAT", resultat) +
+      '</div>' +
+
+      '<div style="background:#fff;border-radius:14px;padding:12px;margin-top:12px;">' +
         row("Initial", initial) +
         row("Paiement reçu", paiementRecu) +
-        row("Sous-total", sousTotal) +
-        row("Collections livrées", collectionsLivrees) +
-        row("Balance", balance) +
-        row("Crédit", credit) +
-        row("Disponible", disponible) +
+        row("SOUS-TOTAL", sousTotal) +
       '</div>' +
+
+      '<div style="background:#fff;border-radius:14px;padding:12px;margin-top:12px;">' +
+        row("Collections livrées", collectionsLivrees) +
+      '</div>' +
+
+      '<div style="background:#fff;border-radius:14px;padding:12px;margin-top:12px;">' +
+        row("BALANCE", balance) +
+        row("CRÉDIT", credit) +
+        row("DISPONIBLE", disponible) +
+      '</div>' +
+
     '</div>';
 }
 
@@ -3059,30 +3097,38 @@ function renderParametrePage(){
   if(!box) return;
 
   box.innerHTML =
-    '<div style="background:#2f49d1;color:#fff;padding:16px;font-size:22px;font-weight:800;">Paramètre</div>' +
-    '<div style="padding:14px;">' +
-      '<div style="background:#fff;border-radius:14px;padding:14px;">' +
-        '<div style="font-size:19px;font-weight:800;margin-bottom:12px;">Lang</div>' +
-        '<select style="width:100%;height:48px;font-size:17px;margin-bottom:18px;"><option>Français</option><option>Español</option><option>Kreyòl</option></select>' +
+    '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Paramètres</div>' +
 
-        '<div style="font-size:19px;font-weight:800;margin-bottom:12px;">Sistèm</div>' +
-        '<div style="padding:10px 0;border-bottom:1px solid #eee;">Hora del sistema: ' + new Date().toLocaleTimeString("fr-FR") + '</div>' +
-        '<div style="padding:10px 0;border-bottom:1px solid #eee;">Version app: 2.9.32</div>' +
+    '<div style="background:#f5f5f5;padding:14px;">' +
 
-        '<div style="font-size:19px;font-weight:800;margin:18px 0 12px;">Imprimante</div>' +
-        '<label><input type="radio" name="paperSize" checked> Paper 58mm</label><br><br>' +
-        '<label><input type="radio" name="paperSize"> Paper 80mm</label><br><br>' +
-        '<div>Charset: UTF-8</div>' +
-
-        '<div style="font-size:19px;font-weight:800;margin:18px 0 12px;">Ventes</div>' +
-        '<div>WhatsApp: IMG / PDF</div>' +
-
-        '<div style="font-size:19px;font-weight:800;margin:18px 0 12px;">Login</div>' +
-        '<label><input type="checkbox"> Guardar usuario</label><br><br>' +
-        '<label><input type="checkbox"> Guardar clave</label><br><br>' +
-        '<label><input type="checkbox"> Entrar automático</label><br><br>' +
-        '<label><input type="checkbox"> Huella digital</label>' +
+      '<div style="color:#999;font-size:16px;margin-bottom:12px;">CHOISIR LA LANGUE</div>' +
+      '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">🌐 Idioma del Equipo <b style="float:right;">français</b></div>' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">🕒 Hora del Sistema <b style="float:right;">' + new Date().toLocaleTimeString("fr-FR") + '</b></div>' +
+        '<div style="padding:12px 0;">✅ Versión de App <b style="float:right;">2.9.32</b></div>' +
       '</div>' +
+
+      '<div style="color:#999;font-size:16px;margin:18px 0 12px;">IMPRIMANTE</div>' +
+      '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">🖨️ --- <b style="float:right;">✎</b></div>' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">🧾 Papel <b style="float:right;">58mm ○ 80mm</b></div>' +
+        '<div style="padding:12px 0;">Tt CharSet <b style="float:right;">UTF-8</b></div>' +
+      '</div>' +
+
+      '<div style="color:#999;font-size:16px;margin:18px 0 12px;">VENTES</div>' +
+      '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">Loteries <b style="float:right;">Material</b></div>' +
+        '<div style="padding:12px 0;">WhatsApp <b style="float:right;">IMG ○ PDF ○ ?</b></div>' +
+      '</div>' +
+
+      '<div style="color:#999;font-size:16px;margin:18px 0 12px;">CLAVIER</div>' +
+      '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">🔒 Guardar Usuario <b style="float:right;">ON</b></div>' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">🔑 Guardar Clave <b style="float:right;">OFF</b></div>' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">↪ Entrar Automático <b style="float:right;">OFF</b></div>' +
+        '<div style="padding:12px 0;">🖐 Usar Huella Digital <b style="float:right;">ON</b></div>' +
+      '</div>' +
+
     '</div>';
 }
 
@@ -3091,10 +3137,11 @@ function renderImprimantePage(){
   if(!box) return;
 
   box.innerHTML =
-    '<div style="background:#2f49d1;color:#fff;padding:16px;font-size:22px;font-weight:800;">Imprimante</div>' +
+    '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Imprimante</div>' +
+
     '<div style="padding:14px;">' +
-      '<div style="background:#fff;border-radius:14px;padding:14px;">' +
-        '<div style="font-size:18px;font-weight:800;margin-bottom:12px;">Printer disponibles</div>' +
+      '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
+        '<div style="font-size:20px;font-weight:800;margin-bottom:12px;">Printer disponibles</div>' +
         '<div style="padding:14px;border-bottom:1px solid #eee;">POS Internal Printer</div>' +
         '<div style="padding:14px;border-bottom:1px solid #eee;">Bluetooth Printer</div>' +
         '<div style="padding:14px;border-bottom:1px solid #eee;">LP-BT71</div>' +
@@ -3102,13 +3149,7 @@ function renderImprimantePage(){
       '</div>' +
     '</div>';
 }
-
-function forceCloseAll(){
-  document.getElementById("drawer").classList.remove("open");
-  document.getElementById("optionsSheet").classList.remove("open");
-  document.getElementById("loterieModal").classList.remove("show");
-  document.getElementById("overlay").classList.remove("show");
-}/script>
+</script>
 </body>
 </html>
 `);

@@ -2964,10 +2964,6 @@ function cleanDrawerScreen(){
   if(overlay) overlay.classList.remove("show");
 }
 
-function forceCloseAll(){
-  cleanDrawerScreen();
-}
-
 function openDrawerTirages(){
   cleanDrawerScreen();
   renderTiragesPage();

@@ -2726,7 +2726,59 @@ function handleCopyMontant(){
   });
 }
 function handleCopyMontant(){
-  alert("Modifier montant mache");
+  var id = document.getElementById("copyTicketId").value.trim();
+
+  if(!id){
+    alert("Mete nimewo seri ticket la");
+    return;
+  }
+
+  var newMontant = prompt("Mete nouvo montant lan:");
+  if(newMontant === null) return;
+
+  newMontant = Number(newMontant || 0);
+
+  if(newMontant <= 0){
+    alert("Montant pa valid");
+    return;
+  }
+
+  fetch("/api/ticket/" + encodeURIComponent(id))
+  .then(function(res){ return res.json(); })
+  .then(function(ticket){
+    if(!ticket || !ticket.id || !Array.isArray(ticket.jeux)){
+      alert("Ticket pa jwenn");
+      return;
+    }
+
+    jeux = [];
+    selectedLoteries = [];
+    numero = "";
+    montant = "";
+    cursorNumero = 0;
+    cursorMontant = 0;
+    activeField = "numero";
+
+    ticket.jeux.forEach(function(j){
+      jeux.push({
+        type: j.type,
+        numero: j.numero,
+        loterie: j.loterie,
+        montant: newMontant
+      });
+
+      if(selectedLoteries.indexOf(j.loterie) < 0){
+        selectedLoteries.push(j.loterie);
+      }
+    });
+
+    renderJeux();
+    updateFields();
+    switchPage("salePage", document.getElementById("nav-billets"));
+  })
+  .catch(function(){
+    alert("Erreur lecture ticket");
+  });
 }  
 </script>
 </body>

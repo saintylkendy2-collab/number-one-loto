@@ -2932,6 +2932,174 @@ loadBillets();
   };
 })();
 
+// ====== COMMISSION ======
+var sellerCommissionRate = 0;
+if(typeof vendeur !== "undefined" && vendeur && vendeur.comision){
+  sellerCommissionRate = Number(vendeur.comision.general || 0);
+}
+
+// ====== DATE ======
+function todayInputValue(){
+  var d = new Date();
+  var y = d.getFullYear();
+  var m = String(d.getMonth()+1).padStart(2,"0");
+  var day = String(d.getDate()).padStart(2,"0");
+  return y+"-"+m+"-"+day;
+}
+
+function dateInputToFR(v){
+  if(!v) return "";
+  var p = v.split("-");
+  return p[2]+"/"+p[1]+"/"+p[0];
+}
+
+var currentTirageDate = todayInputValue();
+var currentBalanceStart = todayInputValue();
+var currentBalanceEnd = todayInputValue();
+
+
+// ====== CLOSE SYSTEM ======
+function closeAllScreens(){
+  var drawer = document.getElementById("drawer");
+  var overlay = document.getElementById("overlay");
+  var sheet = document.getElementById("optionsSheet");
+
+  if(drawer) drawer.classList.remove("open");
+  if(sheet) sheet.classList.remove("open");
+  if(overlay) overlay.classList.remove("show");
+}
+
+
+// ====== DRAWER FUNCTIONS ======
+function openDrawerTirages(){
+  closeAllScreens();
+  renderTiragesPage();
+  switchPage("tiragesPage", null);
+}
+
+function openDrawerBalance(){
+  closeAllScreens();
+  renderBalancePage();
+  switchPage("balancePage", null);
+}
+
+function openDrawerParametre(){
+  closeAllScreens();
+  renderParametrePage();
+  switchPage("parametrePage", null);
+}
+
+function openDrawerImprimante(){
+  closeAllScreens();
+  renderImprimantePage();
+  switchPage("imprimantePage", null);
+}
+
+function openDrawerUpdate(){
+  location.reload();
+}
+
+
+// ====== TIRAGES ======
+function renderTiragesPage(){
+  var box = document.getElementById("tiragesWrap");
+  if(!box) return;
+
+  var html = "";
+
+  html += '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Tirages</div>';
+
+  html += '<div style="text-align:center;padding:10px;">';
+  html += '<div style="color:#777;">Date</div>';
+  html += '<input type="date" value="'+currentTirageDate+'" onchange="currentTirageDate=this.value" style="font-size:22px;border:none;">';
+  html += '</div>';
+
+  html += '<div>';
+
+  loteries.forEach(function(l){
+    html += '<div style="padding:10px;border-bottom:1px solid #ddd;">';
+    html += '<div style="font-weight:800;color:#64b5e8;text-align:right;">'+l.name+'</div>';
+    html += '<div style="display:flex;gap:8px;margin-top:6px;">';
+
+    for(var i=0;i<3;i++){
+      html += '<div style="width:48px;height:48px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">--</div>';
+    }
+
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+
+  box.innerHTML = html;
+}
+
+
+// ====== BALANCE ======
+function renderBalancePage(){
+  var box = document.getElementById("balanceWrap");
+  if(!box) return;
+
+  var vente = 0;
+  var prix = 0;
+
+  savedTickets.forEach(function(t){
+    var st = (t.status||"").toUpperCase();
+    if(st==="ANILE") return;
+
+    vente += Number(t.total||0);
+    if(st==="GANYE") prix += Number(t.premio||0);
+  });
+
+  var commission = vente * (sellerCommissionRate/100);
+  var resultat = vente - commission - prix;
+
+  box.innerHTML =
+  '<div style="background:#2f49d1;color:#fff;text-align:center;padding:14px;font-size:22px;font-weight:800;">Balance</div>'+
+  '<div style="padding:12px;">'+
+    '<input type="date" value="'+currentBalanceStart+'" onchange="currentBalanceStart=this.value;renderBalancePage()" style="width:100%;margin-bottom:10px;">'+
+    '<input type="date" value="'+currentBalanceEnd+'" onchange="currentBalanceEnd=this.value;renderBalancePage()" style="width:100%;margin-bottom:10px;">'+
+
+    '<div style="background:#fff;padding:10px;border-radius:10px;">'+
+      '<div>Ventes: '+vente.toFixed(2)+'</div>'+
+      '<div>Prix: '+prix.toFixed(2)+'</div>'+
+      '<div>Commission: '+commission.toFixed(2)+'</div>'+
+      '<div><b>Résultat: '+resultat.toFixed(2)+'</b></div>'+
+    '</div>'+
+  '</div>';
+}
+
+
+// ====== PARAMETRE ======
+function renderParametrePage(){
+  var box = document.getElementById("parametreWrap");
+  if(!box) return;
+
+  box.innerHTML =
+  '<div style="padding:12px;">'+
+    '<div style="background:#fff;padding:10px;border-radius:10px;">'+
+      '<div>Langue: français</div>'+
+      '<div>Heure: '+new Date().toLocaleTimeString()+'</div>'+
+      '<div>Version: 2.9.32</div>'+
+    '</div>'+
+  '</div>';
+}
+
+
+// ====== IMPRIMANTE ======
+function renderImprimantePage(){
+  var box = document.getElementById("imprimanteWrap");
+  if(!box) return;
+
+  box.innerHTML =
+  '<div style="padding:12px;">'+
+    '<div style="background:#fff;padding:10px;border-radius:10px;">'+
+      '<div>POS Printer</div>'+
+      '<div>Bluetooth Printer</div>'+
+      '<button onclick="submitPrint()" style="margin-top:10px;">Test Print</button>'+
+    '</div>'+
+  '</div>';
+}
+
 </script>
 </body>
 </html>

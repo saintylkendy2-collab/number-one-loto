@@ -2267,11 +2267,8 @@ function renderBillets(){
     };
 
     btns[2].onclick = function(e){
-  e.preventDefault();
-  e.stopPropagation();
-  feedbackTouch();
-  openMontantCopyModal(t);
-};
+      e.stopPropagation();
+      feedbackTouch();
 
 
       var newMontant = prompt("Mete nouvo montant lan:");

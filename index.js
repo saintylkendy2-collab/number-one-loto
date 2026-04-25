@@ -3114,13 +3114,7 @@ function renderImprimantePage(){
         '<button onclick="submitPrint()" style="width:100%;height:50px;border:none;border-radius:12px;background:#3452aa;color:#fff;font-size:18px;font-weight:800;margin-top:16px;">Tester impression</button>' +
       '</div>' +
     '</div>';
-}
-function forceCloseAll(){
-  document.getElementById("drawer").classList.remove("open");
-  document.getElementById("optionsSheet").classList.remove("open");
-  document.getElementById("loterieModal").classList.remove("show");
-  document.getElementById("overlay").classList.remove("show");
-}    
+} 
 </script>
 </body>
 </html>

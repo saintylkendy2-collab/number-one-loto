@@ -2680,59 +2680,37 @@ updateFields();
 loadBillets();
 (function(){
   var oldRenderBillets = renderBillets;
-  var oldValidateLoteries = validateLoteries;
-
-  var montantCopyTicket = null;
-  var montantCopyValue = 0;
-  var montantCopyType = "";
 
   renderBillets = function(){
     oldRenderBillets();
-    addMontantButtonOnBillets();
-  };
 
-  function addMontantButtonOnBillets(){
-    var cards = document.querySelectorAll(".billet-card");
-
-    cards.forEach(function(card, index){
+    document.querySelectorAll(".billet-card").forEach(function(card, index){
       var actions = card.querySelector(".billet-actions");
       if(!actions) return;
 
       var ticket = savedTickets[index];
       if(!ticket) return;
 
-      var btn = actions.querySelector(".btn-copy-montant");
-      if(!btn){
-        btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "small-btn btn-yellow btn-copy-montant";
-        btn.textContent = "MONTANT";
-        actions.insertBefore(btn, actions.lastElementChild);
-      }
+      var btns = actions.querySelectorAll("button");
+      var btnMontant = btns[2]; // bouton MONTANT ki deja la
+      if(!btnMontant) return;
 
-      btn.onclick = function(e){
+      btnMontant.onclick = function(e){
         e.preventDefault();
         e.stopPropagation();
 
-        var choix = prompt(
-          "Ki jwèt ou vle modifye montant lan?\n" +
-          "1 - BOR\n" +
-          "2 - MAR\n" +
-          "3 - L3\n" +
-          "4 - L4\n" +
-          "5 - L5\n" +
-          "6 - TOUT"
-        );
-
+        var choix = prompt("Ki jwèt?\n1 BOR\n2 MAR\n3 L3\n4 L4\n5 L5\n6 TOUT");
         if(choix === null) return;
 
-        if(choix === "1") montantCopyType = "BOR";
-        else if(choix === "2") montantCopyType = "MAR";
-        else if(choix === "3") montantCopyType = "L3";
-        else if(choix === "4") montantCopyType = "L4";
-        else if(choix === "5") montantCopyType = "L5";
-        else if(choix === "6") montantCopyType = "TOUT";
-        else{
+        var target = "";
+        if(choix === "1") target = "BOR";
+        if(choix === "2") target = "MAR";
+        if(choix === "3") target = "L3";
+        if(choix === "4") target = "L4";
+        if(choix === "5") target = "L5";
+        if(choix === "6") target = "TOUT";
+
+        if(!target){
           alert("Chwa pa valid");
           return;
         }
@@ -2746,63 +2724,35 @@ loadBillets();
           return;
         }
 
-        montantCopyTicket = ticket;
-        montantCopyValue = m;
-
+        jeux = [];
         selectedLoteries = [];
-        activeField = "loterie";
-        updateFields();
-        openLoterieModal();
-      };
-    });
-  }
+        numero = "";
+        montant = "";
+        cursorNumero = 0;
+        cursorMontant = 0;
+        activeField = "numero";
 
-  validateLoteries = function(){
-    if(montantCopyTicket){
-      document.getElementById("loterieModal").classList.remove("show");
-      document.getElementById("overlay").classList.remove("show");
+        ticket.jeux.forEach(function(j){
+          var tj = String(j.type || "").toUpperCase();
+          var useM = (target === "TOUT" || tj === target) ? m : Number(j.montant || 0);
 
-      if(selectedLoteries.length === 0){
-        activeField = "loterie";
-        updateFields();
-        openLoterieModal();
-        return;
-      }
-
-      jeux = [];
-      numero = "";
-      montant = "";
-      cursorNumero = 0;
-      cursorMontant = 0;
-      activeField = "numero";
-
-      montantCopyTicket.jeux.forEach(function(j){
-        var typeJ = String(j.type || "").toUpperCase();
-        var useMontant = (montantCopyType === "TOUT" || typeJ === montantCopyType)
-          ? Number(montantCopyValue || 0)
-          : Number(j.montant || 0);
-
-        selectedLoteries.forEach(function(lot){
           jeux.push({
             type: j.type,
             numero: j.numero,
-            loterie: lot,
-            montant: useMontant
+            loterie: j.loterie,
+            montant: useM
           });
+
+          if(selectedLoteries.indexOf(j.loterie) < 0){
+            selectedLoteries.push(j.loterie);
+          }
         });
-      });
 
-      montantCopyTicket = null;
-      montantCopyValue = 0;
-      montantCopyType = "";
-
-      renderJeux();
-      updateFields();
-      switchPage("salePage", document.getElementById("nav-billets"));
-      return;
-    }
-
-    oldValidateLoteries();
+        renderJeux();
+        updateFields();
+        switchPage("salePage", document.getElementById("nav-billets"));
+      };
+    });
   };
 })();
 </script>

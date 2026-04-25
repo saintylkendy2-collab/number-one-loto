@@ -1223,12 +1223,12 @@ Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran 
 
 <div id="drawer" class="drawer">
 <div class="drawer-head">NUMBER ONE LOTO</div>
-<div id="btn_tirages" class="drawer-item">Tirages</div>
-<div id="btn_balance" class="drawer-item">Balance</div>
-<div id="btn_param" class="drawer-item">Paramètre</div>
-<div id="btn_print" class="drawer-item">Imprimante</div>
-<div id="btn_update" class="drawer-item">Update</div>
-<div id="btn_logout" class="drawer-item" onclick="window.location='/logout?id=${encodeURIComponent(sellerId)}'">Sortir</div>
+<div class="drawer-item" onclick="openDrawerTirages()">Tirages</div>
+<div class="drawer-item" onclick="openDrawerBalance()">Balance</div>
+<div class="drawer-item" onclick="openDrawerParametre()">Paramètre</div>
+<div class="drawer-item" onclick="openDrawerImprimante()">Imprimante</div>
+<div class="drawer-item" onclick="openDrawerUpdate()">Update</div>
+<div class="drawer-item" onclick="window.location='/logout?id=${encodeURIComponent(sellerId)}'">Sortir</div>
 </div>
 
 <div id="optionsSheet" class="options-sheet">
@@ -2915,213 +2915,37 @@ loadBillets();
   };
 })();
 
-// ===============================
-// 🔥 MENU FUNCTIONS VENDOR APP
-// ===============================
-
-const API_BASE = ""; // mete URL si server pa menm host
-
-// ====== GLOBAL ======
-let CURRENT_VENDOR_ID = localStorage.getItem("vendorId") || "";
-
-// ====== NAVIGATION ======
-function openPage(page){
-  document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
-  const el = document.getElementById(page);
-  if(el) el.classList.remove("hidden");
+function cleanOverlay(){
+  closeDrawer();
+  closeOptions();
+  document.getElementById("overlay").classList.remove("show");
 }
 
-// ===============================
-// 🎯 TIRAGES
-// ===============================
-async function openTirages(){
-  openPage("page_tirages");
-
-  try{
-    const res = await fetch(API_BASE + "/api/tirages");
-    const data = await res.json();
-
-    const container = document.getElementById("tirages_list");
-    if(!container) return;
-
-    container.innerHTML = "";
-
-    Object.keys(data || {}).forEach(name=>{
-      const nums = data[name] || [];
-
-      container.innerHTML +=
-  '<div class="tirage-row">' +
-    '<div class="tirage-name">' + name + '</div>' +
-    '<div class="tirage-balls">' +
-      nums.map(function(n){
-        return '<span class="ball">' + n + '</span>';
-      }).join("") +
-    '</div>' +
-  '</div>';
-
-  }catch(err){
-    console.error(err);
-  }
+function openDrawerTirages(){
+  cleanOverlay();
+  alert("Tirages ap vini");
 }
 
-// ===============================
-// 💰 BALANCE
-// ===============================
-async function openBalance(){
-  openPage("page_balance");
-
-  if(!CURRENT_VENDOR_ID) return;
-
-  try{
-    const res = await fetch(API_BASE + "/api/vendor/" + CURRENT_VENDOR_ID + "/balance");
-    const json = await res.json();
-    if(!json.ok) return;
-
-    const b = json.data;
-
-    setText("bal_venta", formatMoney(b.venta));
-    setText("bal_comision", formatMoney(b.comision));
-    setText("bal_premios", formatMoney(b.premios));
-    setText("bal_resultado", formatMoney(b.resultado));
-    setText("bal_balance", formatMoney(b.balance));
-
-  }catch(err){
-    console.error(err);
-  }
+function openDrawerBalance(){
+  cleanOverlay();
+  switchPage("rapportsPage", document.getElementById("nav-rapports"));
+  loadBillets();
 }
 
-// ===============================
-// ⚙️ PARAMÈTRES
-// ===============================
-function openSettings(){
-  openPage("page_settings");
-
-  // load saved settings
-  document.getElementById("paper_58").checked = localStorage.getItem("paper") !== "80";
-  document.getElementById("paper_80").checked = localStorage.getItem("paper") === "80";
-
-  document.getElementById("chk_save_user").checked = localStorage.getItem("saveUser") === "1";
-  document.getElementById("chk_save_pass").checked = localStorage.getItem("savePass") === "1";
-  document.getElementById("chk_auto_login").checked = localStorage.getItem("autoLogin") === "1";
+function openDrawerParametre(){
+  cleanOverlay();
+  alert("Paramètre ap vini");
 }
 
-// SAVE SETTINGS
-function saveSettings(){
-  localStorage.setItem("paper", document.getElementById("paper_80").checked ? "80" : "58");
-  localStorage.setItem("saveUser", document.getElementById("chk_save_user").checked ? "1":"0");
-  localStorage.setItem("savePass", document.getElementById("chk_save_pass").checked ? "1":"0");
-  localStorage.setItem("autoLogin", document.getElementById("chk_auto_login").checked ? "1":"0");
-
-  alert("Paramètres enregistrés ✔");
+function openDrawerImprimante(){
+  cleanOverlay();
+  alert("Imprimante ap vini");
 }
 
-// ===============================
-// 🖨 IMPRIMANTE
-// ===============================
-async function openPrinter(){
-  try{
-    if(window.Android && Android.getBluetoothDevices){
-      const devices = JSON.parse(Android.getBluetoothDevices());
-      showPrinterList(devices);
-      return;
-    }
-
-    alert("Bluetooth non disponible");
-
-  }catch(err){
-    console.error(err);
-  }
-}
-
-function showPrinterList(list){
-  let html = "";
-
-  list.forEach(function(d){
-    html +=
-      '<div class="printer-item" data-address="' + (d.address || "") + '">' +
-        (d.name || "Printer") + " - " + (d.address || "") +
-      '</div>';
-  });
-
-  var box = document.getElementById("printerModalList");
-  var modal = document.getElementById("printerModal");
-
-  if(box){
-    box.innerHTML = html;
-
-    box.querySelectorAll(".printer-item").forEach(function(item){
-      item.onclick = function(){
-        connectPrinter(this.getAttribute("data-address"));
-      };
-    });
-  }
-
-  if(modal){
-    modal.classList.add("show");
-  }
-}
-
-function connectPrinter(address){
-  if(window.Android && Android.connectPrinter){
-    Android.connectPrinter(address);
-    alert("Connecté ✔");
-  }
-}
-
-// ===============================
-// 🔄 UPDATE
-// ===============================
-function updateApp(){
+function openDrawerUpdate(){
+  cleanOverlay();
   location.reload();
 }
-
-// ===============================
-// 🚪 SORTIR
-// ===============================
-function logout(){
-  localStorage.removeItem("vendorId");
-  localStorage.removeItem("autoLogin");
-
-  location.href = "/login.html";
-}
-
-// ===============================
-// 🛠 HELPERS
-// ===============================
-function setText(id,val){
-  const el = document.getElementById(id);
-  if(el) el.innerText = val;
-}
-
-function formatMoney(v){
-  const n = Number(v || 0);
-  return n.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
-
-// ===============================
-// 🔗 LINK MENU BUTTONS
-// ===============================
-document.addEventListener("DOMContentLoaded", ()=>{
-  bindMenu();
-});
-
-function bindMenu(){
-  safeBind("btn_tirages", openTirages);
-  safeBind("btn_balance", openBalance);
-  safeBind("btn_param", openSettings);
-  safeBind("btn_print", openPrinter);
-  safeBind("btn_update", updateApp);
-  safeBind("btn_logout", logout);
-}
-
-function safeBind(id, fn){
-  const el = document.getElementById(id);
-  if(el) el.onclick = fn;
-}
-
 </script>
 </body>
 </html>

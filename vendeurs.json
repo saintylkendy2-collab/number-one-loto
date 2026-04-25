@@ -825,7 +825,7 @@
     "clave": "1234",
     "estatus": "Activo",
     "app": "2.9.32",
-    "conexion": "",
+    "conexion": "25/04/2026 16:02:35",
     "apellido": "",
     "cedula": "",
     "telefono": "",
@@ -1247,6 +1247,22 @@
         "co": false,
         "on": false,
         "st": false
+      },
+      {
+        "id": "DEV-1777147355520",
+        "marca": "APPLE",
+        "modelo": "MAC",
+        "version": "17",
+        "app": "2.9.32",
+        "vinculado": "25/04/2026 16:02:35",
+        "last": "25/04/2026 16:02:35",
+        "pin": 931,
+        "place": "PC",
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15",
+        "co": true,
+        "on": true,
+        "st": true
       }
     ]
   },

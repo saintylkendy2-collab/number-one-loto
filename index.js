@@ -2800,11 +2800,6 @@ function copyTicketById(){
   };
 })();
 
-function closeOptions(){
-  document.getElementById("optionsSheet").classList.remove("open");
-  document.getElementById("overlay").classList.remove("show");
-}
-
 renderJeux();
 updateFields();
 loadBillets();
@@ -2918,6 +2913,11 @@ loadBillets();
     oldValidateLoteries();
   };
 })();
+
+function closeOptions(){
+  document.getElementById("optionsSheet").classList.remove("open");
+  document.getElementById("overlay").classList.remove("show");
+}
 </script>
 </body>
 </html>

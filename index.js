@@ -2680,72 +2680,113 @@ updateFields();
 loadBillets();
 (function(){
   var oldRenderBillets = renderBillets;
+  var oldValidateLoteries = validateLoteries;
+
+  var montantCopyTicket = null;
+  var montantCopyValue = 0;
 
   renderBillets = function(){
     oldRenderBillets();
-    addMontantButtonOnBillets();
+    fixMontantButtons();
   };
 
-  function addMontantButtonOnBillets(){
+  function fixMontantButtons(){
     var cards = document.querySelectorAll(".billet-card");
 
     cards.forEach(function(card, index){
       var actions = card.querySelector(".billet-actions");
       if(!actions) return;
-      if(actions.querySelector(".btn-copy-montant")) return;
 
       var ticket = savedTickets[index];
       if(!ticket) return;
 
-      actions.style.gridTemplateColumns = "repeat(4,1fr)";
+      var buttons = actions.querySelectorAll("button");
+      var montantBtns = [];
 
-      var btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "small-btn btn-yellow btn-copy-montant";
-      btn.textContent = "MONTANT";
+      buttons.forEach(function(btn){
+        if(btn.textContent.trim().toUpperCase() === "MONTANT"){
+          montantBtns.push(btn);
+        }
+      });
+
+      while(montantBtns.length > 1){
+        montantBtns.pop().remove();
+      }
+
+      var btn = montantBtns[0];
+      if(!btn){
+        btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "small-btn btn-yellow";
+        btn.textContent = "MONTANT";
+        actions.insertBefore(btn, actions.lastElementChild);
+      }
 
       btn.onclick = function(e){
         e.preventDefault();
         e.stopPropagation();
 
-        var newMontant = prompt("Mete nouvo montant lan:");
-        if(newMontant === null) return;
+        var m = prompt("Mete nouvo montant lan:");
+        if(m === null) return;
 
-        newMontant = Number(newMontant || 0);
-        if(newMontant <= 0){
+        m = Number(m || 0);
+        if(m <= 0){
           alert("Montant pa valid");
           return;
         }
 
-        jeux = [];
-        selectedLoteries = [];
-        numero = "";
-        montant = "";
-        cursorNumero = 0;
-        cursorMontant = 0;
-        activeField = "numero";
+        montantCopyTicket = ticket;
+        montantCopyValue = m;
 
-        ticket.jeux.forEach(function(j){
+        selectedLoteries = [];
+        activeField = "loterie";
+        updateFields();
+        openLoterieModal();
+      };
+    });
+  }
+
+  validateLoteries = function(){
+    if(montantCopyTicket){
+      document.getElementById("loterieModal").classList.remove("show");
+      document.getElementById("overlay").classList.remove("show");
+
+      if(selectedLoteries.length === 0){
+        activeField = "loterie";
+        updateFields();
+        openLoterieModal();
+        return;
+      }
+
+      jeux = [];
+      numero = "";
+      montant = "";
+      cursorNumero = 0;
+      cursorMontant = 0;
+      activeField = "numero";
+
+      montantCopyTicket.jeux.forEach(function(j){
+        selectedLoteries.forEach(function(lot){
           jeux.push({
             type: j.type,
             numero: j.numero,
-            loterie: j.loterie,
-            montant: newMontant
+            loterie: lot,
+            montant: Number(montantCopyValue || 0)
           });
-
-          if(selectedLoteries.indexOf(j.loterie) < 0){
-            selectedLoteries.push(j.loterie);
-          }
         });
+      });
 
-        renderJeux();
-        updateFields();
-        switchPage("salePage", document.getElementById("nav-billets"));
-      };
+      montantCopyTicket = null;
+      montantCopyValue = 0;
 
-      actions.insertBefore(btn, actions.lastElementChild);
-    });
-  }
+      renderJeux();
+      updateFields();
+      switchPage("salePage", document.getElementById("nav-billets"));
+      return;
+    }
+
+    oldValidateLoteries();
+  };
 })();
 </script>
 </body>

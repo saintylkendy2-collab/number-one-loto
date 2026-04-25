@@ -2397,7 +2397,17 @@ function handleCopyButton(){
 }
 
 function handleCopyLoterie(){
-  alert("Itilize bouton LOTERIE ki sou biyè a.");
+  copyTicketById();
+  activeField = "loterie";
+  updateFields();
+  openLoterieModal();
+}
+
+function handleCopyMontant(){
+  copyTicketById();
+  activeField = "montant";
+  cursorMontant = montant.length;
+  updateFields();
 }
 
 

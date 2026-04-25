@@ -2915,36 +2915,174 @@ loadBillets();
   };
 })();
 
-function cleanOverlay(){
-  closeDrawer();
-  closeOptions();
-  document.getElementById("overlay").classList.remove("show");
+function cleanDrawerScreen(){
+  var drawer = document.getElementById("drawer");
+  var sheet = document.getElementById("optionsSheet");
+  var overlay = document.getElementById("overlay");
+
+  if(drawer) drawer.classList.remove("open");
+  if(sheet) sheet.classList.remove("open");
+  if(overlay) overlay.classList.remove("show");
 }
 
 function openDrawerTirages(){
-  cleanOverlay();
-  alert("Tirages ap vini");
+  cleanDrawerScreen();
+  renderTiragesPage();
+  switchPage("tiragesPage", null);
 }
 
 function openDrawerBalance(){
-  cleanOverlay();
-  switchPage("rapportsPage", document.getElementById("nav-rapports"));
+  cleanDrawerScreen();
   loadBillets();
+  setTimeout(function(){
+    renderBalancePage();
+    switchPage("balancePage", null);
+  }, 150);
 }
 
 function openDrawerParametre(){
-  cleanOverlay();
-  alert("Paramètre ap vini");
+  cleanDrawerScreen();
+  renderParametrePage();
+  switchPage("parametrePage", null);
 }
 
 function openDrawerImprimante(){
-  cleanOverlay();
-  alert("Imprimante ap vini");
+  cleanDrawerScreen();
+  renderImprimantePage();
+  switchPage("imprimantePage", null);
 }
 
 function openDrawerUpdate(){
-  cleanOverlay();
+  cleanDrawerScreen();
   location.reload();
+}
+
+function renderTiragesPage(){
+  var box = document.getElementById("tiragesWrap");
+  if(!box) return;
+
+  var html = '';
+  html += '<div style="background:#2f49d1;color:#fff;padding:16px;font-size:22px;font-weight:800;">Tirages</div>';
+  html += '<div style="padding:12px;">';
+
+  loteries.forEach(function(l){
+    html +=
+      '<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:10px;">' +
+        '<div style="font-size:18px;font-weight:800;margin-bottom:8px;">' + l.name + '</div>' +
+        '<div style="color:#777;font-size:14px;margin-bottom:8px;">' + l.time + '</div>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<div style="width:42px;height:42px;border-radius:50%;background:#2cbf5b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">--</div>' +
+          '<div style="width:42px;height:42px;border-radius:50%;background:#2cbf5b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">--</div>' +
+          '<div style="width:42px;height:42px;border-radius:50%;background:#2cbf5b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">--</div>' +
+        '</div>' +
+      '</div>';
+  });
+
+  html += '</div>';
+  box.innerHTML = html;
+}
+
+function renderBalancePage(){
+  var box = document.getElementById("balanceWrap");
+  if(!box) return;
+
+  var vente = 0;
+  var prix = 0;
+
+  savedTickets.forEach(function(t){
+    var st = String(t.status || "").toUpperCase();
+    if(st === "ANILE") return;
+
+    vente += Number(t.total || 0);
+
+    if(st === "GANYE"){
+      prix += Number(t.premio || 0);
+    }
+  });
+
+  var commission = vente * 0.05;
+  var resultat = vente - commission - prix;
+  var initial = 0;
+  var paiementRecu = 0;
+  var sousTotal = initial + resultat + paiementRecu;
+  var collectionsLivrees = 0;
+  var balance = sousTotal - collectionsLivrees;
+  var credit = 0;
+  var disponible = credit - balance;
+
+  function row(label, value){
+    return '<div style="display:flex;justify-content:space-between;padding:13px 4px;border-bottom:1px solid #eee;font-size:18px;">' +
+      '<div>' + label + '</div>' +
+      '<div style="font-weight:800;">' + Number(value || 0).toFixed(2) + '</div>' +
+    '</div>';
+  }
+
+  box.innerHTML =
+    '<div style="background:#2f49d1;color:#fff;padding:16px;font-size:22px;font-weight:800;">Balance</div>' +
+    '<div style="padding:14px;">' +
+      '<div style="background:#fff;border-radius:14px;padding:12px;">' +
+        row("Ventes", vente) +
+        row("Prix", prix) +
+        row("Commission", commission) +
+        row("Résultat", resultat) +
+        row("Initial", initial) +
+        row("Paiement reçu", paiementRecu) +
+        row("Sous-total", sousTotal) +
+        row("Collections livrées", collectionsLivrees) +
+        row("Balance", balance) +
+        row("Crédit", credit) +
+        row("Disponible", disponible) +
+      '</div>' +
+    '</div>';
+}
+
+function renderParametrePage(){
+  var box = document.getElementById("parametreWrap");
+  if(!box) return;
+
+  box.innerHTML =
+    '<div style="background:#2f49d1;color:#fff;padding:16px;font-size:22px;font-weight:800;">Paramètre</div>' +
+    '<div style="padding:14px;">' +
+      '<div style="background:#fff;border-radius:14px;padding:14px;">' +
+        '<div style="font-size:19px;font-weight:800;margin-bottom:12px;">Lang</div>' +
+        '<select style="width:100%;height:48px;font-size:17px;margin-bottom:18px;"><option>Français</option><option>Español</option><option>Kreyòl</option></select>' +
+
+        '<div style="font-size:19px;font-weight:800;margin-bottom:12px;">Sistèm</div>' +
+        '<div style="padding:10px 0;border-bottom:1px solid #eee;">Hora del sistema: ' + new Date().toLocaleTimeString("fr-FR") + '</div>' +
+        '<div style="padding:10px 0;border-bottom:1px solid #eee;">Version app: 2.9.32</div>' +
+
+        '<div style="font-size:19px;font-weight:800;margin:18px 0 12px;">Imprimante</div>' +
+        '<label><input type="radio" name="paperSize" checked> Paper 58mm</label><br><br>' +
+        '<label><input type="radio" name="paperSize"> Paper 80mm</label><br><br>' +
+        '<div>Charset: UTF-8</div>' +
+
+        '<div style="font-size:19px;font-weight:800;margin:18px 0 12px;">Ventes</div>' +
+        '<div>WhatsApp: IMG / PDF</div>' +
+
+        '<div style="font-size:19px;font-weight:800;margin:18px 0 12px;">Login</div>' +
+        '<label><input type="checkbox"> Guardar usuario</label><br><br>' +
+        '<label><input type="checkbox"> Guardar clave</label><br><br>' +
+        '<label><input type="checkbox"> Entrar automático</label><br><br>' +
+        '<label><input type="checkbox"> Huella digital</label>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderImprimantePage(){
+  var box = document.getElementById("imprimanteWrap");
+  if(!box) return;
+
+  box.innerHTML =
+    '<div style="background:#2f49d1;color:#fff;padding:16px;font-size:22px;font-weight:800;">Imprimante</div>' +
+    '<div style="padding:14px;">' +
+      '<div style="background:#fff;border-radius:14px;padding:14px;">' +
+        '<div style="font-size:18px;font-weight:800;margin-bottom:12px;">Printer disponibles</div>' +
+        '<div style="padding:14px;border-bottom:1px solid #eee;">POS Internal Printer</div>' +
+        '<div style="padding:14px;border-bottom:1px solid #eee;">Bluetooth Printer</div>' +
+        '<div style="padding:14px;border-bottom:1px solid #eee;">LP-BT71</div>' +
+        '<button onclick="submitPrint()" style="width:100%;height:50px;border:none;border-radius:12px;background:#3452aa;color:#fff;font-size:18px;font-weight:800;margin-top:16px;">Tester impression</button>' +
+      '</div>' +
+    '</div>';
 }
 </script>
 </body>

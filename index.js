@@ -1536,9 +1536,11 @@ function handleEnter(){
      alert("Chwazi omwen youn");
      return;
    }
+
    numero = pendingChoiceNumber + "+" + tempChoices.join(",");
    cursorNumero = numero.length;
    hideChoicePanel();
+
    activeField = "montant";
    cursorMontant = montant.length;
    updateFields();
@@ -1547,6 +1549,14 @@ function handleEnter(){
 
  if(activeField === "numero"){
    if(!numero.trim()) return;
+
+   if(selectedLoteries.length > 0){
+     activeField = "montant";
+     cursorMontant = montant.length;
+     updateFields();
+     return;
+   }
+
    activeField = "loterie";
    updateFields();
    openLoterieModal();

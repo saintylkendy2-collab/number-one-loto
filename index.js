@@ -2106,13 +2106,14 @@ function closeDrawer(){
 }
 
 function openOptions(){
+ document.getElementById("drawer").classList.remove("open");
  document.getElementById("optionsSheet").classList.add("open");
  document.getElementById("overlay").classList.add("show");
- closeDrawer();
 }
 
 function closeOptions(){
  document.getElementById("optionsSheet").classList.remove("open");
+ document.getElementById("overlay").classList.remove("show");
 }
 
 function deleteAllGames(){
@@ -2913,11 +2914,6 @@ loadBillets();
     oldValidateLoteries();
   };
 })();
-
-function closeOptions(){
-  document.getElementById("optionsSheet").classList.remove("open");
-  document.getElementById("overlay").classList.remove("show");
-}
 </script>
 </body>
 </html>

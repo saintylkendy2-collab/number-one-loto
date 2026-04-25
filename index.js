@@ -2810,6 +2810,25 @@ return;
     oldValidateLoteries();
   };
 })();
+
+function saveEditedTicket(ticketObj){
+  if(!ticketObj || !ticketObj.id) return;
+
+  fetch("/api/update-ticket", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ticketId: ticketObj.id,
+      patch: {
+        jeux: jeux,
+        total: jeux.reduce(function(s, j){ return s + Number(j.montant || 0); }, 0),
+        tirages: [...new Set(jeux.map(function(j){ return j.loterie; }))]
+      }
+    })
+  }).then(function(){
+    loadBillets();
+  });
+}
 </script>
 </body>
 </html>

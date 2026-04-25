@@ -2725,6 +2725,9 @@ function handleCopyMontant(){
     switchPage("salePage", document.getElementById("nav-billets"));
   });
 }
+function handleCopyMontant(){
+  alert("Modifier montant mache");
+}  
 </script>
 </body>
 </html>

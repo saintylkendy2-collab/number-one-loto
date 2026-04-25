@@ -1207,7 +1207,6 @@ border-right:1px solid #ddd;
 <input id="copyTicketId" class="copy-input" placeholder="Mete nimewo seri ticket la">
 <button class="copy-btn" onclick="handleCopyButton()">Copie exacte</button>
 <button class="copy-btn" onclick="handleCopyLoterie()">Changer loterie</button>
-<button class="copy-btn" onclick="handleCopyMontant()">Modifier montant</button>
 <div class="copy-note">
 Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran an pou rekopye yo.
 </div>
@@ -2393,21 +2392,11 @@ function validateLoteries(){
 }
 
 function handleCopyButton(){
-  copyTicketById();
+  alert("Kounya kopye fèt dirèk sou biyè a.");
 }
 
 function handleCopyLoterie(){
-  copyTicketById();
-  activeField = "loterie";
-  updateFields();
-  openLoterieModal();
-}
-
-function handleCopyMontant(){
-  copyTicketById();
-  activeField = "montant";
-  cursorMontant = montant.length;
-  updateFields();
+  alert("Kounya chanje loterie fèt dirèk sou biyè a.");
 }
 
 
@@ -2689,55 +2678,75 @@ function copyTicketById(){
 renderJeux();
 updateFields();
 loadBillets();
-function handleCopyButton(){
-  var idInput = document.getElementById("copyId"); // verifye id sa
-  var id = idInput ? idInput.value.trim() : "";
+(function(){
+  var oldRenderBillets = renderBillets;
 
-  if(!id){
-    return; // pa montre popup ankò
+  renderBillets = function(){
+    oldRenderBillets();
+    addMontantButtonOnBillets();
+  };
+
+  function addMontantButtonOnBillets(){
+    var cards = document.querySelectorAll(".billet-card");
+
+    cards.forEach(function(card, index){
+      var actions = card.querySelector(".billet-actions");
+      if(!actions) return;
+      if(actions.querySelector(".btn-copy-montant")) return;
+
+      var ticket = savedTickets[index];
+      if(!ticket) return;
+
+      actions.style.gridTemplateColumns = "repeat(4,1fr)";
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "small-btn btn-yellow btn-copy-montant";
+      btn.textContent = "MONTANT";
+
+      btn.onclick = function(e){
+        e.preventDefault();
+        e.stopPropagation();
+
+        var newMontant = prompt("Mete nouvo montant lan:");
+        if(newMontant === null) return;
+
+        newMontant = Number(newMontant || 0);
+        if(newMontant <= 0){
+          alert("Montant pa valid");
+          return;
+        }
+
+        jeux = [];
+        selectedLoteries = [];
+        numero = "";
+        montant = "";
+        cursorNumero = 0;
+        cursorMontant = 0;
+        activeField = "numero";
+
+        ticket.jeux.forEach(function(j){
+          jeux.push({
+            type: j.type,
+            numero: j.numero,
+            loterie: j.loterie,
+            montant: newMontant
+          });
+
+          if(selectedLoteries.indexOf(j.loterie) < 0){
+            selectedLoteries.push(j.loterie);
+          }
+        });
+
+        renderJeux();
+        updateFields();
+        switchPage("salePage", document.getElementById("nav-billets"));
+      };
+
+      actions.insertBefore(btn, actions.lastElementChild);
+    });
   }
-
-  // kopye ticket la
-  copyTicketById(id);
-
-  // default: ale sou montant
-  activeField = "montant";
-  updateFields();
-}
-
-
-function handleCopyLoterie(){
-  var idInput = document.getElementById("copyId");
-  var id = idInput ? idInput.value.trim() : "";
-
-  if(!id){
-    return;
-  }
-
-  copyTicketById(id);
-
-  // ale dirèk sou loterie
-  activeField = "loterie";
-  updateFields();
-  openLoterieModal();
-}
-
-
-function handleCopyMontant(){
-  var idInput = document.getElementById("copyId");
-  var id = idInput ? idInput.value.trim() : "";
-
-  if(!id){
-    return;
-  }
-
-  copyTicketById(id);
-
-  // ale sou montant
-  activeField = "montant";
-  updateFields();
-}
-
+})();
 </script>
 </body>
 </html>

@@ -600,28 +600,6 @@ app.get("/api/master/balance-summary", (req, res) => {
   res.json(summaries);
 });
 
-app.post("/api/update-ticket", (req, res) => {
-  const ticketId = String(req.body.ticketId || "").trim();
-  const patch = req.body.patch || {};
-
-  const tickets = loadTickets();
-  const index = tickets.findIndex(t => String(t.id) === ticketId);
-
-  if(index === -1){
-    return res.json({ ok: false, message: "Ticket pa jwenn" });
-  }
-
-  tickets[index] = {
-    ...tickets[index],
-    ...patch,
-    updatedAt: new Date().toISOString()
-  };
-
-  saveTickets(tickets);
-
-  res.json({ ok: true, ticket: tickets[index] });
-});
-
 app.get("/dashboard", (req, res) => {
   const sellerId = String(req.query.id || "").trim().toUpperCase();
   const vendeurs = loadVendeursForLogin();
@@ -2800,37 +2778,16 @@ loadBillets();
 
       montantCopyTicket = null;
       montantCopyValue = 0;
-   
-saveEditedTicket(montantCopyTicket);   
 
-  renderJeux();
-updateFields();
-switchPage("salePage", document.getElementById("nav-billets"));
-return;
-}   
+      renderJeux();
+      updateFields();
+      switchPage("salePage", document.getElementById("nav-billets"));
+      return;
+    }
 
     oldValidateLoteries();
   };
 })();
-
-function saveEditedTicket(ticketObj){
-  if(!ticketObj || !ticketObj.id) return;
-
-  fetch("/api/update-ticket", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      ticketId: ticketObj.id,
-      patch: {
-        jeux: jeux,
-        total: jeux.reduce(function(s, j){ return s + Number(j.montant || 0); }, 0),
-        tirages: [...new Set(jeux.map(function(j){ return j.loterie; }))]
-      }
-    })
-  }).then(function(){
-    loadBillets();
-  });
-}
 </script>
 </body>
 </html>

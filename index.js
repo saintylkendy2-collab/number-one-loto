@@ -2679,61 +2679,55 @@ function copyTicketById(){
 renderJeux();
 updateFields();
 loadBillets();
-function handleCopyMontant(){
-  var id = document.getElementById("copyTicketId").value.trim();
+function handleCopyButton(){
+  var idInput = document.getElementById("copyId"); // verifye id sa
+  var id = idInput ? idInput.value.trim() : "";
 
   if(!id){
-    alert("Mete nimewo seri ticket la");
+    return; // pa montre popup ankò
+  }
+
+  // kopye ticket la
+  copyTicketById(id);
+
+  // default: ale sou montant
+  activeField = "montant";
+  updateFields();
+}
+
+
+function handleCopyLoterie(){
+  var idInput = document.getElementById("copyId");
+  var id = idInput ? idInput.value.trim() : "";
+
+  if(!id){
     return;
   }
 
-  var newMontant = prompt("Mete nouvo montant lan:");
-  if(newMontant === null) return;
+  copyTicketById(id);
 
-  newMontant = Number(newMontant || 0);
+  // ale dirèk sou loterie
+  activeField = "loterie";
+  updateFields();
+  openLoterieModal();
+}
 
-  if(newMontant <= 0){
-    alert("Montant pa valid");
+
+function handleCopyMontant(){
+  var idInput = document.getElementById("copyId");
+  var id = idInput ? idInput.value.trim() : "";
+
+  if(!id){
     return;
   }
 
-  fetch("/api/ticket/" + encodeURIComponent(id))
-  .then(function(res){ return res.json(); })
-  .then(function(ticket){
-    if(!ticket || !ticket.id || !Array.isArray(ticket.jeux)){
-      alert("Ticket pa jwenn");
-      return;
-    }
+  copyTicketById(id);
 
-    jeux = [];
-    selectedLoteries = [];
-    numero = "";
-    montant = "";
-    cursorNumero = 0;
-    cursorMontant = 0;
-    activeField = "numero";
+  // ale sou montant
+  activeField = "montant";
+  updateFields();
+}
 
-    ticket.jeux.forEach(function(j){
-      jeux.push({
-        type: j.type,
-        numero: j.numero,
-        loterie: j.loterie,
-        montant: newMontant
-      });
-
-      if(selectedLoteries.indexOf(j.loterie) < 0){
-        selectedLoteries.push(j.loterie);
-      }
-    });
-
-    renderJeux();
-    updateFields();
-    switchPage("salePage", document.getElementById("nav-billets"));
-  })
-  .catch(function(){
-    alert("Erreur lecture ticket");
-  });
-}  
 </script>
 </body>
 </html>

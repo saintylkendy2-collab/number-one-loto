@@ -2393,11 +2393,11 @@ function validateLoteries(){
 }
 
 function handleCopyButton(){
-  alert("Kounya kopye fèt dirèk sou biyè a.");
+  copyTicketById();
 }
 
 function handleCopyLoterie(){
-  alert("Kounya chanje loterie fèt dirèk sou biyè a.");
+  alert("Itilize bouton LOTERIE ki sou biyè a.");
 }
 
 

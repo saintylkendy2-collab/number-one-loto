@@ -2933,6 +2933,25 @@ loadBillets();
 })();
 var sellerCommissionRate = ${Number(vendeur?.comision?.general || 0)};
 
+function todayInputValue(){
+  var d = new Date();
+  var y = d.getFullYear();
+  var m = String(d.getMonth() + 1).padStart(2, "0");
+  var day = String(d.getDate()).padStart(2, "0");
+  return y + "-" + m + "-" + day;
+}
+
+function dateInputToFR(value){
+  if(!value) return new Date().toLocaleDateString("fr-FR");
+  var p = value.split("-");
+  if(p.length !== 3) return value;
+  return p[2] + "/" + p[1] + "/" + p[0];
+}
+
+var currentTirageDate = todayInputValue();
+var currentBalanceStart = todayInputValue();
+var currentBalanceEnd = todayInputValue();
+
 function cleanDrawerScreen(){
   var drawer = document.getElementById("drawer");
   var sheet = document.getElementById("optionsSheet");
@@ -2985,32 +3004,30 @@ function renderTiragesPage(){
   var box = document.getElementById("tiragesWrap");
   if(!box) return;
 
-  var today = new Date().toLocaleDateString("fr-FR");
-
   var html = "";
   html += '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;">';
-  html += '<button onclick="switchPage(\\'salePage\\', document.getElementById(\\'nav-billets\\'))" style="background:none;border:none;color:#fff;font-size:28px;">←</button>';
+  html += '<button onclick="switchPage(\'salePage\', document.getElementById(\'nav-billets\'))" style="background:none;border:none;color:#fff;font-size:28px;">←</button>';
   html += '<div style="font-size:24px;font-weight:800;">Tirages</div>';
   html += '<div style="font-size:24px;">🖨️ ↻</div>';
   html += '</div>';
 
-  html += '<div style="background:#fff;text-align:center;padding:12px 0;border-bottom:1px solid #aaa;">';
+  html += '<div style="background:#fff;text-align:center;padding:10px 0;border-bottom:1px solid #aaa;">';
   html += '<div style="font-size:16px;color:#777;">Date</div>';
-  html += '<div style="font-size:26px;font-weight:500;">' + today + '</div>';
+  html += '<input id="tirageDateInput" type="date" value="' + currentTirageDate + '" onchange="currentTirageDate=this.value;renderTiragesPage();" style="border:none;background:transparent;text-align:center;font-size:24px;font-weight:700;width:190px;outline:none;">';
   html += '</div>';
 
   html += '<div style="background:#fff;">';
 
   loteries.forEach(function(l){
     html +=
-      '<div style="display:grid;grid-template-columns:90px 1fr;align-items:center;min-height:92px;border-bottom:1px solid #ddd;padding:8px 10px;">' +
-        '<div style="font-size:12px;font-weight:800;color:#2f49d1;">LOGO</div>' +
-        '<div>' +
-          '<div style="font-size:22px;font-weight:800;color:#64b5e8;text-align:right;">' + l.name + '</div>' +
-          '<div style="display:flex;gap:10px;margin-top:8px;">' +
-            '<div style="width:54px;height:54px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;">--</div>' +
-            '<div style="width:54px;height:54px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;">--</div>' +
-            '<div style="width:54px;height:54px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;">--</div>' +
+      '<div style="display:grid;grid-template-columns:70px 1fr;align-items:center;min-height:92px;border-bottom:1px solid #ddd;padding:8px 10px;overflow:hidden;">' +
+        '<div style="font-size:12px;font-weight:800;color:#2f49d1;text-align:center;">LOGO</div>' +
+        '<div style="min-width:0;">' +
+          '<div style="font-size:22px;font-weight:800;color:#64b5e8;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + l.name + '</div>' +
+          '<div style="display:flex;gap:9px;margin-top:8px;">' +
+            '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+            '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+            '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -3031,16 +3048,23 @@ function renderBalancePage(){
     var st = String(t.status || "").toUpperCase();
     if(st === "ANILE") return;
 
-    vente += Number(t.total || 0);
-
-    if(st === "GANYE"){
-      prix += Number(t.premio || 0);
+    var d = "";
+    if(t.createdAt){
+      var dd = new Date(t.createdAt);
+      var y = dd.getFullYear();
+      var m = String(dd.getMonth() + 1).padStart(2, "0");
+      var day = String(dd.getDate()).padStart(2, "0");
+      d = y + "-" + m + "-" + day;
     }
+
+    if(d && (d < currentBalanceStart || d > currentBalanceEnd)) return;
+
+    vente += Number(t.total || 0);
+    if(st === "GANYE") prix += Number(t.premio || 0);
   });
 
   var commission = vente * (Number(sellerCommissionRate || 0) / 100);
   var resultat = vente - commission - prix;
-
   var initial = 0;
   var paiementRecu = 0;
   var sousTotal = initial + resultat + paiementRecu;
@@ -3058,37 +3082,31 @@ function renderBalancePage(){
 
   box.innerHTML =
     '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Balance</div>' +
-
     '<div style="padding:14px;">' +
-
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">' +
-        '<input type="date" style="width:100%;height:44px;font-size:16px;border:1px solid #ccc;border-radius:8px;padding:0 8px;">' +
-        '<input type="date" style="width:100%;height:44px;font-size:16px;border:1px solid #ccc;border-radius:8px;padding:0 8px;">' +
+        '<input type="date" value="' + currentBalanceStart + '" onchange="currentBalanceStart=this.value;renderBalancePage();" style="width:100%;height:44px;font-size:16px;border:1px solid #ccc;border-radius:8px;padding:0 8px;">' +
+        '<input type="date" value="' + currentBalanceEnd + '" onchange="currentBalanceEnd=this.value;renderBalancePage();" style="width:100%;height:44px;font-size:16px;border:1px solid #ccc;border-radius:8px;padding:0 8px;">' +
       '</div>' +
-
+      '<div style="text-align:center;font-size:22px;font-weight:800;margin-bottom:12px;">' + dateInputToFR(currentBalanceStart) + '</div>' +
       '<div style="background:#fff;border-radius:14px;padding:12px;">' +
         row("Ventes", vente) +
         row("Prix", prix) +
         row("Commission (" + Number(sellerCommissionRate || 0) + "%)", commission) +
         row("RÉSULTAT", resultat) +
       '</div>' +
-
       '<div style="background:#fff;border-radius:14px;padding:12px;margin-top:12px;">' +
         row("Initial", initial) +
         row("Paiement reçu", paiementRecu) +
         row("SOUS-TOTAL", sousTotal) +
       '</div>' +
-
       '<div style="background:#fff;border-radius:14px;padding:12px;margin-top:12px;">' +
         row("Collections livrées", collectionsLivrees) +
       '</div>' +
-
       '<div style="background:#fff;border-radius:14px;padding:12px;margin-top:12px;">' +
         row("BALANCE", balance) +
         row("CRÉDIT", credit) +
         row("DISPONIBLE", disponible) +
       '</div>' +
-
     '</div>';
 }
 
@@ -3097,30 +3115,24 @@ function renderParametrePage(){
   if(!box) return;
 
   box.innerHTML =
-    '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Paramètres</div>' +
-
     '<div style="background:#f5f5f5;padding:14px;">' +
-
       '<div style="color:#999;font-size:16px;margin-bottom:12px;">CHOISIR LA LANGUE</div>' +
       '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
         '<div style="padding:12px 0;border-bottom:1px solid #eee;">🌐 Idioma del Equipo <b style="float:right;">français</b></div>' +
         '<div style="padding:12px 0;border-bottom:1px solid #eee;">🕒 Hora del Sistema <b style="float:right;">' + new Date().toLocaleTimeString("fr-FR") + '</b></div>' +
         '<div style="padding:12px 0;">✅ Versión de App <b style="float:right;">2.9.32</b></div>' +
       '</div>' +
-
       '<div style="color:#999;font-size:16px;margin:18px 0 12px;">IMPRIMANTE</div>' +
       '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
-        '<div style="padding:12px 0;border-bottom:1px solid #eee;">🖨️ --- <b style="float:right;">✎</b></div>' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">🖨️ -- <b style="float:right;">✎</b></div>' +
         '<div style="padding:12px 0;border-bottom:1px solid #eee;">🧾 Papel <b style="float:right;">58mm ○ 80mm</b></div>' +
         '<div style="padding:12px 0;">Tt CharSet <b style="float:right;">UTF-8</b></div>' +
       '</div>' +
-
       '<div style="color:#999;font-size:16px;margin:18px 0 12px;">VENTES</div>' +
       '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
         '<div style="padding:12px 0;border-bottom:1px solid #eee;">Loteries <b style="float:right;">Material</b></div>' +
         '<div style="padding:12px 0;">WhatsApp <b style="float:right;">IMG ○ PDF ○ ?</b></div>' +
       '</div>' +
-
       '<div style="color:#999;font-size:16px;margin:18px 0 12px;">CLAVIER</div>' +
       '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
         '<div style="padding:12px 0;border-bottom:1px solid #eee;">🔒 Guardar Usuario <b style="float:right;">ON</b></div>' +
@@ -3128,7 +3140,6 @@ function renderParametrePage(){
         '<div style="padding:12px 0;border-bottom:1px solid #eee;">↪ Entrar Automático <b style="float:right;">OFF</b></div>' +
         '<div style="padding:12px 0;">🖐 Usar Huella Digital <b style="float:right;">ON</b></div>' +
       '</div>' +
-
     '</div>';
 }
 
@@ -3138,7 +3149,6 @@ function renderImprimantePage(){
 
   box.innerHTML =
     '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Imprimante</div>' +
-
     '<div style="padding:14px;">' +
       '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
         '<div style="font-size:20px;font-weight:800;margin-bottom:12px;">Printer disponibles</div>' +

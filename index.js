@@ -1207,7 +1207,7 @@ border-right:1px solid #ddd;
 <input id="copyTicketId" class="copy-input" placeholder="Mete nimewo seri ticket la">
 <button class="copy-btn" onclick="handleCopyButton()">Copie exacte</button>
 <button class="copy-btn" onclick="handleCopyLoterie()">Changer loterie</button>
-<button class="copy-btn" onclick="handleCopyMontant()">Modifier montant</button>
+<button class="copy-btn" onclick="alert('test montant')">Modifier montant</button>
 <div class="copy-note">
 Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran an pou rekopye yo.
 </div>

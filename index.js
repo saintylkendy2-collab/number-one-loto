@@ -2683,7 +2683,122 @@ function copyTicketById(){
 
 
 
- 
+ (function(){
+  var autoBoulPeMode = false;
+
+  var overlay = document.getElementById("overlay");
+  var sheet = document.getElementById("optionsSheet");
+
+  if(overlay){
+    overlay.onclick = function(){
+      closeDrawer();
+      closeOptions();
+      overlay.classList.remove("show");
+    };
+  }
+
+  if(sheet && !document.getElementById("boulPeOption")){
+    var items = sheet.querySelectorAll(".sheet-item");
+    var boulPe = document.createElement("div");
+    boulPe.id = "boulPeOption";
+    boulPe.className = "sheet-item";
+    boulPe.textContent = "Boul pè";
+    boulPe.onclick = function(){
+      autoBoulPeMode = true;
+      closeOptions();
+      document.getElementById("overlay").classList.remove("show");
+
+      activeField = "montant";
+      cursorMontant = montant.length;
+      updateFields();
+    };
+
+    items.forEach(function(item){
+      if(item.textContent.trim() === "Loto 4 chif otomatik"){
+        item.parentNode.insertBefore(boulPe, item.nextSibling);
+      }
+    });
+  }
+
+  var oldHandleEnter = handleEnter;
+
+  handleEnter = function(){
+    if(document.getElementById("choicePanel").style.display === "block"){
+      if(tempChoices.length === 0){
+        alert("Chwazi omwen youn");
+        return;
+      }
+
+      numero = pendingChoiceNumber + "+" + tempChoices.join(",");
+      cursorNumero = numero.length;
+      hideChoicePanel();
+
+      activeField = "montant";
+      cursorMontant = montant.length;
+      updateFields();
+      return;
+    }
+
+    if(activeField === "numero"){
+      if(!numero.trim()) return;
+
+      if(selectedLoteries.length > 0){
+        activeField = "montant";
+        cursorMontant = montant.length;
+        updateFields();
+        return;
+      }
+
+      activeField = "loterie";
+      updateFields();
+      openLoterieModal();
+      return;
+    }
+
+    if(activeField === "loterie"){
+      validateLoteries();
+      return;
+    }
+
+    if(activeField === "montant"){
+      if(!montant.trim()) return;
+
+      if(autoBoulPeMode){
+        if(selectedLoteries.length === 0){
+          activeField = "loterie";
+          updateFields();
+          openLoterieModal();
+          return;
+        }
+
+        ["00","11","22","33","44","55","66","77","88","99"].forEach(function(num){
+          selectedLoteries.forEach(function(lot){
+            mergeOrPushGame({
+              type: "BOR",
+              numero: num,
+              loterie: lot,
+              montant: parseFloat(montant) || 0
+            });
+          });
+        });
+
+        autoBoulPeMode = false;
+        montant = "";
+        cursorMontant = 0;
+        activeField = "numero";
+
+        renderJeux();
+        updateFields();
+        return;
+      }
+
+      addGame();
+      return;
+    }
+
+    oldHandleEnter();
+  };
+})();
 
 renderJeux();
 updateFields();

@@ -2684,13 +2684,14 @@ loadBillets();
 
   var montantCopyTicket = null;
   var montantCopyValue = 0;
+  var montantCopyType = "";
 
   renderBillets = function(){
     oldRenderBillets();
-    fixMontantButtons();
+    addMontantButtonOnBillets();
   };
 
-  function fixMontantButtons(){
+  function addMontantButtonOnBillets(){
     var cards = document.querySelectorAll(".billet-card");
 
     cards.forEach(function(card, index){
@@ -2700,24 +2701,11 @@ loadBillets();
       var ticket = savedTickets[index];
       if(!ticket) return;
 
-      var buttons = actions.querySelectorAll("button");
-      var montantBtns = [];
-
-      buttons.forEach(function(btn){
-        if(btn.textContent.trim().toUpperCase() === "MONTANT"){
-          montantBtns.push(btn);
-        }
-      });
-
-      while(montantBtns.length > 1){
-        montantBtns.pop().remove();
-      }
-
-      var btn = montantBtns[0];
+      var btn = actions.querySelector(".btn-copy-montant");
       if(!btn){
         btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "small-btn btn-yellow";
+        btn.className = "small-btn btn-yellow btn-copy-montant";
         btn.textContent = "MONTANT";
         actions.insertBefore(btn, actions.lastElementChild);
       }
@@ -2725,6 +2713,29 @@ loadBillets();
       btn.onclick = function(e){
         e.preventDefault();
         e.stopPropagation();
+
+        var choix = prompt(
+          "Ki jwèt ou vle modifye montant lan?\n" +
+          "1 - BOR\n" +
+          "2 - MAR\n" +
+          "3 - L3\n" +
+          "4 - L4\n" +
+          "5 - L5\n" +
+          "6 - TOUT"
+        );
+
+        if(choix === null) return;
+
+        if(choix === "1") montantCopyType = "BOR";
+        else if(choix === "2") montantCopyType = "MAR";
+        else if(choix === "3") montantCopyType = "L3";
+        else if(choix === "4") montantCopyType = "L4";
+        else if(choix === "5") montantCopyType = "L5";
+        else if(choix === "6") montantCopyType = "TOUT";
+        else{
+          alert("Chwa pa valid");
+          return;
+        }
 
         var m = prompt("Mete nouvo montant lan:");
         if(m === null) return;
@@ -2766,18 +2777,24 @@ loadBillets();
       activeField = "numero";
 
       montantCopyTicket.jeux.forEach(function(j){
+        var typeJ = String(j.type || "").toUpperCase();
+        var useMontant = (montantCopyType === "TOUT" || typeJ === montantCopyType)
+          ? Number(montantCopyValue || 0)
+          : Number(j.montant || 0);
+
         selectedLoteries.forEach(function(lot){
           jeux.push({
             type: j.type,
             numero: j.numero,
             loterie: lot,
-            montant: Number(montantCopyValue || 0)
+            montant: useMontant
           });
         });
       });
 
       montantCopyTicket = null;
       montantCopyValue = 0;
+      montantCopyType = "";
 
       renderJeux();
       updateFields();

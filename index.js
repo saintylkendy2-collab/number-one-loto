@@ -2267,8 +2267,12 @@ function renderBillets(){
     };
 
     btns[2].onclick = function(e){
-      e.stopPropagation();
-      feedbackTouch();
+  e.preventDefault();
+  e.stopPropagation();
+  feedbackTouch();
+  alert("MONTANT poko aktive.");
+};
+
 
 
       var newMontant = prompt("Mete nouvo montant lan:");

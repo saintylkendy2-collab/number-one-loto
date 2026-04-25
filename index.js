@@ -2800,6 +2800,8 @@ loadBillets();
 
       montantCopyTicket = null;
       montantCopyValue = 0;
+   
+saveEditedTicket(montantCopyTicket);   
 
   renderJeux();
 updateFields();

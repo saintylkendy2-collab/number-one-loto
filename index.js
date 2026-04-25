@@ -1251,6 +1251,34 @@ Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran 
 </div>
 </div>
 
+<div id="montantCopyModal" class="loterie-modal">
+  <div class="loterie-box">
+    <div style="padding:14px;font-size:22px;font-weight:800;text-align:center;border-bottom:1px solid #ddd;">
+      Modifier montant
+    </div>
+
+    <div style="padding:12px;overflow:auto;">
+      <div id="mcTypes" class="choice-grid">
+        <div class="choice-chip" onclick="selectMontantCopyType('BOR', this)">BOR</div>
+        <div class="choice-chip" onclick="selectMontantCopyType('MAR', this)">MAR</div>
+        <div class="choice-chip" onclick="selectMontantCopyType('L3', this)">L3</div>
+        <div class="choice-chip" onclick="selectMontantCopyType('L4', this)">L4</div>
+        <div class="choice-chip" onclick="selectMontantCopyType('TOUT', this)">TOUT</div>
+      </div>
+
+      <input id="mcMontant" class="copy-input" style="margin-top:12px;" placeholder="Nouveau montant">
+
+      <div id="mcLoteries" class="loterie-list" style="margin-top:12px;max-height:320px;"></div>
+    </div>
+
+    <div class="modal-actions">
+      <div class="circle-btn btn-clear" onclick="clearMontantCopy()">🚫</div>
+      <div class="circle-btn btn-ok" onclick="confirmMontantCopy()">✓</div>
+      <div class="circle-btn btn-close" onclick="closeMontantCopyModal()">✕</div>
+    </div>
+  </div>
+</div>
+
 <form id="printForm" class="hidden-print-form" method="POST" action="/print" target="_blank">
 <input type="hidden" name="ticketId" id="printTicketId">
 <input type="hidden" name="sellerId" value="${sellerId}">
@@ -2254,8 +2282,12 @@ function renderBillets(){
     };
 
     btns[2].onclick = function(e){
-      e.stopPropagation();
-      feedbackTouch();
+  e.preventDefault();
+  e.stopPropagation();
+  feedbackTouch();
+  openMontantCopyModal(t);
+};
+
 
       var newMontant = prompt("Mete nouvo montant lan:");
       if(newMontant === null) return;
@@ -2401,7 +2433,150 @@ function handleCopyLoterie(){
 
 
 
+var montantCopyTicket = null;
+var montantCopyType = "";
+var montantCopyLots = [];
 
+function openMontantCopyModal(ticket){
+  montantCopyTicket = ticket;
+  montantCopyType = "";
+  montantCopyLots = [];
+
+  document.getElementById("mcMontant").value = "";
+
+  document.querySelectorAll("#mcTypes .choice-chip").forEach(function(x){
+    x.classList.remove("active");
+  });
+
+  renderMontantCopyLoteries();
+
+  document.getElementById("montantCopyModal").classList.add("show");
+  document.getElementById("overlay").classList.add("show");
+}
+
+function closeMontantCopyModal(){
+  document.getElementById("montantCopyModal").classList.remove("show");
+  document.getElementById("overlay").classList.remove("show");
+}
+
+function clearMontantCopy(){
+  montantCopyType = "";
+  montantCopyLots = [];
+  document.getElementById("mcMontant").value = "";
+
+  document.querySelectorAll("#mcTypes .choice-chip").forEach(function(x){
+    x.classList.remove("active");
+  });
+
+  renderMontantCopyLoteries();
+}
+
+function selectMontantCopyType(type, el){
+  montantCopyType = type;
+
+  document.querySelectorAll("#mcTypes .choice-chip").forEach(function(x){
+    x.classList.remove("active");
+  });
+
+  el.classList.add("active");
+}
+
+function toggleMontantCopyLot(name){
+  var idx = montantCopyLots.indexOf(name);
+
+  if(idx >= 0){
+    montantCopyLots.splice(idx, 1);
+  }else{
+    montantCopyLots.push(name);
+  }
+
+  renderMontantCopyLoteries();
+}
+
+function renderMontantCopyLoteries(){
+  var list = document.getElementById("mcLoteries");
+  list.innerHTML = "";
+
+  loteries.forEach(function(item){
+    var row = document.createElement("div");
+    row.className = "loterie-item" + (montantCopyLots.indexOf(item.name) >= 0 ? " selected" : "");
+
+    row.onclick = function(){
+      toggleMontantCopyLot(item.name);
+    };
+
+    row.innerHTML =
+      '<div class="loterie-check">' + (montantCopyLots.indexOf(item.name) >= 0 ? "✓" : "") + '</div>' +
+      '<div>' +
+        '<div class="loterie-name">' + item.name + '</div>' +
+        '<div class="loterie-sub">' + item.sub + '</div>' +
+      '</div>' +
+      '<div class="loterie-time">' + item.time + '</div>';
+
+    list.appendChild(row);
+  });
+}
+
+function confirmMontantCopy(){
+  if(!montantCopyTicket || !Array.isArray(montantCopyTicket.jeux)){
+    alert("Ticket pa valid");
+    return;
+  }
+
+  if(!montantCopyType){
+    alert("Chwazi tip jwèt la");
+    return;
+  }
+
+  var newMontant = Number(document.getElementById("mcMontant").value || 0);
+
+  if(newMontant <= 0){
+    alert("Montant pa valid");
+    return;
+  }
+
+  if(montantCopyLots.length === 0){
+    alert("Chwazi omwen yon loterie");
+    return;
+  }
+
+  jeux = [];
+  selectedLoteries = [];
+  numero = "";
+  montant = "";
+  cursorNumero = 0;
+  cursorMontant = 0;
+  activeField = "numero";
+
+  montantCopyTicket.jeux.forEach(function(j){
+    var oldType = String(j.type || "").toUpperCase();
+
+    montantCopyLots.forEach(function(lot){
+      jeux.push({
+        type: j.type,
+        numero: j.numero,
+        loterie: lot,
+        montant: (montantCopyType === "TOUT" || oldType === montantCopyType)
+          ? newMontant
+          : Number(j.montant || 0)
+      });
+
+      if(selectedLoteries.indexOf(lot) < 0){
+        selectedLoteries.push(lot);
+      }
+    });
+  });
+
+  closeMontantCopyModal();
+
+  montantCopyTicket = null;
+  montantCopyType = "";
+  montantCopyLots = [];
+
+  renderJeux();
+  updateFields();
+  switchPage("salePage", document.getElementById("nav-billets"));
+}
 
 function renderRapports(){
   var box = document.getElementById("rapportsPage");

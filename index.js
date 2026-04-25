@@ -1133,7 +1133,7 @@ border-right:1px solid #ddd;
 </head>
 <body>
 <div class="app">
-<div id="overlay" class="overlay" onclick="closeDrawer();closeOptions();"></div>
+<div id="overlay" class="overlay" onclick="forceCloseAll()"></div>
 
 <div class="topbar">
 <div class="top-left">
@@ -2978,19 +2978,33 @@ function renderTiragesPage(){
   var box = document.getElementById("tiragesWrap");
   if(!box) return;
 
+  var today = new Date().toLocaleDateString("fr-FR");
+
   var html = '';
-  html += '<div style="background:#2f49d1;color:#fff;padding:16px;font-size:22px;font-weight:800;">Tirages</div>';
-  html += '<div style="padding:12px;">';
+  html += '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;">';
+  html += '<button onclick="switchPage(\'salePage\', document.getElementById(\'nav-billets\'))" style="background:none;border:none;color:#fff;font-size:28px;">←</button>';
+  html += '<div style="font-size:24px;font-weight:800;">Tirages</div>';
+  html += '<div style="font-size:24px;">🖨️ ↻</div>';
+  html += '</div>';
+
+  html += '<div style="background:#fff;text-align:center;padding:12px 0;border-bottom:1px solid #aaa;">';
+  html += '<div style="font-size:16px;color:#777;">Date</div>';
+  html += '<div style="font-size:26px;font-weight:500;">' + today + '</div>';
+  html += '</div>';
+
+  html += '<div style="background:#fff;">';
 
   loteries.forEach(function(l){
     html +=
-      '<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:10px;">' +
-        '<div style="font-size:18px;font-weight:800;margin-bottom:8px;">' + l.name + '</div>' +
-        '<div style="color:#777;font-size:14px;margin-bottom:8px;">' + l.time + '</div>' +
-        '<div style="display:flex;gap:8px;">' +
-          '<div style="width:42px;height:42px;border-radius:50%;background:#2cbf5b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">--</div>' +
-          '<div style="width:42px;height:42px;border-radius:50%;background:#2cbf5b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">--</div>' +
-          '<div style="width:42px;height:42px;border-radius:50%;background:#2cbf5b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">--</div>' +
+      '<div style="display:grid;grid-template-columns:90px 1fr;align-items:center;min-height:92px;border-bottom:1px solid #ddd;padding:8px 10px;">' +
+        '<div style="font-size:12px;font-weight:800;color:#2f49d1;">LOGO</div>' +
+        '<div>' +
+          '<div style="font-size:22px;font-weight:800;color:#64b5e8;text-align:right;">' + l.name + '</div>' +
+          '<div style="display:flex;gap:10px;margin-top:8px;">' +
+            '<div style="width:54px;height:54px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;">--</div>' +
+            '<div style="width:54px;height:54px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;">--</div>' +
+            '<div style="width:54px;height:54px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;">--</div>' +
+          '</div>' +
         '</div>' +
       '</div>';
   });
@@ -3101,6 +3115,12 @@ function renderImprimantePage(){
       '</div>' +
     '</div>';
 }
+function forceCloseAll(){
+  document.getElementById("drawer").classList.remove("open");
+  document.getElementById("optionsSheet").classList.remove("open");
+  document.getElementById("loterieModal").classList.remove("show");
+  document.getElementById("overlay").classList.remove("show");
+}    
 </script>
 </body>
 </html>

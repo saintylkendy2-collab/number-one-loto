@@ -940,5 +940,47 @@
       }
     ],
     "updatedAt": "2026-04-24T21:37:19.061Z"
+  },
+  {
+    "id": "62473482-1784",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-26T00:14:33.482Z",
+    "createdAtLabel": "25/04/2026 20:14:33",
+    "dateLabel": "25/04/2026",
+    "timeLabel": "20:14",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 40,
+    "tirages": [
+      "GEORGIA MIDDAY"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "47",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 10
+      },
+      {
+        "type": "BOR",
+        "numero": "74",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 10
+      },
+      {
+        "type": "BOR",
+        "numero": "87",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 10
+      },
+      {
+        "type": "BOR",
+        "numero": "78",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 10
+      }
+    ]
   }
 ]

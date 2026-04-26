@@ -1254,7 +1254,7 @@ Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran 
 <div id="optionsSheet" class="options-sheet">
 <div class="sheet-item" onclick="deleteAllGames()">Supprimer</div>
 <div class="sheet-item" onclick="autoMarriage()">Maryaj otomatik</div>
-<div class="sheet-item" onclick="autoLoto4()">Loto 4 chif otomatik</div>
+<div class="sheet-item" onclick="autoLoto4()">L1 otomatik</div>
 <div class="sheet-item">Traiter le jeu</div>
 <div class="sheet-item">Processus local</div>
 <div class="sheet-item">Processus en ligne</div>
@@ -2781,7 +2781,7 @@ function copyTicketById(){
     };
 
     items.forEach(function(item){
-      if(item.textContent.trim() === "Loto 4 chif otomatik"){
+    if(item.textContent.trim() === "L1 otomatik"){  
         item.parentNode.insertBefore(boulPe, item.nextSibling);
       }
     });

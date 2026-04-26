@@ -1133,7 +1133,7 @@ border-right:1px solid #ddd;
 </head>
 <body>
 <div class="app">
-<div id="overlay" class="overlay" onclick="closeAllScreens()"></div>
+<div id="overlay" class="overlay" onclick="goBackToJeuxFromMenu()"></div>
 
 <div class="topbar">
 <div class="top-left">
@@ -1239,7 +1239,10 @@ Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran 
 
 
 <div id="drawer" class="drawer">
-<div class="drawer-head">NUMBER ONE LOTO</div>
+<div class="drawer-head" style="display:flex;align-items:center;gap:12px;">
+<span onclick="backToJeux()" style="font-size:30px;cursor:pointer;">←</span>
+<span>NUMBER ONE LOTO</span>
+</div>
 <div class="drawer-item" onclick="openDrawerTirages()">Tirages</div>
 <div class="drawer-item" onclick="openDrawerBalance()">Balance</div>
 <div class="drawer-item" onclick="openDrawerParametre()">Paramètre</div>
@@ -1942,6 +1945,52 @@ function addGame(){
  renderJeux();
  updateFields();
 }
+
+function goBackToJeuxFromMenu(){
+  var drawer = document.getElementById("drawer");
+  var overlay = document.getElementById("overlay");
+  var sheet = document.getElementById("optionsSheet");
+  var loterieModal = document.getElementById("loterieModal");
+
+  if(drawer) drawer.classList.remove("open");
+  if(sheet) sheet.classList.remove("open");
+  if(loterieModal) loterieModal.classList.remove("show");
+  if(overlay) overlay.classList.remove("show");
+
+  switchPage("salePage", document.getElementById("nav-billets"));
+}
+
+function toggleDrawer(){
+  closeOptions();
+
+  var drawer = document.getElementById("drawer");
+  var overlay = document.getElementById("overlay");
+
+  if(!drawer || !overlay) return;
+
+  drawer.classList.toggle("open");
+
+  if(drawer.classList.contains("open")){
+    overlay.classList.add("show");
+  }else{
+    overlay.classList.remove("show");
+    switchPage("salePage", document.getElementById("nav-billets"));
+  }
+}
+
+function closeDrawer(){
+  goBackToJeuxFromMenu();
+}
+
+document.addEventListener("DOMContentLoaded", function(){
+  var overlay = document.getElementById("overlay");
+  if(overlay){
+    overlay.onclick = function(){
+      goBackToJeuxFromMenu();
+    };
+  }
+});
+
 
 function renderJeux(){
  var area = document.getElementById("ticketsArea");

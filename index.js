@@ -501,7 +501,7 @@ const clientCreatedAt = String(req.body.clientCreatedAt || "");
 const clientDateLabel = String(req.body.clientDateLabel || "");
 const clientTimeLabel = String(req.body.clientTimeLabel || "");
 
-const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
+
   if (!sellerId) {
     return res.status(400).json({ ok: false, message: "sellerId obligatoire" });
   }

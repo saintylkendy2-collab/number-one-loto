@@ -3490,6 +3490,82 @@ function renderImprimantePage(){
   };
 })();
 
+/* ===== PATCH APA: OPTION GRAP ===== */
+(function(){
+  var oldHandleEnterGrap = handleEnter;
+  var autoGrapMode = false;
+
+  var sheet = document.getElementById("optionsSheet");
+
+  if(sheet && !document.getElementById("grapOption")){
+    var items = sheet.querySelectorAll(".sheet-item");
+    var grap = document.createElement("div");
+    grap.id = "grapOption";
+    grap.className = "sheet-item";
+    grap.textContent = "Grap";
+
+    grap.onclick = function(){
+      autoGrapMode = true;
+
+      closeOptions();
+      document.getElementById("overlay").classList.remove("show");
+
+      activeField = "montant";
+      cursorMontant = montant.length;
+      updateFields();
+    };
+
+    items.forEach(function(item){
+      if(item.textContent.trim() === "Boul pè"){
+        item.parentNode.insertBefore(grap, item.nextSibling);
+      }
+    });
+  }
+
+  handleEnter = function(){
+    if(activeField === "montant" && autoGrapMode){
+      if(!montant.trim()){
+        alert("Mete montan an");
+        return;
+      }
+
+      if(selectedLoteries.length === 0){
+        activeField = "loterie";
+        updateFields();
+        openLoterieModal();
+        return;
+      }
+
+      [
+        "000","111","222","333","444",
+        "555","666","777","888","999",
+        "100","200","300","400","500",
+        "600","700","800","900"
+      ].forEach(function(num){
+        selectedLoteries.forEach(function(lot){
+          mergeOrPushGame({
+            type: "L3",
+            numero: num,
+            loterie: lot,
+            montant: parseFloat(montant) || 0
+          });
+        });
+      });
+
+      autoGrapMode = false;
+      montant = "";
+      cursorMontant = 0;
+      activeField = "numero";
+
+      renderJeux();
+      updateFields();
+      return;
+    }
+
+    oldHandleEnterGrap();
+  };
+})();
+
 </script>
 </body>
 </html>

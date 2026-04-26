@@ -915,11 +915,18 @@ cursor:pointer;
 position:fixed;
 left:0;
 right:0;
-bottom:-420px;
+bottom:-100%;
 background:#fff;
 z-index:3200;
 transition:bottom .22s ease;
 box-shadow:0 -3px 16px rgba(0,0,0,.18);
+max-height:60vh;
+overflow-y:auto;
+border-radius:16px 16px 0 0;
+}
+
+.options-sheet.open{
+bottom:0;
 }
 .options-sheet.open{bottom:0;}
 .sheet-item{

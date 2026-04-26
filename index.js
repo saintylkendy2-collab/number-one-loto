@@ -3800,11 +3800,9 @@ app.get("/print", (req, res) => {
   const total = Number(ticket.total || 0);
   const now = new Date(ticket.createdAt || Date.now());
 
-  const dateStr = now.toLocaleDateString("fr-FR");
-  const timeStr = now.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  const dateStr = ticket.dateLabel || formatDateFR(new Date(ticket.createdAt || Date.now()));
+const timeStr = ticket.timeLabel || formatTimeFR(new Date(ticket.createdAt || Date.now()));
+   
 
   const grouped = {};
   (ticket.jeux || []).forEach(function(j){

@@ -2932,177 +2932,168 @@ loadBillets();
   };
 })();
 
-// ====== COMMISSION ======
-var sellerCommissionRate = 0;
-if(typeof vendeur !== "undefined" && vendeur && vendeur.comision){
-  sellerCommissionRate = Number(vendeur.comision.general || 0);
-}
+<!-- OVERLAY -->
+<div id="overlay" onclick="forceCloseAll()" style="
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,0.3);
+display:none;
+z-index:99;"></div>
 
-// ====== DATE ======
-function todayInputValue(){
-  var d = new Date();
-  var y = d.getFullYear();
-  var m = String(d.getMonth()+1).padStart(2,"0");
-  var day = String(d.getDate()).padStart(2,"0");
-  return y+"-"+m+"-"+day;
-}
+<!-- DRAWER -->
+<div id="drawer" style="
+position:fixed;
+top:0;left:0;
+width:260px;height:100%;
+background:#fff;
+transform:translateX(-100%);
+transition:0.3s;
+z-index:100;">
 
-function dateInputToFR(v){
-  if(!v) return "";
-  var p = v.split("-");
-  return p[2]+"/"+p[1]+"/"+p[0];
-}
+  <!-- HEADER + BACK -->
+  <div style="background:#2f49d1;color:#fff;padding:16px;font-size:20px;font-weight:bold;display:flex;align-items:center;gap:12px;">
+    <span onclick="closeDrawerGoSale()" style="cursor:pointer;font-size:26px;">←</span>
+    NUMBER ONE LOTO
+  </div>
 
-var currentTirageDate = todayInputValue();
-var currentBalanceStart = todayInputValue();
-var currentBalanceEnd = todayInputValue();
+  <!-- MENU -->
+  <div onclick="openTirages()" style="padding:14px;border-bottom:1px solid #ddd;">Tirages</div>
+  <div onclick="openBalance()" style="padding:14px;border-bottom:1px solid #ddd;">Balance</div>
+  <div onclick="openSettings()" style="padding:14px;border-bottom:1px solid #ddd;">Paramètre</div>
+  <div style="padding:14px;border-bottom:1px solid #ddd;">Imprimante</div>
+  <div style="padding:14px;border-bottom:1px solid #ddd;">Update</div>
+  <div style="padding:14px;">Sortir</div>
+</div>
 
+<!-- BALANCE PAGE -->
+<div id="balancePage" style="display:none;">
 
-// ====== CLOSE SYSTEM ======
-function closeAllScreens(){
+  <div style="background:#2f49d1;color:#fff;padding:16px;font-size:22px;font-weight:bold;">
+    Balance
+  </div>
+
+  <!-- DATE -->
+  <div style="padding:10px;">
+    <input id="balanceDate" type="date" style="width:100%;padding:10px;font-size:16px;">
+  </div>
+
+  <!-- INFOS -->
+  <div style="padding:14px;background:#f5f5f5;margin:10px;border-radius:10px;">
+    <div>Ventes: <span id="ventes">0.00</span></div>
+    <div>Prix: <span id="prix">0.00</span></div>
+    <div>Commission: <span id="commission">0.00</span></div>
+    <div><b>Résultat: <span id="resultat">0.00</span></b></div>
+  </div>
+
+  <div style="padding:14px;background:#f5f5f5;margin:10px;border-radius:10px;">
+    <div>Initial: <span id="initial">0.00</span></div>
+    <div>Paiement reçu: <span id="paiement">0.00</span></div>
+    <div><b>Sous-total: <span id="subtotal">0.00</span></b></div>
+  </div>
+
+  <div style="padding:14px;background:#f5f5f5;margin:10px;border-radius:10px;">
+    <div>Collections livrées: <span id="collection">0.00</span></div>
+  </div>
+
+  <!-- 🔥 SA OU TE MANDE YO -->
+  <div style="padding:14px;background:#fff;margin:10px;border-radius:10px;font-size:18px;">
+    <div><b>BALANCE: <span id="balanceFinal">0.00</span></b></div>
+    <div>CRÉDIT: <span id="credit">10000.00</span></div>
+    <div style="color:green;"><b>DISPONIBLE: <span id="disponible">0.00</span></b></div>
+  </div>
+</div>
+
+<!-- TIRAGES -->
+<div id="tiragesPage" style="display:none;">
+  <div style="background:#2f49d1;color:#fff;padding:16px;font-size:22px;font-weight:bold;">
+    Tirages
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settingsPage" style="display:none;">
+  <div style="padding:14px;">
+    <h3>Langue</h3>
+    <select style="width:100%;padding:10px;">
+      <option>Français</option>
+      <option>Kreyòl</option>
+      <option>Español</option>
+    </select>
+  </div>
+</div>
+
+<script>
+function toggleDrawer(){
   var drawer = document.getElementById("drawer");
   var overlay = document.getElementById("overlay");
-  var sheet = document.getElementById("optionsSheet");
-  var loterieModal = document.getElementById("loterieModal");
 
-  if(drawer) drawer.classList.remove("open");
-  if(sheet) sheet.classList.remove("open");
-  if(loterieModal) loterieModal.classList.remove("show");
-  if(overlay) overlay.classList.remove("show");
-
-  switchPage("salePage", document.getElementById("nav-billets"));
+  if(drawer.style.transform === "translateX(0%)"){
+    drawer.style.transform = "translateX(-100%)";
+    overlay.style.display = "none";
+  }else{
+    drawer.style.transform = "translateX(0%)";
+    overlay.style.display = "block";
+  }
 }
 
-
-
-// ====== DRAWER FUNCTIONS ======
-function openDrawerTirages(){
-  closeAllScreens();
-  renderTiragesPage();
-  switchPage("tiragesPage", null);
+function forceCloseAll(){
+  document.getElementById("drawer").style.transform = "translateX(-100%)";
+  document.getElementById("overlay").style.display = "none";
 }
 
-function openDrawerBalance(){
-  closeAllScreens();
-  renderBalancePage();
-  switchPage("balancePage", null);
+function closeDrawerGoSale(){
+  forceCloseAll();
+  showPage("salePage");
 }
 
-function openDrawerParametre(){
-  closeAllScreens();
-  renderParametrePage();
-  switchPage("parametrePage", null);
+function showPage(id){
+  document.getElementById("balancePage").style.display = "none";
+  document.getElementById("tiragesPage").style.display = "none";
+  document.getElementById("settingsPage").style.display = "none";
+
+  if(document.getElementById(id)){
+    document.getElementById(id).style.display = "block";
+  }
 }
 
-function openDrawerImprimante(){
-  closeAllScreens();
-  renderImprimantePage();
-  switchPage("imprimantePage", null);
+function openBalance(){
+  forceCloseAll();
+  showPage("balancePage");
+  calculateBalance();
 }
 
-function openDrawerUpdate(){
-  location.reload();
+function openTirages(){
+  forceCloseAll();
+  showPage("tiragesPage");
 }
 
-
-// ====== TIRAGES ======
-function renderTiragesPage(){
-  var box = document.getElementById("tiragesWrap");
-  if(!box) return;
-
-  var html = "";
-
-  html += '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Tirages</div>';
-
-  html += '<div style="text-align:center;padding:10px;">';
-  html += '<div style="color:#777;">Date</div>';
-  html += '<input type="date" value="'+currentTirageDate+'" onchange="currentTirageDate=this.value" style="font-size:22px;border:none;">';
-  html += '</div>';
-
-  html += '<div>';
-
-  loteries.forEach(function(l){
-    html += '<div style="padding:10px;border-bottom:1px solid #ddd;">';
-    html += '<div style="font-weight:800;color:#64b5e8;text-align:right;">'+l.name+'</div>';
-    html += '<div style="display:flex;gap:8px;margin-top:6px;">';
-
-    for(var i=0;i<3;i++){
-      html += '<div style="width:48px;height:48px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">--</div>';
-    }
-
-    html += '</div></div>';
-  });
-
-  html += '</div>';
-
-  box.innerHTML = html;
+function openSettings(){
+  forceCloseAll();
+  showPage("settingsPage");
 }
 
-
-// ====== BALANCE ======
-function renderBalancePage(){
-  var box = document.getElementById("balanceWrap");
-  if(!box) return;
-
-  var vente = 0;
+function calculateBalance(){
+  var ventes = 0;
   var prix = 0;
+  var commission = 0;
+  var initial = 0;
+  var paiement = 0;
+  var collection = 0;
+  var credit = 10000;
 
-  savedTickets.forEach(function(t){
-    var st = (t.status||"").toUpperCase();
-    if(st==="ANILE") return;
+  var resultat = ventes - prix - commission;
+  var subtotal = resultat + paiement + initial;
+  var balance = subtotal - collection;
+  var disponible = credit - balance;
 
-    vente += Number(t.total||0);
-    if(st==="GANYE") prix += Number(t.premio||0);
-  });
-
-  var commission = vente * (sellerCommissionRate/100);
-  var resultat = vente - commission - prix;
-
-  box.innerHTML =
-  '<div style="background:#2f49d1;color:#fff;text-align:center;padding:14px;font-size:22px;font-weight:800;">Balance</div>'+
-  '<div style="padding:12px;">'+
-    '<input type="date" value="'+currentBalanceStart+'" onchange="currentBalanceStart=this.value;renderBalancePage()" style="width:100%;margin-bottom:10px;">'+
-    '<input type="date" value="'+currentBalanceEnd+'" onchange="currentBalanceEnd=this.value;renderBalancePage()" style="width:100%;margin-bottom:10px;">'+
-
-    '<div style="background:#fff;padding:10px;border-radius:10px;">'+
-      '<div>Ventes: '+vente.toFixed(2)+'</div>'+
-      '<div>Prix: '+prix.toFixed(2)+'</div>'+
-      '<div>Commission: '+commission.toFixed(2)+'</div>'+
-      '<div><b>Résultat: '+resultat.toFixed(2)+'</b></div>'+
-    '</div>'+
-  '</div>';
-}
-
-
-// ====== PARAMETRE ======
-function renderParametrePage(){
-  var box = document.getElementById("parametreWrap");
-  if(!box) return;
-
-  box.innerHTML =
-  '<div style="padding:12px;">'+
-    '<div style="background:#fff;padding:10px;border-radius:10px;">'+
-      '<div>Langue: français</div>'+
-      '<div>Heure: '+new Date().toLocaleTimeString()+'</div>'+
-      '<div>Version: 2.9.32</div>'+
-    '</div>'+
-  '</div>';
-}
-
-
-// ====== IMPRIMANTE ======
-function renderImprimantePage(){
-  var box = document.getElementById("imprimanteWrap");
-  if(!box) return;
-
-  box.innerHTML =
-  '<div style="padding:12px;">'+
-    '<div style="background:#fff;padding:10px;border-radius:10px;">'+
-      '<div>POS Printer</div>'+
-      '<div>Bluetooth Printer</div>'+
-      '<button onclick="submitPrint()" style="margin-top:10px;">Test Print</button>'+
-    '</div>'+
-  '</div>';
+  document.getElementById("ventes").innerText = ventes.toFixed(2);
+  document.getElementById("prix").innerText = prix.toFixed(2);
+  document.getElementById("commission").innerText = commission.toFixed(2);
+  document.getElementById("resultat").innerText = resultat.toFixed(2);
+  document.getElementById("subtotal").innerText = subtotal.toFixed(2);
+  document.getElementById("balanceFinal").innerText = balance.toFixed(2);
+  document.getElementById("disponible").innerText = disponible.toFixed(2);
 }
 
 </script>

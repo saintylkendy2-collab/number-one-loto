@@ -3222,29 +3222,49 @@ function renderBalancePage(){
 
   savedTickets.forEach(function(t){
     var st = String(t.status || "").toUpperCase();
+
+    // ANILE pa dwe konte
     if(st === "ANILE") return;
 
-    var d = "";
+    // pran dat ticket la
+    var ticketDate = null;
+
     if(t.createdAt){
-      var dd = new Date(t.createdAt);
-      d = dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" + String(dd.getDate()).padStart(2, "0");
+      ticketDate = new Date(t.createdAt);
     }
 
-    if(d && d !== currentBalanceDate) return;
+    if(ticketDate && currentBalanceDate){
+      var selectedDate = new Date(currentBalanceDate);
+
+      ticketDate.setHours(0,0,0,0);
+      selectedDate.setHours(23,59,59,999);
+
+      // retire sèlman sa ki apre dat ou chwazi a
+      if(ticketDate > selectedDate) return;
+    }
 
     vente += Number(t.total || 0);
-    if(st === "GANYE") prix += Number(t.premio || 0);
+
+    // si fiche ganye, retire prix/gain lan
+    if(st === "GANYE"){
+      prix += Number(t.premio || 0);
+    }
   });
 
-  var commission = vente * (sellerCommissionRate / 100);
+  // pousantaj vandè a
+  var rate = Number(sellerCommissionRate || 0);
+  var commission = vente * (rate / 100);
+
   var resultat = vente - commission - prix;
 
   var initial = 0;
   var paiementRecu = 0;
   var sousTotal = initial + paiementRecu + resultat;
+
   var collectionsLivrees = 0;
   var balance = sousTotal - collectionsLivrees;
-  var credit = sellerCredit;
+
+  var credit = Number(sellerCredit || 0);
   var disponible = credit - balance;
 
   function row(label, value, bold, green){

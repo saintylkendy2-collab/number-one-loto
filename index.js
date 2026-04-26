@@ -2727,10 +2727,15 @@ var dBalance = d.vente - d.prime;
   }
 
   if(printBtn){
-    printBtn.addEventListener("click", function(){
-      window.print();
-    });
-  }
+  printBtn.addEventListener("click", function(){
+    window.open(
+      "/print-report?sellerId=" + encodeURIComponent(sellerId) +
+      "&start=" + encodeURIComponent(startValue) +
+      "&end=" + encodeURIComponent(endValue),
+      "_blank"
+    );
+  });
+}
 
   if(startInput){
     startInput.addEventListener("change", function(){
@@ -3916,7 +3921,139 @@ setTimeout(function(){
   `);
 });
 
+app.get("/print-report", (req, res) => {
+  const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
+  const start = String(req.query.start || "").trim();
+  const end = String(req.query.end || "").trim();
 
+  const vendeurs = loadVendeursForLogin();
+  const vendeur = vendeurs[sellerId] || {};
+  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
+
+  const tickets = loadTickets().filter(t =>
+    String(t.vendeur || "").trim().toUpperCase() === sellerId
+  );
+
+  function ticketDay(t){
+    if(t.dateLabel){
+      const p = String(t.dateLabel).split("/");
+      if(p.length === 3){
+        return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+      }
+    }
+    const d = new Date(t.createdAt || Date.now());
+    return d.getFullYear() + "-" +
+      String(d.getMonth()+1).padStart(2,"0") + "-" +
+      String(d.getDate()).padStart(2,"0");
+  }
+
+  let vente = 0;
+  let prix = 0;
+
+  const byDay = {};
+  const byLot = {};
+
+  tickets.forEach(t => {
+    const d = ticketDay(t);
+    if(start && d < start) return;
+    if(end && d > end) return;
+
+    const st = normalizeStatus(t.status);
+    if(st === "ANILE") return;
+
+    const total = Number(t.total || 0);
+    const premio = st === "GANYE" ? Number(t.premio || 0) : 0;
+
+    vente += total;
+    prix += premio;
+
+    if(!byDay[d]) byDay[d] = { vente:0, prix:0 };
+    byDay[d].vente += total;
+    byDay[d].prix += premio;
+
+    (t.jeux || []).forEach(j => {
+      const lot = String(j.loterie || "SANS TIRAGE");
+      if(!byLot[lot]) byLot[lot] = 0;
+      byLot[lot] += Number(j.montant || 0);
+    });
+  });
+
+  const commission = 0;
+  const resultat = vente - prix - commission;
+
+  let dayHtml = "";
+  Object.keys(byDay).sort().forEach(d => {
+    const x = byDay[d];
+    dayHtml += `
+      <div class="row"><span>${d}</span><b>${x.vente.toFixed(2)}</b></div>
+      <div class="row small"><span>Prime</span><span>${x.prix.toFixed(2)}</span></div>
+      <div class="line"></div>
+    `;
+  });
+
+  let lotHtml = "";
+  Object.keys(byLot).sort().forEach(lot => {
+    lotHtml += `
+      <div class="row"><span>${lot}</span><b>${byLot[lot].toFixed(2)}</b></div>
+    `;
+  });
+
+  res.set("Content-Type", "text/html; charset=utf-8");
+  res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Rapport</title>
+<style>
+@page{ size:58mm auto; margin:0; }
+html,body{ margin:0; padding:0; background:#fff; }
+body{
+  width:42mm;
+  margin:0 auto;
+  padding:1mm;
+  font-family:monospace;
+  font-size:9px;
+  color:#000;
+  line-height:1.2;
+}
+.title{text-align:center;font-weight:700;font-size:10px;margin-bottom:3px;}
+.center{text-align:center;}
+.row{display:flex;justify-content:space-between;gap:4px;margin:2px 0;}
+.small{font-size:8px;}
+.line{border-top:1px dashed #000;margin:4px 0;}
+.section{font-weight:700;text-align:center;margin:5px 0 3px;}
+</style>
+</head>
+<body>
+  <div class="title">NUMBER ONE LOTO</div>
+  <div class="center">RAPPORT</div>
+  <div class="center">${sellerName}</div>
+  <div class="center">${start || ""} / ${end || ""}</div>
+
+  <div class="line"></div>
+
+  <div class="row"><span>VENTES</span><b>${vente.toFixed(2)}</b></div>
+  <div class="row"><span>PRIX</span><b>${prix.toFixed(2)}</b></div>
+  <div class="row"><span>COMMISSION</span><b>${commission.toFixed(2)}</b></div>
+  <div class="row"><span>RESULTAT</span><b>${resultat.toFixed(2)}</b></div>
+
+  <div class="line"></div>
+  <div class="section">RESUMEN POR DIA</div>
+  ${dayHtml || '<div class="center">Aucun</div>'}
+
+  <div class="section">RESUMEN LOTERIA</div>
+  ${lotHtml || '<div class="center">Aucun</div>'}
+
+<script>
+setTimeout(function(){
+  try{ window.print(); }catch(e){}
+},300);
+</script>
+</body>
+</html>
+  `);
+});
 
 const adminRoutes = require("./admin");
 app.use(adminRoutes);

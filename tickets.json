@@ -1154,5 +1154,36 @@
       }
     ],
     "updatedAt": "2026-04-26T16:55:38.421Z"
+  },
+  {
+    "id": "26184174-5742",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-26T17:56:24.174Z",
+    "createdAtLabel": "26/04/2026 13:56:24",
+    "dateLabel": "26/04/2026",
+    "timeLabel": "13:56",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 100,
+    "tirages": [
+      "LOTEDOM",
+      "LA SUERTE DIA"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "42",
+        "loterie": "LOTEDOM",
+        "montant": 50
+      },
+      {
+        "type": "BOR",
+        "numero": "42",
+        "loterie": "LA SUERTE DIA",
+        "montant": 50
+      }
+    ]
   }
 ]

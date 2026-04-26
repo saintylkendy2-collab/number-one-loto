@@ -2466,11 +2466,53 @@ function validateLoteries(){
 }
 
 function handleCopyButton(){
-  alert("Kounya kopye fèt dirèk sou biyè a.");
-}
 
-function handleCopyLoterie(){
-  alert("Kounya chanje loterie fèt dirèk sou biyè a.");
+  var val = document.getElementById("copyTicketId").value.trim();
+
+  if(!val){
+    alert("Mete nimewo ticket la");
+    return;
+  }
+
+  fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets?reload=" + Date.now())
+  .then(function(res){ return res.json(); })
+  .then(function(rows){
+
+    if(!Array.isArray(rows)) rows = [];
+
+    var found = rows.find(function(t){
+      return String(t.serial || "") === val;
+    });
+
+    if(!found){
+      alert("Ticket pa jwenn");
+      return;
+    }
+
+    // 🧠 netwaye ansyen jeux yo
+    jeux = [];
+
+    // 🔁 remonte nouvo jeux yo
+    (found.items || []).forEach(function(it){
+      jeux.push({
+        type: it.type,
+        numero: it.numero,
+        loterie: it.loterie,
+        montant: it.montant
+      });
+    });
+
+    // 📌 mete loterie yo
+    selectedLoteries = [...new Set((found.items || []).map(i => i.loterie))];
+
+    // 🔄 refresh ekran
+    renderJeux();
+    updateFields();
+
+    // 🚀 retounen sou paj billets
+    switchPage("billetsPage", null);
+
+  });
 }
 
 

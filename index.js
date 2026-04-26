@@ -3572,20 +3572,22 @@ function renderImprimantePage(){
   var sheet = document.getElementById("optionsSheet");
 
   if(sheet && !document.getElementById("grapOption2")){
+    var items = sheet.querySelectorAll(".sheet-item");
     var grapOpt = document.createElement("div");
+
     grapOpt.id = "grapOption2";
     grapOpt.className = "sheet-item";
     grapOpt.textContent = "Grap Opsyon";
 
     grapOpt.onclick = function(){
-      var val = prompt("Mete 2 chif la. Egzanp: 23");
+      var val = prompt("Mete 2 boul (egzanp: 23)");
 
-      if(val === null) return;
+      if(!val) return;
 
       val = String(val).trim();
 
-      if(!/^\\d{2}$/.test(val)){
-        alert("Fòk ou mete 2 chif egzak.");
+      if(!/^\d{2}$/.test(val)){
+        alert("Fòk se 2 chif egzak");
         return;
       }
 
@@ -3600,23 +3602,17 @@ function renderImprimantePage(){
       updateFields();
     };
 
-    var items = sheet.querySelectorAll(".sheet-item");
-    var inserted = false;
-
     items.forEach(function(item){
       if(item.textContent.trim() === "Grap"){
         item.parentNode.insertBefore(grapOpt, item.nextSibling);
-        inserted = true;
       }
     });
-
-    if(!inserted){
-      sheet.appendChild(grapOpt);
-    }
   }
 
   handleEnter = function(){
+
     if(activeField === "montant" && autoGrapOptionMode){
+
       if(!montant.trim()){
         alert("Mete montan an");
         return;
@@ -3629,13 +3625,14 @@ function renderImprimantePage(){
         return;
       }
 
-      for(var i = 0; i <= 9; i++){
-        var num = String(i) + grapBase;
+      // 🔥 0 jiska 9 devan 2 boul la
+      for(var i=0;i<=9;i++){
+        var numeroAuto = i + grapBase;
 
         selectedLoteries.forEach(function(lot){
           mergeOrPushGame({
             type: "L3",
-            numero: num,
+            numero: numeroAuto,
             loterie: lot,
             montant: parseFloat(montant) || 0
           });

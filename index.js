@@ -3232,95 +3232,6 @@ function renderTiragesPage(){
   box.innerHTML = html;
 }
 
-function renderBalancePage(){
-  fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
-  .then(function(res){ return res.json(); })
-  .then(function(rows){
-    savedTickets = Array.isArray(rows) ? rows : [];
-
-    var box = document.getElementById("balanceWrap");
-    if(!box) return;
-
-    var vente = 0;
-    var prix = 0;
-
-    savedTickets.forEach(function(t){
-      var st = String(t.status || "").toUpperCase();
-      if(st === "ANILE") return;
-
-      var ticketDate = t.createdAt ? new Date(t.createdAt) : null;
-
-      if(ticketDate && currentBalanceDate){
-        var selectedDate = new Date(currentBalanceDate);
-        ticketDate.setHours(0,0,0,0);
-        selectedDate.setHours(23,59,59,999);
-
-        if(ticketDate > selectedDate) return;
-      }
-
-      vente += Number(t.total || 0);
-
-      if(st === "GANYE"){
-        prix += Number(t.premio || 0);
-      }
-    });
-
-    var rate = Number(sellerCommissionRate || 0);
-    var commission = vente * (rate / 100);
-    var resultat = vente - commission - prix;
-
-    var initial = 0;
-    var paiementRecu = 0;
-    var sousTotal = initial + paiementRecu + resultat;
-    var collectionsLivrees = 0;
-    var balance = sousTotal - collectionsLivrees;
-    var credit = Number(sellerCredit || 0);
-    var disponible = credit - balance;
-
-    function row(label, value, bold, green){
-      return '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:13px 16px;border-bottom:1px solid #eee;font-size:20px;">' +
-        '<div style="' + (bold ? 'font-weight:800;' : '') + '">' + label + '</div>' +
-        '<div style="' + (bold ? 'font-weight:800;' : '') + (green ? 'color:#22a447;' : '') + '">' + moneyFmt(value) + '</div>' +
-      '</div>';
-    }
-
-    box.innerHTML =
-      '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">USD ' + moneyFmt(balance) + '</div>' +
-      '<div style="padding:18px;background:#f3f3f7;min-height:100%;">' +
-
-        '<div style="text-align:center;margin-bottom:14px;">' +
-          '<input type="date" value="' + currentBalanceDate + '" onchange="currentBalanceDate=this.value;renderBalancePage();" style="border:none;border-bottom:1px solid #555;background:transparent;text-align:center;font-size:26px;font-weight:700;width:210px;outline:none;">' +
-        '</div>' +
-
-        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
-          row("Ventes", vente, false, false) +
-          row("Prix", prix, false, false) +
-          row("Commission", commission, false, false) +
-          row("RÉSULTAT", resultat, true, false) +
-        '</div>' +
-
-        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
-          row("Initial", initial, false, false) +
-          row("Paiement reçu", paiementRecu, false, false) +
-          row("SOUS-TOTAL", sousTotal, true, false) +
-        '</div>' +
-
-        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
-          row("Collections livrées", collectionsLivrees, false, false) +
-        '</div>' +
-
-        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
-          row("BALANCE", balance, true, false) +
-        '</div>' +
-
-        '<div style="background:#eef1f5;border:1px solid #ddd;">' +
-          row("CRÉDIT", credit, true, false) +
-          row("DISPONIBLE", disponible, true, true) +
-        '</div>' +
-      '</div>';
-  });
-}
-
 function renderParametrePage(){
   var box = document.getElementById("parametreWrap");
   if(!box) return;
@@ -3682,6 +3593,116 @@ function renderImprimantePage(){
 
     oldHandleEnterGrapOption();
   };
+})();
+
+/* ===== PATCH FINAL: BALANCE TOUJOU RAFRECHI ===== */
+(function(){
+
+  function calcAndShowBalance(rows){
+    savedTickets = Array.isArray(rows) ? rows : [];
+
+    var box = document.getElementById("balanceWrap");
+    if(!box) return;
+
+    var vente = 0;
+    var prix = 0;
+
+    savedTickets.forEach(function(t){
+      var st = String(t.status || "").toUpperCase();
+
+      if(st === "ANILE") return;
+
+      var ticketDate = t.createdAt ? new Date(t.createdAt) : null;
+
+      if(ticketDate && currentBalanceDate){
+        var selectedDate = new Date(currentBalanceDate);
+
+        ticketDate.setHours(0,0,0,0);
+        selectedDate.setHours(23,59,59,999);
+
+        if(ticketDate > selectedDate) return;
+      }
+
+      vente += Number(t.total || 0);
+
+      if(st === "GANYE"){
+        prix += Number(t.premio || 0);
+      }
+    });
+
+    var rate = Number(sellerCommissionRate || 0);
+    var commission = vente * (rate / 100);
+    var resultat = vente - commission - prix;
+
+    var initial = 0;
+    var paiementRecu = 0;
+    var sousTotal = initial + paiementRecu + resultat;
+    var collectionsLivrees = 0;
+    var balance = sousTotal - collectionsLivrees;
+
+    var credit = Number(sellerCredit || 0);
+    var disponible = credit - balance;
+
+    function row(label, value, bold, green){
+      return '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:13px 16px;border-bottom:1px solid #eee;font-size:20px;">' +
+        '<div style="' + (bold ? 'font-weight:800;' : '') + '">' + label + '</div>' +
+        '<div style="' + (bold ? 'font-weight:800;' : '') + (green ? 'color:#22a447;' : '') + '">' + moneyFmt(value) + '</div>' +
+      '</div>';
+    }
+
+    box.innerHTML =
+      '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">USD ' + moneyFmt(balance) + '</div>' +
+      '<div style="padding:18px;background:#f3f3f7;min-height:100%;">' +
+
+        '<div style="text-align:center;margin-bottom:14px;">' +
+          '<input type="date" value="' + currentBalanceDate + '" onchange="currentBalanceDate=this.value;renderBalancePage();" style="border:none;border-bottom:1px solid #555;background:transparent;text-align:center;font-size:26px;font-weight:700;width:210px;outline:none;">' +
+        '</div>' +
+
+        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+          row("Ventes", vente, false, false) +
+          row("Prix", prix, false, false) +
+          row("Commission", commission, false, false) +
+          row("RÉSULTAT", resultat, true, false) +
+        '</div>' +
+
+        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+          row("Initial", initial, false, false) +
+          row("Paiement reçu", paiementRecu, false, false) +
+          row("SOUS-TOTAL", sousTotal, true, false) +
+        '</div>' +
+
+        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+          row("Collections livrées", collectionsLivrees, false, false) +
+        '</div>' +
+
+        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+          row("BALANCE", balance, true, false) +
+        '</div>' +
+
+        '<div style="background:#eef1f5;border:1px solid #ddd;">' +
+          row("CRÉDIT", credit, true, false) +
+          row("DISPONIBLE", disponible, true, true) +
+        '</div>' +
+      '</div>';
+  }
+
+  renderBalancePage = function(){
+    fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets?reload=" + Date.now())
+    .then(function(res){ return res.json(); })
+    .then(function(rows){
+      calcAndShowBalance(rows);
+    })
+    .catch(function(){
+      calcAndShowBalance(savedTickets);
+    });
+  };
+
+  openDrawerBalance = function(){
+    closeMenuOnly();
+    renderBalancePage();
+    switchPage("balancePage", null);
+  };
+
 })();
 
 </script>

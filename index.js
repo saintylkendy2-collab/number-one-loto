@@ -3360,6 +3360,58 @@ function renderImprimantePage(){
     '</div>';
 }
 
+/* ===== AJOUTE KALANDRIYE SOU LIS BIYÈ YO SAN CHANJE renderBillets() ===== */
+(function(){
+  var oldRenderBilletsDate = renderBillets;
+  var billetsDateFilter = "";
+
+  function todayBilletDate(){
+    var d = new Date();
+    return d.getFullYear() + "-" +
+      String(d.getMonth() + 1).padStart(2, "0") + "-" +
+      String(d.getDate()).padStart(2, "0");
+  }
+
+  function getBilletDate(t){
+    var d = new Date(t.createdAt || Date.now());
+    return d.getFullYear() + "-" +
+      String(d.getMonth() + 1).padStart(2, "0") + "-" +
+      String(d.getDate()).padStart(2, "0");
+  }
+
+  renderBillets = function(){
+    if(!billetsDateFilter){
+      billetsDateFilter = todayBilletDate();
+    }
+
+    var allTickets = savedTickets.slice();
+
+    savedTickets = allTickets.filter(function(t){
+      return getBilletDate(t) === billetsDateFilter;
+    });
+
+    oldRenderBilletsDate();
+
+    savedTickets = allTickets;
+
+    var wrap = document.getElementById("billetsWrap");
+    if(!wrap) return;
+
+    var bar = document.createElement("div");
+    bar.style.cssText = "position:sticky;top:0;z-index:99;background:#efeff4;padding:8px 4px 10px;";
+    bar.innerHTML =
+      '<input type="date" id="billetsDateInput" value="' + billetsDateFilter + '" ' +
+      'style="width:100%;height:42px;border:1px solid #ddd;border-radius:12px;text-align:center;font-size:18px;font-weight:800;background:#fff;">';
+
+    wrap.insertBefore(bar, wrap.firstChild);
+
+    document.getElementById("billetsDateInput").onchange = function(){
+      billetsDateFilter = this.value;
+      renderBillets();
+    };
+  };
+})();
+
 </script>
 </body>
 </html>

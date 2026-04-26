@@ -4018,9 +4018,12 @@ body{
 </style>
 </head>
 <body>
-  <div class="center title">RÉCAPITULATIF DES VENTES</div>
-  <div class="center">${frDate(start)} - ${frDate(end)}</div>
-  <div class="center">[ ${printDate} ${printTime} ]</div>
+  <div class="title">NUMBER ONE LOTO</div>
+<div class="center">RAPPORT</div>
+<div class="center">${sellerName}</div>
+<div class="center">${formatFRDateInput(start)} / ${formatFRDateInput(end)}</div>
+<div class="center">[ ${printDate} ${printTime} ]</div>
+
 
   <div class="line"></div>
 

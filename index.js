@@ -3586,7 +3586,7 @@ function renderImprimantePage(){
 
       val = String(val).trim();
 
-      if(!/^\d{2}$/.test(val)){
+      if(!/^\\d{2}$/.test(val)){
         alert("Fòk se 2 chif egzak");
         return;
       }

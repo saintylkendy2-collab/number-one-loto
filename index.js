@@ -1852,14 +1852,16 @@ function autoLoto4(){
  var counts = getAutoSourceBalls();
  var nums = Object.keys(counts);
 
- if(nums.length === 0){
-   alert("Pa gen boul 2 chif pou loto otomatik");
+ if(nums.length < 2){
+   alert("Fòk ou mete omwen 2 boul pou L1 otomatik");
    return;
  }
+
  if(selectedLoteries.length === 0){
    alert("Chwazi omwen yon loterie");
    return;
  }
+
  if(!montant.trim()){
    alert("Mete montan an");
    return;
@@ -1871,30 +1873,12 @@ function autoLoto4(){
    for(var j=i+1;j<nums.length;j++){
      var a = nums[i];
      var b = nums[j];
-     var ar = reverse2(a);
-     var br = reverse2(b);
 
      if(a === b) continue;
-     if(a === br) continue;
-     if(ar === b) continue;
+     if(a === reverse2(b)) continue;
 
-     [
-       a + b,
-       a + br,
-       ar + b,
-       ar + br,
-       b + a,
-       b + ar,
-       br + a,
-       br + ar
-     ].forEach(function(l4){
-       var left = l4.slice(0,2);
-       var right = l4.slice(2,4);
-
-       if(left !== right && left !== reverse2(right)){
-         results[l4] = true;
-       }
-     });
+     results[a + b] = true;
+     results[b + a] = true;
    }
  }
 

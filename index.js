@@ -1255,9 +1255,6 @@ Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran 
 <div class="sheet-item" onclick="deleteAllGames()">Supprimer</div>
 <div class="sheet-item" onclick="autoMarriage()">Maryaj otomatik</div>
 <div class="sheet-item" onclick="autoLoto4()">L1 otomatik</div>
-<div class="sheet-item">Traiter le jeu</div>
-<div class="sheet-item">Processus local</div>
-<div class="sheet-item">Processus en ligne</div>
 </div>
 
 <div id="loterieModal" class="loterie-modal">

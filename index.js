@@ -3586,10 +3586,10 @@ function renderImprimantePage(){
   };
 })();
 
-/* ===== PATCH FINAL: BALANCE TOUJOU RAFRECHI ===== */
-(function(){
-
-  function calcAndShowBalance(rows){
+function renderBalancePage(){
+  fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets?reload=" + Date.now())
+  .then(function(res){ return res.json(); })
+  .then(function(rows){
     savedTickets = Array.isArray(rows) ? rows : [];
 
     var box = document.getElementById("balanceWrap");
@@ -3598,21 +3598,28 @@ function renderImprimantePage(){
     var vente = 0;
     var prix = 0;
 
+    function ticketDateKey(t){
+      if(t.dateLabel){
+        var p = String(t.dateLabel).split("/");
+        if(p.length === 3){
+          return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+        }
+      }
+
+      var d = new Date(t.createdAt || Date.now());
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2,"0") + "-" +
+        String(d.getDate()).padStart(2,"0");
+    }
+
     savedTickets.forEach(function(t){
       var st = String(t.status || "").toUpperCase();
-
       if(st === "ANILE") return;
 
-      var ticketDate = t.createdAt ? new Date(t.createdAt) : null;
+      var ticketDay = ticketDateKey(t);
 
-      if(ticketDate && currentBalanceDate){
-        var selectedDate = new Date(currentBalanceDate);
-
-        ticketDate.setHours(0,0,0,0);
-        selectedDate.setHours(23,59,59,999);
-
-        if(ticketDate > selectedDate) return;
-      }
+      // pran tout fich ki fèt avan dat la + menm dat la
+      if(currentBalanceDate && ticketDay > currentBalanceDate) return;
 
       vente += Number(t.total || 0);
 
@@ -3675,26 +3682,8 @@ function renderImprimantePage(){
           row("DISPONIBLE", disponible, true, true) +
         '</div>' +
       '</div>';
-  }
-
-  renderBalancePage = function(){
-    fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets?reload=" + Date.now())
-    .then(function(res){ return res.json(); })
-    .then(function(rows){
-      calcAndShowBalance(rows);
-    })
-    .catch(function(){
-      calcAndShowBalance(savedTickets);
-    });
-  };
-
-  openDrawerBalance = function(){
-    closeMenuOnly();
-    renderBalancePage();
-    switchPage("balancePage", null);
-  };
-
-})();
+  });
+}
 
 </script>
 </body>

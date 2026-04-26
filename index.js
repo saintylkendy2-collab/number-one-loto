@@ -1600,7 +1600,7 @@ function handleEnter(){
  }
 
  if(activeField === "montant"){
-   if(!montant.trim()) return;
+console.log("AUTO MODE:", window.autoL1Mode);
 
 if(window.autoL1Mode){
   if(!montant.trim()){
@@ -1664,7 +1664,7 @@ if(window.autoL1Mode){
   renderJeux();
   updateFields();
   return;
-}
+}   
 
    addGame();
    return;

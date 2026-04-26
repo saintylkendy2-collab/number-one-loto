@@ -2934,9 +2934,8 @@ function T(k){
 }
 
 function setAppLang(lang){
-  APP_LANG = lang || "fr";
-  localStorage.setItem("APP_LANG", APP_LANG);
-  applyAppLang();
+  APP_LANG = lang;
+  localStorage.setItem("APP_LANG", lang); // 👉 SA KI SOVE L
 }
 
 function setTxt(id, txt){
@@ -2997,13 +2996,8 @@ function validateLang(){
 
   setAppLang(newLang);
 
-  // refresh UI
-  renderTiragesPage();
-  renderBalancePage();
-  renderJeux();
-
-  // optional: ti feedback
-  console.log("Lang chanje:", newLang);
+  // 🔥 SA KI MANKE LA → reload app la
+  location.reload();
 }
 
 

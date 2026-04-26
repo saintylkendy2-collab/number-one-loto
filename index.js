@@ -79,6 +79,14 @@ function formatTimeFR(date = new Date()) {
   });
 }
 
+function formatFRDateInput(iso){
+  if(!iso) return "";
+  const p = String(iso).split("-");
+  if(p.length !== 3) return iso;
+  return p[2] + "/" + p[1] + "/" + p[0];
+}
+
+
 function money(n) {
   return Number(n || 0).toFixed(2);
 }
@@ -3926,10 +3934,6 @@ app.get("/print-report", (req, res) => {
   const start = String(req.query.start || "").trim();
   const end = String(req.query.end || "").trim();
 
-  const vendeurs = loadVendeursForLogin();
-  const vendeur = vendeurs[sellerId] || {};
-  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
-
   const tickets = loadTickets().filter(t =>
     String(t.vendeur || "").trim().toUpperCase() === sellerId
   );
@@ -3950,9 +3954,6 @@ app.get("/print-report", (req, res) => {
   let vente = 0;
   let prix = 0;
 
-  const byDay = {};
-  const byLot = {};
-
   tickets.forEach(t => {
     const d = ticketDay(t);
     if(start && d < start) return;
@@ -3961,42 +3962,29 @@ app.get("/print-report", (req, res) => {
     const st = normalizeStatus(t.status);
     if(st === "ANILE") return;
 
-    const total = Number(t.total || 0);
-    const premio = st === "GANYE" ? Number(t.premio || 0) : 0;
-
-    vente += total;
-    prix += premio;
-
-    if(!byDay[d]) byDay[d] = { vente:0, prix:0 };
-    byDay[d].vente += total;
-    byDay[d].prix += premio;
-
-    (t.jeux || []).forEach(j => {
-      const lot = String(j.loterie || "SANS TIRAGE");
-      if(!byLot[lot]) byLot[lot] = 0;
-      byLot[lot] += Number(j.montant || 0);
-    });
+    vente += Number(t.total || 0);
+    if(st === "GANYE") prix += Number(t.premio || 0);
   });
 
-  const commission = 0;
-  const resultat = vente - prix - commission;
+  const vendeurs = loadVendeursForLogin();
+  const vendeur = vendeurs[sellerId] || {};
+  const rate = Number(vendeur?.comision?.general || 0);
+  const commission = vente * (rate / 100);
+  const balance = vente - prix - commission;
 
-  let dayHtml = "";
-  Object.keys(byDay).sort().forEach(d => {
-    const x = byDay[d];
-    dayHtml += `
-      <div class="row"><span>${d}</span><b>${x.vente.toFixed(2)}</b></div>
-      <div class="row small"><span>Prime</span><span>${x.prix.toFixed(2)}</span></div>
-      <div class="line"></div>
-    `;
+  const now = new Date();
+  const printDate = now.toLocaleDateString("fr-FR");
+  const printTime = now.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
   });
 
-  let lotHtml = "";
-  Object.keys(byLot).sort().forEach(lot => {
-    lotHtml += `
-      <div class="row"><span>${lot}</span><b>${byLot[lot].toFixed(2)}</b></div>
-    `;
-  });
+  function frDate(iso){
+    if(!iso) return "";
+    const p = iso.split("-");
+    if(p.length !== 3) return iso;
+    return p[2] + "/" + p[1] + "/" + p[0];
+  }
 
   res.set("Content-Type", "text/html; charset=utf-8");
   res.send(`
@@ -4017,33 +4005,31 @@ body{
   color:#000;
   line-height:1.2;
 }
-.title{text-align:center;font-weight:700;font-size:10px;margin-bottom:3px;}
 .center{text-align:center;}
-.row{display:flex;justify-content:space-between;gap:4px;margin:2px 0;}
-.small{font-size:8px;}
+.title{font-size:10px;font-weight:700;}
 .line{border-top:1px dashed #000;margin:4px 0;}
-.section{font-weight:700;text-align:center;margin:5px 0 3px;}
+.row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:4px;
+  margin:3px 0;
+}
+.boxline{border-top:1px dashed #000;border-bottom:1px dashed #000;padding:4px 0;}
 </style>
 </head>
 <body>
-  <div class="title">NUMBER ONE LOTO</div>
-  <div class="center">RAPPORT</div>
-  <div class="center">${sellerName}</div>
-  <div class="center">${start || ""} / ${end || ""}</div>
+  <div class="center title">RÉCAPITULATIF DES VENTES</div>
+  <div class="center">${frDate(start)} - ${frDate(end)}</div>
+  <div class="center">[ ${printDate} ${printTime} ]</div>
 
   <div class="line"></div>
 
-  <div class="row"><span>VENTES</span><b>${vente.toFixed(2)}</b></div>
-  <div class="row"><span>PRIX</span><b>${prix.toFixed(2)}</b></div>
-  <div class="row"><span>COMMISSION</span><b>${commission.toFixed(2)}</b></div>
-  <div class="row"><span>RESULTAT</span><b>${resultat.toFixed(2)}</b></div>
-
-  <div class="line"></div>
-  <div class="section">RESUMEN POR DIA</div>
-  ${dayHtml || '<div class="center">Aucun</div>'}
-
-  <div class="section">RESUMEN LOTERIA</div>
-  ${lotHtml || '<div class="center">Aucun</div>'}
+  <div class="boxline">
+    <div class="row"><span>| Ventes</span><b>${vente.toFixed(2)} |</b></div>
+    <div class="row"><span>| Prix</span><b>${prix.toFixed(2)} |</b></div>
+    <div class="row"><span>| Commission</span><b>${commission.toFixed(2)} |</b></div>
+    <div class="row"><span>| Balance</span><b>${balance.toFixed(2)} |</b></div>
+  </div>
 
 <script>
 setTimeout(function(){

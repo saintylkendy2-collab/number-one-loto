@@ -3154,18 +3154,9 @@ function openDrawerTirages(){
 function openDrawerBalance(){
   closeMenuOnly();
 
-  fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
-  .then(function(res){ return res.json(); })
-  .then(function(rows){
-    savedTickets = Array.isArray(rows) ? rows : [];
-    renderBalancePage();
-    switchPage("balancePage", null);
-  })
-  .catch(function(){
-    savedTickets = [];
-    renderBalancePage();
-    switchPage("balancePage", null);
-  });
+  renderBalancePage(); // pa fetch la ankò isit
+
+  switchPage("balancePage", null);
 }
 
 function openDrawerParametre(){

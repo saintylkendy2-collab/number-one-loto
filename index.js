@@ -3953,8 +3953,12 @@ app.get("/print-report", (req, res) => {
     return p[2] + "/" + p[1] + "/" + p[0];
   }
 
-  const printDate = formatFRDateInput(start) + " - " + formatFRDateInput(end);
-const printTime = "";
+const printNow = new Date();
+const printDate = printNow.toLocaleDateString("fr-FR");
+const printTime = printNow.toLocaleTimeString("fr-FR", {
+  hour: "2-digit",
+  minute: "2-digit"
+});
 
   const vendeurs = loadVendeursForLogin();
   const vendeur = vendeurs[sellerId] || {};

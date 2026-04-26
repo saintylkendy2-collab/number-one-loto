@@ -3535,9 +3535,7 @@ function renderImprimantePage(){
 
       [
         "000","111","222","333","444",
-        "555","666","777","888","999",
-        "100","200","300","400","500",
-        "600","700","800","900"
+        "555","666","777","888","999"
       ].forEach(function(num){
         selectedLoteries.forEach(function(lot){
           mergeOrPushGame({

@@ -2977,15 +2977,35 @@ function applyAppLang(){
     sheetItems[4].textContent = T("local");
     sheetItems[5].textContent = T("online");
   }
+function langSelectHtml(){
+  return '' +
+    '<div style="display:flex;align-items:center;gap:10px;">' +
+      '<select id="langSelectTemp" style="font-size:18px;font-weight:800;padding:4px;">' +
+        '<option value="fr" ' + (APP_LANG === "fr" ? "selected" : "") + '>' + T("francais") + '</option>' +
+        '<option value="ht" ' + (APP_LANG === "ht" ? "selected" : "") + '>' + T("kreyol") + '</option>' +
+        '<option value="es" ' + (APP_LANG === "es" ? "selected" : "") + '>' + T("espagnol") + '</option>' +
+      '</select>' +
+      '<button onclick="validateLang()" style="background:#2f49d1;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-weight:700;">OK</button>' +
+    '</div>';
+}}
+
+function validateLang(){
+  var sel = document.getElementById("langSelectTemp");
+  if(!sel) return;
+
+  var newLang = sel.value;
+
+  setAppLang(newLang);
+
+  // refresh UI
+  renderTiragesPage();
+  renderBalancePage();
+  renderJeux();
+
+  // optional: ti feedback
+  console.log("Lang chanje:", newLang);
 }
 
-function langSelectHtml(){
-  return '<select onchange="setAppLang(this.value)" style="border:none;background:transparent;font-size:18px;font-weight:800;outline:none;">' +
-    '<option value="fr" ' + (APP_LANG === "fr" ? "selected" : "") + '>' + T("francais") + '</option>' +
-    '<option value="ht" ' + (APP_LANG === "ht" ? "selected" : "") + '>' + T("kreyol") + '</option>' +
-    '<option value="es" ' + (APP_LANG === "es" ? "selected" : "") + '>' + T("espagnol") + '</option>' +
-  '</select>';
-}
 
 setTimeout(applyAppLang, 200);
 

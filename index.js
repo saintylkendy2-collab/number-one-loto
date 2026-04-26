@@ -2480,10 +2480,12 @@ function handleCopyButton(){
 
     if(!Array.isArray(rows)) rows = [];
 
-    var found = rows.find(function(t){
-      return String(t.serial || "") === val;
-    });
+    var cleanInput = val.replace(/[^0-9\-]/g,"");
 
+var found = rows.find(function(t){
+  var s = String(t.serial || "").replace(/[^0-9\-]/g,"");
+  return s === cleanInput;
+});
     if(!found){
       alert("Ticket pa jwenn");
       return;

@@ -1901,7 +1901,7 @@ function autoLoto4(){
  Object.keys(results).forEach(function(numeroAuto){
    selectedLoteries.forEach(function(lot){
      mergeOrPushGame({
-       type: "L4",
+       type: "L1",
        numero: numeroAuto,
        loterie: lot,
        montant: parseFloat(montant) || 0

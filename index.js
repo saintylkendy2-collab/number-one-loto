@@ -497,7 +497,11 @@ app.post("/api/tickets", (req, res) => {
   const sellerName = String(req.body.sellerName || sellerId || "VENDEUR");
   const jeux = Array.isArray(req.body.jeux) ? req.body.jeux : [];
   const channel = String(req.body.channel || "MANUEL").trim().toUpperCase();
+const clientCreatedAt = String(req.body.clientCreatedAt || "");
+const clientDateLabel = String(req.body.clientDateLabel || "");
+const clientTimeLabel = String(req.body.clientTimeLabel || "");
 
+const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
   if (!sellerId) {
     return res.status(400).json({ ok: false, message: "sellerId obligatoire" });
   }
@@ -517,7 +521,8 @@ app.post("/api/tickets", (req, res) => {
     return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
   }
 
-  const now = new Date();
+  
+const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
   const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
   const tirages = [...new Set(safeJeux.map((j) => j.loterie))];
   const ticketId = String(Date.now()).slice(-8) + "-" + Math.floor(1000 + Math.random() * 9000);
@@ -527,9 +532,11 @@ app.post("/api/tickets", (req, res) => {
     vendeur: sellerId,
     vendeurNom: sellerName,
     createdAt: now.toISOString(),
-    createdAtLabel: formatDateTimeFR(now),
-    dateLabel: formatDateFR(now),
-    timeLabel: formatTimeFR(now),
+createdAtLabel: clientDateLabel && clientTimeLabel
+  ? clientDateLabel + " " + clientTimeLabel
+  : formatDateTimeFR(now),
+dateLabel: clientDateLabel || formatDateFR(now),
+timeLabel: clientTimeLabel || formatTimeFR(now),
     status: "ANATAN",
     premio: 0,
     channel,
@@ -2099,11 +2106,18 @@ function saveCurrentTicket(channel){
    method: "POST",
    headers: { "Content-Type": "application/json" },
    body: JSON.stringify({
-     sellerId: sellerId,
-     sellerName: sellerName,
-     jeux: buildPayloadGames(),
-     channel: channel || "MANUEL"
-   })
+  sellerId: sellerId,
+  sellerName: sellerName,
+  jeux: buildPayloadGames(),
+  channel: channel || "MANUEL",
+  clientCreatedAt: new Date().toISOString(),
+  clientDateLabel: new Date().toLocaleDateString("fr-FR"),
+  clientTimeLabel: new Date().toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  })
+})
  }).then(function(res){
    return res.json();
  }).then(function(data){

@@ -1791,47 +1791,63 @@ function autoMarriage(){
  var counts = getAutoSourceBalls();
  var nums = Object.keys(counts);
 
- if(nums.length === 0){
-   alert("Pa gen boul 2 chif pou maryaj otomatik");
+ if(nums.length < 2){
+   alert("Fòk ou mete omwen 2 boul");
    return;
  }
+
  if(selectedLoteries.length === 0){
    alert("Chwazi omwen yon loterie");
    return;
  }
+
  if(!montant.trim()){
    alert("Mete montan an");
    return;
  }
 
- var results = {};
+ // 🔥 1. Fè gwoup (12/21, 34/43, etc)
+ var groups = [];
+ var used = {};
 
- for(var i=0;i<nums.length;i++){
-   for(var j=i+1;j<nums.length;j++){
-     var a = nums[i];
-     var b = nums[j];
-     var ar = reverse2(a);
-     var br = reverse2(b);
+ nums.forEach(function(n){
+   if(used[n]) return;
 
-     if(a === b) continue;
-     if(a === br) continue;
-     if(ar === b) continue;
+   var r = reverse2(n);
 
-     [
-       a + "*" + b,
-       a + "*" + br,
-       ar + "*" + b,
-       ar + "*" + br
-     ].forEach(function(m){
-       var parts = m.split("*");
-       if(parts[0] !== parts[1] && parts[0] !== reverse2(parts[1])){
-         results[m] = true;
-       }
+   if(nums.includes(r) && r !== n){
+     groups.push([n, r]);
+     used[n] = true;
+     used[r] = true;
+   } else {
+     groups.push([n]);
+     used[n] = true;
+   }
+ });
+
+ var results = [];
+
+ // 🔥 2. Travèse gwoup yo nan lòd
+ for(var i=0;i<groups.length;i++){
+   for(var j=i+1;j<groups.length;j++){
+
+     var g1 = groups[i];
+     var g2 = groups[j];
+
+     g1.forEach(function(a){
+       g2.forEach(function(b){
+
+         if(a === b) return;
+         if(a === reverse2(b)) return;
+
+         results.push(a + "*" + b);
+       });
      });
    }
  }
 
- Object.keys(results).forEach(function(numeroAuto){
+ // 🔥 3. Mete nan jwèt
+ results.forEach(function(numeroAuto){
    selectedLoteries.forEach(function(lot){
      mergeOrPushGame({
        type: "MAR",

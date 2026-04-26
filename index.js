@@ -1203,15 +1203,16 @@ border-right:1px solid #ddd;
 </div>
 
 <div id="copierPage" class="page">
-<div class="copy-wrap">
-<input id="copyTicketId" class="copy-input" placeholder="Mete nimewo seri ticket la">
-<button class="copy-btn" onclick="handleCopyButton()">Copie exacte</button>
-<button class="copy-btn" onclick="handleCopyLoterie()">Changer loterie</button>
-<div class="copy-note">
-Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran an pou rekopye yo.
+  <div class="copy-wrap">
+    <input id="copyTicketId" class="copy-input" placeholder="Mete nimewo seri ticket la">
+    <button class="copy-btn" onclick="handleCopyButton()">Copie exacte</button>
+
+    <div class="copy-note">
+      Mete nimewo seri ticket la. Si ticket la egziste, jwèt yo ap remonte nan ekran an.
+    </div>
+  </div>
 </div>
-</div>
-</div>
+
 
 <div id="payerPage" class="page">
 <div class="empty-zone">Payer ap vini</div>
@@ -2465,8 +2466,14 @@ function validateLoteries(){
   updateFields();
 }
 
-function handleCopyButton(){
+function cleanTicketId(v){
+  return String(v || "")
+    .trim()
+    .replace(/^#/, "")
+    .replace(/\s+/g, "");
+}
 
+function handleCopyButton(){
   var val = document.getElementById("copyTicketId").value.trim();
 
   if(!val){
@@ -2474,46 +2481,59 @@ function handleCopyButton(){
     return;
   }
 
+  var cleanInput = cleanTicketId(val);
+
   fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets?reload=" + Date.now())
   .then(function(res){ return res.json(); })
   .then(function(rows){
-
     if(!Array.isArray(rows)) rows = [];
 
-    var cleanInput = val.replace(/[^0-9\-]/g,"");
+    var found = rows.find(function(t){
+      var id1 = cleanTicketId(t.id);
+      var id2 = cleanTicketId(t.serial);
+      var id3 = cleanTicketId(t.ticketId);
 
-var found = rows.find(function(t){
-  var s = String(t.serial || "").replace(/[^0-9\-]/g,"");
-  return s === cleanInput;
-});
+      return id1 === cleanInput || id2 === cleanInput || id3 === cleanInput;
+    });
+
     if(!found){
       alert("Ticket pa jwenn");
       return;
     }
 
-    // 🧠 netwaye ansyen jeux yo
-    jeux = [];
+    if(!Array.isArray(found.jeux)){
+      alert("Ticket sa pa gen jwèt ladanl");
+      return;
+    }
 
-    // 🔁 remonte nouvo jeux yo
-    (found.items || []).forEach(function(it){
+    jeux = [];
+    selectedLoteries = [];
+    numero = "";
+    montant = "";
+    cursorNumero = 0;
+    cursorMontant = 0;
+    activeField = "numero";
+
+    found.jeux.forEach(function(j){
       jeux.push({
-        type: it.type,
-        numero: it.numero,
-        loterie: it.loterie,
-        montant: it.montant
+        type: j.type,
+        numero: j.numero,
+        loterie: j.loterie,
+        montant: Number(j.montant || 0)
       });
+
+      if(selectedLoteries.indexOf(j.loterie) < 0){
+        selectedLoteries.push(j.loterie);
+      }
     });
 
-    // 📌 mete loterie yo
-    selectedLoteries = [...new Set((found.items || []).map(i => i.loterie))];
-
-    // 🔄 refresh ekran
     renderJeux();
     updateFields();
 
-    // 🚀 retounen sou paj billets
-    switchPage("billetsPage", null);
-
+    switchPage("salePage", document.getElementById("nav-billets"));
+  })
+  .catch(function(){
+    alert("Erreur lecture ticket");
   });
 }
 

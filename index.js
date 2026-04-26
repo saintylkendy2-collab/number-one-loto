@@ -3233,100 +3233,92 @@ function renderTiragesPage(){
 }
 
 function renderBalancePage(){
-  var box = document.getElementById("balanceWrap");
-  if(!box) return;
+  fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
+  .then(function(res){ return res.json(); })
+  .then(function(rows){
+    savedTickets = Array.isArray(rows) ? rows : [];
 
-  var vente = 0;
-  var prix = 0;
+    var box = document.getElementById("balanceWrap");
+    if(!box) return;
 
-  savedTickets.forEach(function(t){
-    var st = String(t.status || "").toUpperCase();
+    var vente = 0;
+    var prix = 0;
 
-    // ANILE pa dwe konte
-    if(st === "ANILE") return;
+    savedTickets.forEach(function(t){
+      var st = String(t.status || "").toUpperCase();
+      if(st === "ANILE") return;
 
-    // pran dat ticket la
-    var ticketDate = null;
+      var ticketDate = t.createdAt ? new Date(t.createdAt) : null;
 
-    if(t.createdAt){
-      ticketDate = new Date(t.createdAt);
+      if(ticketDate && currentBalanceDate){
+        var selectedDate = new Date(currentBalanceDate);
+        ticketDate.setHours(0,0,0,0);
+        selectedDate.setHours(23,59,59,999);
+
+        if(ticketDate > selectedDate) return;
+      }
+
+      vente += Number(t.total || 0);
+
+      if(st === "GANYE"){
+        prix += Number(t.premio || 0);
+      }
+    });
+
+    var rate = Number(sellerCommissionRate || 0);
+    var commission = vente * (rate / 100);
+    var resultat = vente - commission - prix;
+
+    var initial = 0;
+    var paiementRecu = 0;
+    var sousTotal = initial + paiementRecu + resultat;
+    var collectionsLivrees = 0;
+    var balance = sousTotal - collectionsLivrees;
+    var credit = Number(sellerCredit || 0);
+    var disponible = credit - balance;
+
+    function row(label, value, bold, green){
+      return '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:13px 16px;border-bottom:1px solid #eee;font-size:20px;">' +
+        '<div style="' + (bold ? 'font-weight:800;' : '') + '">' + label + '</div>' +
+        '<div style="' + (bold ? 'font-weight:800;' : '') + (green ? 'color:#22a447;' : '') + '">' + moneyFmt(value) + '</div>' +
+      '</div>';
     }
 
-    if(ticketDate && currentBalanceDate){
-      var selectedDate = new Date(currentBalanceDate);
+    box.innerHTML =
+      '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">USD ' + moneyFmt(balance) + '</div>' +
+      '<div style="padding:18px;background:#f3f3f7;min-height:100%;">' +
 
-      ticketDate.setHours(0,0,0,0);
-      selectedDate.setHours(23,59,59,999);
+        '<div style="text-align:center;margin-bottom:14px;">' +
+          '<input type="date" value="' + currentBalanceDate + '" onchange="currentBalanceDate=this.value;renderBalancePage();" style="border:none;border-bottom:1px solid #555;background:transparent;text-align:center;font-size:26px;font-weight:700;width:210px;outline:none;">' +
+        '</div>' +
 
-      // retire sèlman sa ki apre dat ou chwazi a
-      if(ticketDate > selectedDate) return;
-    }
+        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+          row("Ventes", vente, false, false) +
+          row("Prix", prix, false, false) +
+          row("Commission", commission, false, false) +
+          row("RÉSULTAT", resultat, true, false) +
+        '</div>' +
 
-    vente += Number(t.total || 0);
+        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+          row("Initial", initial, false, false) +
+          row("Paiement reçu", paiementRecu, false, false) +
+          row("SOUS-TOTAL", sousTotal, true, false) +
+        '</div>' +
 
-    // si fiche ganye, retire prix/gain lan
-    if(st === "GANYE"){
-      prix += Number(t.premio || 0);
-    }
+        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+          row("Collections livrées", collectionsLivrees, false, false) +
+        '</div>' +
+
+        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+          row("BALANCE", balance, true, false) +
+        '</div>' +
+
+        '<div style="background:#eef1f5;border:1px solid #ddd;">' +
+          row("CRÉDIT", credit, true, false) +
+          row("DISPONIBLE", disponible, true, true) +
+        '</div>' +
+      '</div>';
   });
-
-  // pousantaj vandè a
-  var rate = Number(sellerCommissionRate || 0);
-  var commission = vente * (rate / 100);
-
-  var resultat = vente - commission - prix;
-
-  var initial = 0;
-  var paiementRecu = 0;
-  var sousTotal = initial + paiementRecu + resultat;
-
-  var collectionsLivrees = 0;
-  var balance = sousTotal - collectionsLivrees;
-
-  var credit = Number(sellerCredit || 0);
-  var disponible = credit - balance;
-
-  function row(label, value, bold, green){
-    return '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:13px 16px;border-bottom:1px solid #eee;font-size:20px;">' +
-      '<div style="' + (bold ? 'font-weight:800;' : '') + '">' + label + '</div>' +
-      '<div style="' + (bold ? 'font-weight:800;' : '') + (green ? 'color:#22a447;' : '') + '">' + moneyFmt(value) + '</div>' +
-    '</div>';
-  }
-
-  box.innerHTML =
-    '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">USD ' + moneyFmt(balance) + '</div>' +
-    '<div style="padding:18px;background:#f3f3f7;min-height:100%;">' +
-
-      '<div style="text-align:center;margin-bottom:14px;">' +
-        '<input type="date" value="' + currentBalanceDate + '" onchange="currentBalanceDate=this.value;renderBalancePage();" style="border:none;border-bottom:1px solid #555;background:transparent;text-align:center;font-size:26px;font-weight:700;width:210px;outline:none;">' +
-      '</div>' +
-
-      '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
-        row("Ventes", vente, false, false) +
-        row("Prix", prix, false, false) +
-        row("Commission", commission, false, false) +
-        row("RÉSULTAT", resultat, true, false) +
-      '</div>' +
-
-      '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
-        row("Initial", initial, false, false) +
-        row("Paiement reçu", paiementRecu, false, false) +
-        row("SOUS-TOTAL", sousTotal, true, false) +
-      '</div>' +
-
-      '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
-        row("Collections livrées", collectionsLivrees, false, false) +
-      '</div>' +
-
-      '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
-        row("BALANCE", balance, true, false) +
-      '</div>' +
-
-      '<div style="background:#eef1f5;border:1px solid #ddd;">' +
-        row("CRÉDIT", credit, true, false) +
-        row("DISPONIBLE", disponible, true, true) +
-      '</div>' +
-    '</div>';
 }
 
 function renderParametrePage(){

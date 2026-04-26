@@ -2573,7 +2573,7 @@ var dBalance = d.vente - d.prime;
   var lotKeys = Object.keys(byLoterie).sort();
   lotKeys.forEach(function(lot){
     var l = byLoterie[lot];
-    var lCommission = l.vente * 0.15;
+    var lCommission = 0;
     var lBalance = l.vente - l.prime - lCommission;
 
     loterieHtml +=

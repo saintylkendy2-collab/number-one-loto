@@ -1104,5 +1104,30 @@
         "montant": 25
       }
     ]
+  },
+  {
+    "id": "21870527-4148",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-26T16:44:30.527Z",
+    "createdAtLabel": "26/04/2026 12:44:30",
+    "dateLabel": "26/04/2026",
+    "timeLabel": "12:44",
+    "status": "ANILE",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 50,
+    "tirages": [
+      "KING LOTTERY DIA"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "44",
+        "loterie": "KING LOTTERY DIA",
+        "montant": 50
+      }
+    ],
+    "updatedAt": "2026-04-26T16:45:01.871Z"
   }
 ]

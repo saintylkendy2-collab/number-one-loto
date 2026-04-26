@@ -1507,6 +1507,17 @@ function press(val){
      return;
    }
 
+if(val === "-"){
+  if(/^\d{4}$/.test(numero)){
+    window.autoL1Mode = true;
+
+    activeField = "montant";
+    cursorMontant = montant.length;
+    updateFields();
+  }
+  return;
+}
+
    if(val === "/"){
      if(/^\\d{2}$/.test(numero) || /^\\d{4}$/.test(numero)){
        numero = numero + "/";
@@ -1590,6 +1601,71 @@ function handleEnter(){
 
  if(activeField === "montant"){
    if(!montant.trim()) return;
+
+if(window.autoL1Mode){
+  if(!montant.trim()){
+    alert("Mete montan an");
+    return;
+  }
+
+  var a = numero.slice(0,2);
+  var b = numero.slice(2,4);
+  var ar = reverse2(a);
+  var br = reverse2(b);
+
+  var results = {};
+
+  [
+    a + b,
+    b + a,
+
+    a + br,
+    br + a,
+
+    ar + b,
+    b + ar,
+
+    ar + br,
+    br + ar
+  ].forEach(function(l4){
+
+    var left = l4.slice(0,2);
+    var right = l4.slice(2,4);
+
+    // ❌ retire menm boul
+    if(left === right) return;
+
+    // ❌ retire revès menm boul
+    if(left === reverse2(right)) return;
+
+    // ✅ evite doublon
+    results[l4] = true;
+  });
+
+  Object.keys(results).forEach(function(num){
+    selectedLoteries.forEach(function(lot){
+      mergeOrPushGame({
+        type: "L1",
+        numero: num,
+        loterie: lot,
+        montant: parseFloat(montant) || 0
+      });
+    });
+  });
+
+  // reset
+  window.autoL1Mode = false;
+  numero = "";
+  montant = "";
+  cursorNumero = 0;
+  cursorMontant = 0;
+  activeField = "numero";
+
+  renderJeux();
+  updateFields();
+  return;
+}
+
    addGame();
    return;
  }

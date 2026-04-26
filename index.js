@@ -2694,11 +2694,22 @@ function updateTicketStatus(id, status, premio){
  }).then(function(res){
  return res.json();
  }).then(function(){
- loadBillets();
+   fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
+   .then(function(res){ return res.json(); })
+   .then(function(rows){
+     savedTickets = Array.isArray(rows) ? rows : [];
+     renderBillets();
+     renderRapports();
+
+     if(currentPageName === "balancePage"){
+       renderBalancePage();
+     }
+   });
  }).catch(function(){
  alert("Erreur mise à jour status");
  });
 }
+
 
 function copyTicketById(){
  var id = document.getElementById("copyTicketId").value.trim();
@@ -3142,11 +3153,19 @@ function openDrawerTirages(){
 
 function openDrawerBalance(){
   closeMenuOnly();
-  loadBillets();
-  setTimeout(function(){
+
+  fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
+  .then(function(res){ return res.json(); })
+  .then(function(rows){
+    savedTickets = Array.isArray(rows) ? rows : [];
     renderBalancePage();
     switchPage("balancePage", null);
-  }, 100);
+  })
+  .catch(function(){
+    savedTickets = [];
+    renderBalancePage();
+    switchPage("balancePage", null);
+  });
 }
 
 function openDrawerParametre(){

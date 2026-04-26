@@ -982,5 +982,30 @@
         "montant": 10
       }
     ]
+  },
+  {
+    "id": "18613737-8146",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-26T15:50:13.737Z",
+    "createdAtLabel": "26/04/2026 11:50:13",
+    "dateLabel": "26/04/2026",
+    "timeLabel": "11:50",
+    "status": "ANILE",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 50,
+    "tirages": [
+      "GEORGIA MIDDAY"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "42",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 50
+      }
+    ],
+    "updatedAt": "2026-04-26T15:52:45.980Z"
   }
 ]

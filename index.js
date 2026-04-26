@@ -3566,6 +3566,98 @@ function renderImprimantePage(){
   };
 })();
 
+/* ===== PATCH APA: GRAP OPSYON ===== */
+(function(){
+  var oldHandleEnterGrapOption = handleEnter;
+  var autoGrapOptionMode = false;
+  var grapBase = "";
+
+  var sheet = document.getElementById("optionsSheet");
+
+  if(sheet && !document.getElementById("grapOption2")){
+    var items = sheet.querySelectorAll(".sheet-item");
+    var grapOpt = document.createElement("div");
+
+    grapOpt.id = "grapOption2";
+    grapOpt.className = "sheet-item";
+    grapOpt.textContent = "Grap Opsyon";
+
+    grapOpt.onclick = function(){
+      var val = prompt("Mete 2 boul (egzanp: 23)");
+
+      if(!val) return;
+
+      val = String(val).trim();
+
+      if(!/^\d{2}$/.test(val)){
+        alert("Fòk se 2 chif egzak");
+        return;
+      }
+
+      grapBase = val;
+      autoGrapOptionMode = true;
+
+      closeOptions();
+      document.getElementById("overlay").classList.remove("show");
+
+      activeField = "montant";
+      cursorMontant = montant.length;
+      updateFields();
+    };
+
+    items.forEach(function(item){
+      if(item.textContent.trim() === "Grap"){
+        item.parentNode.insertBefore(grapOpt, item.nextSibling);
+      }
+    });
+  }
+
+  handleEnter = function(){
+
+    if(activeField === "montant" && autoGrapOptionMode){
+
+      if(!montant.trim()){
+        alert("Mete montan an");
+        return;
+      }
+
+      if(selectedLoteries.length === 0){
+        activeField = "loterie";
+        updateFields();
+        openLoterieModal();
+        return;
+      }
+
+      // 🔥 0 jiska 9 devan 2 boul la
+      for(var i=0;i<=9;i++){
+        var numeroAuto = i + grapBase;
+
+        selectedLoteries.forEach(function(lot){
+          mergeOrPushGame({
+            type: "L3",
+            numero: numeroAuto,
+            loterie: lot,
+            montant: parseFloat(montant) || 0
+          });
+        });
+      }
+
+      autoGrapOptionMode = false;
+      grapBase = "";
+
+      montant = "";
+      cursorMontant = 0;
+      activeField = "numero";
+
+      renderJeux();
+      updateFields();
+      return;
+    }
+
+    oldHandleEnterGrapOption();
+  };
+})();
+
 </script>
 </body>
 </html>

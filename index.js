@@ -2868,64 +2868,77 @@ function copyTicketById(){
 })();
 
 /* ================= LANGUE APP COMPLETE ================= */
+
 var APP_LANG = localStorage.getItem("APP_LANG") || "fr";
 
 var TR = {
   fr: {
     billets:"Billets", copier:"Copier", payer:"Payer", rapports:"Rapports", menu:"Menu",
     tirages:"Tirages", balance:"Balance", parametre:"Paramètre", imprimante:"Imprimante",
-    update:"Update", sortir:"Sortir", supprimer:"Supprimer",
-    mariageAuto:"Maryaj otomatik", loto4Auto:"Loto 4 chif otomatik",
-    traiter:"Traiter le jeu", local:"Processus local", online:"Processus en ligne",
-    pasJeux:"Pas de jeux", paBillet:"Pa gen billet",
-    numero:"Numero", loterie:"Loterie", montant:"Montant",
-    ventes:"Ventes", prix:"Prix", commission:"Commission", resultat:"RÉSULTAT",
-    initial:"Initial", paiementRecu:"Paiement reçu", sousTotal:"SOUS-TOTAL",
-    collections:"Collections livrées", credit:"CRÉDIT", disponible:"DISPONIBLE",
-    choisirLangue:"CHOISIR LA LANGUE", idioma:"Idioma del Equipo",
-    heure:"Hora del Sistema", version:"Versión de App",
-    papier:"Papel", charset:"CharSet", whatsapp:"WhatsApp",
-    guardarUsuario:"Guardar Usuario", guardarClave:"Guardar Clave",
-    entrarAuto:"Entrar Automático", huella:"Usar Huella Digital",
-    francais:"français", kreyol:"kreyòl", espagnol:"español"
+    update:"Update", sortir:"Sortir",
+    choisirLangue:"CHOISIR LA LANGUE",
+    idioma:"Idioma del Equipo",
+    heure:"Hora del Sistema",
+    version:"Versión de App",
+    papier:"Papel",
+    charset:"CharSet",
+    ventes:"VENTES",
+    whatsapp:"WhatsApp",
+    guardarUsuario:"Guardar Usuario",
+    guardarClave:"Guardar Clave",
+    entrerAuto:"Entrar Automático",
+    empreinte:"Usar Huella Digital",
+    numero:"Numero",
+    loterie:"Loterie",
+    montant:"Montant",
+    pasJeux:"Pas de jeux",
+    ok:"OK"
   },
 
   ht: {
     billets:"Biyè", copier:"Kopye", payer:"Peye", rapports:"Rapò", menu:"Meni",
     tirages:"Tiraj", balance:"Balans", parametre:"Paramèt", imprimante:"Enprimant",
-    update:"Mizajou", sortir:"Sòti", supprimer:"Efase",
-    mariageAuto:"Maryaj otomatik", loto4Auto:"Loto 4 chif otomatik",
-    traiter:"Trete jwèt la", local:"Pwosesis lokal", online:"Pwosesis sou entènèt",
-    pasJeux:"Pa gen jwèt", paBillet:"Pa gen biyè",
-    numero:"Nimewo", loterie:"Lotri", montant:"Montan",
-    ventes:"Vant", prix:"Pri", commission:"Komisyon", resultat:"REZILTA",
-    initial:"Inisyal", paiementRecu:"Peman resevwa", sousTotal:"SOUS-TOTAL",
-    collections:"Koleksyon livre", credit:"KREDI", disponible:"DISPONIB",
+    update:"Mizajou", sortir:"Sòti",
     choisirLangue:"CHWAZI LANG",
-    idioma:"Lang aparèy la", heure:"Lè sistèm nan", version:"Vèsyon app la",
-    papier:"Papye", charset:"CharSet", whatsapp:"WhatsApp",
-    guardarUsuario:"Sove itilizatè", guardarClave:"Sove modpas",
-    entrarAuto:"Antre otomatik", huella:"Sèvi ak anprent",
-    francais:"franse", kreyol:"kreyòl", espagnol:"espanyòl"
+    idioma:"Lang aparèy la",
+    heure:"Lè sistèm nan",
+    version:"Vèsyon app la",
+    papier:"Papye",
+    charset:"CharSet",
+    ventes:"VANT",
+    whatsapp:"WhatsApp",
+    guardarUsuario:"Sove itilizatè",
+    guardarClave:"Sove modpas",
+    entrerAuto:"Antre otomatik",
+    empreinte:"Sèvi ak anprent",
+    numero:"Nimewo",
+    loterie:"Lotri",
+    montant:"Montan",
+    pasJeux:"Pa gen jwèt",
+    ok:"OK"
   },
 
   es: {
     billets:"Boletos", copier:"Copiar", payer:"Pagar", rapports:"Reportes", menu:"Menú",
     tirages:"Sorteos", balance:"Balance", parametre:"Parámetros", imprimante:"Impresora",
-    update:"Actualizar", sortir:"Salir", supprimer:"Eliminar",
-    mariageAuto:"Matrimonio automático", loto4Auto:"Loto 4 automático",
-    traiter:"Procesar jugada", local:"Proceso local", online:"Proceso en línea",
-    pasJeux:"Sin jugadas", paBillet:"No hay boletos",
-    numero:"Número", loterie:"Lotería", montant:"Monto",
-    ventes:"Ventas", prix:"Premios", commission:"Comisión", resultat:"RESULTADO",
-    initial:"Inicial", paiementRecu:"Pago recibido", sousTotal:"SUBTOTAL",
-    collections:"Cobros entregados", credit:"CRÉDITO", disponible:"DISPONIBLE",
+    update:"Actualizar", sortir:"Salir",
     choisirLangue:"ELEGIR IDIOMA",
-    idioma:"Idioma del equipo", heure:"Hora del sistema", version:"Versión de app",
-    papier:"Papel", charset:"CharSet", whatsapp:"WhatsApp",
-    guardarUsuario:"Guardar usuario", guardarClave:"Guardar clave",
-    entrarAuto:"Entrar automático", huella:"Usar huella digital",
-    francais:"francés", kreyol:"criollo", espagnol:"español"
+    idioma:"Idioma del Equipo",
+    heure:"Hora del Sistema",
+    version:"Versión de App",
+    papier:"Papel",
+    charset:"CharSet",
+    ventes:"VENTAS",
+    whatsapp:"WhatsApp",
+    guardarUsuario:"Guardar Usuario",
+    guardarClave:"Guardar Clave",
+    entrerAuto:"Entrar Automático",
+    empreinte:"Usar Huella Digital",
+    numero:"Número",
+    loterie:"Lotería",
+    montant:"Monto",
+    pasJeux:"Sin jugadas",
+    ok:"OK"
   }
 };
 
@@ -2933,49 +2946,6 @@ function T(k){
   return (TR[APP_LANG] && TR[APP_LANG][k]) || TR.fr[k] || k;
 }
 
-function setAppLang(lang){
-  APP_LANG = lang;
-  localStorage.setItem("APP_LANG", lang); // 👉 SA KI SOVE L
-}
-
-function setTxt(id, txt){
-  var el = document.getElementById(id);
-  if(el) el.textContent = txt;
-}
-
-function applyAppLang(){
-  setTxt("nav-billets", T("billets"));
-  setTxt("nav-copier", T("copier"));
-  setTxt("nav-payer", T("payer"));
-  setTxt("nav-rapports", T("rapports"));
-  setTxt("nav-menu", T("menu"));
-
-  setTxt("numeroLine", numero || T("numero"));
-  setTxt("loterieLine", T("loterie"));
-  setTxt("montantLine", montant || T("montant"));
-
-  var copyInput = document.getElementById("copyTicketId");
-  if(copyInput) copyInput.placeholder = APP_LANG === "ht" ? "Mete nimewo seri tikè a" : "Mete nimewo seri ticket la";
-
-  var drawerItems = document.querySelectorAll("#drawer .drawer-item");
-  if(drawerItems.length >= 6){
-    drawerItems[0].textContent = T("tirages");
-    drawerItems[1].textContent = T("balance");
-    drawerItems[2].textContent = T("parametre");
-    drawerItems[3].textContent = T("imprimante");
-    drawerItems[4].textContent = T("update");
-    drawerItems[5].textContent = T("sortir");
-  }
-
-  var sheetItems = document.querySelectorAll("#optionsSheet .sheet-item");
-  if(sheetItems.length >= 6){
-    sheetItems[0].textContent = T("supprimer");
-    sheetItems[1].textContent = T("mariageAuto");
-    sheetItems[2].textContent = T("loto4Auto");
-    sheetItems[3].textContent = T("traiter");
-    sheetItems[4].textContent = T("local");
-    sheetItems[5].textContent = T("online");
-  }
 function langSelectHtml(){
   return '' +
     '<div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;">' +
@@ -2984,7 +2954,7 @@ function langSelectHtml(){
         '<option value="ht" ' + (APP_LANG === "ht" ? "selected" : "") + '>kreyòl</option>' +
         '<option value="es" ' + (APP_LANG === "es" ? "selected" : "") + '>español</option>' +
       '</select>' +
-      '<button onclick="saveLanguageChoice()" style="background:#2f49d1;color:white;border:none;border-radius:8px;padding:6px 12px;font-weight:800;">OK</button>' +
+      '<button onclick="saveLanguageChoice()" style="background:#2f49d1;color:white;border:none;border-radius:8px;padding:6px 12px;font-weight:800;">' + T("ok") + '</button>' +
     '</div>';
 }
 
@@ -2995,13 +2965,36 @@ function saveLanguageChoice(){
   APP_LANG = sel.value;
   localStorage.setItem("APP_LANG", APP_LANG);
 
-  alert("Lang lan sove ✔");
-
   location.reload();
 }
 
+function applyAppLang(){
+  var e;
 
-setTimeout(applyAppLang, 200);
+  e = document.getElementById("nav-billets"); if(e) e.textContent = T("billets");
+  e = document.getElementById("nav-copier"); if(e) e.textContent = T("copier");
+  e = document.getElementById("nav-payer"); if(e) e.textContent = T("payer");
+  e = document.getElementById("nav-rapports"); if(e) e.textContent = T("rapports");
+  e = document.getElementById("nav-menu"); if(e) e.textContent = T("menu");
+
+  e = document.getElementById("numeroLine"); if(e && !numero) e.textContent = T("numero");
+  e = document.getElementById("loterieLine"); if(e) e.textContent = T("loterie");
+  e = document.getElementById("montantLine"); if(e && !montant) e.textContent = T("montant");
+
+  var drawerItems = document.querySelectorAll("#drawer .drawer-item");
+  if(drawerItems.length >= 6){
+    drawerItems[0].textContent = T("tirages");
+    drawerItems[1].textContent = T("balance");
+    drawerItems[2].textContent = T("parametre");
+    drawerItems[3].textContent = T("imprimante");
+    drawerItems[4].textContent = T("update");
+    drawerItems[5].textContent = T("sortir");
+  }
+}
+
+setTimeout(function(){
+  applyAppLang();
+}, 300);
 
 renderJeux();
 updateFields();
@@ -3323,7 +3316,10 @@ function renderParametrePage(){
           '<div>✅ Versión de App</div><b>2.9.32</b>' +
         '</div>' +
       '</div>' +
-
+'<div style="display:flex;justify-content:space-between;padding:14px;border-bottom:1px solid #eee;">' +
+  '<span>🌐 ' + T("idioma") + '</span>' +
+  langSelectHtml() +
+'</div>' +
       '<div style="color:#888;font-size:16px;margin-bottom:12px;">IMPRIMANTE</div>' +
       '<div style="background:#fff;border-radius:14px;padding:12px;margin-bottom:18px;font-size:18px;">' +
         '<div style="padding:12px 0;border-bottom:1px solid #eee;">🖨️ -- <b style="float:right;">✎</b></div>' +

@@ -2978,25 +2978,25 @@ function applyAppLang(){
   }
 function langSelectHtml(){
   return '' +
-    '<div style="display:flex;align-items:center;gap:10px;">' +
-      '<select id="langSelectTemp" style="font-size:18px;font-weight:800;padding:4px;">' +
-        '<option value="fr" ' + (APP_LANG === "fr" ? "selected" : "") + '>' + T("francais") + '</option>' +
-        '<option value="ht" ' + (APP_LANG === "ht" ? "selected" : "") + '>' + T("kreyol") + '</option>' +
-        '<option value="es" ' + (APP_LANG === "es" ? "selected" : "") + '>' + T("espagnol") + '</option>' +
+    '<div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;">' +
+      '<select id="langSelectTemp" style="font-size:18px;font-weight:800;padding:5px;">' +
+        '<option value="fr" ' + (APP_LANG === "fr" ? "selected" : "") + '>français</option>' +
+        '<option value="ht" ' + (APP_LANG === "ht" ? "selected" : "") + '>kreyòl</option>' +
+        '<option value="es" ' + (APP_LANG === "es" ? "selected" : "") + '>español</option>' +
       '</select>' +
-      '<button onclick="validateLang()" style="background:#2f49d1;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-weight:700;">OK</button>' +
+      '<button onclick="saveLanguageChoice()" style="background:#2f49d1;color:white;border:none;border-radius:8px;padding:6px 12px;font-weight:800;">OK</button>' +
     '</div>';
-}}
+}
 
-function validateLang(){
+function saveLanguageChoice(){
   var sel = document.getElementById("langSelectTemp");
   if(!sel) return;
 
-  var newLang = sel.value;
+  APP_LANG = sel.value;
+  localStorage.setItem("APP_LANG", APP_LANG);
 
-  setAppLang(newLang);
+  alert("Lang lan sove ✔");
 
-  // 🔥 SA KI MANKE LA → reload app la
   location.reload();
 }
 

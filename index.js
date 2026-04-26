@@ -3934,6 +3934,24 @@ app.get("/print-report", (req, res) => {
   const start = String(req.query.start || "").trim();
   const end = String(req.query.end || "").trim();
 
+  function formatFRDateInput(iso){
+    if(!iso) return "";
+    const p = String(iso).split("-");
+    if(p.length !== 3) return iso;
+    return p[2] + "/" + p[1] + "/" + p[0];
+  }
+
+  const printNow = new Date();
+  const printDate = printNow.toLocaleDateString("fr-FR");
+  const printTime = printNow.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  const vendeurs = loadVendeursForLogin();
+  const vendeur = vendeurs[sellerId] || {};
+  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
+
   const tickets = loadTickets().filter(t =>
     String(t.vendeur || "").trim().toUpperCase() === sellerId
   );
@@ -3945,9 +3963,10 @@ app.get("/print-report", (req, res) => {
         return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
       }
     }
+
     const d = new Date(t.createdAt || Date.now());
     return d.getFullYear() + "-" +
-      String(d.getMonth()+1).padStart(2,"0") + "-" +
+      String(d.getMonth() + 1).padStart(2,"0") + "-" +
       String(d.getDate()).padStart(2,"0");
   }
 
@@ -3963,28 +3982,15 @@ app.get("/print-report", (req, res) => {
     if(st === "ANILE") return;
 
     vente += Number(t.total || 0);
-    if(st === "GANYE") prix += Number(t.premio || 0);
+
+    if(st === "GANYE"){
+      prix += Number(t.premio || 0);
+    }
   });
 
-  const vendeurs = loadVendeursForLogin();
-  const vendeur = vendeurs[sellerId] || {};
   const rate = Number(vendeur?.comision?.general || 0);
   const commission = vente * (rate / 100);
-  const balance = vente - prix - commission;
-
-  const now = new Date();
-  const printDate = now.toLocaleDateString("fr-FR");
-  const printTime = now.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-
-  function frDate(iso){
-    if(!iso) return "";
-    const p = iso.split("-");
-    if(p.length !== 3) return iso;
-    return p[2] + "/" + p[1] + "/" + p[0];
-  }
+  const resultat = vente - prix - commission;
 
   res.set("Content-Type", "text/html; charset=utf-8");
   res.send(`
@@ -4005,25 +4011,36 @@ body{
   color:#000;
   line-height:1.2;
 }
+.title{
+  text-align:center;
+  font-size:10px;
+  font-weight:700;
+  margin-bottom:3px;
+}
 .center{text-align:center;}
-.title{font-size:10px;font-weight:700;}
-.line{border-top:1px dashed #000;margin:4px 0;}
+.line{
+  border-top:1px dashed #000;
+  margin:4px 0;
+}
 .row{
   display:grid;
   grid-template-columns:1fr auto;
   gap:4px;
   margin:3px 0;
 }
-.boxline{border-top:1px dashed #000;border-bottom:1px dashed #000;padding:4px 0;}
+.boxline{
+  border-top:1px dashed #000;
+  border-bottom:1px dashed #000;
+  padding:4px 0;
+}
 </style>
 </head>
 <body>
   <div class="title">NUMBER ONE LOTO</div>
-<div class="center">RAPPORT</div>
-<div class="center">${sellerName}</div>
-<div class="center">${formatFRDateInput(start)} / ${formatFRDateInput(end)}</div>
-<div class="center">[ ${printDate} ${printTime} ]</div>
-
+  <div class="center">RAPPORT</div>
+  <div class="center">${sellerName}</div>
+  <div class="center">${formatFRDateInput(start)} / ${formatFRDateInput(end)}</div>
+  <div class="center">[ ${printDate} ${printTime} ]</div>
 
   <div class="line"></div>
 
@@ -4031,7 +4048,7 @@ body{
     <div class="row"><span>| Ventes</span><b>${vente.toFixed(2)} |</b></div>
     <div class="row"><span>| Prix</span><b>${prix.toFixed(2)} |</b></div>
     <div class="row"><span>| Commission</span><b>${commission.toFixed(2)} |</b></div>
-    <div class="row"><span>| Balance</span><b>${balance.toFixed(2)} |</b></div>
+    <div class="row"><span>| Balance</span><b>${resultat.toFixed(2)} |</b></div>
   </div>
 
 <script>

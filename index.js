@@ -2932,7 +2932,252 @@ loadBillets();
   };
 })();
 
+var sellerCommissionRate = Number(${JSON.stringify(vendeur?.comision?.general || 0)});
+var sellerCredit = Number(${JSON.stringify(vendeur?.config?.credito || 0)});
 
+function backToJeux(){
+  var drawer = document.getElementById("drawer");
+  var overlay = document.getElementById("overlay");
+  var sheet = document.getElementById("optionsSheet");
+  var loterieModal = document.getElementById("loterieModal");
+
+  if(drawer) drawer.classList.remove("open");
+  if(sheet) sheet.classList.remove("open");
+  if(loterieModal) loterieModal.classList.remove("show");
+  if(overlay) overlay.classList.remove("show");
+
+  switchPage("salePage", document.getElementById("nav-billets"));
+}
+
+function closeMenuOnly(){
+  var drawer = document.getElementById("drawer");
+  var overlay = document.getElementById("overlay");
+  var sheet = document.getElementById("optionsSheet");
+
+  if(drawer) drawer.classList.remove("open");
+  if(sheet) sheet.classList.remove("open");
+  if(overlay) overlay.classList.remove("show");
+}
+
+function openDrawerTirages(){
+  closeMenuOnly();
+  renderTiragesPage();
+  switchPage("tiragesPage", null);
+}
+
+function openDrawerBalance(){
+  closeMenuOnly();
+  loadBillets();
+  setTimeout(function(){
+    renderBalancePage();
+    switchPage("balancePage", null);
+  }, 100);
+}
+
+function openDrawerParametre(){
+  closeMenuOnly();
+  renderParametrePage();
+  switchPage("parametrePage", null);
+}
+
+function openDrawerImprimante(){
+  closeMenuOnly();
+  renderImprimantePage();
+  switchPage("imprimantePage", null);
+}
+
+function openDrawerUpdate(){
+  location.reload();
+}
+
+function todayISO(){
+  var d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
+var currentBalanceDate = todayISO();
+var currentTirageDate = todayISO();
+
+function moneyFmt(v){
+  return Number(v || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function renderTiragesPage(){
+  var box = document.getElementById("tiragesWrap");
+  if(!box) return;
+
+  var html = "";
+
+  html += '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Tirages</div>';
+  html += '<div style="background:#fff;text-align:center;padding:10px 0;border-bottom:1px solid #aaa;">';
+  html += '<div style="font-size:16px;color:#777;">Date</div>';
+  html += '<input type="date" value="' + currentTirageDate + '" onchange="currentTirageDate=this.value;renderTiragesPage();" style="border:none;background:transparent;text-align:center;font-size:24px;font-weight:700;width:190px;outline:none;">';
+  html += '</div>';
+
+  html += '<div style="background:#fff;">';
+
+  loteries.forEach(function(l){
+    html +=
+      '<div style="display:grid;grid-template-columns:80px 1fr;align-items:center;min-height:92px;border-bottom:1px solid #ddd;padding:8px 10px;">' +
+        '<div style="font-size:12px;font-weight:800;color:#2f49d1;text-align:center;">LOGO</div>' +
+        '<div>' +
+          '<div style="font-size:21px;font-weight:800;color:#64b5e8;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + l.name + '</div>' +
+          '<div style="display:flex;gap:9px;margin-top:8px;">' +
+            '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+            '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+            '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  });
+
+  html += '</div>';
+  box.innerHTML = html;
+}
+
+function renderBalancePage(){
+  var box = document.getElementById("balanceWrap");
+  if(!box) return;
+
+  var vente = 0;
+  var prix = 0;
+
+  savedTickets.forEach(function(t){
+    var st = String(t.status || "").toUpperCase();
+    if(st === "ANILE") return;
+
+    var d = "";
+    if(t.createdAt){
+      var dd = new Date(t.createdAt);
+      d = dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" + String(dd.getDate()).padStart(2, "0");
+    }
+
+    if(d && d !== currentBalanceDate) return;
+
+    vente += Number(t.total || 0);
+    if(st === "GANYE") prix += Number(t.premio || 0);
+  });
+
+  var commission = vente * (sellerCommissionRate / 100);
+  var resultat = vente - commission - prix;
+
+  var initial = 0;
+  var paiementRecu = 0;
+  var sousTotal = initial + paiementRecu + resultat;
+  var collectionsLivrees = 0;
+  var balance = sousTotal - collectionsLivrees;
+  var credit = sellerCredit;
+  var disponible = credit - balance;
+
+  function row(label, value, bold, green){
+    return '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:13px 16px;border-bottom:1px solid #eee;font-size:20px;">' +
+      '<div style="' + (bold ? 'font-weight:800;' : '') + '">' + label + '</div>' +
+      '<div style="' + (bold ? 'font-weight:800;' : '') + (green ? 'color:#22a447;' : '') + '">' + moneyFmt(value) + '</div>' +
+    '</div>';
+  }
+
+  box.innerHTML =
+    '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">USD ' + moneyFmt(balance) + '</div>' +
+    '<div style="padding:18px;background:#f3f3f7;min-height:100%;">' +
+
+      '<div style="text-align:center;margin-bottom:14px;">' +
+        '<input type="date" value="' + currentBalanceDate + '" onchange="currentBalanceDate=this.value;renderBalancePage();" style="border:none;border-bottom:1px solid #555;background:transparent;text-align:center;font-size:26px;font-weight:700;width:210px;outline:none;">' +
+      '</div>' +
+
+      '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+        row("Ventes", vente, false, false) +
+        row("Prix", prix, false, false) +
+        row("Commission", commission, false, false) +
+        row("RÉSULTAT", resultat, true, false) +
+      '</div>' +
+
+      '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+        row("Initial", initial, false, false) +
+        row("Paiement reçu", paiementRecu, false, false) +
+        row("SOUS-TOTAL", sousTotal, true, false) +
+      '</div>' +
+
+      '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+        row("Collections livrées", collectionsLivrees, false, false) +
+      '</div>' +
+
+      '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+        row("BALANCE", balance, true, false) +
+      '</div>' +
+
+      '<div style="background:#eef1f5;border:1px solid #ddd;">' +
+        row("CRÉDIT", credit, true, false) +
+        row("DISPONIBLE", disponible, true, true) +
+      '</div>' +
+    '</div>';
+}
+
+function renderParametrePage(){
+  var box = document.getElementById("parametreWrap");
+  if(!box) return;
+
+  box.innerHTML =
+    '<div style="padding:14px;background:#f3f3f7;min-height:100%;">' +
+      '<div style="color:#888;font-size:16px;margin-bottom:12px;">CHOISIR LA LANGUE</div>' +
+      '<div style="background:#fff;border-radius:14px;padding:12px;margin-bottom:18px;font-size:18px;">' +
+        '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:12px 0;border-bottom:1px solid #eee;">' +
+          '<div>🌐 Idioma del Equipo</div>' +
+          '<select style="font-size:18px;border:none;background:transparent;font-weight:800;outline:none;">' +
+            '<option>français</option>' +
+            '<option>kreyòl</option>' +
+            '<option>español</option>' +
+          '</select>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:12px 0;border-bottom:1px solid #eee;">' +
+          '<div>🕒 Hora del Sistema</div><b>' + new Date().toLocaleTimeString("fr-FR") + '</b>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:12px 0;">' +
+          '<div>✅ Versión de App</div><b>2.9.32</b>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="color:#888;font-size:16px;margin-bottom:12px;">IMPRIMANTE</div>' +
+      '<div style="background:#fff;border-radius:14px;padding:12px;margin-bottom:18px;font-size:18px;">' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">🖨️ -- <b style="float:right;">✎</b></div>' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">🧾 Papel <b style="float:right;">58mm ○ 80mm</b></div>' +
+        '<div style="padding:12px 0;">Tt CharSet <b style="float:right;">UTF-8</b></div>' +
+      '</div>' +
+
+      '<div style="color:#888;font-size:16px;margin-bottom:12px;">VENTES</div>' +
+      '<div style="background:#fff;border-radius:14px;padding:12px;margin-bottom:18px;font-size:18px;">' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">Loteries <b style="float:right;">Material</b></div>' +
+        '<div style="padding:12px 0;">WhatsApp <b style="float:right;">IMG ○ PDF ○ ?</b></div>' +
+      '</div>' +
+
+      '<div style="color:#888;font-size:16px;margin-bottom:12px;">CLAVIER</div>' +
+      '<div style="background:#fff;border-radius:14px;padding:12px;font-size:18px;">' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">🔒 Guardar Usuario <b style="float:right;">ON</b></div>' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">🔑 Guardar Clave <b style="float:right;">OFF</b></div>' +
+        '<div style="padding:12px 0;border-bottom:1px solid #eee;">↪ Entrar Automático <b style="float:right;">OFF</b></div>' +
+        '<div style="padding:12px 0;">🖐 Usar Huella Digital <b style="float:right;">ON</b></div>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderImprimantePage(){
+  var box = document.getElementById("imprimanteWrap");
+  if(!box) return;
+
+  box.innerHTML =
+    '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Imprimante</div>' +
+    '<div style="padding:14px;">' +
+      '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
+        '<div style="font-size:20px;font-weight:800;margin-bottom:12px;">Printer disponibles</div>' +
+        '<div style="padding:14px;border-bottom:1px solid #eee;">POS Internal Printer</div>' +
+        '<div style="padding:14px;border-bottom:1px solid #eee;">Bluetooth Printer</div>' +
+        '<div style="padding:14px;border-bottom:1px solid #eee;">LP-BT71</div>' +
+        '<button onclick="submitPrint()" style="width:100%;height:50px;border:none;border-radius:12px;background:#3452aa;color:#fff;font-size:18px;font-weight:800;margin-top:16px;">Tester impression</button>' +
+      '</div>' +
+    '</div>';
+}
 
 </script>
 </body>

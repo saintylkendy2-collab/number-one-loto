@@ -1491,6 +1491,7 @@ function press(val){
  val = String(val);
 
  if(activeField === "numero"){
+
    if(val === "+"){
      if(numero.length === 4){
        pendingChoiceNumber = numero;
@@ -1507,8 +1508,18 @@ function press(val){
      return;
    }
 
+   if(val === "-"){
+     if(/^\d{4}$/.test(numero)){
+       window.autoL1Mode = true;
+       activeField = "montant";
+       cursorMontant = montant.length;
+       updateFields();
+     }
+     return;
+   }
+
    if(val === "/"){
-     if(/^\\d{2}$/.test(numero) || /^\\d{4}$/.test(numero)){
+     if(/^\d{2}$/.test(numero) || /^\d{4}$/.test(numero)){
        numero = numero + "/";
        cursorNumero = numero.length;
        activeField = "montant";
@@ -1525,6 +1536,7 @@ function press(val){
 
    numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
    cursorNumero += val.length;
+
  }else if(activeField === "montant"){
    if(!/[0-9.]/.test(val)) return;
    montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
@@ -1550,50 +1562,135 @@ function backspaceKey(){
  updateFields();
 }
 
-function handleEnter(){
- if(document.getElementById("choicePanel").style.display === "block"){
-   if(tempChoices.length === 0){
-     alert("Chwazi omwen youn");
-     return;
-   }
+handleEnter = function(){
+  if(document.getElementById("choicePanel").style.display === "block"){
+    if(tempChoices.length === 0){
+      alert("Chwazi omwen youn");
+      return;
+    }
 
-   numero = pendingChoiceNumber + "+" + tempChoices.join(",");
-   cursorNumero = numero.length;
-   hideChoicePanel();
+    numero = pendingChoiceNumber + "+" + tempChoices.join(",");
+    cursorNumero = numero.length;
+    hideChoicePanel();
 
-   activeField = "montant";
-   cursorMontant = montant.length;
-   updateFields();
-   return;
- }
+    activeField = "montant";
+    cursorMontant = montant.length;
+    updateFields();
+    return;
+  }
 
- if(activeField === "numero"){
-   if(!numero.trim()) return;
+  if(activeField === "numero"){
+    if(!numero.trim()) return;
 
-   if(selectedLoteries.length > 0){
-     activeField = "montant";
-     cursorMontant = montant.length;
-     updateFields();
-     return;
-   }
+    if(selectedLoteries.length > 0){
+      activeField = "montant";
+      cursorMontant = montant.length;
+      updateFields();
+      return;
+    }
 
-   activeField = "loterie";
-   updateFields();
-   openLoterieModal();
-   return;
- }
+    activeField = "loterie";
+    updateFields();
+    openLoterieModal();
+    return;
+  }
 
- if(activeField === "loterie"){
-   validateLoteries();
-   return;
- }
+  if(activeField === "loterie"){
+    validateLoteries();
+    return;
+  }
 
- if(activeField === "montant"){
-   if(!montant.trim()) return;
-   addGame();
-   return;
- }
-}
+  if(activeField === "montant"){
+
+    if(window.autoL1Mode){
+      if(!montant.trim()){
+        alert("Mete montan an");
+        return;
+      }
+
+      if(selectedLoteries.length === 0){
+        activeField = "loterie";
+        updateFields();
+        openLoterieModal();
+        return;
+      }
+
+      var a = numero.slice(0,2);
+      var b = numero.slice(2,4);
+      var ar = reverse2(a);
+      var br = reverse2(b);
+
+      var combos = [
+        a + b,
+        b + a,
+        a + br,
+        br + a,
+        ar + b,
+        b + ar,
+        ar + br,
+        br + ar
+      ];
+
+      combos.forEach(function(num){
+        selectedLoteries.forEach(function(lot){
+          mergeOrPushGame({
+            type: "L1",
+            numero: num,
+            loterie: lot,
+            montant: parseFloat(montant) || 0
+          });
+        });
+      });
+
+      window.autoL1Mode = false;
+      numero = "";
+      montant = "";
+      cursorNumero = 0;
+      cursorMontant = 0;
+      activeField = "numero";
+
+      renderJeux();
+      updateFields();
+      return;
+    }
+
+    if(!montant.trim()) return;
+
+    if(autoBoulPeMode){
+      if(selectedLoteries.length === 0){
+        activeField = "loterie";
+        updateFields();
+        openLoterieModal();
+        return;
+      }
+
+      ["00","11","22","33","44","55","66","77","88","99"].forEach(function(num){
+        selectedLoteries.forEach(function(lot){
+          mergeOrPushGame({
+            type: "BOR",
+            numero: num,
+            loterie: lot,
+            montant: parseFloat(montant) || 0
+          });
+        });
+      });
+
+      autoBoulPeMode = false;
+      montant = "";
+      cursorMontant = 0;
+      activeField = "numero";
+
+      renderJeux();
+      updateFields();
+      return;
+    }
+
+    addGame();
+    return;
+  }
+
+  oldHandleEnter();
+};
 
 function openLoterieModal(){
  document.getElementById("loterieModal").classList.add("show");

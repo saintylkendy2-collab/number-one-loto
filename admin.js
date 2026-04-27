@@ -1084,7 +1084,7 @@ tbody tr:nth-child(even){background:#313652;}
  padding:20px;
 }
 .conn-actions-wrap,.balance-actions-wrap{
- position:relative;
+ position:static;
  display:inline-block;
 }
 .conn-menu-btn,.balance-menu-btn{
@@ -1097,15 +1097,15 @@ tbody tr:nth-child(even){background:#313652;}
 }
 .conn-menu,.balance-menu{
  display:none;
- position:absolute;
- right:0;
- top:28px;
+ position:fixed;
+ right:20px;
+ bottom:90px;
  min-width:180px;
  background:#3a3f5a;
  border-radius:12px;
  box-shadow:0 10px 28px rgba(0,0,0,.28);
  padding:8px 0;
- z-index:9999;
+ z-index:99999;
 }
 .conn-menu.show,.balance-menu.show{
  display:block;

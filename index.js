@@ -1,6 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
@@ -37,14 +38,29 @@ function loadVendeursForLogin() {
 
 function saveVendeursForLogin(vendeurs) {
   try {
+    ensureVendeursFile();
     fs.writeFileSync(VENDEURS_FILE, JSON.stringify(vendeurs, null, 2), "utf8");
   } catch (err) {
     console.error("Erreur sauvegarde vendeurs :", err);
   }
 }
 
+function loadTickets() {
+  try {
+    ensureTicketsFile();
+    const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error("Erreur lecture tickets :", err);
+    return [];
+  }
+}
+
 function saveTickets(tickets) {
   try {
+    ensureTicketsFile();
     fs.writeFileSync(TICKETS_FILE, JSON.stringify(tickets, null, 2), "utf8");
   } catch (err) {
     console.error("Erreur sauvegarde tickets :", err);
@@ -66,13 +82,12 @@ function formatTimeFR(date = new Date()) {
   });
 }
 
-function formatFRDateInput(iso){
-  if(!iso) return "";
+function formatFRDateInput(iso) {
+  if (!iso) return "";
   const p = String(iso).split("-");
-  if(p.length !== 3) return iso;
+  if (p.length !== 3) return iso;
   return p[2] + "/" + p[1] + "/" + p[0];
 }
-
 
 function money(n) {
   return Number(n || 0).toFixed(2);

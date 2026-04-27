@@ -4072,7 +4072,10 @@ app.get("/tickets/:vendeur", (req, res) => {
  res.json(result);
 });
 
+const connectDB = require("./db");
 
-app.listen(3000, "0.0.0.0", () => {
- console.log("Server ap mache sou rezo a");
+connectDB().then(() => {
+  app.listen(3000, "0.0.0.0", () => {
+    console.log("Server + MongoDB konekte ✔");
+  });
 });

@@ -2750,14 +2750,22 @@ var dBalance = d.vente - d.prime;
 
   if(printBtn){
   printBtn.addEventListener("click", function(){
+    var now = new Date();
+
     window.open(
       "/print-report?sellerId=" + encodeURIComponent(sellerId) +
       "&start=" + encodeURIComponent(startValue) +
-      "&end=" + encodeURIComponent(endValue),
+      "&end=" + encodeURIComponent(endValue) +
+      "&date=" + encodeURIComponent(now.toLocaleDateString("fr-FR")) +
+      "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      })),
       "_blank"
     );
   });
 }
+
 
   if(startInput){
     startInput.addEventListener("change", function(){
@@ -3946,19 +3954,15 @@ app.get("/print-report", (req, res) => {
   const start = String(req.query.start || "").trim();
   const end = String(req.query.end || "").trim();
 
+  const printDate = String(req.query.date || "").trim();
+  const printTime = String(req.query.time || "").trim();
+
   function formatFRDateInput(iso){
     if(!iso) return "";
     const p = String(iso).split("-");
     if(p.length !== 3) return iso;
     return p[2] + "/" + p[1] + "/" + p[0];
   }
-
-const printNow = new Date();
-const printDate = printNow.toLocaleDateString("fr-FR");
-const printTime = printNow.toLocaleTimeString("fr-FR", {
-  hour: "2-digit",
-  minute: "2-digit"
-});
 
   const vendeurs = loadVendeursForLogin();
   const vendeur = vendeurs[sellerId] || {};

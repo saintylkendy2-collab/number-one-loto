@@ -3806,40 +3806,55 @@ app.get("/print", (req, res) => {
   const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
 
   const total = Number(ticket.total || 0);
-  const now = new Date(ticket.createdAt || Date.now());
-
   const dateStr = ticket.dateLabel || formatDateFR(new Date(ticket.createdAt || Date.now()));
-const timeStr = ticket.timeLabel || formatTimeFR(new Date(ticket.createdAt || Date.now()));
-   
+  const timeStr = ticket.timeLabel || formatTimeFR(new Date(ticket.createdAt || Date.now()));
 
-  const grouped = {};
+  function typeLabel(type){
+    type = String(type || "").toUpperCase();
+    if(type === "BOR") return "Borlette";
+    if(type === "MAR") return "Mariage";
+    if(type === "L3") return "Loto 3";
+    if(type === "L4") return "Loto 4";
+    return type;
+  }
+
+  const groups = {};
+
   (ticket.jeux || []).forEach(function(j){
+    const key =
+      String(j.type || "").toUpperCase() + "|" +
+      String(j.numero || "") + "|" +
+      Number(j.montant || 0).toFixed(2);
+
+    if(!groups[key]){
+      groups[key] = {
+        type: String(j.type || "").toUpperCase(),
+        numero: String(j.numero || ""),
+        montant: Number(j.montant || 0),
+        loteries: []
+      };
+    }
+
     const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
-    if (!grouped[lot]) grouped[lot] = [];
-    grouped[lot].push(j);
+    if(groups[key].loteries.indexOf(lot) < 0){
+      groups[key].loteries.push(lot);
+    }
   });
 
   let gamesHtml = "";
 
-  Object.keys(grouped).forEach(function(loterie){
-    gamesHtml += '<div class="tirage">' + loterie + '</div>';
-
-    grouped[loterie].forEach(function(j){
-      let type = String(j.type || "").toUpperCase();
-      if (type === "BOR") type = "Borlette";
-      else if (type === "MAR") type = "Mariage";
-      else if (type === "L3") type = "Loto 3";
-      else if (type === "L4") type = "Loto 4";
-
-      gamesHtml +=
-        '<div class="game-row">' +
-          '<div class="col-type">' + type + '</div>' +
-          '<div class="col-num">' + String(j.numero || "") + '</div>' +
-          '<div class="col-amt">' + Number(j.montant || 0).toFixed(2) + '</div>' +
-        '</div>';
+  Object.values(groups).forEach(function(g){
+    g.loteries.forEach(function(lot){
+      gamesHtml += '<div class="tirage">' + lot + '</div>';
     });
 
-    gamesHtml += '<div class="line"></div>';
+    gamesHtml +=
+      '<div class="game-row">' +
+        '<div class="col-type">' + typeLabel(g.type) + '</div>' +
+        '<div class="col-num">' + g.numero + '</div>' +
+        '<div class="col-amt">' + g.montant.toFixed(2) + '</div>' +
+      '</div>' +
+      '<div class="line"></div>';
   });
 
   res.set("Content-Type", "text/html; charset=utf-8");
@@ -3851,15 +3866,8 @@ const timeStr = ticket.timeLabel || formatTimeFR(new Date(ticket.createdAt || Da
 <title>Print</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-@page{
-  size: 58mm auto;
-  margin: 0;
-}
-html,body{
-  margin:0;
-  padding:0;
-  background:#fff;
-}
+@page{ size:58mm auto; margin:0; }
+html,body{ margin:0; padding:0; background:#fff; }
 body{
   width:42mm;
   margin:0 auto;
@@ -3869,9 +3877,7 @@ body{
   font-size:9px;
   line-height:1.15;
 }
-.ticket{
-  width:100%;
-}
+.ticket{ width:100%; }
 .title{
   text-align:center;
   font-size:10px;
@@ -3879,12 +3885,8 @@ body{
   margin:0 0 4px 0;
   white-space:nowrap;
 }
-.meta{
-  margin:0 0 3px 0;
-}
-.meta-line{
-  white-space:nowrap;
-}
+.meta{ margin:0 0 3px 0; }
+.meta-line{ white-space:nowrap; }
 .line{
   border-top:1px dashed #000;
   margin:3px 0;
@@ -3902,18 +3904,9 @@ body{
   align-items:center;
   margin:0;
 }
-.col-type{
-  white-space:nowrap;
-  overflow:hidden;
-}
-.col-num{
-  text-align:left;
-  white-space:nowrap;
-}
-.col-amt{
-  text-align:right;
-  white-space:nowrap;
-}
+.col-type{ white-space:nowrap; overflow:hidden; }
+.col-num{ text-align:left; white-space:nowrap; }
+.col-amt{ text-align:right; white-space:nowrap; }
 .total{
   font-size:10px;
   font-weight:700;

@@ -3829,8 +3829,8 @@ app.get("/print", (req, res) => {
 
     if (type === "BOR") type = "Borlette";
     else if (type === "MAR") type = "Mariage";
-    else if (type === "L3") type = "Loto 3";
-    else if (type === "L4") type = "Loto 4";
+    else if (type === "L3") type = "L3";
+    else if (type === "L4") type = "L4";
 
     gamesHtml +=
       '<div class="game-row">' +

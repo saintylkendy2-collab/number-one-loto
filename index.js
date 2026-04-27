@@ -43,19 +43,6 @@ function saveVendeursForLogin(vendeurs) {
   }
 }
 
-function loadTickets() {
-  try {
-    ensureTicketsFile();
-    const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.error("Erreur lecture tickets :", err);
-    return [];
-  }
-}
-
 function saveTickets(tickets) {
   try {
     fs.writeFileSync(TICKETS_FILE, JSON.stringify(tickets, null, 2), "utf8");
@@ -4047,32 +4034,50 @@ setTimeout(function(){
   `);
 });
 
+app.get("/api/reportes/ventas", (req, res) => {
+  try {
+    res.json(computeSummaries());
+  } catch (err) {
+    console.error(err);
+    res.status(500).json([]);
+  }
+});
+
+app.get("/api/reportes/balance", (req, res) => {
+  try {
+    res.json(computeSummaries());
+  } catch (err) {
+    console.error(err);
+    res.status(500).json([]);
+  }
+});
+
+app.get("/api/reportes/tickets", (req, res) => {
+  try {
+    const tickets = loadTickets().sort((a, b) => {
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+    res.json(tickets);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json([]);
+  }
+});
+
+app.get("/tickets/:vendeur", (req, res) => {
+  const vendeurId = String(req.params.vendeur || "").trim().toUpperCase();
+  const tickets = loadTickets();
+
+  const result = tickets.filter((t) =>
+    String(t.vendeur || "").trim().toUpperCase() === vendeurId
+  );
+
+  res.json(result);
+});
+
 const adminRoutes = require("./admin");
 app.use(adminRoutes);
 
-function loadTickets() {
- try {
- if (!fs.existsSync(TICKETS_FILE)) return [];
- const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
- if (!raw) return [];
- return JSON.parse(raw);
- } catch (e) {
- return [];
- }
-}
-
-app.get("/tickets/:vendeur", (req, res) => {
- const vendeurId = String(req.params.vendeur || "").toUpperCase();
- const tickets = loadTickets();
-
- const result = tickets.filter(t =>
- String(t.vendeur || "").toUpperCase() === vendeurId
- );
-
- res.json(result);
-});
-
-
 app.listen(3000, "0.0.0.0", () => {
- console.log("Server ap mache sou rezo a");
+  console.log("Server ap mache sou rezo a");
 });

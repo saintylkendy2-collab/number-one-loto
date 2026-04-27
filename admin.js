@@ -5,6 +5,25 @@ const router = express.Router();
 
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 
+const TICKETS_FILE = path.join(__dirname, "tickets.json");
+
+function readTicketsArray() {
+  try {
+    if (!fs.existsSync(TICKETS_FILE)) {
+      fs.writeFileSync(TICKETS_FILE, JSON.stringify([], null, 2), "utf8");
+    }
+
+    const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error("Erreur lecture tickets.json :", err);
+    return [];
+  }
+}
+
 function ensureVendeursFile() {
   if (!fs.existsSync(VENDEURS_FILE)) {
     fs.writeFileSync(VENDEURS_FILE, JSON.stringify({}, null, 2), "utf8");
@@ -238,8 +257,47 @@ router.get("/api/vendors", (req, res) => {
 
 router.get("/api/reportes/ventas", (req, res) => {
   try {
-    const obj = readVendeursObject();
-    res.json(buildVentasRows(obj));
+    const vendeurs = readVendeursObject();
+    const tickets = readTicketsArray();
+    const map = {};
+
+    tickets.forEach((t) => {
+      const id = String(t.vendeur || "").trim().toUpperCase();
+      if (!id) return;
+
+      const vendor = normalizeVendor(vendeurs[id] || {});
+      const status = String(t.status || "").trim().toUpperCase();
+
+      if (!map[id]) {
+        map[id] = {
+          id,
+          nombre: vendor.nombre || vendor.nom || id,
+          zona: vendor.zona || vendor.groupe || "",
+          venta: 0,
+          comision: 0,
+          premios: 0,
+          resultado: 0,
+          estatus: vendor.estatus || "Activo"
+        };
+      }
+
+      if (status !== "ANILE") {
+        map[id].venta += parseAmount(t.total);
+      }
+
+      if (status === "GANYE") {
+        map[id].premios += parseAmount(t.premio);
+      }
+    });
+
+    Object.keys(map).forEach((id) => {
+      const vendor = normalizeVendor(vendeurs[id] || {});
+      const rate = getCommissionRate(vendor);
+      map[id].comision = (map[id].venta * rate) / 100;
+      map[id].resultado = map[id].venta - map[id].comision - map[id].premios;
+    });
+
+    res.json(Object.values(map));
   } catch (err) {
     console.error(err);
     res.status(500).json([]);
@@ -248,87 +306,51 @@ router.get("/api/reportes/ventas", (req, res) => {
 
 router.get("/api/reportes/balance", (req, res) => {
   try {
-    const obj = readVendeursObject();
-    res.json(buildBalanceRows(obj));
+    const vendeurs = readVendeursObject();
+    const tickets = readTicketsArray();
+    const map = {};
+
+    Object.keys(vendeurs).forEach((id) => {
+      const vendor = normalizeVendor(vendeurs[id] || {});
+      map[id] = {
+        id,
+        nombre: vendor.nombre || vendor.nom || id,
+        zona: vendor.zona || vendor.groupe || "",
+        balance: parseAmount(vendor.balance),
+        estatus: vendor.estatus || "Activo"
+      };
+    });
+
+    tickets.forEach((t) => {
+      const id = String(t.vendeur || "").trim().toUpperCase();
+      if (!id) return;
+
+      if (!map[id]) {
+        map[id] = {
+          id,
+          nombre: id,
+          zona: "",
+          balance: 0,
+          estatus: "Activo"
+        };
+      }
+
+      const vendor = normalizeVendor(vendeurs[id] || {});
+      const rate = getCommissionRate(vendor);
+      const status = String(t.status || "").trim().toUpperCase();
+
+      if (status !== "ANILE") {
+        const venta = parseAmount(t.total);
+        const premios = status === "GANYE" ? parseAmount(t.premio) : 0;
+        const comision = (venta * rate) / 100;
+        map[id].balance += venta - comision - premios;
+      }
+    });
+
+    res.json(Object.values(map));
   } catch (err) {
     console.error(err);
     res.status(500).json([]);
-  }
-});
-
-router.post("/api/vendors", (req, res) => {
-  try {
-    const body = req.body || {};
-    const id = String(body.id || "").trim().toUpperCase();
-
-    if (!id) {
-      return res.status(400).json({ ok: false, message: "ID obligatoire" });
-    }
-
-    const data = normalizeVendor(body);
-
-    if (!data.nombre) {
-      return res.status(400).json({ ok: false, message: "Nombre obligatoire" });
-    }
-
-    if (!data.clave) {
-      return res.status(400).json({ ok: false, message: "Clave obligatoire" });
-    }
-
-    const obj = readVendeursObject();
-
-    if (obj[id]) {
-      return res.status(409).json({ ok: false, message: "ID déjà existant" });
-    }
-
-    obj[id] = data;
-    writeVendeursObject(obj);
-
-    res.json({ ok: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ ok: false, message: "Erreur save vendor" });
-  }
-});
-
-router.put("/api/vendors/:id", (req, res) => {
-  try {
-    const oldId = String(req.params.id || "").trim().toUpperCase();
-    const body = req.body || {};
-    const newId = String(body.id || "").trim().toUpperCase();
-
-    if (!oldId || !newId) {
-      return res.status(400).json({ ok: false, message: "ID invalide" });
-    }
-
-    const data = normalizeVendor(body);
-
-    if (!data.nombre) {
-      return res.status(400).json({ ok: false, message: "Nombre obligatoire" });
-    }
-
-    if (!data.clave) {
-      return res.status(400).json({ ok: false, message: "Clave obligatoire" });
-    }
-
-    const obj = readVendeursObject();
-
-    if (!obj[oldId]) {
-      return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
-    }
-
-    if (oldId !== newId && obj[newId]) {
-      return res.status(409).json({ ok: false, message: "Nouvel ID déjà existant" });
-    }
-
-    delete obj[oldId];
-    obj[newId] = data;
-    writeVendeursObject(obj);
-
-    res.json({ ok: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ ok: false, message: "Erreur update vendor" });
   }
 });
 

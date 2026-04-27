@@ -3821,24 +3821,45 @@ app.get("/print", (req, res) => {
     }
   });
 
-  // 🔥 Jeux
-  let gamesHtml = "";
+  // 🔥 GROUP jwèt yo (kenbe kantite)
+const gameMap = {};
+let gamesHtml = "";
 
-  (ticket.jeux || []).forEach(j => {
-    let type = String(j.type || "").toUpperCase();
+(ticket.jeux || []).forEach(j => {
+  let typeRaw = String(j.type || "").toUpperCase();
+  let numero = String(j.numero || "").trim();
+  let montant = Number(j.montant || 0);
 
-    if (type === "BOR") type = "Borlette";
-    else if (type === "MAR") type = "Mariage";
-    else if (type === "L3") type = "L3";
-    else if (type === "L4") type = "L4";
+  let type = typeRaw;
+  if (typeRaw === "BOR") type = "Borlette";
+  else if (typeRaw === "MAR") type = "Mariage";
 
-    gamesHtml +=
-      '<div class="game-row">' +
-        '<div class="col-type">' + type + '</div>' +
-        '<div class="col-num">' + j.numero + '</div>' +
-        '<div class="col-amt">' + Number(j.montant || 0).toFixed(2) + '</div>' +
-      '</div>';
-  });
+  // kle san loterie (pou evite doublon tirage)
+  let key = type + "|" + numero + "|" + montant;
+
+  if (!gameMap[key]) {
+    gameMap[key] = {
+      type,
+      numero,
+      montant,
+      count: 0
+    };
+  }
+
+  gameMap[key].count++;
+});
+
+// 🔥 AFFICHE AK KANTITE
+Object.values(gameMap).forEach(g => {
+  let total = (g.montant * g.count).toFixed(2);
+
+  gamesHtml +=
+    '<div class="game-row">' +
+      '<div class="col-type">' + g.type + '</div>' +
+      '<div class="col-num">' + g.numero + '</div>' +
+      '<div class="col-amt">' + total + '</div>' +
+    '</div>';
+});
 
   res.set("Content-Type", "text/html; charset=utf-8");
   res.send(`

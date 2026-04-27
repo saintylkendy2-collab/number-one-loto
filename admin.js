@@ -354,6 +354,82 @@ router.get("/api/reportes/balance", (req, res) => {
   }
 });
 
+router.post("/api/vendors", (req, res) => {
+  try {
+    const body = req.body || {};
+    const id = String(body.id || "").trim().toUpperCase();
+
+    if (!id) {
+      return res.status(400).json({ ok: false, message: "ID obligatoire" });
+    }
+
+    const data = normalizeVendor(body);
+
+    if (!data.nombre) {
+      return res.status(400).json({ ok: false, message: "Nombre obligatoire" });
+    }
+
+    if (!data.clave) {
+      return res.status(400).json({ ok: false, message: "Clave obligatoire" });
+    }
+
+    const obj = readVendeursObject();
+
+    if (obj[id]) {
+      return res.status(409).json({ ok: false, message: "ID déjà existant" });
+    }
+
+    obj[id] = data;
+    writeVendeursObject(obj);
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, message: "Erreur save vendor" });
+  }
+});
+
+router.put("/api/vendors/:id", (req, res) => {
+  try {
+    const oldId = String(req.params.id || "").trim().toUpperCase();
+    const body = req.body || {};
+    const newId = String(body.id || "").trim().toUpperCase();
+
+    if (!oldId || !newId) {
+      return res.status(400).json({ ok: false, message: "ID invalide" });
+    }
+
+    const data = normalizeVendor(body);
+
+    if (!data.nombre) {
+      return res.status(400).json({ ok: false, message: "Nombre obligatoire" });
+    }
+
+    if (!data.clave) {
+      return res.status(400).json({ ok: false, message: "Clave obligatoire" });
+    }
+
+    const obj = readVendeursObject();
+
+    if (!obj[oldId]) {
+      return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
+    }
+
+    if (oldId !== newId && obj[newId]) {
+      return res.status(409).json({ ok: false, message: "Nouvel ID déjà existant" });
+    }
+
+    delete obj[oldId];
+    obj[newId] = data;
+    writeVendeursObject(obj);
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, message: "Erreur update vendor" });
+  }
+});
+
 router.delete("/api/vendors/:id", (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();

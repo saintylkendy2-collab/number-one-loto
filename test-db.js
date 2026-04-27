@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb+srv://admin:1234@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority");
+mongoose.connect("METE_URL_MONGODB_OU_ISIT");
 
 mongoose.connection.once("open", async () => {
   console.log("MongoDB konekte");

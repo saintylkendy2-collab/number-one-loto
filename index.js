@@ -4049,23 +4049,6 @@ setTimeout(function(){
   `);
 });
 
-app.get("/api/reportes/ventas", (req, res) => {
-  try {
-    res.json(computeSummaries());
-  } catch (err) {
-    console.error(err);
-    res.status(500).json([]);
-  }
-});
-
-app.get("/api/reportes/balance", (req, res) => {
-  try {
-    res.json(computeSummaries());
-  } catch (err) {
-    console.error(err);
-    res.status(500).json([]);
-  }
-});
 
 app.get("/api/reportes/tickets", (req, res) => {
   try {

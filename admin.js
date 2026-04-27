@@ -409,42 +409,6 @@ router.post("/api/vendors/:id/connections/:index/block", (req, res) => {
   }
 });
 
-router.post("/api/vendors/:id/connections/:index/unblock", (req, res) => {
-  try {
-    const id = String(req.params.id || "").trim().toUpperCase();
-    const index = Number(req.params.index);
-    const obj = readVendeursObject();
-    const vendor = obj[id];
-
-    if (!vendor) {
-      return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
-    }
-
-    if (!Array.isArray(vendor.conexiones)) vendor.conexiones = [];
-
-    if (!vendor.conexiones[index]) {
-      return res.status(404).json({ ok: false, message: "Connexion introuvable" });
-    }
-
-    vendor.conexiones[index] = normalizeConnection({
-      ...vendor.conexiones[index],
-      co: true,
-      on: true,
-      st: true,
-      last: new Date().toLocaleString("fr-FR")
-    });
-
-    vendor.estatus = "Activo";
-    vendor.conexion = vendor.conexiones[index].last || vendor.conexion || "";
-
-    writeVendeursObject(obj);
-    res.json({ ok: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ ok: false, message: "Erreur déblocage connexion" });
-  }
-});
-
 router.delete("/api/vendors/:id/connections/:index", (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();

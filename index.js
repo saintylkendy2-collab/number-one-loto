@@ -3809,52 +3809,35 @@ app.get("/print", (req, res) => {
   const dateStr = ticket.dateLabel || formatDateFR(new Date(ticket.createdAt || Date.now()));
   const timeStr = ticket.timeLabel || formatTimeFR(new Date(ticket.createdAt || Date.now()));
 
-  function typeLabel(type){
-    type = String(type || "").toUpperCase();
-    if(type === "BOR") return "Borlette";
-    if(type === "MAR") return "Mariage";
-    if(type === "L3") return "Loto 3";
-    if(type === "L4") return "Loto 4";
-    return type;
-  }
+  // 🔥 Loteries (san repete)
+  let lotSeen = {};
+  let loteriesHtml = "";
 
-  const groups = {};
-
-  (ticket.jeux || []).forEach(function(j){
-    const key =
-      String(j.type || "").toUpperCase() + "|" +
-      String(j.numero || "") + "|" +
-      Number(j.montant || 0).toFixed(2);
-
-    if(!groups[key]){
-      groups[key] = {
-        type: String(j.type || "").toUpperCase(),
-        numero: String(j.numero || ""),
-        montant: Number(j.montant || 0),
-        loteries: []
-      };
-    }
-
+  (ticket.jeux || []).forEach(j => {
     const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
-    if(groups[key].loteries.indexOf(lot) < 0){
-      groups[key].loteries.push(lot);
+    if (!lotSeen[lot]) {
+      lotSeen[lot] = true;
+      loteriesHtml += '<div class="tirage">' + lot + '</div>';
     }
   });
 
+  // 🔥 Jeux
   let gamesHtml = "";
 
-  Object.values(groups).forEach(function(g){
-    g.loteries.forEach(function(lot){
-      gamesHtml += '<div class="tirage">' + lot + '</div>';
-    });
+  (ticket.jeux || []).forEach(j => {
+    let type = String(j.type || "").toUpperCase();
+
+    if (type === "BOR") type = "Borlette";
+    else if (type === "MAR") type = "Mariage";
+    else if (type === "L3") type = "Loto 3";
+    else if (type === "L4") type = "Loto 4";
 
     gamesHtml +=
       '<div class="game-row">' +
-        '<div class="col-type">' + typeLabel(g.type) + '</div>' +
-        '<div class="col-num">' + g.numero + '</div>' +
-        '<div class="col-amt">' + g.montant.toFixed(2) + '</div>' +
-      '</div>' +
-      '<div class="line"></div>';
+        '<div class="col-type">' + type + '</div>' +
+        '<div class="col-num">' + j.numero + '</div>' +
+        '<div class="col-amt">' + Number(j.montant || 0).toFixed(2) + '</div>' +
+      '</div>';
   });
 
   res.set("Content-Type", "text/html; charset=utf-8");
@@ -3864,79 +3847,52 @@ app.get("/print", (req, res) => {
 <head>
 <meta charset="UTF-8">
 <title>Print</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 @page{ size:58mm auto; margin:0; }
-html,body{ margin:0; padding:0; background:#fff; }
 body{
   width:42mm;
   margin:0 auto;
-  padding:1mm 1mm 2mm 1mm;
   font-family:monospace;
-  color:#000;
-  font-size:9px;
-  line-height:1.15;
-}
-.ticket{ width:100%; }
-.title{
-  text-align:center;
   font-size:10px;
-  font-weight:700;
-  margin:0 0 4px 0;
-  white-space:nowrap;
 }
-.meta{ margin:0 0 3px 0; }
-.meta-line{ white-space:nowrap; }
-.line{
-  border-top:1px dashed #000;
-  margin:3px 0;
-}
-.tirage{
-  font-size:9px;
-  font-weight:700;
-  margin:3px 0 2px 0;
-  white-space:nowrap;
-}
+.title{text-align:center;font-weight:700;margin-bottom:4px;}
+.meta{margin-bottom:4px;}
+.line{border-top:1px dashed #000;margin:4px 0;}
+.tirage{font-weight:700;margin-top:4px;}
 .game-row{
   display:grid;
-  grid-template-columns: 1fr 24px 32px;
-  column-gap:3px;
-  align-items:center;
-  margin:0;
+  grid-template-columns:1fr 30px 40px;
 }
-.col-type{ white-space:nowrap; overflow:hidden; }
-.col-num{ text-align:left; white-space:nowrap; }
-.col-amt{ text-align:right; white-space:nowrap; }
-.total{
-  font-size:10px;
-  font-weight:700;
-  margin-top:2px;
-  white-space:nowrap;
-}
+.col-amt{text-align:right;}
+.total{font-weight:700;margin-top:4px;}
 </style>
 </head>
 <body>
-<div class="ticket">
-  <div class="title">NUMBER ONE LOTO</div>
 
-  <div class="meta">
-    <div class="meta-line">SELLER ${sellerName}</div>
-    <div class="meta-line">TICKET ${ticket.id}</div>
-    <div class="meta-line">DATE ${dateStr} ${timeStr}</div>
-  </div>
+<div class="title">NUMBER ONE LOTO</div>
 
-  <div class="line"></div>
-
-  ${gamesHtml}
-
-  <div class="total">TOTAL: ${total.toFixed(2)} G</div>
+<div class="meta">
+SELLER ${sellerName}<br>
+TICKET ${ticket.id}<br>
+DATE ${dateStr} ${timeStr}
 </div>
 
+<div class="line"></div>
+
+${loteriesHtml}
+
+<div class="line"></div>
+
+${gamesHtml}
+
+<div class="line"></div>
+
+<div class="total">TOTAL: ${total.toFixed(2)} G</div>
+
 <script>
-setTimeout(function(){
-  try { window.print(); } catch(e) {}
-}, 300);
+setTimeout(() => { window.print(); }, 300);
 </script>
+
 </body>
 </html>
   `);

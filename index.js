@@ -1,23 +1,19 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+
+const Ticket = require("./models/Ticket");
+
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
-const TICKETS_FILE = path.join(__dirname, "tickets.json");
 
 function ensureVendeursFile() {
   if (!fs.existsSync(VENDEURS_FILE)) {
     fs.writeFileSync(VENDEURS_FILE, JSON.stringify({}, null, 2), "utf8");
-  }
-}
-
-function ensureTicketsFile() {
-  if (!fs.existsSync(TICKETS_FILE)) {
-    fs.writeFileSync(TICKETS_FILE, JSON.stringify([], null, 2), "utf8");
   }
 }
 
@@ -492,64 +488,57 @@ app.get("/api/ticket/:id", (req, res) => {
   res.json(ticket || {});
 });
 
-app.post("/api/tickets", (req, res) => {
-  const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
-  const sellerName = String(req.body.sellerName || sellerId || "VENDEUR");
-  const jeux = Array.isArray(req.body.jeux) ? req.body.jeux : [];
-  const channel = String(req.body.channel || "MANUEL").trim().toUpperCase();
-const clientCreatedAt = String(req.body.clientCreatedAt || "");
-const clientDateLabel = String(req.body.clientDateLabel || "");
-const clientTimeLabel = String(req.body.clientTimeLabel || "");
+app.post("/api/tickets", async (req, res) => {
+  try {
+    const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
+    const sellerName = String(req.body.sellerName || sellerId || "VENDEUR");
+    const jeux = Array.isArray(req.body.jeux) ? req.body.jeux : [];
+    const channel = String(req.body.channel || "MANUEL").trim().toUpperCase();
 
+    if (!sellerId) return res.status(400).json({ ok: false, message: "sellerId obligatoire" });
+    if (!jeux.length) return res.status(400).json({ ok: false, message: "Pa gen jwèt" });
 
-  if (!sellerId) {
-    return res.status(400).json({ ok: false, message: "sellerId obligatoire" });
+    const safeJeux = jeux.map(j => ({
+      type: String(j.type || "").trim(),
+      numero: String(j.numero || "").trim(),
+      loterie: String(j.loterie || "").trim(),
+      montant: Number(j.montant || 0)
+    })).filter(j => j.type && j.numero && j.loterie && j.montant > 0);
+
+    if (!safeJeux.length) {
+      return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
+    }
+
+    const now = req.body.clientCreatedAt ? new Date(req.body.clientCreatedAt) : new Date();
+    const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
+    const tirages = [...new Set(safeJeux.map(j => j.loterie))];
+    const ticketId = String(Date.now()).slice(-8) + "-" + Math.floor(1000 + Math.random() * 9000);
+
+    const ticket = {
+      id: ticketId,
+      vendeur: sellerId,
+      vendeurNom: sellerName,
+      createdAt: now.toISOString(),
+      createdAtLabel: req.body.clientDateLabel && req.body.clientTimeLabel
+        ? req.body.clientDateLabel + " " + req.body.clientTimeLabel
+        : formatDateTimeFR(now),
+      dateLabel: req.body.clientDateLabel || formatDateFR(now),
+      timeLabel: req.body.clientTimeLabel || formatTimeFR(now),
+      status: "ANATAN",
+      premio: 0,
+      channel,
+      total,
+      tirages,
+      jeux: safeJeux
+    };
+
+    await Ticket.create(ticket);
+
+    res.json({ ok: true, ticket });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, message: "Erreur save ticket" });
   }
-
-  if (!jeux.length) {
-    return res.status(400).json({ ok: false, message: "Pa gen jwèt" });
-  }
-
-  const safeJeux = jeux.map((j) => ({
-    type: String(j.type || "").trim(),
-    numero: String(j.numero || "").trim(),
-    loterie: String(j.loterie || "").trim(),
-    montant: Number(j.montant || 0)
-  })).filter((j) => j.type && j.numero && j.loterie && j.montant > 0);
-
-  if (!safeJeux.length) {
-    return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
-  }
-
-  
-const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
-  const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
-  const tirages = [...new Set(safeJeux.map((j) => j.loterie))];
-  const ticketId = String(Date.now()).slice(-8) + "-" + Math.floor(1000 + Math.random() * 9000);
-
-  const ticket = {
-    id: ticketId,
-    vendeur: sellerId,
-    vendeurNom: sellerName,
-    createdAt: now.toISOString(),
-createdAtLabel: clientDateLabel && clientTimeLabel
-  ? clientDateLabel + " " + clientTimeLabel
-  : formatDateTimeFR(now),
-dateLabel: clientDateLabel || formatDateFR(now),
-timeLabel: clientTimeLabel || formatTimeFR(now),
-    status: "ANATAN",
-    premio: 0,
-    channel,
-    total,
-    tirages,
-    jeux: safeJeux
-  };
-
-  const tickets = loadTickets();
-  tickets.push(ticket);
-  saveTickets(tickets);
-
-  res.json({ ok: true, ticket });
 });
 
 app.post("/api/ticket-status", (req, res) => {
@@ -4061,21 +4050,26 @@ function loadTickets() {
  }
 }
 
-app.get("/tickets/:vendeur", (req, res) => {
- const vendeurId = String(req.params.vendeur || "").toUpperCase();
- const tickets = loadTickets();
+app.get("/tickets/:vendeur", async (req, res) => {
+  try {
+    const vendeurId = String(req.params.vendeur || "").trim().toUpperCase();
 
- const result = tickets.filter(t =>
- String(t.vendeur || "").toUpperCase() === vendeurId
- );
+    const tickets = await Ticket.find({
+      $or: [
+        { vendeur: vendeurId },
+        { sellerId: vendeurId }
+      ]
+    }).sort({ createdAt: -1 }).lean();
 
- res.json(result);
+    res.json(tickets);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json([]);
+  }
 });
 
-const connectDB = require("./db");
 
-connectDB().then(() => {
-  app.listen(3000, "0.0.0.0", () => {
-    console.log("Server + MongoDB konekte ✔");
-  });
+
+app.listen(3000, "0.0.0.0", () => {
+ console.log("Server ap mache sou rezo a");
 });

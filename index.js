@@ -1,6 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const mongoose = require("mongoose");
 
 const Ticket = require("./models/Ticket");
 
@@ -9,8 +10,25 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+mongoose.connect("mongodb://127.0.0.1:27017/loto", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => {
+  console.log("MongoDB konekte");
+
+  app.listen(3000, "0.0.0.0", () => {
+    console.log("Server ap mache sou rezo a");
+  });
+
+})
+.catch(err => {
+  console.error("MongoDB error:", err);
+});
+
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 
+/* 🔥 FICHIER VENDEURS */
 function ensureVendeursFile() {
   if (!fs.existsSync(VENDEURS_FILE)) {
     fs.writeFileSync(VENDEURS_FILE, JSON.stringify({}, null, 2), "utf8");
@@ -38,27 +56,24 @@ function saveVendeursForLogin(vendeurs) {
     console.error("Erreur sauvegarde vendeurs :", err);
   }
 }
-
-function loadTickets() {
+async function loadTickets() {
   try {
-    ensureTicketsFile();
-    const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    return await Ticket.find().sort({ createdAt: -1 }).lean();
   } catch (err) {
-    console.error("Erreur lecture tickets :", err);
+    console.error("Erreur lecture tickets MongoDB :", err);
     return [];
   }
 }
 
-function saveTickets(tickets) {
+async function saveTickets(tickets) {
   try {
-    fs.writeFileSync(TICKETS_FILE, JSON.stringify(tickets, null, 2), "utf8");
+    return { ok: true };
   } catch (err) {
-    console.error("Erreur sauvegarde tickets :", err);
+    console.error("Erreur sauvegarde tickets MongoDB :", err);
+    return { ok: false };
   }
 }
+
 
 function formatDateTimeFR(date = new Date()) {
   return date.toLocaleString("fr-FR");
@@ -4069,7 +4084,3 @@ app.get("/tickets/:vendeur", async (req, res) => {
 });
 
 
-
-app.listen(3000, "0.0.0.0", () => {
- console.log("Server ap mache sou rezo a");
-});

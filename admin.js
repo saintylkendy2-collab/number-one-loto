@@ -3,6 +3,8 @@ const fs = require("fs");
 const path = require("path");
 const router = express.Router();
 
+const Vendor = require("./models/Vendor"); // 👈 mete li la
+
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 
 function ensureVendeursFile() {
@@ -226,15 +228,16 @@ function buildBalanceRows(obj) {
     .sort((a, b) => b.balance - a.balance);
 }
 
-router.get("/api/vendors", (req, res) => {
+router.get("/api/vendors", async (req, res) => {
   try {
-    const obj = readVendeursObject();
-    res.json(objectToArray(obj));
+    const vendors = await Vendor.find();
+    res.json(vendors);
   } catch (err) {
     console.error(err);
     res.status(500).json([]);
   }
 });
+
 
 router.get("/api/reportes/ventas", (req, res) => {
   try {
@@ -256,7 +259,7 @@ router.get("/api/reportes/balance", (req, res) => {
   }
 });
 
-router.post("/api/vendors", (req, res) => {
+router.post("/api/vendors", async (req, res) => {
   try {
     const body = req.body || {};
     const id = String(body.id || "").trim().toUpperCase();
@@ -266,6 +269,7 @@ router.post("/api/vendors", (req, res) => {
     }
 
     const data = normalizeVendor(body);
+    data.id = id;
 
     if (!data.nombre) {
       return res.status(400).json({ ok: false, message: "Nombre obligatoire" });
@@ -275,14 +279,13 @@ router.post("/api/vendors", (req, res) => {
       return res.status(400).json({ ok: false, message: "Clave obligatoire" });
     }
 
-    const obj = readVendeursObject();
+    const exist = await Vendor.findOne({ id }).lean();
 
-    if (obj[id]) {
+    if (exist) {
       return res.status(409).json({ ok: false, message: "ID déjà existant" });
     }
 
-    obj[id] = data;
-    writeVendeursObject(obj);
+    await Vendor.create(data);
 
     res.json({ ok: true });
   } catch (err) {

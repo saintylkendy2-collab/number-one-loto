@@ -2158,9 +2158,13 @@ function renderBalanceTable(){
   const vendorFilter = getValue("balanceVendorFilter");
   const fecha = getValue("balanceFecha") || todayISO();
 
-  const rows = balanceRows.filter(r=>{
-    const okGrupo = !grupoFilter || safe(r.zona) === grupoFilter;
-    const okVendor = !vendorFilter || safe(r.id) === vendorFilter;
+  const rows = balanceRows.filter(r => {
+    const id = safe(r.id || r.vendeur);
+    const zona = safe(r.zona || r.groupe);
+
+    const okGrupo = !grupoFilter || zona === grupoFilter;
+    const okVendor = !vendorFilter || id === vendorFilter;
+
     return okGrupo && okVendor;
   });
 
@@ -2171,27 +2175,86 @@ function renderBalanceTable(){
     return;
   }
 
-  rows.forEach(r=>{
-    const cls = parseAmount(r.balance) >= 0 ? "balance-positive" : "balance-negative";
-    const cleanVal = (parseAmount(r.balance) < 0 ? "-" : "") + formatAmount(Math.abs(r.balance));
+  rows.forEach(r => {
+    const id = safe(r.id || r.vendeur);
+    const nombre = safe(r.nombre || r.nom || id);
 
-    tbody.innerHTML += \`
-      <tr>
-        <td class="vendor-name">\${safe(r.nombre)}</td>
-        <td class="\${cls}">\${cleanVal}</td>
-        <td>\${fecha}</td>
-        <td>
-          <div class="balance-actions-wrap">
-            <button class="balance-menu-btn" onclick="toggleBalanceMenu('\${safe(r.id)}');event.stopPropagation();">⋮</button>
-            <div class="balance-menu" id="balance_menu_\${safe(r.id)}">
-              <div class="balance-menu-item" onclick="openBalanceModal('\${safe(r.id)}','\${safe(r.nombre)}','cobro',\${parseAmount(r.balance)})">Cobro</div>
-              <div class="balance-menu-item" onclick="openBalanceModal('\${safe(r.id)}','\${safe(r.nombre)}','pago',\${parseAmount(r.balance)})">Pago</div>
-              <div class="balance-menu-item" onclick="openBalanceModal('\${safe(r.id)}','\${safe(r.nombre)}','debitar',\${parseAmount(r.balance)})">Debitar</div>
-            </div>
-          </div>
-        </td>
-      </tr>
-    \`;
+    const bal = parseAmount(
+      r.balanceFinal !== undefined ? r.balanceFinal :
+      r.balance !== undefined ? r.balance :
+      r.resultado !== undefined ? r.resultado :
+      0
+    );
+
+    const cls = bal >= 0 ? "balance-positive" : "balance-negative";
+    const cleanVal = (bal < 0 ? "-" : "") + formatAmount(Math.abs(bal));
+
+    const tr = document.createElement("tr");
+
+    const tdName = document.createElement("td");
+    tdName.className = "vendor-name";
+    tdName.textContent = nombre;
+
+    const tdBalance = document.createElement("td");
+    tdBalance.className = cls;
+    tdBalance.textContent = cleanVal;
+
+    const tdFecha = document.createElement("td");
+    tdFecha.textContent = fecha;
+
+    const tdAction = document.createElement("td");
+
+    const wrap = document.createElement("div");
+    wrap.className = "balance-actions-wrap";
+
+    const btn = document.createElement("button");
+    btn.className = "balance-menu-btn";
+    btn.textContent = "⋮";
+    btn.onclick = function(e){
+      e.stopPropagation();
+      toggleBalanceMenu(id);
+    };
+
+    const menu = document.createElement("div");
+    menu.className = "balance-menu";
+    menu.id = "balance_menu_" + id;
+
+    const cobro = document.createElement("div");
+    cobro.className = "balance-menu-item";
+    cobro.textContent = "Cobro";
+    cobro.onclick = function(){
+      openBalanceModal(id, nombre, "cobro", bal);
+    };
+
+    const pago = document.createElement("div");
+    pago.className = "balance-menu-item";
+    pago.textContent = "Pago";
+    pago.onclick = function(){
+      openBalanceModal(id, nombre, "pago", bal);
+    };
+
+    const debitar = document.createElement("div");
+    debitar.className = "balance-menu-item";
+    debitar.textContent = "Debitar";
+    debitar.onclick = function(){
+      openBalanceModal(id, nombre, "debitar", bal);
+    };
+
+    menu.appendChild(cobro);
+    menu.appendChild(pago);
+    menu.appendChild(debitar);
+
+    wrap.appendChild(btn);
+    wrap.appendChild(menu);
+
+    tdAction.appendChild(wrap);
+
+    tr.appendChild(tdName);
+    tr.appendChild(tdBalance);
+    tr.appendChild(tdFecha);
+    tr.appendChild(tdAction);
+
+    tbody.appendChild(tr);
   });
 }
 

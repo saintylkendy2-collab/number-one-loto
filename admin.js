@@ -3,8 +3,6 @@ const fs = require("fs");
 const path = require("path");
 const router = express.Router();
 
-const Vendor = require("./models/Vendor"); // 👈 mete li la
-
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 
 function ensureVendeursFile() {
@@ -228,23 +226,19 @@ function buildBalanceRows(obj) {
     .sort((a, b) => b.balance - a.balance);
 }
 
-router.get("/api/vendors", async (req, res) => {
+router.get("/api/vendors", (req, res) => {
   try {
-    const vendors = await Vendor.find().lean();
-    res.json(vendors);
+    const obj = readVendeursObject();
+    res.json(objectToArray(obj));
   } catch (err) {
     console.error(err);
     res.status(500).json([]);
   }
 });
 
-router.get("/api/reportes/ventas", async (req, res) => {
+router.get("/api/reportes/ventas", (req, res) => {
   try {
-    const vendors = await Vendor.find().lean();
-    const obj = {};
-    vendors.forEach(v => {
-      obj[String(v.id || "").toUpperCase()] = v;
-    });
+    const obj = readVendeursObject();
     res.json(buildVentasRows(obj));
   } catch (err) {
     console.error(err);
@@ -252,13 +246,9 @@ router.get("/api/reportes/ventas", async (req, res) => {
   }
 });
 
-router.get("/api/reportes/balance", async (req, res) => {
+router.get("/api/reportes/balance", (req, res) => {
   try {
-    const vendors = await Vendor.find().lean();
-    const obj = {};
-    vendors.forEach(v => {
-      obj[String(v.id || "").toUpperCase()] = v;
-    });
+    const obj = readVendeursObject();
     res.json(buildBalanceRows(obj));
   } catch (err) {
     console.error(err);
@@ -266,7 +256,7 @@ router.get("/api/reportes/balance", async (req, res) => {
   }
 });
 
-router.post("/api/vendors", async (req, res) => {
+router.post("/api/vendors", (req, res) => {
   try {
     const body = req.body || {};
     const id = String(body.id || "").trim().toUpperCase();
@@ -276,7 +266,6 @@ router.post("/api/vendors", async (req, res) => {
     }
 
     const data = normalizeVendor(body);
-    data.id = id;
 
     if (!data.nombre) {
       return res.status(400).json({ ok: false, message: "Nombre obligatoire" });
@@ -286,13 +275,14 @@ router.post("/api/vendors", async (req, res) => {
       return res.status(400).json({ ok: false, message: "Clave obligatoire" });
     }
 
-    const exist = await Vendor.findOne({ id }).lean();
+    const obj = readVendeursObject();
 
-    if (exist) {
+    if (obj[id]) {
       return res.status(409).json({ ok: false, message: "ID déjà existant" });
     }
 
-    await Vendor.create(data);
+    obj[id] = data;
+    writeVendeursObject(obj);
 
     res.json({ ok: true });
   } catch (err) {
@@ -301,7 +291,7 @@ router.post("/api/vendors", async (req, res) => {
   }
 });
 
-router.put("/api/vendors/:id", async (req, res) => {
+router.put("/api/vendors/:id", (req, res) => {
   try {
     const oldId = String(req.params.id || "").trim().toUpperCase();
     const body = req.body || {};
@@ -312,7 +302,6 @@ router.put("/api/vendors/:id", async (req, res) => {
     }
 
     const data = normalizeVendor(body);
-    data.id = newId;
 
     if (!data.nombre) {
       return res.status(400).json({ ok: false, message: "Nombre obligatoire" });
@@ -322,24 +311,19 @@ router.put("/api/vendors/:id", async (req, res) => {
       return res.status(400).json({ ok: false, message: "Clave obligatoire" });
     }
 
-    const oldVendor = await Vendor.findOne({ id: oldId }).lean();
+    const obj = readVendeursObject();
 
-    if (!oldVendor) {
+    if (!obj[oldId]) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
 
-    if (oldId !== newId) {
-      const exist = await Vendor.findOne({ id: newId }).lean();
-
-      if (exist) {
-        return res.status(409).json({ ok: false, message: "Nouvel ID déjà existant" });
-      }
-
-      await Vendor.deleteOne({ id: oldId });
-      await Vendor.create(data);
-    } else {
-      await Vendor.updateOne({ id: oldId }, { $set: data });
+    if (oldId !== newId && obj[newId]) {
+      return res.status(409).json({ ok: false, message: "Nouvel ID déjà existant" });
     }
+
+    delete obj[oldId];
+    obj[newId] = data;
+    writeVendeursObject(obj);
 
     res.json({ ok: true });
   } catch (err) {
@@ -348,15 +332,17 @@ router.put("/api/vendors/:id", async (req, res) => {
   }
 });
 
-router.delete("/api/vendors/:id", async (req, res) => {
+router.delete("/api/vendors/:id", (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
+    const obj = readVendeursObject();
 
-    const deleted = await Vendor.deleteOne({ id });
-
-    if (!deleted.deletedCount) {
+    if (!obj[id]) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
+
+    delete obj[id];
+    writeVendeursObject(obj);
 
     res.json({ ok: true });
   } catch (err) {
@@ -365,18 +351,16 @@ router.delete("/api/vendors/:id", async (req, res) => {
   }
 });
 
-router.post("/api/vendors/:id/connections/:index/block", async (req, res) => {
+router.post("/api/vendors/:id/connections/:index/block", (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
     const index = Number(req.params.index);
+    const obj = readVendeursObject();
+    const vendor = obj[id];
 
-    const vendorDoc = await Vendor.findOne({ id });
-
-    if (!vendorDoc) {
+    if (!vendor) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
-
-    const vendor = normalizeVendor(vendorDoc.toObject());
 
     if (!Array.isArray(vendor.conexiones)) vendor.conexiones = [];
 
@@ -394,10 +378,8 @@ router.post("/api/vendors/:id/connections/:index/block", async (req, res) => {
 
     vendor.estatus = "Bloqueado";
     vendor.conexion = vendor.conexiones[index].last || vendor.conexion || "";
-    vendor.id = id;
 
-    await Vendor.updateOne({ id }, { $set: vendor });
-
+    writeVendeursObject(obj);
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
@@ -405,18 +387,16 @@ router.post("/api/vendors/:id/connections/:index/block", async (req, res) => {
   }
 });
 
-router.post("/api/vendors/:id/connections/:index/unblock", async (req, res) => {
+router.post("/api/vendors/:id/connections/:index/unblock", (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
     const index = Number(req.params.index);
+    const obj = readVendeursObject();
+    const vendor = obj[id];
 
-    const vendorDoc = await Vendor.findOne({ id });
-
-    if (!vendorDoc) {
+    if (!vendor) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
-
-    const vendor = normalizeVendor(vendorDoc.toObject());
 
     if (!Array.isArray(vendor.conexiones)) vendor.conexiones = [];
 
@@ -434,10 +414,8 @@ router.post("/api/vendors/:id/connections/:index/unblock", async (req, res) => {
 
     vendor.estatus = "Activo";
     vendor.conexion = vendor.conexiones[index].last || vendor.conexion || "";
-    vendor.id = id;
 
-    await Vendor.updateOne({ id }, { $set: vendor });
-
+    writeVendeursObject(obj);
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
@@ -445,18 +423,16 @@ router.post("/api/vendors/:id/connections/:index/unblock", async (req, res) => {
   }
 });
 
-router.delete("/api/vendors/:id/connections/:index", async (req, res) => {
+router.delete("/api/vendors/:id/connections/:index", (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
     const index = Number(req.params.index);
+    const obj = readVendeursObject();
+    const vendor = obj[id];
 
-    const vendorDoc = await Vendor.findOne({ id });
-
-    if (!vendorDoc) {
+    if (!vendor) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
-
-    const vendor = normalizeVendor(vendorDoc.toObject());
 
     if (!Array.isArray(vendor.conexiones)) vendor.conexiones = [];
 
@@ -474,10 +450,7 @@ router.delete("/api/vendors/:id/connections/:index", async (req, res) => {
       vendor.conexion = "";
     }
 
-    vendor.id = id;
-
-    await Vendor.updateOne({ id }, { $set: vendor });
-
+    writeVendeursObject(obj);
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
@@ -485,7 +458,7 @@ router.delete("/api/vendors/:id/connections/:index", async (req, res) => {
   }
 });
 
-router.post("/api/vendors/:id/balance-action", async (req, res) => {
+router.post("/api/vendors/:id/balance-action", (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
     const body = req.body || {};
@@ -502,21 +475,18 @@ router.post("/api/vendors/:id/balance-action", async (req, res) => {
       return res.status(400).json({ ok: false, message: "Monto invalide" });
     }
 
-    const vendorDoc = await Vendor.findOne({ id });
-
-    if (!vendorDoc) {
+    const obj = readVendeursObject();
+    if (!obj[id]) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
 
-    const vendor = normalizeVendor(vendorDoc.toObject());
+    const vendor = normalizeVendor(obj[id]);
 
     if (tipo === "cobro") {
       vendor.balance += monto;
     } else if (tipo === "pago" || tipo === "debitar") {
       vendor.balance -= monto;
     }
-
-    if (!Array.isArray(vendor.movimientos)) vendor.movimientos = [];
 
     vendor.movimientos.push({
       tipo,
@@ -525,9 +495,8 @@ router.post("/api/vendors/:id/balance-action", async (req, res) => {
       comentario
     });
 
-    vendor.id = id;
-
-    await Vendor.updateOne({ id }, { $set: vendor });
+    obj[id] = vendor;
+    writeVendeursObject(obj);
 
     res.json({ ok: true, balance: vendor.balance });
   } catch (err) {

@@ -2470,10 +2470,18 @@ async function saveVendor(){
       });
     }
 
-    const data = await res.json();
+    const text = await res.text();
+    let data = {};
+
+    try{
+      data = JSON.parse(text);
+    }catch(e){
+      alert("Server pa voye JSON. Repons lan: " + text);
+      return;
+    }
 
     if(!res.ok){
-      alert(data.message || "Erreur save");
+      alert(data.message || ("Erreur HTTP " + res.status));
       return;
     }
 
@@ -2482,9 +2490,10 @@ async function saveVendor(){
     await loadVentasReport();
     await loadBalanceReport();
     goPage("vendors");
+
   }catch(err){
-    console.error(err);
-    alert("Erreur save vendor");
+    console.error("Erreur save vendor:", err);
+    alert("Erreur save vendor: " + err.message);
   }
 }
 

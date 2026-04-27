@@ -230,7 +230,7 @@ function buildBalanceRows(obj) {
 
 router.get("/api/vendors", async (req, res) => {
   try {
-    const vendors = await Vendor.find();
+    const vendors = await Vendor.find().lean();
     res.json(vendors);
   } catch (err) {
     console.error(err);
@@ -238,10 +238,13 @@ router.get("/api/vendors", async (req, res) => {
   }
 });
 
-
-router.get("/api/reportes/ventas", (req, res) => {
+router.get("/api/reportes/ventas", async (req, res) => {
   try {
-    const obj = readVendeursObject();
+    const vendors = await Vendor.find().lean();
+    const obj = {};
+    vendors.forEach(v => {
+      obj[String(v.id || "").toUpperCase()] = v;
+    });
     res.json(buildVentasRows(obj));
   } catch (err) {
     console.error(err);
@@ -249,9 +252,13 @@ router.get("/api/reportes/ventas", (req, res) => {
   }
 });
 
-router.get("/api/reportes/balance", (req, res) => {
+router.get("/api/reportes/balance", async (req, res) => {
   try {
-    const obj = readVendeursObject();
+    const vendors = await Vendor.find().lean();
+    const obj = {};
+    vendors.forEach(v => {
+      obj[String(v.id || "").toUpperCase()] = v;
+    });
     res.json(buildBalanceRows(obj));
   } catch (err) {
     console.error(err);
@@ -294,7 +301,7 @@ router.post("/api/vendors", async (req, res) => {
   }
 });
 
-router.put("/api/vendors/:id", (req, res) => {
+router.put("/api/vendors/:id", async (req, res) => {
   try {
     const oldId = String(req.params.id || "").trim().toUpperCase();
     const body = req.body || {};
@@ -305,6 +312,7 @@ router.put("/api/vendors/:id", (req, res) => {
     }
 
     const data = normalizeVendor(body);
+    data.id = newId;
 
     if (!data.nombre) {
       return res.status(400).json({ ok: false, message: "Nombre obligatoire" });
@@ -314,19 +322,24 @@ router.put("/api/vendors/:id", (req, res) => {
       return res.status(400).json({ ok: false, message: "Clave obligatoire" });
     }
 
-    const obj = readVendeursObject();
+    const oldVendor = await Vendor.findOne({ id: oldId }).lean();
 
-    if (!obj[oldId]) {
+    if (!oldVendor) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
 
-    if (oldId !== newId && obj[newId]) {
-      return res.status(409).json({ ok: false, message: "Nouvel ID déjà existant" });
-    }
+    if (oldId !== newId) {
+      const exist = await Vendor.findOne({ id: newId }).lean();
 
-    delete obj[oldId];
-    obj[newId] = data;
-    writeVendeursObject(obj);
+      if (exist) {
+        return res.status(409).json({ ok: false, message: "Nouvel ID déjà existant" });
+      }
+
+      await Vendor.deleteOne({ id: oldId });
+      await Vendor.create(data);
+    } else {
+      await Vendor.updateOne({ id: oldId }, { $set: data });
+    }
 
     res.json({ ok: true });
   } catch (err) {
@@ -335,17 +348,15 @@ router.put("/api/vendors/:id", (req, res) => {
   }
 });
 
-router.delete("/api/vendors/:id", (req, res) => {
+router.delete("/api/vendors/:id", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
-    const obj = readVendeursObject();
 
-    if (!obj[id]) {
+    const deleted = await Vendor.deleteOne({ id });
+
+    if (!deleted.deletedCount) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
-
-    delete obj[id];
-    writeVendeursObject(obj);
 
     res.json({ ok: true });
   } catch (err) {
@@ -354,16 +365,18 @@ router.delete("/api/vendors/:id", (req, res) => {
   }
 });
 
-router.post("/api/vendors/:id/connections/:index/block", (req, res) => {
+router.post("/api/vendors/:id/connections/:index/block", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
     const index = Number(req.params.index);
-    const obj = readVendeursObject();
-    const vendor = obj[id];
 
-    if (!vendor) {
+    const vendorDoc = await Vendor.findOne({ id });
+
+    if (!vendorDoc) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
+
+    const vendor = normalizeVendor(vendorDoc.toObject());
 
     if (!Array.isArray(vendor.conexiones)) vendor.conexiones = [];
 
@@ -381,8 +394,10 @@ router.post("/api/vendors/:id/connections/:index/block", (req, res) => {
 
     vendor.estatus = "Bloqueado";
     vendor.conexion = vendor.conexiones[index].last || vendor.conexion || "";
+    vendor.id = id;
 
-    writeVendeursObject(obj);
+    await Vendor.updateOne({ id }, { $set: vendor });
+
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
@@ -390,16 +405,18 @@ router.post("/api/vendors/:id/connections/:index/block", (req, res) => {
   }
 });
 
-router.post("/api/vendors/:id/connections/:index/unblock", (req, res) => {
+router.post("/api/vendors/:id/connections/:index/unblock", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
     const index = Number(req.params.index);
-    const obj = readVendeursObject();
-    const vendor = obj[id];
 
-    if (!vendor) {
+    const vendorDoc = await Vendor.findOne({ id });
+
+    if (!vendorDoc) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
+
+    const vendor = normalizeVendor(vendorDoc.toObject());
 
     if (!Array.isArray(vendor.conexiones)) vendor.conexiones = [];
 
@@ -417,8 +434,10 @@ router.post("/api/vendors/:id/connections/:index/unblock", (req, res) => {
 
     vendor.estatus = "Activo";
     vendor.conexion = vendor.conexiones[index].last || vendor.conexion || "";
+    vendor.id = id;
 
-    writeVendeursObject(obj);
+    await Vendor.updateOne({ id }, { $set: vendor });
+
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
@@ -426,16 +445,18 @@ router.post("/api/vendors/:id/connections/:index/unblock", (req, res) => {
   }
 });
 
-router.delete("/api/vendors/:id/connections/:index", (req, res) => {
+router.delete("/api/vendors/:id/connections/:index", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
     const index = Number(req.params.index);
-    const obj = readVendeursObject();
-    const vendor = obj[id];
 
-    if (!vendor) {
+    const vendorDoc = await Vendor.findOne({ id });
+
+    if (!vendorDoc) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
+
+    const vendor = normalizeVendor(vendorDoc.toObject());
 
     if (!Array.isArray(vendor.conexiones)) vendor.conexiones = [];
 
@@ -453,7 +474,10 @@ router.delete("/api/vendors/:id/connections/:index", (req, res) => {
       vendor.conexion = "";
     }
 
-    writeVendeursObject(obj);
+    vendor.id = id;
+
+    await Vendor.updateOne({ id }, { $set: vendor });
+
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
@@ -461,7 +485,7 @@ router.delete("/api/vendors/:id/connections/:index", (req, res) => {
   }
 });
 
-router.post("/api/vendors/:id/balance-action", (req, res) => {
+router.post("/api/vendors/:id/balance-action", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
     const body = req.body || {};
@@ -478,18 +502,21 @@ router.post("/api/vendors/:id/balance-action", (req, res) => {
       return res.status(400).json({ ok: false, message: "Monto invalide" });
     }
 
-    const obj = readVendeursObject();
-    if (!obj[id]) {
+    const vendorDoc = await Vendor.findOne({ id });
+
+    if (!vendorDoc) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
 
-    const vendor = normalizeVendor(obj[id]);
+    const vendor = normalizeVendor(vendorDoc.toObject());
 
     if (tipo === "cobro") {
       vendor.balance += monto;
     } else if (tipo === "pago" || tipo === "debitar") {
       vendor.balance -= monto;
     }
+
+    if (!Array.isArray(vendor.movimientos)) vendor.movimientos = [];
 
     vendor.movimientos.push({
       tipo,
@@ -498,8 +525,9 @@ router.post("/api/vendors/:id/balance-action", (req, res) => {
       comentario
     });
 
-    obj[id] = vendor;
-    writeVendeursObject(obj);
+    vendor.id = id;
+
+    await Vendor.updateOne({ id }, { $set: vendor });
 
     res.json({ ok: true, balance: vendor.balance });
   } catch (err) {

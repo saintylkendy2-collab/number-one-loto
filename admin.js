@@ -257,11 +257,33 @@ router.get("/api/vendors", (req, res) => {
 
 router.get("/api/reportes/ventas", (req, res) => {
   try {
+    const start = String(req.query.start || "").trim();
+    const end = String(req.query.end || "").trim();
+
     const vendeurs = readVendeursObject();
     const tickets = readTicketsArray();
     const map = {};
 
+    function ticketDay(t) {
+      if (t.dateLabel) {
+        const p = String(t.dateLabel).split("/");
+        if (p.length === 3) {
+          return p[2] + "-" + p[1].padStart(2, "0") + "-" + p[0].padStart(2, "0");
+        }
+      }
+
+      const d = new Date(t.createdAt || Date.now());
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+    }
+
     tickets.forEach((t) => {
+      const d = ticketDay(t);
+
+      if (start && d < start) return;
+      if (end && d > end) return;
+
       const id = String(t.vendeur || "").trim().toUpperCase();
       if (!id) return;
 
@@ -1877,7 +1899,17 @@ async function loadVendorsFromServer(){
 
 async function loadVentasReport(){
   try{
-    const res = await fetch("/api/reportes/ventas");
+    const start = getValue("fechaInicio") || todayISO();
+    const end = getValue("fechaFin") || start;
+
+    setValue("fechaInicio", start);
+    setValue("fechaFin", end);
+
+    const res = await fetch(
+      "/api/reportes/ventas?start=" + encodeURIComponent(start) +
+      "&end=" + encodeURIComponent(end)
+    );
+
     const data = await res.json();
     ventasRows = Array.isArray(data) ? data : [];
     renderVentasTable();
@@ -2956,6 +2988,15 @@ document.addEventListener("click", function(e){
 });
 
 document.addEventListener("DOMContentLoaded", function(){
+const fechaInicio = byId("fechaInicio");
+const fechaFin = byId("fechaFin");
+
+if(fechaInicio && !fechaInicio.value) fechaInicio.value = todayISO();
+if(fechaFin && !fechaFin.value) fechaFin.value = todayISO();
+
+if(fechaInicio) fechaInicio.addEventListener("change", loadVentasReport);
+if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
+
   const menuBtn = byId("menuBtn");
   const menuCloseBtn = byId("menuCloseBtn");
   const overlay = byId("menuOverlay");

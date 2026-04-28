@@ -2195,9 +2195,13 @@ function renderTransactionsTable(){
 
   if(byId("totalPagos")) byId("totalPagos").textContent = formatAmount(totalPagos);
   if(byId("totalCobros")) byId("totalCobros").textContent = formatAmount(totalCobros);
-  if(byId("totalResultado")) byId("totalResultado").textContent = formatAmount(resultado);
-
+  const elResultado = byId("totalResultado");
+if(elResultado){
+  elResultado.textContent = formatAmount(resultado);
+  elResultado.style.color = "#7b72ff"; // violèt
+  
 }
+
 
 function fillVentasVendorSelect(){
   const el = byId("ventasVendorFilter");

@@ -1427,15 +1427,48 @@ tbody tr:nth-child(even){background:#313652;}
  <div id="transactionsPage" class="page-block hidden">
   <div class="page-title">Transactions</div>
 
+  <div class="filters">
+    <div class="filter-group">
+      <label class="filter-label">Desde</label>
+      <input type="date" id="transactionStart" class="filter-input">
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Hasta</label>
+      <input type="date" id="transactionEnd" class="filter-input">
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Grupo</label>
+      <select id="transactionGrupoFilter" class="filter-select"></select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Vendedor</label>
+      <select id="transactionVendorFilter" class="filter-select"></select>
+    </div>
+
+    <button class="login-btn" onclick="renderTransactionsTable()">↻ Rechercher</button>
+  </div>
+
+  <div class="table-card" style="padding:14px;">
+    <div style="display:flex;justify-content:space-between;gap:10px;font-size:20px;font-weight:700;">
+      <div class="result-bad">Pagos<br><span id="totalPagos">0.00</span></div>
+      <div class="result-ok">Cobros<br><span id="totalCobros">0.00</span></div>
+      <div class="balance-positive">Resultado<br><span id="totalResultado">0.00</span></div>
+    </div>
+  </div>
+
   <div class="table-card">
     <div class="table-scroll">
       <table>
         <thead>
           <tr>
-            <th>TYPE</th>
-            <th>VENDEUR</th>
-            <th>MONTANT</th>
-            <th>DATE</th>
+            <th>FECHA</th>
+            <th>MONTO</th>
+            <th>TRANSACCIÓN</th>
+            <th>AGENTE</th>
+            <th>REALIZADO POR</th>
             <th></th>
           </tr>
         </thead>
@@ -2055,11 +2088,47 @@ function goPage(page){
   closeSideMenu();
 }
 
+function fillTransactionFilters(){
+  const grupo = byId("transactionGrupoFilter");
+  const vendor = byId("transactionVendorFilter");
+
+  if(grupo){
+    const old = grupo.value;
+    grupo.innerHTML = "";
+    grupo.appendChild(makeOption("", "- GRUPO -"));
+    gruposList.forEach(g => grupo.appendChild(makeOption(g, g)));
+    grupo.value = old;
+  }
+
+  if(vendor){
+    const old = vendor.value;
+    vendor.innerHTML = "";
+    vendor.appendChild(makeOption("", "- VENDEDOR -"));
+    vendors.forEach(v => {
+      vendor.appendChild(makeOption(v.id, v.nombre || v.nom || v.id));
+    });
+    vendor.value = old;
+  }
+
+  if(byId("transactionStart") && !byId("transactionStart").value){
+    byId("transactionStart").value = todayISO();
+  }
+
+  if(byId("transactionEnd") && !byId("transactionEnd").value){
+    byId("transactionEnd").value = todayISO();
+  }
+}
+
 function renderTransactionsTable(){
+  fillTransactionFilters();
+
   const tbody = byId("transactionsTableBody");
   if(!tbody) return;
 
-  tbody.innerHTML = "";
+  const start = getValue("transactionStart");
+  const end = getValue("transactionEnd");
+  const grupoFilter = getValue("transactionGrupoFilter");
+  const vendorFilter = getValue("transactionVendorFilter");
 
   let rows = [];
 
@@ -2067,48 +2136,97 @@ function renderTransactionsTable(){
     const movimientos = Array.isArray(v.movimientos) ? v.movimientos : [];
 
     movimientos.forEach(function(m){
+      const fecha = safe(m.fecha);
+      const vendorId = safe(v.id);
+      const zona = safe(v.zona || v.groupe);
+
+      if(start && fecha < start) return;
+      if(end && fecha > end) return;
+      if(grupoFilter && zona !== grupoFilter) return;
+      if(vendorFilter && vendorId !== vendorFilter) return;
+
       rows.push({
-        vendorId: v.id,
-        vendorName: v.nombre || v.nom || v.id,
+        vendorId,
+        vendorName: v.nombre || v.nom || vendorId,
+        zona,
         id: m.id,
-        tipo: m.tipo || "",
-        monto: m.monto || 0,
-        fecha: m.fecha || ""
+        tipo: safe(m.tipo),
+        monto: parseAmount(m.monto),
+        fecha,
+        comentario: safe(m.comentario),
+        creadoPor: "Admin"
       });
     });
   });
 
-  rows.sort(function(a,b){
-    return String(b.fecha).localeCompare(String(a.fecha));
-  });
+  rows.sort((a,b) => String(b.fecha).localeCompare(String(a.fecha)));
 
-  if(!rows.length){
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Pa gen transaction</td></tr>';
-    return;
-  }
+  tbody.innerHTML = "";
+
+  let totalPagos = 0;
+  let totalCobros = 0;
 
   rows.forEach(function(r){
-    const tr = document.createElement("tr");
+    const tipo = r.tipo.toLowerCase();
 
-    const cls = (r.tipo === "pago" || r.tipo === "debitar") ? "result-bad" : "result-ok";
+    if(tipo === "pago") totalPagos += r.monto;
+    if(tipo === "cobro" || tipo === "debitar") totalCobros += r.monto;
 
-    tr.innerHTML =
-      '<td class="' + cls + '">' + safe(r.tipo).toUpperCase() + '</td>' +
-      '<td>' + safe(r.vendorName) + '</td>' +
-      '<td>' + formatAmount(r.monto) + '</td>' +
-      '<td>' + safe(r.fecha) + '</td>' +
-      '<td></td>';
+    const cls = tipo === "pago" ? "result-bad" : "result-ok";
+    const label = tipo === "debitar" ? "DEBITAR" : tipo.toUpperCase();
 
-    const btn = document.createElement("button");
-    btn.className = "mini-btn";
-    btn.textContent = "🗑";
-    btn.onclick = function(){
-      deleteMovimiento(r.vendorId, r.id);
-    };
-
-    tr.children[4].appendChild(btn);
-    tbody.appendChild(tr);
+    tbody.innerHTML +=
+      '<tr>' +
+        '<td>' + safe(r.fecha) + '</td>' +
+        '<td>' + formatAmount(r.monto) + '</td>' +
+        '<td class="' + cls + '">' + label + '</td>' +
+        '<td>' + safe(r.vendorName) + ' <i>(vendedor)</i></td>' +
+        '<td>' + safe(r.creadoPor) + '</td>' +
+        '<td>' +
+          '<button class="mini-btn" onclick="alert(\'Vendeur: ' + safe(r.vendorName) + '\\nTipo: ' + label + '\\nMonto: ' + formatAmount(r.monto) + '\\nFecha: ' + safe(r.fecha) + '\\nComentario: ' + safe(r.comentario) + '\')">🔍</button>' +
+          '<button class="mini-btn" onclick="deleteMovimiento(\'' + safe(r.vendorId) + '\', \'' + safe(r.id) + '\')">🗑</button>' +
+        '</td>' +
+      '</tr>';
   });
+
+  const resultado = totalCobros - totalPagos;
+
+  if(byId("totalPagos")) byId("totalPagos").textContent = formatAmount(totalPagos);
+  if(byId("totalCobros")) byId("totalCobros").textContent = formatAmount(totalCobros);
+  if(byId("totalResultado")) byId("totalResultado").textContent = formatAmount(resultado);
+
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Pa gen transaction</td></tr>';
+  }
+}
+
+async function deleteMovimiento(vendorId, movimientoId){
+  if(!confirm("Ou vle siprime transaction sa?")) return;
+
+  try{
+    const res = await fetch(
+      "/api/vendors/" + encodeURIComponent(vendorId) +
+      "/movimientos/" + encodeURIComponent(movimientoId),
+      { method: "DELETE" }
+    );
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.message || "Erreur delete transaction");
+      return;
+    }
+
+    await loadVendorsFromServer();
+    await loadVentasReport();
+    await loadBalanceReport();
+    renderTransactionsTable();
+
+    alert("Transaction supprimée ✔");
+  }catch(err){
+    console.error(err);
+    alert("Erreur delete transaction");
+  }
 }
 
 function fillVentasVendorSelect(){
@@ -3171,34 +3289,6 @@ if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
 });
 
 goPage("ventas");
-
-async function deleteMovimiento(vendorId, movimientoId){
-  if(!confirm("Ou vle siprime transaction sa?")) return;
-
-  try{
-    const res = await fetch(
-      "/api/vendors/" + encodeURIComponent(vendorId) +
-      "/movimientos/" + encodeURIComponent(movimientoId),
-      { method: "DELETE" }
-    );
-
-    const data = await res.json();
-
-    if(!res.ok){
-      alert(data.message || "Erreur delete transaction");
-      return;
-    }
-
-    await loadVendorsFromServer();
-    await loadVentasReport();
-    await loadBalanceReport();
-
-    alert("Transaction supprimée ✔");
-  }catch(err){
-    console.error(err);
-    alert("Erreur delete transaction");
-  }
-}
 
 </script>
 

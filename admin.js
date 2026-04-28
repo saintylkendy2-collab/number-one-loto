@@ -2171,20 +2171,18 @@ function renderTransactionsTable(){
 
 const tdAction = document.createElement("td");
 
-// 🔍 bouton recherche
 const searchBtn = document.createElement("button");
 searchBtn.className = "mini-btn";
 searchBtn.textContent = "🔍";
 searchBtn.onclick = function(){
   alert(
     "Vendeur: " + safe(r.vendorName) +
-    "\nTransaction: " + label +
+    "\nTransaction: " + safe(r.tipo).toUpperCase() +
     "\nMontant: " + formatAmount(r.monto) +
     "\nDate: " + safe(r.fecha)
   );
 };
 
-// 🗑 bouton supprimer
 const btn = document.createElement("button");
 btn.className = "mini-btn";
 btn.textContent = "🗑";
@@ -2192,7 +2190,6 @@ btn.onclick = function(){
   deleteMovimiento(r.vendorId, r.id);
 };
 
-// mete yo sou menm ligne
 tdAction.appendChild(searchBtn);
 tdAction.appendChild(btn);
 

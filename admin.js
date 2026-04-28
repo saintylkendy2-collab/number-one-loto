@@ -2200,17 +2200,6 @@ tdAction.appendChild(delBtn);
 // ajoute nan row
 tr.appendChild(tdAction);
 
-    tr.appendChild(tdFecha);
-    tr.appendChild(tdMonto);
-    tr.appendChild(tdType);
-    tr.appendChild(tdVendor);
-    tr.appendChild(tdBy);
-    tr.appendChild(tdAction);
-
-    tbody.appendChild(tr);
-
-  });
-
   const resultado = totalCobros - totalPagos;
 
   if(byId("totalPagos")) byId("totalPagos").textContent = formatAmount(totalPagos);

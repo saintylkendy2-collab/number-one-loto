@@ -112,6 +112,7 @@ function normalizeVendor(data = {}) {
     balance: parseAmount(data.balance),
     movimientos: Array.isArray(data.movimientos)
       ? data.movimientos.map((m) => ({
+        id: m.id || Date.now(),
           tipo: String(m.tipo || ""),
           monto: parseAmount(m.monto),
           fecha: String(m.fecha || todayFR()),
@@ -2058,6 +2059,8 @@ function renderTransactionsTable(){
   const tbody = byId("transactionsTableBody");
   if(!tbody) return;
 
+  tbody.innerHTML = "";
+
   let rows = [];
 
   vendors.forEach(function(v){
@@ -2068,9 +2071,9 @@ function renderTransactionsTable(){
         vendorId: v.id,
         vendorName: v.nombre || v.nom || v.id,
         id: m.id,
-        tipo: m.tipo,
-        monto: m.monto,
-        fecha: m.fecha
+        tipo: m.tipo || "",
+        monto: m.monto || 0,
+        fecha: m.fecha || ""
       });
     });
   });
@@ -2079,42 +2082,32 @@ function renderTransactionsTable(){
     return String(b.fecha).localeCompare(String(a.fecha));
   });
 
-  tbody.innerHTML = "";
-
   if(!rows.length){
     tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Pa gen transaction</td></tr>';
     return;
   }
 
   rows.forEach(function(r){
+    const tr = document.createElement("tr");
+
     const cls = (r.tipo === "pago" || r.tipo === "debitar") ? "result-bad" : "result-ok";
 
-    tbody.innerHTML +=
-      '<tr>' +
-        '<td class="' + cls + '">' + safe(r.tipo).toUpperCase() + '</td>' +
-        '<td>' + safe(r.vendorName) + '</td>' +
-        '<td>' + formatAmount(r.monto) + '</td>' +
-        '<td>' + safe(r.fecha) + '</td>' +
-        '<td><button class="mini-btn" onclick="deleteMovimiento(\'' + safe(r.vendorId) + '\', \'' + safe(r.id) + '\')">🗑</button></td>' +
-      '</tr>';
-  });
-}
+    tr.innerHTML =
+      '<td class="' + cls + '">' + safe(r.tipo).toUpperCase() + '</td>' +
+      '<td>' + safe(r.vendorName) + '</td>' +
+      '<td>' + formatAmount(r.monto) + '</td>' +
+      '<td>' + safe(r.fecha) + '</td>' +
+      '<td></td>';
 
-function loadGrupoSelects(){
-  const ids = ["vendorFilterGrupo","vd_zona","ventasZonaFilter","balanceGrupoFilter"];
-  ids.forEach(id=>{
-    const el = byId(id);
-    if(!el) return;
+    const btn = document.createElement("button");
+    btn.className = "mini-btn";
+    btn.textContent = "🗑";
+    btn.onclick = function(){
+      deleteMovimiento(r.vendorId, r.id);
+    };
 
-    const current = el.value;
-    el.innerHTML = "";
-    el.appendChild(makeOption("","- GRUPO -"));
-
-    gruposList.forEach(g=>{
-      el.appendChild(makeOption(g,g));
-    });
-
-    if(current) el.value = current;
+    tr.children[4].appendChild(btn);
+    tbody.appendChild(tr);
   });
 }
 

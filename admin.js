@@ -2175,46 +2175,40 @@ function renderVentasTable(){
   \`;
 }
 
-function toggleBalanceMenu(id, btn){
+function toggleBalanceMenu(id, e){
+  if(e) e.stopPropagation();
+
   const menu = byId("balance_menu_" + id);
-  if(!menu || !btn) return;
+  if(!menu) return;
 
   const wasOpen = menu.classList.contains("show");
 
-  document.querySelectorAll(".balance-menu").forEach(el => {
-    el.classList.remove("show");
-  });
+  closeAllBalanceMenus();
 
   if(wasOpen) return;
 
-  menu.classList.add("show");
+  const btn = e ? e.currentTarget : null;
+  if(!btn) return;
 
   const rect = btn.getBoundingClientRect();
-  const menuWidth = menu.offsetWidth || 180;
-  const menuHeight = menu.offsetHeight || 110;
+  const menuHeight = 120;
+  let top = rect.top;
 
-  let left = rect.left - menuWidth + rect.width;
-  let top = rect.bottom + 6;
-
-  if(top + menuHeight > window.innerHeight - 15){
-    top = rect.top - menuHeight - 6;
+  if(top + menuHeight > window.innerHeight - 20){
+    top = rect.bottom - menuHeight;
   }
 
-  if(top < 10){
-    top = 10;
-  }
+  if(top < 20) top = 20;
 
-  if(left < 10){
-    left = 10;
-  }
-
-  if(left + menuWidth > window.innerWidth - 10){
-    left = window.innerWidth - menuWidth - 10;
-  }
-
-  menu.style.left = left + "px";
+  menu.style.position = "fixed";
+  menu.style.right = "20px";
   menu.style.top = top + "px";
+  menu.style.left = "auto";
+  menu.style.bottom = "auto";
+
+  menu.classList.add("show");
 }
+
 
 function renderBalanceTable(){
   const tbody = byId("balanceTableBody");
@@ -2276,10 +2270,10 @@ function renderBalanceTable(){
     const btn = document.createElement("button");
     btn.className = "balance-menu-btn";
     btn.textContent = "⋮";
-    btn.onclick = function(e){
-      e.stopPropagation();
-      toggleBalanceMenu(id, this);
-    };
+    
+btn.onclick = function(e){
+  toggleBalanceMenu(id, e);
+};
 
     const menu = document.createElement("div");
     menu.className = "balance-menu";

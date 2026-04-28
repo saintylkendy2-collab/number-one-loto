@@ -2088,30 +2088,6 @@ function goPage(page){
   closeSideMenu();
 }
 
-function fillTransactionFilters(){
-  const grupo = byId("transactionGrupoFilter");
-  const vendor = byId("transactionVendorFilter");
-
-  if(grupo){
-    const old = grupo.value;
-    grupo.innerHTML = "";
-    grupo.appendChild(makeOption("", "- GRUPO -"));
-    gruposList.forEach(g => grupo.appendChild(makeOption(g, g)));
-    grupo.value = old;
-  }
-
-  if(vendor){
-    const old = vendor.value;
-    vendor.innerHTML = "";
-    vendor.appendChild(makeOption("", "- VENDEDOR -"));
-    vendors.forEach(v => vendor.appendChild(makeOption(v.id, v.nombre || v.nom || v.id)));
-    vendor.value = old;
-  }
-
-  if(byId("transactionStart") && !byId("transactionStart").value) byId("transactionStart").value = todayISO();
-  if(byId("transactionEnd") && !byId("transactionEnd").value) byId("transactionEnd").value = todayISO();
-}
-
 function renderTransactionsTable(){
   fillTransactionFilters();
 

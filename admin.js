@@ -2445,91 +2445,50 @@ function renderBalanceTable(){
     return;
   }
 
-  rows.forEach(r => {
-    const id = safe(r.id || r.vendeur);
-    const nombre = safe(r.nombre || r.nom || id);
+ rows.forEach(function(r){
 
-const movimientos = r.movimientos || [];
-
-const totalCobro = movimientos
-  .filter(m => m.tipo === "cobro")
-  .reduce((s, m) => s + Number(m.monto || 0), 0);
-
-const totalPago = movimientos
-  .filter(m => m.tipo === "pago")
-  .reduce((s, m) => s + Number(m.monto || 0), 0);
-
-const total = totalCobro - totalPago;
-
-    const bal = parseAmount(
-      r.balanceFinal !== undefined ? r.balanceFinal :
-      r.balance !== undefined ? r.balance :
-      r.resultado !== undefined ? r.resultado :
-      0
-    );
-
-    const cls = bal >= 0 ? "balance-positive" : "balance-negative";
-    const cleanVal = (bal < 0 ? "-" : "") + formatAmount(Math.abs(bal));
+    const cls = r.tipo === "pago" ? "result-bad" : "result-ok";
+    const label = r.tipo === "debitar" ? "DEBITAR" : r.tipo.toUpperCase();
 
     const tr = document.createElement("tr");
 
-    const tdName = document.createElement("td");
-    tdName.className = "vendor-name";
-    tdName.textContent = nombre;
-
-    const tdBalance = document.createElement("td");
-    tdBalance.className = cls;
-    tdBalance.textContent = cleanVal;
-
     const tdFecha = document.createElement("td");
-    tdFecha.textContent = fecha;
+    tdFecha.textContent = safe(r.fecha);
+
+    const tdMonto = document.createElement("td");
+    tdMonto.textContent = formatAmount(r.monto);
+
+    const tdType = document.createElement("td");
+    tdType.className = cls;
+    tdType.textContent = label;
+
+    const tdVendor = document.createElement("td");
+    tdVendor.textContent = safe(r.vendorName);
+
+    const tdBy = document.createElement("td");
+    tdBy.textContent = "Admin";
 
     const tdAction = document.createElement("td");
 
-    const wrap = document.createElement("div");
-    wrap.className = "balance-actions-wrap";
-
     const btn = document.createElement("button");
-    btn.className = "balance-menu-btn";
-    btn.textContent = "⋮";
-    btn.onclick = function(e){
-      toggleBalanceMenu(id, e);
+    btn.className = "mini-btn";
+    btn.textContent = "🗑";
+    btn.onclick = function(){
+      deleteMovimiento(r.vendorId, r.id);
     };
 
-    const menu = document.createElement("div");
-    menu.className = "balance-menu";
-    menu.id = "balance_menu_" + id;
+    tdAction.appendChild(btn);
 
-    const pago = document.createElement("div");
-    pago.className = "balance-menu-item";
-    pago.textContent = "Pago";
-    pago.onclick = function(){
-      openBalanceModal(id, nombre, "pago", bal);
-    };
-
-    const debitar = document.createElement("div");
-    debitar.className = "balance-menu-item";
-    debitar.textContent = "Debitar";
-    debitar.onclick = function(){
-      openBalanceModal(id, nombre, "debitar", bal);
-    };
-
-    menu.appendChild(pago);
-    menu.appendChild(debitar);
-
-    wrap.appendChild(btn);
-    wrap.appendChild(menu);
-
-    tdAction.appendChild(wrap);
-
-    tr.appendChild(tdName);
-    tr.appendChild(tdBalance);
     tr.appendChild(tdFecha);
+    tr.appendChild(tdMonto);
+    tr.appendChild(tdType);
+    tr.appendChild(tdVendor);
+    tr.appendChild(tdBy);
     tr.appendChild(tdAction);
 
     tbody.appendChild(tr);
+
   });
-}
 
 function blankVendor(){
   return {

@@ -1448,8 +1448,18 @@ tbody tr:nth-child(even){background:#313652;}
       <select id="transactionVendorFilter" class="filter-select"></select>
     </div>
 
-    <button class="login-btn" onclick="renderTransactionsTable()">↻ Rechercher</button>
+  <div class="filter-group">
+  <div class="date-range">
+    <div>
+      <label>Desde</label>
+      <input type="date" id="transactionStart" class="filter-input">
+    </div>
+    <div>
+      <label>Hasta</label>
+      <input type="date" id="transactionEnd" class="filter-input">
+    </div>
   </div>
+</div>
 
   <div class="table-card" style="padding:14px;">
     <div style="display:flex;justify-content:space-between;gap:10px;font-size:20px;font-weight:700;">
@@ -2125,41 +2135,39 @@ function renderTransactionsTable(){
     const cls = tipo === "pago" ? "result-bad" : "result-ok";
     const label = tipo === "debitar" ? "DEBITAR" : tipo.toUpperCase();
 
-    const tr = document.createElement("tr");
+const tr = document.createElement("tr");
 
-    const tdType = document.createElement("td");
-    tdType.className = cls;
-    tdType.textContent = label;
+const tdFecha = document.createElement("td");
+tdFecha.textContent = safe(r.fecha);
 
-    const tdVendor = document.createElement("td");
-    tdVendor.textContent = safe(r.vendorName);
+const tdMonto = document.createElement("td");
+tdMonto.textContent = formatAmount(r.monto);
 
-    const tdMonto = document.createElement("td");
-    tdMonto.textContent = formatAmount(r.monto);
+const tdType = document.createElement("td");
+tdType.className = cls;
+tdType.textContent = label;
 
-    const tdFecha = document.createElement("td");
-    tdFecha.textContent = safe(r.fecha);
+const tdVendor = document.createElement("td");
+tdVendor.textContent = safe(r.vendorName);
 
-    const tdAction = document.createElement("td");
+const tdAction = document.createElement("td");
 
-    const btn = document.createElement("button");
-    btn.className = "mini-btn";
-    btn.textContent = "🗑";
-    btn.onclick = function(){
-      deleteMovimiento(r.vendorId, r.id);
-    };
+const btn = document.createElement("button");
+btn.className = "mini-btn";
+btn.textContent = "🗑";
+btn.onclick = function(){
+  deleteMovimiento(r.vendorId, r.id);
+};
 
-    tdAction.appendChild(btn);
+tdAction.appendChild(btn);
 
-tr.appendChild(tdFecha);     // FECHA
-tr.appendChild(tdMonto);     // MONTO
-tr.appendChild(tdType);      // TRANSACCIÓN
-tr.appendChild(tdVendor);    // AGENTE
-tr.appendChild(tdAction);    // REALIZADO POR / ACTION
+tr.appendChild(tdFecha);
+tr.appendChild(tdMonto);
+tr.appendChild(tdType);
+tr.appendChild(tdVendor);
+tr.appendChild(tdAction);
 
-    tbody.appendChild(tr);
-  });
-}
+tbody.appendChild(tr);
 
 function fillVentasVendorSelect(){
   const el = byId("ventasVendorFilter");
@@ -3167,6 +3175,19 @@ document.addEventListener("click", function(e){
 });
 
 document.addEventListener("DOMContentLoaded", function(){
+const transactionStart = byId("transactionStart");
+const transactionEnd = byId("transactionEnd");
+const transactionGrupoFilter = byId("transactionGrupoFilter");
+const transactionVendorFilter = byId("transactionVendorFilter");
+
+if(transactionStart && !transactionStart.value) transactionStart.value = todayISO();
+if(transactionEnd && !transactionEnd.value) transactionEnd.value = todayISO();
+
+if(transactionStart) transactionStart.addEventListener("change", renderTransactionsTable);
+if(transactionEnd) transactionEnd.addEventListener("change", renderTransactionsTable);
+if(transactionGrupoFilter) transactionGrupoFilter.addEventListener("change", renderTransactionsTable);
+if(transactionVendorFilter) transactionVendorFilter.addEventListener("change", renderTransactionsTable);
+
 const fechaInicio = byId("fechaInicio");
 const fechaFin = byId("fechaFin");
 

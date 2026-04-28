@@ -2175,22 +2175,10 @@ const searchBtn = document.createElement("button");
 searchBtn.className = "mini-btn";
 searchBtn.innerText = "🔍";
 searchBtn.onclick = function(){
-
-  let tipoTxt = "";
-
-  if(r.tipo === "pago"){
-    tipoTxt = "PAGOS";
-  }else{
-    tipoTxt = "COBROS";
-  }
-
-  const datetime = (r.fecha || "") + " " + (r.hora || r.time || "");
-
   alert(
     "Vendeur: " + safe(r.vendorName) +
-    "\nType: " + tipoTxt +
-    "\nMontant: " + formatAmount(r.monto) +
-    "\nDate: " + datetime
+    " | Type: " + (r.tipo === "pago" ? "PAGOS" : "COBROS") +
+    " | Montant: " + formatAmount(r.monto)
   );
 };
 

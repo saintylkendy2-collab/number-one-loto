@@ -2169,21 +2169,22 @@ function renderTransactionsTable(){
     const tdBy = document.createElement("td");
     tdBy.textContent = "Admin";
 
-    const tdAction = document.createElement("td");
+const tdAction = document.createElement("td");
 
-const detailBtn = document.createElement("button");
-detailBtn.className = "mini-btn";
-detailBtn.textContent = "🔍";
-detailBtn.onclick = function(){
+// 🔍 bouton recherche
+const searchBtn = document.createElement("button");
+searchBtn.className = "mini-btn";
+searchBtn.textContent = "🔍";
+searchBtn.onclick = function(){
   alert(
     "Vendeur: " + safe(r.vendorName) +
     "\nTransaction: " + label +
     "\nMontant: " + formatAmount(r.monto) +
-    "\nDate: " + safe(r.fecha) +
-    "\nCommentaire: " + safe(r.comentario)
+    "\nDate: " + safe(r.fecha)
   );
 };
 
+// 🗑 bouton supprimer
 const btn = document.createElement("button");
 btn.className = "mini-btn";
 btn.textContent = "🗑";
@@ -2191,7 +2192,8 @@ btn.onclick = function(){
   deleteMovimiento(r.vendorId, r.id);
 };
 
-tdAction.appendChild(detailBtn);
+// mete yo sou menm ligne
+tdAction.appendChild(searchBtn);
 tdAction.appendChild(btn);
 
     tr.appendChild(tdFecha);

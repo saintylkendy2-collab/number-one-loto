@@ -2182,7 +2182,6 @@ function toggleBalanceMenu(id, e){
   if(!menu) return;
 
   const wasOpen = menu.classList.contains("show");
-
   closeAllBalanceMenus();
 
   if(wasOpen) return;
@@ -2191,24 +2190,36 @@ function toggleBalanceMenu(id, e){
   if(!btn) return;
 
   const rect = btn.getBoundingClientRect();
-  const menuHeight = 120;
-  let top = rect.top;
+  const menuWidth = 180;
+  const menuHeight = 96;
+  const gap = 8;
 
-  if(top + menuHeight > window.innerHeight - 20){
-    top = rect.bottom - menuHeight;
+  let left = rect.left - menuWidth - gap;
+  let top = rect.top - 10;
+
+  if(left < 8){
+    left = rect.right + gap;
   }
 
-  if(top < 20) top = 20;
+  if(left + menuWidth > window.innerWidth - 8){
+    left = window.innerWidth - menuWidth - 8;
+  }
 
-  menu.style.position = "fixed";
-  menu.style.right = "20px";
+  if(top + menuHeight > window.innerHeight - 8){
+    top = window.innerHeight - menuHeight - 8;
+  }
+
+  if(top < 8){
+    top = 8;
+  }
+
+  menu.style.left = left + "px";
   menu.style.top = top + "px";
-  menu.style.left = "auto";
+  menu.style.right = "auto";
   menu.style.bottom = "auto";
 
   menu.classList.add("show");
 }
-
 
 function renderBalanceTable(){
   const tbody = byId("balanceTableBody");
@@ -2270,58 +2281,13 @@ function renderBalanceTable(){
     const btn = document.createElement("button");
     btn.className = "balance-menu-btn";
     btn.textContent = "⋮";
-    
-btn.onclick = function(e){
-  toggleBalanceMenu(id, e);
-};
+    btn.onclick = function(e){
+      toggleBalanceMenu(id, e);
+    };
 
     const menu = document.createElement("div");
     menu.className = "balance-menu";
     menu.id = "balance_menu_" + id;
-
-    const pago = document.createElement("div");
-    pago.className = "balance-menu-item";
-    pago.textContent = "Pago";
-    pago.onclick = function(e){
-      e.stopPropagation();
-      openBalanceModal(id, nombre, "pago", bal);
-    };
-
-    const debitar = document.createElement("div");
-    debitar.className = "balance-menu-item";
-    debitar.textContent = "Debitar";
-    debitar.onclick = function(e){
-      e.stopPropagation();
-      openBalanceModal(id, nombre, "debitar", bal);
-    };
-
-    menu.appendChild(pago);
-    menu.appendChild(debitar);
-
-    wrap.appendChild(btn);
-    wrap.appendChild(menu);
-
-    tdAction.appendChild(wrap);
-
-    tr.appendChild(tdName);
-    tr.appendChild(tdBalance);
-    tr.appendChild(tdFecha);
-    tr.appendChild(tdAction);
-
-    tbody.appendChild(tr);
-  });
-}
-
-    const menu = document.createElement("div");
-    menu.className = "balance-menu";
-    menu.id = "balance_menu_" + id;
-
-    const cobro = document.createElement("div");
-    cobro.className = "balance-menu-item";
-    cobro.textContent = "Cobro";
-    cobro.onclick = function(){
-      openBalanceModal(id, nombre, "cobro", bal);
-    };
 
     const pago = document.createElement("div");
     pago.className = "balance-menu-item";
@@ -2337,7 +2303,6 @@ btn.onclick = function(e){
       openBalanceModal(id, nombre, "debitar", bal);
     };
 
-    menu.appendChild(cobro);
     menu.appendChild(pago);
     menu.appendChild(debitar);
 

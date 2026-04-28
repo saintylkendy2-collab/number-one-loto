@@ -3297,9 +3297,8 @@ if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
   loadVendorsFromServer();
   loadVentasReport();
   loadBalanceReport();
+  goPage("ventas");
 });
-
-goPage("ventas");
 
 async function deleteMovimiento(vendorId, movimientoId){
   if(!confirm("Ou vle siprime transaction sa?")) return;

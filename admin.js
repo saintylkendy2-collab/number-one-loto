@@ -2173,19 +2173,14 @@ const tdAction = document.createElement("td");
 
 const searchBtn = document.createElement("button");
 searchBtn.className = "mini-btn";
-searchBtn.textContent = "🔍";
+searchBtn.innerText = "🔍";
 searchBtn.onclick = function(){
-  alert(
-    "Vendeur: " + safe(r.vendorName) +
-    "\nTransaction: " + safe(r.tipo).toUpperCase() +
-    "\nMontant: " + formatAmount(r.monto) +
-    "\nDate: " + safe(r.fecha)
-  );
+  alert("Vendeur: " + safe(r.vendorName));
 };
 
 const btn = document.createElement("button");
 btn.className = "mini-btn";
-btn.textContent = "🗑";
+btn.innerText = "🗑";
 btn.onclick = function(){
   deleteMovimiento(r.vendorId, r.id);
 };

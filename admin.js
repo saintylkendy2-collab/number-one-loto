@@ -1424,18 +1424,21 @@ tbody tr:nth-child(even){background:#313652;}
     </div>
   </div>
 
- <div id="transactionsPage" class="page-block hidden">
+<div id="transactionsPage" class="page-block hidden">
   <div class="page-title">Transactions</div>
 
   <div class="filters">
     <div class="filter-group">
-      <label class="filter-label">Desde</label>
-      <input type="date" id="transactionStart" class="filter-input">
-    </div>
-
-    <div class="filter-group">
-      <label class="filter-label">Hasta</label>
-      <input type="date" id="transactionEnd" class="filter-input">
+      <div class="date-range">
+        <div>
+          <label>Desde</label>
+          <input type="date" id="transactionStart">
+        </div>
+        <div>
+          <label>Hasta</label>
+          <input type="date" id="transactionEnd">
+        </div>
+      </div>
     </div>
 
     <div class="filter-group">
@@ -1447,19 +1450,7 @@ tbody tr:nth-child(even){background:#313652;}
       <label class="filter-label">Vendedor</label>
       <select id="transactionVendorFilter" class="filter-select"></select>
     </div>
-
-  <div class="filter-group">
-  <div class="date-range">
-    <div>
-      <label>Desde</label>
-      <input type="date" id="transactionStart" class="filter-input">
-    </div>
-    <div>
-      <label>Hasta</label>
-      <input type="date" id="transactionEnd" class="filter-input">
-    </div>
   </div>
-</div>
 
   <div class="table-card" style="padding:14px;">
     <div style="display:flex;justify-content:space-between;gap:10px;font-size:20px;font-weight:700;">

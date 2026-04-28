@@ -2200,14 +2200,6 @@ tdAction.appendChild(delBtn);
 // ajoute nan row
 tr.appendChild(tdAction);
 
-  const resultado = totalCobros - totalPagos;
-
-  if(byId("totalPagos")) byId("totalPagos").textContent = formatAmount(totalPagos);
-  if(byId("totalCobros")) byId("totalCobros").textContent = formatAmount(totalCobros);
-  if(byId("totalResultado")) byId("totalResultado").textContent = formatAmount(resultado);
-
-}
-
 function fillVentasVendorSelect(){
   const el = byId("ventasVendorFilter");
   if(!el) return;

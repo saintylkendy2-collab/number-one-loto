@@ -2106,8 +2106,7 @@ function renderTransactionsTable(){
         id: m.id,
         tipo: m.tipo || "",
         monto: m.monto || 0,
-        fecha: m.fecha || "",
-        comentario: m.comentario || ""
+        fecha: m.fecha || ""
       });
     });
   });
@@ -2122,30 +2121,26 @@ function renderTransactionsTable(){
   }
 
   rows.forEach(function(r){
-    const tr = document.createElement("tr");
     const tipo = String(r.tipo).toLowerCase();
     const cls = tipo === "pago" ? "result-bad" : "result-ok";
     const label = tipo === "debitar" ? "DEBITAR" : tipo.toUpperCase();
 
-    tr.innerHTML =
-      '<td class="' + cls + '">' + label + '</td>' +
-      '<td>' + safe(r.vendorName) + '</td>' +
-      '<td>' + formatAmount(r.monto) + '</td>' +
-      '<td>' + safe(r.fecha) + '</td>' +
-      '<td></td>';
+    const tr = document.createElement("tr");
 
-    const detailBtn = document.createElement("button");
-    detailBtn.className = "mini-btn";
-    detailBtn.textContent = "🔍";
-    detailBtn.onclick = function(){
-      alert(
-        "Vendeur: " + safe(r.vendorName) +
-        "\nTransaction: " + label +
-        "\nMontant: " + formatAmount(r.monto) +
-        "\nDate: " + safe(r.fecha) +
-        "\nCommentaire: " + safe(r.comentario)
-      );
-    };
+    const tdType = document.createElement("td");
+    tdType.className = cls;
+    tdType.textContent = label;
+
+    const tdVendor = document.createElement("td");
+    tdVendor.textContent = safe(r.vendorName);
+
+    const tdMonto = document.createElement("td");
+    tdMonto.textContent = formatAmount(r.monto);
+
+    const tdFecha = document.createElement("td");
+    tdFecha.textContent = safe(r.fecha);
+
+    const tdAction = document.createElement("td");
 
     const btn = document.createElement("button");
     btn.className = "mini-btn";
@@ -2154,8 +2149,14 @@ function renderTransactionsTable(){
       deleteMovimiento(r.vendorId, r.id);
     };
 
-    tr.children[4].appendChild(detailBtn);
-    tr.children[4].appendChild(btn);
+    tdAction.appendChild(btn);
+
+    tr.appendChild(tdType);
+    tr.appendChild(tdVendor);
+    tr.appendChild(tdMonto);
+    tr.appendChild(tdFecha);
+    tr.appendChild(tdAction);
+
     tbody.appendChild(tr);
   });
 }

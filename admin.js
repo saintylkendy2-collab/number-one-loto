@@ -2200,35 +2200,6 @@ function renderTransactionsTable(){
   }
 }
 
-async function deleteMovimiento(vendorId, movimientoId){
-  if(!confirm("Ou vle siprime transaction sa?")) return;
-
-  try{
-    const res = await fetch(
-      "/api/vendors/" + encodeURIComponent(vendorId) +
-      "/movimientos/" + encodeURIComponent(movimientoId),
-      { method: "DELETE" }
-    );
-
-    const data = await res.json();
-
-    if(!res.ok){
-      alert(data.message || "Erreur delete transaction");
-      return;
-    }
-
-    await loadVendorsFromServer();
-    await loadVentasReport();
-    await loadBalanceReport();
-    renderTransactionsTable();
-
-    alert("Transaction supprimée ✔");
-  }catch(err){
-    console.error(err);
-    alert("Erreur delete transaction");
-  }
-}
-
 function fillVentasVendorSelect(){
   const el = byId("ventasVendorFilter");
   if(!el) return;
@@ -3314,6 +3285,35 @@ if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
 });
 
 goPage("ventas");
+
+async function deleteMovimiento(vendorId, movimientoId){
+  if(!confirm("Ou vle siprime transaction sa?")) return;
+
+  try{
+    const res = await fetch(
+      "/api/vendors/" + encodeURIComponent(vendorId) +
+      "/movimientos/" + encodeURIComponent(movimientoId),
+      { method: "DELETE" }
+    );
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.message || "Erreur delete transaction");
+      return;
+    }
+
+    await loadVendorsFromServer();
+    await loadVentasReport();
+    await loadBalanceReport();
+    renderTransactionsTable();
+
+    alert("Transaction supprimée ✔");
+  }catch(err){
+    console.error(err);
+    alert("Erreur delete transaction");
+  }
+}
 
 </script>
 

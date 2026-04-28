@@ -1978,6 +1978,7 @@ async function loadVendorsFromServer(){
     renderVendorTable();
     fillVentasVendorSelect();
     fillBalanceVendorSelect();
+    fillTransactionFilters();
   }catch(err){
     console.error(err);
     vendors = [];
@@ -3266,6 +3267,19 @@ document.addEventListener("click", function(e){
 });
 
 document.addEventListener("DOMContentLoaded", function(){
+const transactionGrupoFilter = byId("transactionGrupoFilter");
+const transactionVendorFilter = byId("transactionVendorFilter");
+const transactionStart = byId("transactionStart");
+const transactionEnd = byId("transactionEnd");
+
+if(transactionGrupoFilter) transactionGrupoFilter.addEventListener("change", renderTransactionsTable);
+if(transactionVendorFilter) transactionVendorFilter.addEventListener("change", renderTransactionsTable);
+if(transactionStart) transactionStart.addEventListener("change", renderTransactionsTable);
+if(transactionEnd) transactionEnd.addEventListener("change", renderTransactionsTable);
+
+if(transactionStart && !transactionStart.value) transactionStart.value = todayISO();
+if(transactionEnd && !transactionEnd.value) transactionEnd.value = todayISO();
+
 const fechaInicio = byId("fechaInicio");
 const fechaFin = byId("fechaFin");
 

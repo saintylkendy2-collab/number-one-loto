@@ -110,15 +110,16 @@ function normalizeVendor(data = {}) {
     venta: parseAmount(data.venta),
     premiosMonto: parseAmount(data.premiosMonto),
     balance: parseAmount(data.balance),
-    movimientos: Array.isArray(data.movimientos)
-      ? data.movimientos.map((m) => ({
-        id: m.id || Date.now(),
-          tipo: String(m.tipo || ""),
-          monto: parseAmount(m.monto),
-          fecha: String(m.fecha || todayFR()),
-          comentario: String(m.comentario || "")
-        }))
-      : [],
+movimientos: Array.isArray(data.movimientos)
+  ? data.movimientos.map((m) => ({
+      id: m.id || Date.now(),
+      tipo: String(m.tipo || ""),
+      monto: parseAmount(m.monto),
+      fecha: String(m.fecha || todayFR()),
+      hora: String(m.hora || m.heure || m.time || ""),
+      comentario: String(m.comentario || "")
+    }))
+  : [],
 
     config: data.config || {
       limiteDiario: "0",
@@ -2135,7 +2136,6 @@ function renderTransactionsTable(){
   tipo: safe(m.tipo).toLowerCase(),
   monto: parseAmount(m.monto),
   fecha,
-  hora: m.hora || m.createdAt || "",
   comentario: safe(m.comentario),
 hora: safe(m.hora || m.heure || m.time || "")
 });

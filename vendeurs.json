@@ -833,17 +833,8 @@
     "sexo": "-",
     "venta": 0,
     "premiosMonto": 0,
-    "balance": -500,
-    "movimientos": [
-      {
-        "id": 1777415892349,
-        "tipo": "debitar",
-        "monto": 500,
-        "fecha": "2026-04-28",
-        "hora": "18:38",
-        "comentario": ""
-      }
-    ],
+    "balance": 0,
+    "movimientos": [],
     "config": {
       "limiteDiario": "0",
       "credito": "0",
@@ -1372,8 +1363,17 @@
     "sexo": "-",
     "venta": 0,
     "premiosMonto": 0,
-    "balance": 0,
-    "movimientos": [],
+    "balance": -20,
+    "movimientos": [
+      {
+        "id": 1777416900126,
+        "tipo": "debitar",
+        "monto": 20,
+        "fecha": "2026-04-28",
+        "hora": "18:55",
+        "comentario": ""
+      }
+    ],
     "config": {
       "limiteDiario": "0",
       "credito": "0",

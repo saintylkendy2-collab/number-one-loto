@@ -228,6 +228,7 @@ function getVentaStats(vendor, id) {
     premios,
     resultado,
     balance,
+    movimientos: vendor.movimientos || [],
     estatus: vendor.estatus || "Activo"
   };
 }
@@ -1291,7 +1292,9 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
 
   <div class="side-menu-section">FLUJO DE EFECTIVO</div>
-  <div class="side-menu-item"><span>Transactions</span></div>
+  <div class="side-menu-item" onclick="goPage('transactions')">
+  <span>Transactions</span>
+</div>
 
   <div class="side-menu-item" id="menu-balance" onclick="toggleSubmenu('balanceMenu')">
     <span>Balance</span><span>></span>
@@ -1402,6 +1405,26 @@ tbody tr:nth-child(even){background:#313652;}
         <input type="date" id="balanceFecha" class="filter-input">
       </div>
     </div>
+
+<div id="transactionsPage" class="page-block hidden">
+  <div class="page-title">Transactions</div>
+  <div class="table-card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>TYPE</th>
+            <th>VENDEUR</th>
+            <th>MONTANT</th>
+            <th>DATE</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="transactionsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
     <div class="table-card">
       <div class="table-scroll">
@@ -2002,11 +2025,13 @@ function goPage(page){
   const vendorsPage = byId("vendorsPage");
   const editorPage = byId("vendorEditorPage");
   const balancePage = byId("balanceVendorPage");
+  const transactionsPage = byId("transactionsPage");
 
   if(ventasPage) ventasPage.classList.add("hidden");
   if(vendorsPage) vendorsPage.classList.add("hidden");
   if(editorPage) editorPage.classList.add("hidden");
   if(balancePage) balancePage.classList.add("hidden");
+  if(transactionsPage) transactionsPage.classList.add("hidden");
 
   if(page === "ventas"){
     ventasPage.classList.remove("hidden");
@@ -2019,11 +2044,14 @@ function goPage(page){
   }else if(page === "balance_vendor"){
     balancePage.classList.remove("hidden");
     loadBalanceReport();
+  }else if(page === "transactions"){
+    if(transactionsPage) transactionsPage.classList.remove("hidden");
   }
 
   setMenuActive(page);
   closeSideMenu();
 }
+
 
 function loadGrupoSelects(){
   const ids = ["vendorFilterGrupo","vd_zona","ventasZonaFilter","balanceGrupoFilter"];
@@ -3104,13 +3132,15 @@ if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
 
 goPage("ventas");
 
-async function deleteMovimiento(id){
+async function deleteMovimiento(vendorId, movimientoId){
   if(!confirm("Ou vle siprime transaction sa?")) return;
 
   try{
-    const res = await fetch("/api/movimientos/" + encodeURIComponent(id), {
-      method: "DELETE"
-    });
+    const res = await fetch(
+      "/api/vendors/" + encodeURIComponent(vendorId) +
+      "/movimientos/" + encodeURIComponent(movimientoId),
+      { method: "DELETE" }
+    );
 
     const data = await res.json();
 

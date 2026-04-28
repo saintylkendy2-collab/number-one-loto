@@ -2171,11 +2171,10 @@ function renderTransactionsTable(){
 
     const tdAction = document.createElement("td");
 
-// bouton recherche (🔍)
-const searchBtn = document.createElement("button");
-searchBtn.className = "mini-btn";
-searchBtn.textContent = "🔍";
-searchBtn.onclick = function(){
+const detailBtn = document.createElement("button");
+detailBtn.className = "mini-btn";
+detailBtn.textContent = "🔍";
+detailBtn.onclick = function(){
   alert(
     "Vendeur: " + safe(r.vendorName) +
     "\nTransaction: " + label +
@@ -2185,20 +2184,34 @@ searchBtn.onclick = function(){
   );
 };
 
-// bouton supprimer (🗑)
-const delBtn = document.createElement("button");
-delBtn.className = "mini-btn";
-delBtn.textContent = "🗑";
-delBtn.onclick = function(){
+const btn = document.createElement("button");
+btn.className = "mini-btn";
+btn.textContent = "🗑";
+btn.onclick = function(){
   deleteMovimiento(r.vendorId, r.id);
 };
 
-// AJOUT LÒD: 🔍 devan, 🗑 dèyè
-tdAction.appendChild(searchBtn);
-tdAction.appendChild(delBtn);
+tdAction.appendChild(detailBtn);
+tdAction.appendChild(btn);
 
-// ajoute nan row
-tr.appendChild(tdAction);
+    tr.appendChild(tdFecha);
+    tr.appendChild(tdMonto);
+    tr.appendChild(tdType);
+    tr.appendChild(tdVendor);
+    tr.appendChild(tdBy);
+    tr.appendChild(tdAction);
+
+    tbody.appendChild(tr);
+
+  });
+
+  const resultado = totalCobros - totalPagos;
+
+  if(byId("totalPagos")) byId("totalPagos").textContent = formatAmount(totalPagos);
+  if(byId("totalCobros")) byId("totalCobros").textContent = formatAmount(totalCobros);
+  if(byId("totalResultado")) byId("totalResultado").textContent = formatAmount(resultado);
+
+}
 
 function fillVentasVendorSelect(){
   const el = byId("ventasVendorFilter");

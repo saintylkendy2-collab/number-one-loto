@@ -582,13 +582,19 @@ router.post("/api/vendors/:id/balance-action", (req, res) => {
 
     const vendor = normalizeVendor(obj[id]);
 
-    const movement = {
-      id: Date.now(), // 🔥 ID UNIQUE
-      tipo,
-      monto: parseAmount(monto),
-      fecha: fecha || todayFR(),
-      comentario: comentario || ""
-    };
+const now = new Date();
+
+const movement = {
+  id: Date.now(),
+  tipo,
+  monto: parseAmount(monto),
+  fecha: fecha || todayFR(),
+  hora: now.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  }),
+  comentario: comentario || ""
+};
 
     // 🔥 AJUSTE BALANCE
     if (tipo === "cobro") {

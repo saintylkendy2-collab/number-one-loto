@@ -833,12 +833,12 @@
     "sexo": "-",
     "venta": 0,
     "premiosMonto": 0,
-    "balance": -600,
+    "balance": -500,
     "movimientos": [
       {
-        "id": 1777392758318,
+        "id": 1777415491462,
         "tipo": "debitar",
-        "monto": 600,
+        "monto": 500,
         "fecha": "2026-04-28",
         "comentario": ""
       }

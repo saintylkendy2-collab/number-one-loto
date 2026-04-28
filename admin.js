@@ -1095,11 +1095,10 @@ tbody tr:nth-child(even){background:#313652;}
  cursor:pointer;
  line-height:1;
 }
-.conn-menu,.balance-menu{
+
+.balance-menu{
  display:none;
  position:fixed;
- right:20px;
- bottom:90px;
  min-width:180px;
  background:#3a3f5a;
  border-radius:12px;
@@ -1107,7 +1106,7 @@ tbody tr:nth-child(even){background:#313652;}
  padding:8px 0;
  z-index:99999;
 }
-.conn-menu.show,.balance-menu.show{
+ .conn-menu.show,.balance-menu.show{
  display:block;
 }
 .conn-menu-item,.balance-menu-item{
@@ -2176,10 +2175,21 @@ function renderVentasTable(){
   \`;
 }
 
-function toggleBalanceMenu(id){
+function toggleBalanceMenu(id, event){
   const menu = byId("balance_menu_" + id);
+  if(!menu) return;
+
   document.querySelectorAll(".balance-menu").forEach(el => el.classList.remove("show"));
-  if(menu) menu.classList.toggle("show");
+
+  const btn = event.currentTarget;
+  const rect = btn.getBoundingClientRect();
+
+  menu.style.left = "auto";
+  menu.style.right = "20px";
+  menu.style.top = (rect.top + window.scrollY - 10) + "px";
+  menu.style.bottom = "auto";
+
+  menu.classList.add("show");
 }
 
 function renderBalanceTable(){

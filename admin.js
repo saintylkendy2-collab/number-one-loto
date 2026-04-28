@@ -589,10 +589,7 @@ const movement = {
   tipo,
   monto: parseAmount(monto),
   fecha: fecha || todayFR(),
-  hora: now.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit"
-  }),
+  hora: now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0"),
   comentario: comentario || ""
 };
 
@@ -2139,7 +2136,8 @@ function renderTransactionsTable(){
   monto: parseAmount(m.monto),
   fecha,
   hora: m.hora || m.createdAt || "",
-  comentario: safe(m.comentario)
+  comentario: safe(m.comentario),
+hora: safe(m.hora || m.heure || m.time || "")
 });
 
     });

@@ -836,10 +836,11 @@
     "balance": -500,
     "movimientos": [
       {
-        "id": 1777415491462,
+        "id": 1777415892349,
         "tipo": "debitar",
         "monto": 500,
         "fecha": "2026-04-28",
+        "hora": "18:38",
         "comentario": ""
       }
     ],

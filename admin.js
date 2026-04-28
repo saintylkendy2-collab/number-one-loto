@@ -2192,6 +2192,47 @@ function toggleBalanceMenu(id, event){
   menu.classList.add("show");
 }
 
+function toggleBalanceMenu(id, btn){
+  const menu = byId("balance_menu_" + id);
+  if(!menu || !btn) return;
+
+  const wasOpen = menu.classList.contains("show");
+
+  document.querySelectorAll(".balance-menu").forEach(el => {
+    el.classList.remove("show");
+  });
+
+  if(wasOpen) return;
+
+  menu.classList.add("show");
+
+  const rect = btn.getBoundingClientRect();
+  const menuWidth = menu.offsetWidth || 180;
+  const menuHeight = menu.offsetHeight || 110;
+
+  let left = rect.left - menuWidth + rect.width;
+  let top = rect.bottom + 6;
+
+  if(top + menuHeight > window.innerHeight - 15){
+    top = rect.top - menuHeight - 6;
+  }
+
+  if(top < 10){
+    top = 10;
+  }
+
+  if(left < 10){
+    left = 10;
+  }
+
+  if(left + menuWidth > window.innerWidth - 10){
+    left = window.innerWidth - menuWidth - 10;
+  }
+
+  menu.style.left = left + "px";
+  menu.style.top = top + "px";
+}
+
 function renderBalanceTable(){
   const tbody = byId("balanceTableBody");
   if(!tbody) return;
@@ -2254,8 +2295,45 @@ function renderBalanceTable(){
     btn.textContent = "⋮";
     btn.onclick = function(e){
       e.stopPropagation();
-      toggleBalanceMenu(id);
+      toggleBalanceMenu(id, this);
     };
+
+    const menu = document.createElement("div");
+    menu.className = "balance-menu";
+    menu.id = "balance_menu_" + id;
+
+    const pago = document.createElement("div");
+    pago.className = "balance-menu-item";
+    pago.textContent = "Pago";
+    pago.onclick = function(e){
+      e.stopPropagation();
+      openBalanceModal(id, nombre, "pago", bal);
+    };
+
+    const debitar = document.createElement("div");
+    debitar.className = "balance-menu-item";
+    debitar.textContent = "Debitar";
+    debitar.onclick = function(e){
+      e.stopPropagation();
+      openBalanceModal(id, nombre, "debitar", bal);
+    };
+
+    menu.appendChild(pago);
+    menu.appendChild(debitar);
+
+    wrap.appendChild(btn);
+    wrap.appendChild(menu);
+
+    tdAction.appendChild(wrap);
+
+    tr.appendChild(tdName);
+    tr.appendChild(tdBalance);
+    tr.appendChild(tdFecha);
+    tr.appendChild(tdAction);
+
+    tbody.appendChild(tr);
+  });
+}
 
     const menu = document.createElement("div");
     menu.className = "balance-menu";

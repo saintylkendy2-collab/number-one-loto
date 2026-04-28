@@ -2099,26 +2099,52 @@ function goPage(page){
 }
 
 function renderTransactionsTable(){
+
   const tbody = byId("transactionsTableBody");
   if(!tbody) return;
+
+  const start = getValue("transactionStart");
+  const end = getValue("transactionEnd");
+  const grupoFilter = getValue("transactionGrupoFilter");
+  const vendorFilter = getValue("transactionVendorFilter");
 
   tbody.innerHTML = "";
 
   let rows = [];
+  let totalPagos = 0;
+  let totalCobros = 0;
 
   vendors.forEach(function(v){
+
     const movimientos = Array.isArray(v.movimientos) ? v.movimientos : [];
 
     movimientos.forEach(function(m){
+
+      const fecha = safe(m.fecha);
+      const tipo = String(m.tipo || "").toLowerCase();
+      const monto = parseAmount(m.monto);
+      const vendorId = v.id;
+      const zona = safe(v.zona || v.groupe);
+
+      if(start && fecha < start) return;
+      if(end && fecha > end) return;
+      if(grupoFilter && zona !== grupoFilter) return;
+      if(vendorFilter && vendorId !== vendorFilter) return;
+
+      if(tipo === "pago") totalPagos += monto;
+      else totalCobros += monto;
+
       rows.push({
-        vendorId: v.id,
-        vendorName: v.nombre || v.nom || v.id,
+        vendorId,
+        vendorName: v.nombre || v.nom || vendorId,
         id: m.id,
-        tipo: m.tipo || "",
-        monto: m.monto || 0,
-        fecha: m.fecha || ""
+        tipo,
+        monto,
+        fecha
       });
+
     });
+
   });
 
   rows.sort(function(a,b){
@@ -2126,48 +2152,61 @@ function renderTransactionsTable(){
   });
 
   if(!rows.length){
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Pa gen transaction</td></tr>';
-    return;
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Pa gen transaction</td></tr>';
   }
 
   rows.forEach(function(r){
-    const tipo = String(r.tipo).toLowerCase();
-    const cls = tipo === "pago" ? "result-bad" : "result-ok";
-    const label = tipo === "debitar" ? "DEBITAR" : tipo.toUpperCase();
 
-const tr = document.createElement("tr");
+    const cls = r.tipo === "pago" ? "result-bad" : "result-ok";
+    const label = r.tipo === "debitar" ? "DEBITAR" : r.tipo.toUpperCase();
 
-const tdFecha = document.createElement("td");
-tdFecha.textContent = safe(r.fecha);
+    const tr = document.createElement("tr");
 
-const tdMonto = document.createElement("td");
-tdMonto.textContent = formatAmount(r.monto);
+    const tdFecha = document.createElement("td");
+    tdFecha.textContent = safe(r.fecha);
 
-const tdType = document.createElement("td");
-tdType.className = cls;
-tdType.textContent = label;
+    const tdMonto = document.createElement("td");
+    tdMonto.textContent = formatAmount(r.monto);
 
-const tdVendor = document.createElement("td");
-tdVendor.textContent = safe(r.vendorName);
+    const tdType = document.createElement("td");
+    tdType.className = cls;
+    tdType.textContent = label;
 
-const tdAction = document.createElement("td");
+    const tdVendor = document.createElement("td");
+    tdVendor.textContent = safe(r.vendorName);
 
-const btn = document.createElement("button");
-btn.className = "mini-btn";
-btn.textContent = "🗑";
-btn.onclick = function(){
-  deleteMovimiento(r.vendorId, r.id);
-};
+    const tdBy = document.createElement("td");
+    tdBy.textContent = "Admin";
 
-tdAction.appendChild(btn);
+    const tdAction = document.createElement("td");
 
-tr.appendChild(tdFecha);
-tr.appendChild(tdMonto);
-tr.appendChild(tdType);
-tr.appendChild(tdVendor);
-tr.appendChild(tdAction);
+    const btn = document.createElement("button");
+    btn.className = "mini-btn";
+    btn.textContent = "🗑";
+    btn.onclick = function(){
+      deleteMovimiento(r.vendorId, r.id);
+    };
 
-tbody.appendChild(tr);
+    tdAction.appendChild(btn);
+
+    tr.appendChild(tdFecha);
+    tr.appendChild(tdMonto);
+    tr.appendChild(tdType);
+    tr.appendChild(tdVendor);
+    tr.appendChild(tdBy);
+    tr.appendChild(tdAction);
+
+    tbody.appendChild(tr);
+
+  });
+
+  const resultado = totalCobros - totalPagos;
+
+  if(byId("totalPagos")) byId("totalPagos").textContent = formatAmount(totalPagos);
+  if(byId("totalCobros")) byId("totalCobros").textContent = formatAmount(totalCobros);
+  if(byId("totalResultado")) byId("totalResultado").textContent = formatAmount(resultado);
+
+}
 
 function fillVentasVendorSelect(){
   const el = byId("ventasVendorFilter");

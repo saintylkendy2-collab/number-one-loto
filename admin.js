@@ -2171,14 +2171,34 @@ function renderTransactionsTable(){
 
     const tdAction = document.createElement("td");
 
-    const btn = document.createElement("button");
-    btn.className = "mini-btn";
-    btn.textContent = "🗑";
-    btn.onclick = function(){
-      deleteMovimiento(r.vendorId, r.id);
-    };
+// bouton recherche (🔍)
+const searchBtn = document.createElement("button");
+searchBtn.className = "mini-btn";
+searchBtn.textContent = "🔍";
+searchBtn.onclick = function(){
+  alert(
+    "Vendeur: " + safe(r.vendorName) +
+    "\nTransaction: " + label +
+    "\nMontant: " + formatAmount(r.monto) +
+    "\nDate: " + safe(r.fecha) +
+    "\nCommentaire: " + safe(r.comentario)
+  );
+};
 
-    tdAction.appendChild(btn);
+// bouton supprimer (🗑)
+const delBtn = document.createElement("button");
+delBtn.className = "mini-btn";
+delBtn.textContent = "🗑";
+delBtn.onclick = function(){
+  deleteMovimiento(r.vendorId, r.id);
+};
+
+// AJOUT LÒD: 🔍 devan, 🗑 dèyè
+tdAction.appendChild(searchBtn);
+tdAction.appendChild(delBtn);
+
+// ajoute nan row
+tr.appendChild(tdAction);
 
     tr.appendChild(tdFecha);
     tr.appendChild(tdMonto);
@@ -2195,13 +2215,9 @@ function renderTransactionsTable(){
 
   if(byId("totalPagos")) byId("totalPagos").textContent = formatAmount(totalPagos);
   if(byId("totalCobros")) byId("totalCobros").textContent = formatAmount(totalCobros);
-  const elResultado = byId("totalResultado");
-if(elResultado){
-  elResultado.textContent = formatAmount(resultado);
-  elResultado.style.color = "#7b72ff"; // violèt
-  
-}
+  if(byId("totalResultado")) byId("totalResultado").textContent = formatAmount(resultado);
 
+}
 
 function fillVentasVendorSelect(){
   const el = byId("ventasVendorFilter");

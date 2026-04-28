@@ -2175,23 +2175,6 @@ function renderVentasTable(){
   \`;
 }
 
-function toggleBalanceMenu(id, event){
-  const menu = byId("balance_menu_" + id);
-  if(!menu) return;
-
-  document.querySelectorAll(".balance-menu").forEach(el => el.classList.remove("show"));
-
-  const btn = event.currentTarget;
-  const rect = btn.getBoundingClientRect();
-
-  menu.style.left = "auto";
-  menu.style.right = "20px";
-  menu.style.top = (rect.top + window.scrollY - 10) + "px";
-  menu.style.bottom = "auto";
-
-  menu.classList.add("show");
-}
-
 function toggleBalanceMenu(id, btn){
   const menu = byId("balance_menu_" + id);
   if(!menu || !btn) return;

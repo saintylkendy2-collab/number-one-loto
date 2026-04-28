@@ -2215,12 +2215,7 @@ tr.appendChild(tdAction);
 
   if(byId("totalPagos")) byId("totalPagos").textContent = formatAmount(totalPagos);
   if(byId("totalCobros")) byId("totalCobros").textContent = formatAmount(totalCobros);
-  const elResultado = byId("totalResultado");
-if(elResultado){
-  elResultado.textContent = formatAmount(resultado);
-  elResultado.style.color = "#7b72ff"; // violèt
-}
-
+ if(byId("totalResultado")) byId("totalResultado").textContent = formatAmount(resultado);
 }
 
 function fillVentasVendorSelect(){

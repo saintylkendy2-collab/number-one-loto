@@ -2151,11 +2151,11 @@ function renderTransactionsTable(){
 
     tdAction.appendChild(btn);
 
-    tr.appendChild(tdType);
-    tr.appendChild(tdVendor);
-    tr.appendChild(tdMonto);
-    tr.appendChild(tdFecha);
-    tr.appendChild(tdAction);
+tr.appendChild(tdFecha);     // FECHA
+tr.appendChild(tdMonto);     // MONTO
+tr.appendChild(tdType);      // TRANSACCIÓN
+tr.appendChild(tdVendor);    // AGENTE
+tr.appendChild(tdAction);    // REALIZADO POR / ACTION
 
     tbody.appendChild(tr);
   });

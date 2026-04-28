@@ -1406,8 +1406,26 @@ tbody tr:nth-child(even){background:#313652;}
       </div>
     </div>
 
-<div id="transactionsPage" class="page-block hidden">
+    <div class="table-card">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>VENDEDOR</th>
+              <th>BALANCE</th>
+              <th>FECHA</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="balanceTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+ <div id="transactionsPage" class="page-block hidden">
   <div class="page-title">Transactions</div>
+
   <div class="table-card">
     <div class="table-scroll">
       <table>
@@ -1425,23 +1443,6 @@ tbody tr:nth-child(even){background:#313652;}
     </div>
   </div>
 </div>
-
-    <div class="table-card">
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>VENDEDOR</th>
-              <th>BALANCE</th>
-              <th>FECHA</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="balanceTableBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
 
   <div id="vendorsPage" class="page-block hidden">
     <div class="page-title">Vendedores</div>
@@ -2034,24 +2035,70 @@ function goPage(page){
   if(transactionsPage) transactionsPage.classList.add("hidden");
 
   if(page === "ventas"){
-    ventasPage.classList.remove("hidden");
+    if(ventasPage) ventasPage.classList.remove("hidden");
     loadVentasReport();
   }else if(page === "vendors"){
-    vendorsPage.classList.remove("hidden");
+    if(vendorsPage) vendorsPage.classList.remove("hidden");
     renderVendorTable();
   }else if(page === "editor"){
-    editorPage.classList.remove("hidden");
+    if(editorPage) editorPage.classList.remove("hidden");
   }else if(page === "balance_vendor"){
-    balancePage.classList.remove("hidden");
+    if(balancePage) balancePage.classList.remove("hidden");
     loadBalanceReport();
   }else if(page === "transactions"){
     if(transactionsPage) transactionsPage.classList.remove("hidden");
+    renderTransactionsTable();
   }
 
   setMenuActive(page);
   closeSideMenu();
 }
 
+function renderTransactionsTable(){
+  const tbody = byId("transactionsTableBody");
+  if(!tbody) return;
+
+  let rows = [];
+
+  vendors.forEach(function(v){
+    const movimientos = Array.isArray(v.movimientos) ? v.movimientos : [];
+
+    movimientos.forEach(function(m){
+      rows.push({
+        vendorId: v.id,
+        vendorName: v.nombre || v.nom || v.id,
+        id: m.id,
+        tipo: m.tipo,
+        monto: m.monto,
+        fecha: m.fecha
+      });
+    });
+  });
+
+  rows.sort(function(a,b){
+    return String(b.fecha).localeCompare(String(a.fecha));
+  });
+
+  tbody.innerHTML = "";
+
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Pa gen transaction</td></tr>';
+    return;
+  }
+
+  rows.forEach(function(r){
+    const cls = (r.tipo === "pago" || r.tipo === "debitar") ? "result-bad" : "result-ok";
+
+    tbody.innerHTML +=
+      '<tr>' +
+        '<td class="' + cls + '">' + safe(r.tipo).toUpperCase() + '</td>' +
+        '<td>' + safe(r.vendorName) + '</td>' +
+        '<td>' + formatAmount(r.monto) + '</td>' +
+        '<td>' + safe(r.fecha) + '</td>' +
+        '<td><button class="mini-btn" onclick="deleteMovimiento(\'' + safe(r.vendorId) + '\', \'' + safe(r.id) + '\')">🗑</button></td>' +
+      '</tr>';
+  });
+}
 
 function loadGrupoSelects(){
   const ids = ["vendorFilterGrupo","vd_zona","ventasZonaFilter","balanceGrupoFilter"];

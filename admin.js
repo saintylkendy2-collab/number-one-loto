@@ -1448,11 +1448,11 @@ tbody tr:nth-child(even){background:#313652;}
       <select id="transactionVendorFilter" class="filter-select"></select>
     </div>
 
-    <button class="login-btn" onclick="renderTransactionsTable()">↻ Rechercher</button>
+    <button class="login-btn" onclick="renderTransactionsTable()">🔍 Rechercher</button>
   </div>
 
   <div class="table-card" style="padding:14px;">
-    <div style="display:flex;justify-content:space-between;gap:10px;font-size:20px;font-weight:700;">
+    <div style="display:flex;justify-content:space-between;gap:10px;font-size:18px;font-weight:700;text-align:center;">
       <div class="result-bad">Pagos<br><span id="totalPagos">0.00</span></div>
       <div class="result-ok">Cobros<br><span id="totalCobros">0.00</span></div>
       <div class="balance-positive">Resultado<br><span id="totalResultado">0.00</span></div>

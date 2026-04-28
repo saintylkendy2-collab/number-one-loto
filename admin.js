@@ -2053,7 +2053,192 @@ function toggleSubmenu(id){
   box.classList.toggle("open");
 }
 
+function goPage(page){
+  currentPage = page;
 
+  const ventasPage = byId("ventasPage");
+  const vendorsPage = byId("vendorsPage");
+  const editorPage = byId("vendorEditorPage");
+  const balancePage = byId("balanceVendorPage");
+  const transactionsPage = byId("transactionsPage");
+
+  if(ventasPage) ventasPage.classList.add("hidden");
+  if(vendorsPage) vendorsPage.classList.add("hidden");
+  if(editorPage) editorPage.classList.add("hidden");
+  if(balancePage) balancePage.classList.add("hidden");
+  if(transactionsPage) transactionsPage.classList.add("hidden");
+
+  if(page === "ventas"){
+    if(ventasPage) ventasPage.classList.remove("hidden");
+    loadVentasReport();
+  }else if(page === "vendors"){
+    if(vendorsPage) vendorsPage.classList.remove("hidden");
+    renderVendorTable();
+  }else if(page === "editor"){
+    if(editorPage) editorPage.classList.remove("hidden");
+  }else if(page === "balance_vendor"){
+    if(balancePage) balancePage.classList.remove("hidden");
+    loadBalanceReport();
+  }else if(page === "transactions"){
+    if(transactionsPage) transactionsPage.classList.remove("hidden");
+    renderTransactionsTable();
+  }
+
+  setMenuActive(page);
+  closeSideMenu();
+}
+
+function fillTransactionFilters(){
+  const grupo = byId("transactionGrupoFilter");
+  const vendor = byId("transactionVendorFilter");
+
+  if(grupo){
+    const old = grupo.value;
+    grupo.innerHTML = "";
+    grupo.appendChild(makeOption("", "- GRUPO -"));
+    gruposList.forEach(function(g){
+      grupo.appendChild(makeOption(g, g));
+    });
+    grupo.value = old;
+  }
+
+  if(vendor){
+    const old = vendor.value;
+    vendor.innerHTML = "";
+    vendor.appendChild(makeOption("", "- VENDEDOR -"));
+    vendors.forEach(function(v){
+      vendor.appendChild(makeOption(v.id, v.nombre || v.nom || v.id));
+    });
+    vendor.value = old;
+  }
+
+  if(byId("transactionStart") && !byId("transactionStart").value){
+    byId("transactionStart").value = todayISO();
+  }
+
+  if(byId("transactionEnd") && !byId("transactionEnd").value){
+    byId("transactionEnd").value = todayISO();
+  }
+}
+
+function renderTransactionsTable(){
+  fillTransactionFilters();
+
+  const tbody = byId("transactionsTableBody");
+  if(!tbody) return;
+
+  const start = getValue("transactionStart");
+  const end = getValue("transactionEnd");
+  const grupoFilter = getValue("transactionGrupoFilter");
+  const vendorFilter = getValue("transactionVendorFilter");
+
+  let rows = [];
+
+  vendors.forEach(function(v){
+    const movimientos = Array.isArray(v.movimientos) ? v.movimientos : [];
+
+    movimientos.forEach(function(m){
+      const fecha = safe(m.fecha);
+      const vendorId = safe(v.id);
+      const zona = safe(v.zona || v.groupe);
+      const tipo = String(m.tipo || "").toLowerCase();
+
+      if(start && fecha < start) return;
+      if(end && fecha > end) return;
+      if(grupoFilter && zona !== grupoFilter) return;
+      if(vendorFilter && vendorId !== vendorFilter) return;
+
+      rows.push({
+        vendorId: vendorId,
+        vendorName: v.nombre || v.nom || vendorId,
+        id: m.id,
+        tipo: tipo,
+        monto: parseAmount(m.monto),
+        fecha: fecha,
+        comentario: safe(m.comentario)
+      });
+    });
+  });
+
+  rows.sort(function(a,b){
+    return String(b.fecha).localeCompare(String(a.fecha));
+  });
+
+  tbody.innerHTML = "";
+
+  let totalPagos = 0;
+  let totalCobros = 0;
+
+  rows.forEach(function(r){
+    if(r.tipo === "pago") totalPagos += r.monto;
+    if(r.tipo === "cobro" || r.tipo === "debitar") totalCobros += r.monto;
+
+    const cls = r.tipo === "pago" ? "result-bad" : "result-ok";
+    const label = r.tipo === "debitar" ? "DEBITAR" : String(r.tipo || "").toUpperCase();
+
+    const tr = document.createElement("tr");
+
+    const tdFecha = document.createElement("td");
+    tdFecha.textContent = safe(r.fecha);
+
+    const tdMonto = document.createElement("td");
+    tdMonto.textContent = formatAmount(r.monto);
+
+    const tdTipo = document.createElement("td");
+    tdTipo.className = cls;
+    tdTipo.textContent = label;
+
+    const tdAgent = document.createElement("td");
+    tdAgent.textContent = safe(r.vendorName);
+
+    const tdBy = document.createElement("td");
+    tdBy.textContent = "Admin";
+
+    const tdAction = document.createElement("td");
+
+    const detailBtn = document.createElement("button");
+    detailBtn.className = "mini-btn";
+    detailBtn.textContent = "🔍";
+    detailBtn.onclick = function(){
+      alert(
+        "Vendeur: " + safe(r.vendorName) +
+        "\nTransaction: " + label +
+        "\nMontant: " + formatAmount(r.monto) +
+        "\nDate: " + safe(r.fecha) +
+        "\nCommentaire: " + safe(r.comentario)
+      );
+    };
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "mini-btn";
+    delBtn.textContent = "🗑";
+    delBtn.onclick = function(){
+      deleteMovimiento(r.vendorId, r.id);
+    };
+
+    tdAction.appendChild(detailBtn);
+    tdAction.appendChild(delBtn);
+
+    tr.appendChild(tdFecha);
+    tr.appendChild(tdMonto);
+    tr.appendChild(tdTipo);
+    tr.appendChild(tdAgent);
+    tr.appendChild(tdBy);
+    tr.appendChild(tdAction);
+
+    tbody.appendChild(tr);
+  });
+
+  const resultado = totalCobros - totalPagos;
+
+  if(byId("totalPagos")) byId("totalPagos").textContent = formatAmount(totalPagos);
+  if(byId("totalCobros")) byId("totalCobros").textContent = formatAmount(totalCobros);
+  if(byId("totalResultado")) byId("totalResultado").textContent = formatAmount(resultado);
+
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Pa gen transaction</td></tr>';
+  }
+}
 
 function fillVentasVendorSelect(){
   const el = byId("ventasVendorFilter");

@@ -2126,13 +2126,15 @@ function renderTransactionsTable(){
       else totalCobros += monto;
 
       rows.push({
-        vendorId,
-        vendorName: v.nombre || v.nom || vendorId,
-        id: m.id,
-        tipo,
-        monto,
-        fecha
-      });
+  vendorId,
+  vendorName: v.nombre || v.nom || vendorId,
+  id: m.id,
+  tipo: safe(m.tipo).toLowerCase(),
+  monto: parseAmount(m.monto),
+  fecha,
+  hora: m.hora || m.createdAt || "",
+  comentario: safe(m.comentario)
+});
 
     });
 

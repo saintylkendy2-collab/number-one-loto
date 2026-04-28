@@ -2088,47 +2088,11 @@ function goPage(page){
   closeSideMenu();
 }
 
-function fillTransactionFilters(){
-  const grupo = byId("transactionGrupoFilter");
-  const vendor = byId("transactionVendorFilter");
-
-  if(grupo){
-    const old = grupo.value;
-    grupo.innerHTML = "";
-    grupo.appendChild(makeOption("", "- GRUPO -"));
-    gruposList.forEach(g => grupo.appendChild(makeOption(g, g)));
-    grupo.value = old;
-  }
-
-  if(vendor){
-    const old = vendor.value;
-    vendor.innerHTML = "";
-    vendor.appendChild(makeOption("", "- VENDEDOR -"));
-    vendors.forEach(v => {
-      vendor.appendChild(makeOption(v.id, v.nombre || v.nom || v.id));
-    });
-    vendor.value = old;
-  }
-
-  if(byId("transactionStart") && !byId("transactionStart").value){
-    byId("transactionStart").value = todayISO();
-  }
-
-  if(byId("transactionEnd") && !byId("transactionEnd").value){
-    byId("transactionEnd").value = todayISO();
-  }
-}
-
 function renderTransactionsTable(){
-  fillTransactionFilters();
-
   const tbody = byId("transactionsTableBody");
   if(!tbody) return;
 
-  const start = getValue("transactionStart");
-  const end = getValue("transactionEnd");
-  const grupoFilter = getValue("transactionGrupoFilter");
-  const vendorFilter = getValue("transactionVendorFilter");
+  tbody.innerHTML = "";
 
   let rows = [];
 
@@ -2136,68 +2100,48 @@ function renderTransactionsTable(){
     const movimientos = Array.isArray(v.movimientos) ? v.movimientos : [];
 
     movimientos.forEach(function(m){
-      const fecha = safe(m.fecha);
-      const vendorId = safe(v.id);
-      const zona = safe(v.zona || v.groupe);
-
-      if(start && fecha < start) return;
-      if(end && fecha > end) return;
-      if(grupoFilter && zona !== grupoFilter) return;
-      if(vendorFilter && vendorId !== vendorFilter) return;
-
       rows.push({
-        vendorId,
-        vendorName: v.nombre || v.nom || vendorId,
-        zona,
+        vendorId: v.id,
+        vendorName: v.nombre || v.nom || v.id,
         id: m.id,
-        tipo: safe(m.tipo),
-        monto: parseAmount(m.monto),
-        fecha,
-        comentario: safe(m.comentario),
-        creadoPor: "Admin"
+        tipo: m.tipo || "",
+        monto: m.monto || 0,
+        fecha: m.fecha || ""
       });
     });
   });
 
-  rows.sort((a,b) => String(b.fecha).localeCompare(String(a.fecha)));
-
-  tbody.innerHTML = "";
-
-  let totalPagos = 0;
-  let totalCobros = 0;
-
-  rows.forEach(function(r){
-    const tipo = r.tipo.toLowerCase();
-
-    if(tipo === "pago") totalPagos += r.monto;
-    if(tipo === "cobro" || tipo === "debitar") totalCobros += r.monto;
-
-    const cls = tipo === "pago" ? "result-bad" : "result-ok";
-    const label = tipo === "debitar" ? "DEBITAR" : tipo.toUpperCase();
-
-    tbody.innerHTML +=
-      '<tr>' +
-        '<td>' + safe(r.fecha) + '</td>' +
-        '<td>' + formatAmount(r.monto) + '</td>' +
-        '<td class="' + cls + '">' + label + '</td>' +
-        '<td>' + safe(r.vendorName) + ' <i>(vendedor)</i></td>' +
-        '<td>' + safe(r.creadoPor) + '</td>' +
-        '<td>' +
-          '<button class="mini-btn" onclick="alert(\'Vendeur: ' + safe(r.vendorName) + '\\nTipo: ' + label + '\\nMonto: ' + formatAmount(r.monto) + '\\nFecha: ' + safe(r.fecha) + '\\nComentario: ' + safe(r.comentario) + '\')">🔍</button>' +
-          '<button class="mini-btn" onclick="deleteMovimiento(\'' + safe(r.vendorId) + '\', \'' + safe(r.id) + '\')">🗑</button>' +
-        '</td>' +
-      '</tr>';
+  rows.sort(function(a,b){
+    return String(b.fecha).localeCompare(String(a.fecha));
   });
 
-  const resultado = totalCobros - totalPagos;
-
-  if(byId("totalPagos")) byId("totalPagos").textContent = formatAmount(totalPagos);
-  if(byId("totalCobros")) byId("totalCobros").textContent = formatAmount(totalCobros);
-  if(byId("totalResultado")) byId("totalResultado").textContent = formatAmount(resultado);
-
   if(!rows.length){
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Pa gen transaction</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Pa gen transaction</td></tr>';
+    return;
   }
+
+  rows.forEach(function(r){
+    const tr = document.createElement("tr");
+
+    const cls = (r.tipo === "pago" || r.tipo === "debitar") ? "result-bad" : "result-ok";
+
+    tr.innerHTML =
+      '<td class="' + cls + '">' + safe(r.tipo).toUpperCase() + '</td>' +
+      '<td>' + safe(r.vendorName) + '</td>' +
+      '<td>' + formatAmount(r.monto) + '</td>' +
+      '<td>' + safe(r.fecha) + '</td>' +
+      '<td></td>';
+
+    const btn = document.createElement("button");
+    btn.className = "mini-btn";
+    btn.textContent = "🗑";
+    btn.onclick = function(){
+      deleteMovimiento(r.vendorId, r.id);
+    };
+
+    tr.children[4].appendChild(btn);
+    tbody.appendChild(tr);
+  });
 }
 
 function fillVentasVendorSelect(){
@@ -2226,31 +2170,6 @@ function fillBalanceVendorSelect(){
   });
 
   if(current) el.value = current;
-}
-
-function loadGrupoSelects(){
-  const ids = [
-    "vendorFilterGrupo",
-    "vd_zona",
-    "ventasZonaFilter",
-    "balanceGrupoFilter",
-    "transactionGrupoFilter"
-  ];
-
-  ids.forEach(id => {
-    const el = byId(id);
-    if(!el) return;
-
-    const current = el.value;
-    el.innerHTML = "";
-    el.appendChild(makeOption("", "- GRUPO -"));
-
-    gruposList.forEach(g => {
-      el.appendChild(makeOption(g, g));
-    });
-
-    if(current) el.value = current;
-  });
 }
 
 function loadLoteriasSelects(){
@@ -3306,7 +3225,6 @@ async function deleteMovimiento(vendorId, movimientoId){
     await loadVendorsFromServer();
     await loadVentasReport();
     await loadBalanceReport();
-    renderTransactionsTable();
 
     alert("Transaction supprimée ✔");
   }catch(err){

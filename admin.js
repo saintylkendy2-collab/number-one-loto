@@ -3175,19 +3175,6 @@ document.addEventListener("click", function(e){
 });
 
 document.addEventListener("DOMContentLoaded", function(){
-const transactionStart = byId("transactionStart");
-const transactionEnd = byId("transactionEnd");
-const transactionGrupoFilter = byId("transactionGrupoFilter");
-const transactionVendorFilter = byId("transactionVendorFilter");
-
-if(transactionStart && !transactionStart.value) transactionStart.value = todayISO();
-if(transactionEnd && !transactionEnd.value) transactionEnd.value = todayISO();
-
-if(transactionStart) transactionStart.addEventListener("change", renderTransactionsTable);
-if(transactionEnd) transactionEnd.addEventListener("change", renderTransactionsTable);
-if(transactionGrupoFilter) transactionGrupoFilter.addEventListener("change", renderTransactionsTable);
-if(transactionVendorFilter) transactionVendorFilter.addEventListener("change", renderTransactionsTable);
-
 const fechaInicio = byId("fechaInicio");
 const fechaFin = byId("fechaFin");
 

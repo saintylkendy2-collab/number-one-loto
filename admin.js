@@ -3225,6 +3225,7 @@ async function deleteMovimiento(vendorId, movimientoId){
     await loadVendorsFromServer();
     await loadVentasReport();
     await loadBalanceReport();
+    renderTransactionsTable();
 
     alert("Transaction supprimée ✔");
   }catch(err){

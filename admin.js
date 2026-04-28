@@ -471,6 +471,27 @@ router.delete("/api/vendors/:id", (req, res) => {
   }
 });
 
+router.get("/api/vendors/:id", (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim().toUpperCase();
+    const obj = readVendeursObject();
+    const vendor = obj[id];
+
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendeur introuvable" });
+    }
+
+    res.json({
+      balance: vendor.balance || 0,
+      movimientos: vendor.movimientos || []
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
 router.post("/api/vendors/:id/connections/:index/block", (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
@@ -507,85 +528,83 @@ router.post("/api/vendors/:id/connections/:index/block", (req, res) => {
   }
 });
 
-router.delete("/api/vendors/:id/connections/:index", (req, res) => {
+router.delete("/api/vendors/:id/movimientos/:mid", (req, res) => {
   try {
-    const id = String(req.params.id || "").trim().toUpperCase();
-    const index = Number(req.params.index);
+    const id = String(req.params.id).toUpperCase();
+    const mid = Number(req.params.mid);
+
     const obj = readVendeursObject();
-    const vendor = obj[id];
+    const vendor = normalizeVendor(obj[id]);
 
     if (!vendor) {
-      return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
+      return res.status(404).json({ ok: false });
     }
 
-    if (!Array.isArray(vendor.conexiones)) vendor.conexiones = [];
+    const index = vendor.movimientos.findIndex(m => m.id === mid);
 
-    if (!vendor.conexiones[index]) {
-      return res.status(404).json({ ok: false, message: "Connexion introuvable" });
+    if (index === -1) {
+      return res.status(404).json({ ok: false });
     }
 
-    vendor.conexiones.splice(index, 1);
+    const movement = vendor.movimientos[index];
 
-    const activeConn = vendor.conexiones.find((c) => c && c.st === true);
-    if (activeConn) {
-      vendor.conexion = activeConn.last || vendor.conexion || "";
-      vendor.estatus = "Activo";
+    // 🔥 RESTORE BALANCE
+    if (movement.tipo === "cobro") {
+      vendor.balance -= movement.monto;
     } else {
-      vendor.conexion = "";
+      vendor.balance += movement.monto;
     }
 
+    vendor.movimientos.splice(index, 1);
+
+    obj[id] = vendor;
     writeVendeursObject(obj);
-    res.json({ ok: true });
+
+    res.json({ ok: true, balance: vendor.balance });
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ ok: false, message: "Erreur delete connexion" });
+    res.status(500).json({ ok: false });
   }
 });
 
 router.post("/api/vendors/:id/balance-action", (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
-    const body = req.body || {};
-    const tipo = String(body.tipo || "").trim().toLowerCase();
-    const monto = parseAmount(body.monto);
-    const fecha = String(body.fecha || todayFR());
-    const comentario = String(body.comentario || "");
-
-    if (!["cobro", "pago", "debitar"].includes(tipo)) {
-      return res.status(400).json({ ok: false, message: "Tipo invalide" });
-    }
-
-    if (monto <= 0) {
-      return res.status(400).json({ ok: false, message: "Monto invalide" });
-    }
+    const { tipo, monto, fecha, comentario } = req.body;
 
     const obj = readVendeursObject();
     if (!obj[id]) {
-      return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
+      return res.status(404).json({ ok: false });
     }
 
     const vendor = normalizeVendor(obj[id]);
 
+    const movement = {
+      id: Date.now(), // 🔥 ID UNIQUE
+      tipo,
+      monto: parseAmount(monto),
+      fecha: fecha || todayFR(),
+      comentario: comentario || ""
+    };
+
+    // 🔥 AJUSTE BALANCE
     if (tipo === "cobro") {
-      vendor.balance += monto;
-    } else if (tipo === "pago" || tipo === "debitar") {
-      vendor.balance -= monto;
+      vendor.balance += movement.monto;
+    } else {
+      vendor.balance -= movement.monto;
     }
 
-    vendor.movimientos.push({
-      tipo,
-      monto,
-      fecha,
-      comentario
-    });
+    vendor.movimientos.push(movement);
 
     obj[id] = vendor;
     writeVendeursObject(obj);
 
     res.json({ ok: true, balance: vendor.balance });
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ ok: false, message: "Erreur balance action" });
+    res.status(500).json({ ok: false });
   }
 });
 
@@ -2250,6 +2269,18 @@ function renderBalanceTable(){
     const id = safe(r.id || r.vendeur);
     const nombre = safe(r.nombre || r.nom || id);
 
+const movimientos = r.movimientos || [];
+
+const totalCobro = movimientos
+  .filter(m => m.tipo === "cobro")
+  .reduce((s, m) => s + Number(m.monto || 0), 0);
+
+const totalPago = movimientos
+  .filter(m => m.tipo === "pago")
+  .reduce((s, m) => s + Number(m.monto || 0), 0);
+
+const total = totalCobro - totalPago;
+
     const bal = parseAmount(
       r.balanceFinal !== undefined ? r.balanceFinal :
       r.balance !== undefined ? r.balance :
@@ -3072,6 +3103,33 @@ if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
 });
 
 goPage("ventas");
+
+async function deleteMovimiento(id){
+  if(!confirm("Ou vle siprime transaction sa?")) return;
+
+  try{
+    const res = await fetch("/api/movimientos/" + encodeURIComponent(id), {
+      method: "DELETE"
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.message || "Erreur delete transaction");
+      return;
+    }
+
+    await loadVendorsFromServer();
+    await loadVentasReport();
+    await loadBalanceReport();
+
+    alert("Transaction supprimée ✔");
+  }catch(err){
+    console.error(err);
+    alert("Erreur delete transaction");
+  }
+}
+
 </script>
 
 </body>

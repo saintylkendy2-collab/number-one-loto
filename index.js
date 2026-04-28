@@ -2181,6 +2181,18 @@ function shareWhatsApp(){
   });
 }
 
+function filterTransactions(list, vendor, start, end){
+  return list.filter(t => {
+    const okVendor = !vendor || t.vendorId === vendor;
+
+    const d = new Date(t.fecha);
+    const okDate =
+      (!start || d >= new Date(start)) &&
+      (!end || d <= new Date(end));
+
+    return okVendor && okDate;
+  });
+}
 
 function toggleDrawer(){
  document.getElementById("drawer").classList.toggle("open");

@@ -910,11 +910,18 @@ tbody td{
 tbody tr:nth-child(even){background:#313652;}
 .vendor-name{font-weight:600;color:#bcc4de;}
 .money{color:#bcc4de;}
-.result-ok,.balance-positive{
+.result-ok{
  color:#79d98d;
  font-weight:700;
  cursor:pointer;
 }
+
+.balance-positive{
+ color:#7b72ff;
+ font-weight:700;
+ cursor:pointer;
+}
+
 .result-bad,.balance-negative{
  color:#ff6767;
  font-weight:700;

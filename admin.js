@@ -2088,11 +2088,40 @@ function goPage(page){
   closeSideMenu();
 }
 
+function fillTransactionFilters(){
+  const grupo = byId("transactionGrupoFilter");
+  const vendor = byId("transactionVendorFilter");
+
+  if(grupo){
+    const old = grupo.value;
+    grupo.innerHTML = "";
+    grupo.appendChild(makeOption("", "- GRUPO -"));
+    gruposList.forEach(g => grupo.appendChild(makeOption(g, g)));
+    grupo.value = old;
+  }
+
+  if(vendor){
+    const old = vendor.value;
+    vendor.innerHTML = "";
+    vendor.appendChild(makeOption("", "- VENDEDOR -"));
+    vendors.forEach(v => vendor.appendChild(makeOption(v.id, v.nombre || v.nom || v.id)));
+    vendor.value = old;
+  }
+
+  if(byId("transactionStart") && !byId("transactionStart").value) byId("transactionStart").value = todayISO();
+  if(byId("transactionEnd") && !byId("transactionEnd").value) byId("transactionEnd").value = todayISO();
+}
+
 function renderTransactionsTable(){
+  fillTransactionFilters();
+
   const tbody = byId("transactionsTableBody");
   if(!tbody) return;
 
-  tbody.innerHTML = "";
+  const start = getValue("transactionStart");
+  const end = getValue("transactionEnd");
+  const grupoFilter = getValue("transactionGrupoFilter");
+  const vendorFilter = getValue("transactionVendorFilter");
 
   let rows = [];
 
@@ -2100,48 +2129,84 @@ function renderTransactionsTable(){
     const movimientos = Array.isArray(v.movimientos) ? v.movimientos : [];
 
     movimientos.forEach(function(m){
+      const fecha = safe(m.fecha);
+      const vendorId = safe(v.id);
+      const zona = safe(v.zona || v.groupe);
+
+      if(start && fecha < start) return;
+      if(end && fecha > end) return;
+      if(grupoFilter && zona !== grupoFilter) return;
+      if(vendorFilter && vendorId !== vendorFilter) return;
+
       rows.push({
-        vendorId: v.id,
-        vendorName: v.nombre || v.nom || v.id,
+        vendorId,
+        vendorName: v.nombre || v.nom || vendorId,
         id: m.id,
-        tipo: m.tipo || "",
-        monto: m.monto || 0,
-        fecha: m.fecha || ""
+        tipo: safe(m.tipo).toLowerCase(),
+        monto: parseAmount(m.monto),
+        fecha,
+        comentario: safe(m.comentario)
       });
     });
   });
 
-  rows.sort(function(a,b){
-    return String(b.fecha).localeCompare(String(a.fecha));
-  });
+  rows.sort((a,b) => String(b.fecha).localeCompare(String(a.fecha)));
 
-  if(!rows.length){
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Pa gen transaction</td></tr>';
-    return;
-  }
+  tbody.innerHTML = "";
+
+  let totalPagos = 0;
+  let totalCobros = 0;
 
   rows.forEach(function(r){
+    if(r.tipo === "pago") totalPagos += r.monto;
+    if(r.tipo === "cobro" || r.tipo === "debitar") totalCobros += r.monto;
+
+    const cls = r.tipo === "pago" ? "result-bad" : "result-ok";
+    const label = r.tipo === "debitar" ? "DEBITAR" : r.tipo.toUpperCase();
+
     const tr = document.createElement("tr");
-
-    const cls = (r.tipo === "pago" || r.tipo === "debitar") ? "result-bad" : "result-ok";
-
     tr.innerHTML =
-      '<td class="' + cls + '">' + safe(r.tipo).toUpperCase() + '</td>' +
-      '<td>' + safe(r.vendorName) + '</td>' +
-      '<td>' + formatAmount(r.monto) + '</td>' +
       '<td>' + safe(r.fecha) + '</td>' +
+      '<td>' + formatAmount(r.monto) + '</td>' +
+      '<td class="' + cls + '">' + label + '</td>' +
+      '<td>' + safe(r.vendorName) + '</td>' +
+      '<td>Admin</td>' +
       '<td></td>';
 
-    const btn = document.createElement("button");
-    btn.className = "mini-btn";
-    btn.textContent = "🗑";
-    btn.onclick = function(){
+    const detailBtn = document.createElement("button");
+    detailBtn.className = "mini-btn";
+    detailBtn.textContent = "🔍";
+    detailBtn.onclick = function(){
+      alert(
+        "Vendeur: " + safe(r.vendorName) +
+        "\nTransaction: " + label +
+        "\nMontant: " + formatAmount(r.monto) +
+        "\nDate: " + safe(r.fecha) +
+        "\nCommentaire: " + safe(r.comentario)
+      );
+    };
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "mini-btn";
+    delBtn.textContent = "🗑";
+    delBtn.onclick = function(){
       deleteMovimiento(r.vendorId, r.id);
     };
 
-    tr.children[4].appendChild(btn);
+    tr.children[5].appendChild(detailBtn);
+    tr.children[5].appendChild(delBtn);
     tbody.appendChild(tr);
   });
+
+  const resultado = totalCobros - totalPagos;
+
+  if(byId("totalPagos")) byId("totalPagos").textContent = formatAmount(totalPagos);
+  if(byId("totalCobros")) byId("totalCobros").textContent = formatAmount(totalCobros);
+  if(byId("totalResultado")) byId("totalResultado").textContent = formatAmount(resultado);
+
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Pa gen transaction</td></tr>';
+  }
 }
 
 function fillVentasVendorSelect(){

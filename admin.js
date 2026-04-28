@@ -2178,7 +2178,9 @@ searchBtn.onclick = function(){
   alert(
     "Vendeur: " + safe(r.vendorName) +
     " | Type: " + (r.tipo === "pago" ? "PAGOS" : "COBROS") +
-    " | Montant: " + formatAmount(r.monto)
+    " | Montant: " + formatAmount(r.monto) +
+    " | Date: " + safe(r.fecha) +
+    " | Heure: " + safe(r.hora || r.time || "")
   );
 };
 

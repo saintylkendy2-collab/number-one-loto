@@ -2254,6 +2254,40 @@ function fillBalanceVendorSelect(){
   if(current) el.value = current;
 }
 
+function loadGrupoSelects(){
+  const ids = ["vendorFilterGrupo","vd_zona","ventasZonaFilter","balanceGrupoFilter","transactionGrupoFilter"];
+
+  ids.forEach(id=>{
+    const el = byId(id);
+    if(!el) return;
+
+    const old = el.value;
+    el.innerHTML = "";
+    el.appendChild(makeOption("", "- GRUPO -"));
+
+    gruposList.forEach(g=>{
+      el.appendChild(makeOption(g, g));
+    });
+
+    el.value = old;
+  });
+}
+
+function fillTransactionFilters(){
+  const vendor = byId("transactionVendorFilter");
+  if(!vendor) return;
+
+  const old = vendor.value;
+  vendor.innerHTML = "";
+  vendor.appendChild(makeOption("", "- VENDEDOR -"));
+
+  vendors.forEach(v=>{
+    vendor.appendChild(makeOption(v.id, v.nombre || v.nom || v.id));
+  });
+
+  vendor.value = old;
+}
+
 function loadLoteriasSelects(){
   const ids = ["premios_loteria"];
   ids.forEach(id=>{

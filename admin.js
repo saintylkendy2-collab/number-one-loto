@@ -677,23 +677,37 @@ router.get("/master/vendors", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Master Ventas</title>
 <style>
+#ticketsPage .editor-card,
 #ticketsPage .table-card{
+  width:100% !important;
+  max-width:none !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
   padding-left:0 !important;
   padding-right:0 !important;
 }
 
 #ticketsPage #ticketsFilters{
-  padding-left:22px;
-  padding-right:22px;
+  padding-left:0 !important;
+  padding-right:0 !important;
+}
+
+#ticketsPage #ticketsFilters .filter-input,
+#ticketsPage #ticketsFilters .filter-select{
+  width:100% !important;
 }
 
 #ticketsPage .table-scroll{
+  width:100% !important;
   padding-left:0 !important;
   padding-right:0 !important;
 }
 
 #ticketsPage table{
+  width:100% !important;
+  min-width:1200px !important;
   margin-left:0 !important;
+  margin-right:0 !important;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}

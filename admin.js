@@ -2147,15 +2147,15 @@ function toggleSubmenu(id){
 function goPage(page){
   currentPage = page;
 
-const today = todayISO();
+  const today = todayISO();
 
-setValue("fechaInicio", today);
-setValue("fechaFin", today);
+  setValue("fechaInicio", today);
+  setValue("fechaFin", today);
 
-setValue("transactionStart", today);
-setValue("transactionEnd", today);
+  setValue("transactionStart", today);
+  setValue("transactionEnd", today);
 
-setValue("balanceFecha", today);
+  setValue("balanceFecha", today);
 
   const ventasPage = byId("ventasPage");
   const vendorsPage = byId("vendorsPage");
@@ -2172,14 +2172,34 @@ setValue("balanceFecha", today);
   if(page === "ventas"){
     if(ventasPage) ventasPage.classList.remove("hidden");
     loadVentasReport();
+
+  }else if(page === "ventas_loteria"){
+    if(ventasPage) ventasPage.classList.remove("hidden");
+    loadVentasLoteria();
+
+  }else if(page === "ventas_jugada"){
+    if(ventasPage) ventasPage.classList.remove("hidden");
+    loadVentasJugada();
+
+  }else if(page === "ventas_numero"){
+    if(ventasPage) ventasPage.classList.remove("hidden");
+    loadVentasNumero();
+
+  }else if(page === "ventas_grupo"){
+    if(ventasPage) ventasPage.classList.remove("hidden");
+    loadVentasGrupo();
+
   }else if(page === "vendors"){
     if(vendorsPage) vendorsPage.classList.remove("hidden");
     renderVendorTable();
+
   }else if(page === "editor"){
     if(editorPage) editorPage.classList.remove("hidden");
+
   }else if(page === "balance_vendor"){
     if(balancePage) balancePage.classList.remove("hidden");
     loadBalanceReport();
+
   }else if(page === "transactions"){
     if(transactionsPage) transactionsPage.classList.remove("hidden");
     renderTransactionsTable();

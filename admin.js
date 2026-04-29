@@ -3378,40 +3378,6 @@ async function deleteMovimiento(vendorId, movimientoId){
   }
 }
 
-function resetDatesTodayAndReload(){
-  const today = todayISO();
-
-  setValue("fechaInicio", today);
-  setValue("fechaFin", today);
-
-  setValue("transactionStart", today);
-  setValue("transactionEnd", today);
-
-  setValue("balanceFecha", today);
-
-  loadVendorsFromServer();
-  loadVentasReport();
-  loadBalanceReport();
-
-  if(currentPage === "transactions"){
-    renderTransactionsTable();
-  }
-
-  if(currentPage === "balance_vendor"){
-    renderBalanceTable();
-  }
-}
-
-document.addEventListener("visibilitychange", function(){
-  if(!document.hidden){
-    resetDatesTodayAndReload();
-  }
-});
-
-window.addEventListener("pageshow", function(){
-  resetDatesTodayAndReload();
-});
-
 </script>
 
 </body>

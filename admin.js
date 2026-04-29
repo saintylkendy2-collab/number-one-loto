@@ -1508,12 +1508,26 @@ tbody tr:nth-child(even){background:#313652;}
     </div>
   </div>
 
-  <div id="ticketsPage" class="page-block hidden">
+ <div id="ticketsPage" class="page-block hidden">
   <div class="page-title">Tickets y Jugadas</div>
 
   <div class="table-card">
-    <div class="empty-state">
-      Paj Tickets la ap vini
+    <div class="tabs">
+      <div class="tab active" onclick="showTicketsTab('tickets')">TICKETS</div>
+      <div class="tab" onclick="showTicketsTab('jugadas')">JUGADAS</div>
+      <div class="tab" onclick="showTicketsTab('loterias')">LOTERIAS</div>
+      <div class="tab" onclick="showTicketsTab('vendedores')">VENDEDORES</div>
+    </div>
+
+    <div style="padding:14px;">
+      <div id="ticketsFilters"></div>
+
+      <div class="table-scroll">
+        <table>
+          <thead id="ticketsHead"></thead>
+          <tbody id="ticketsBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

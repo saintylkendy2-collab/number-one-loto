@@ -981,14 +981,10 @@ tbody tr:nth-child(even){background:#313652;}
  color:#7b72ff;
 }
 
-#ventasTable tfoot th {
+#ventasTable tfoot td {
   padding: 18px 14px;
-  line-height: 22px;
+  font-weight: 800;
   vertical-align: middle;
-}
-
-#ventasTable tfoot tr {
-  height: 58px;
 }
 
 .result-bad,.balance-negative{
@@ -2492,10 +2488,10 @@ function renderVentasTable(){
 
 tfoot.innerHTML =
   '<tr>' +
-    '<td></td>' +
-    '<td>' + formatAmount(totalVenta) + '</td>' +
-    '<td>' + formatAmount(totalComision) + '</td>' +
-    '<td>' + formatAmount(totalPremios) + '</td>' +
+    '<td class="vendor-name"></td>' +
+    '<td class="money">' + formatAmount(totalVenta) + '</td>' +
+    '<td class="money">' + formatAmount(totalComision) + '</td>' +
+    '<td class="money">' + formatAmount(totalPremios) + '</td>' +
     '<td class="' + (totalResultado >= 0 ? 'result-ok' : 'result-bad') + '">' +
       formatAmount(totalResultado) +
     '</td>' +

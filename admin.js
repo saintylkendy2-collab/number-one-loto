@@ -677,12 +677,17 @@ router.get("/master/vendors", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Master Ventas</title>
 <style>
+#ticketsPage .table-card{
+  padding: 10px;
+}
+
 #ticketsPage .table-scroll{
-  padding-left: 12px;
+  overflow-x: auto;
 }
 
 #ticketsPage table{
-  min-width: 900px;
+  min-width: 1000px;
+  margin-left: 5px;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -2216,9 +2221,12 @@ function renderTicketsReport(){
     '<label>Fecha</label>' +
     '<input type="date" class="filter-input" id="ticketFilterDate" onchange="renderTicketsReport()" value="' + todayISO() + '">' +
     '<label>Vendedor</label>' +
-    '<select class="filter-select" id="ticketFilterVendor" onchange="renderTicketsReport()">' +
-      '<option value="">-</option>' +
-    '</select>' +
+'<select class="filter-select" id="ticketFilterVendor" onchange="renderTicketsReport()">' +
+  '<option value="">-</option>' +
+  vendors.map(function(v){
+    return '<option value="' + v.id + '">' + (v.nombre || v.nom || v.id) + '</option>';
+  }).join("") +
+'</select>' +
     '<label>Estatus</label>' +
     '<select class="filter-select" id="ticketFilterStatus" onchange="renderTicketsReport()">' +
       '<option value="">-</option>' +
@@ -2227,6 +2235,7 @@ function renderTicketsReport(){
       '<option value="PEDI">PEDI</option>' +
       '<option value="ANILE">ANILE</option>' +
     '</select>';
+
 
   head.innerHTML =
     '<tr>' +

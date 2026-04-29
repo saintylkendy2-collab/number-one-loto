@@ -2170,6 +2170,82 @@ function toggleSubmenu(id){
   box.classList.toggle("open");
 }
 
+let ticketsRows = [];
+let ticketsTab = "tickets";
+
+async function loadTicketsReport(){
+  const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
+  const data = await res.json();
+  ticketsRows = Array.isArray(data) ? data : [];
+  renderTicketsReport();
+}
+
+function showTicketsTab(tab){
+  ticketsTab = tab;
+
+  document.querySelectorAll("#ticketsPage .tab").forEach(function(t){
+    t.classList.remove("active");
+  });
+
+  var tabs = document.querySelectorAll("#ticketsPage .tab");
+  if(tab === "tickets" && tabs[0]) tabs[0].classList.add("active");
+  if(tab === "jugadas" && tabs[1]) tabs[1].classList.add("active");
+  if(tab === "loterias" && tabs[2]) tabs[2].classList.add("active");
+  if(tab === "vendedores" && tabs[3]) tabs[3].classList.add("active");
+
+  renderTicketsReport();
+}
+
+function renderTicketsReport(){
+  var filters = byId("ticketsFilters");
+  var head = byId("ticketsHead");
+  var body = byId("ticketsBody");
+  if(!filters || !head || !body) return;
+
+  filters.innerHTML =
+    '<label>ID</label>' +
+    '<input class="filter-input" id="ticketFilterId" oninput="renderTicketsReport()">' +
+    '<label>Fecha</label>' +
+    '<input type="date" class="filter-input" id="ticketFilterDate" onchange="renderTicketsReport()" value="' + todayISO() + '">' +
+    '<label>Vendedor</label>' +
+    '<select class="filter-select" id="ticketFilterVendor" onchange="renderTicketsReport()">' +
+      '<option value="">-</option>' +
+    '</select>' +
+    '<label>Estatus</label>' +
+    '<select class="filter-select" id="ticketFilterStatus" onchange="renderTicketsReport()">' +
+      '<option value="">-</option>' +
+      '<option value="ANATAN">AN ATAN</option>' +
+      '<option value="GANYE">GANYE</option>' +
+      '<option value="PEDI">PEDI</option>' +
+      '<option value="ANILE">ANILE</option>' +
+    '</select>';
+
+  head.innerHTML =
+    '<tr>' +
+      '<th>ID</th>' +
+      '<th>FECHA</th>' +
+      '<th>VENDEDOR</th>' +
+      '<th>JUGS</th>' +
+      '<th>MONTO</th>' +
+      '<th>PREMIO</th>' +
+      '<th>ESTADO</th>' +
+      '<th></th>' +
+    '</tr>';
+
+  body.innerHTML = ticketsRows.map(function(t){
+    return '<tr>' +
+      '<td>🖨 ' + safe(t.id) + '</td>' +
+      '<td>' + safe(t.createdAtLabel || t.dateLabel || "") + '</td>' +
+      '<td>' + safe(t.vendeurNom || t.vendeur) + '</td>' +
+      '<td>' + (Array.isArray(t.jeux) ? t.jeux.length : 0) + '</td>' +
+      '<td>' + formatAmount(t.total) + '</td>' +
+      '<td>' + formatAmount(t.premio) + '</td>' +
+      '<td>' + safe(t.status || "ANATAN") + '</td>' +
+      '<td>🔍</td>' +
+    '</tr>';
+  }).join("");
+}
+
 function goPage(page){
   currentPage = page;
 

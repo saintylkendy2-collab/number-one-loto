@@ -971,8 +971,9 @@ tbody tr:nth-child(even){background:#313652;}
 }
 
 .balance-positive{
- color:#79d98d;
+ color:#2fbf71;
  font-weight:700;
+ font-size:16px;
  cursor:pointer;
 }
 

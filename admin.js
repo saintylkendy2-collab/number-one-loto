@@ -677,6 +677,14 @@ router.get("/master/vendors", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Master Ventas</title>
 <style>
+#ticketsPage .table-scroll{
+  padding-left: 12px;
+}
+
+#ticketsPage table{
+  min-width: 900px;
+}
+
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{
  font-family:Arial,sans-serif;

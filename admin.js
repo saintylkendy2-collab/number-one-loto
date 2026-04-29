@@ -2492,6 +2492,7 @@ function renderVentasTable(){
 
 tfoot.innerHTML =
   '<tr>' +
+    '<td></td>' +
     '<td>' + formatAmount(totalVenta) + '</td>' +
     '<td>' + formatAmount(totalComision) + '</td>' +
     '<td>' + formatAmount(totalPremios) + '</td>' +

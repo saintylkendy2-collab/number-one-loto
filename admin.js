@@ -677,34 +677,6 @@ router.get("/master/vendors", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Master Ventas</title>
 <style>
-#ticketsPage .tabs-scroll{
-  overflow-x:auto;
-  overflow-y:hidden;
-  -webkit-overflow-scrolling:touch;
-}
-
-#ticketsPage .tickets-tabs{
-  width:max-content;
-  min-width:max-content;
-}
-
-#ticketsPage .tickets-tabs .tab{
-  min-width:190px;
-  text-align:center;
-}
-
-#ticketsPage .table-scroll{
-  overflow-x:auto;
-  overflow-y:hidden;
-  -webkit-overflow-scrolling:touch;
-  padding:0 14px 14px 14px;
-}
-
-#ticketsPage table{
-  width:max-content;
-  min-width:1200px;
-}
-
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{
  font-family:Arial,sans-serif;
@@ -1481,7 +1453,7 @@ tbody tr:nth-child(even){background:#313652;}
 
     <div class="table-card">
       <div class="table-scroll">
-       <table id="ventasTable"> 
+       <table id="ventasTable">
           <thead>
             <tr>
               <th>VENDEDOR</th>

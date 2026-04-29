@@ -965,7 +965,7 @@ tbody tr:nth-child(even){background:#313652;}
 .vendor-name{font-weight:600;color:#bcc4de;}
 .money{color:#bcc4de;}
 .result-ok{
- color:#79d98d;
+ color:#2fbf71;
  font-weight:700;
  cursor:pointer;
 }
@@ -979,6 +979,11 @@ tbody tr:nth-child(even){background:#313652;}
 
 #transactionsPage .balance-positive{
  color:#7b72ff;
+}
+
+#ventasTable th,
+#ventasTable td {
+  vertical-align: middle;
 }
 
 .result-bad,.balance-negative{

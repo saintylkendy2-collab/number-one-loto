@@ -3405,7 +3405,7 @@ if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
 
   if(balanceGrupoFilter) balanceGrupoFilter.addEventListener("change", renderBalanceTable);
   if(balanceVendorFilter) balanceVendorFilter.addEventListener("change", renderBalanceTable);
-  if(balanceFecha) balanceFecha.addEventListener("change", renderBalanceTable);
+  if(balanceFecha) balanceFecha.addEventListener("change", loadBalanceReport);
 
   if(balanceFecha) balanceFecha.value = todayISO();
 

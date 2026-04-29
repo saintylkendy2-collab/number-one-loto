@@ -332,17 +332,67 @@ router.get("/api/reportes/ventas", (req, res) => {
 
 router.get("/api/reportes/balance", (req, res) => {
   try {
+    const date = String(req.query.date || "").trim();
+
+    function toISODate(value) {
+      if (!value) return "";
+      const s = String(value).trim();
+
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+      const p = s.split("/");
+      if (p.length === 3) {
+        return p[2] + "-" + p[1].padStart(2, "0") + "-" + p[0].padStart(2, "0");
+      }
+
+      const d = new Date(s);
+      if (isNaN(d.getTime())) return "";
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+    }
+
+    function movementEffect(m) {
+      const tipo = String(m.tipo || "").toLowerCase();
+      const monto = parseAmount(m.monto);
+      return tipo === "cobro" ? monto : -monto;
+    }
+
+    function ticketDay(t) {
+      if (t.dateLabel) return toISODate(t.dateLabel);
+
+      const d = new Date(t.createdAt || Date.now());
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+    }
+
+    const selectedDate = date || toISODate(new Date());
     const vendeurs = readVendeursObject();
     const tickets = readTicketsArray();
     const map = {};
 
     Object.keys(vendeurs).forEach((id) => {
       const vendor = normalizeVendor(vendeurs[id] || {});
+      const movimientos = Array.isArray(vendor.movimientos) ? vendor.movimientos : [];
+
+      const allMovementsTotal = movimientos.reduce((s, m) => {
+        return s + movementEffect(m);
+      }, 0);
+
+      const baseBalance = parseAmount(vendor.balance) - allMovementsTotal;
+
+      const movementsUntilDate = movimientos.reduce((s, m) => {
+        const d = toISODate(m.fecha);
+        if (selectedDate && d && d > selectedDate) return s;
+        return s + movementEffect(m);
+      }, 0);
+
       map[id] = {
         id,
         nombre: vendor.nombre || vendor.nom || id,
         zona: vendor.zona || vendor.groupe || "",
-        balance: parseAmount(vendor.balance),
+        balance: baseBalance + movementsUntilDate,
         estatus: vendor.estatus || "Activo"
       };
     });
@@ -350,6 +400,9 @@ router.get("/api/reportes/balance", (req, res) => {
     tickets.forEach((t) => {
       const id = String(t.vendeur || "").trim().toUpperCase();
       if (!id) return;
+
+      const d = ticketDay(t);
+      if (selectedDate && d && d > selectedDate) return;
 
       if (!map[id]) {
         map[id] = {

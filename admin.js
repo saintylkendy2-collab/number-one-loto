@@ -1369,7 +1369,7 @@ tbody tr:nth-child(even){background:#313652;}
   <div class="submenu-item" onclick="goPage('jugada')">Jugada</div>
   <div class="submenu-item" onclick="goPage('numero')">Número</div>
   <div class="submenu-item" onclick="goPage('grupo')">Grupo</div>
-</div
+</div>
 
   <div class="side-menu-section">FLUJO DE EFECTIVO</div>
   <div class="side-menu-item" onclick="goPage('transactions')">

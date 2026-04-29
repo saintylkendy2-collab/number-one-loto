@@ -918,9 +918,13 @@ tbody tr:nth-child(even){background:#313652;}
 }
 
 .balance-positive{
- color:#7b72ff;
+ color:#79d98d;
  font-weight:700;
  cursor:pointer;
+}
+
+#transactionsPage .balance-positive{
+ color:#7b72ff;
 }
 
 .result-bad,.balance-negative{

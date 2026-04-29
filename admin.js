@@ -2490,15 +2490,15 @@ function renderVentasTable(){
     \`;
   });
 
-  tfoot.innerHTML = \`
-    <tr>
-      <th></th>
-      <th>\${formatAmount(totalVenta)}</th>
-      <th>\${formatAmount(totalComision)}</th>
-      <th>\${formatAmount(totalPremios)}</th>
-      <th class="\${totalResultado >= 0 ? "result-ok" : "result-bad"}">\${totalResultado < 0 ? "-" : ""}\${formatAmount(Math.abs(totalResultado))}</th>
-    </tr>
-  \`;
+tfoot.innerHTML =
+  '<tr>' +
+    '<td>' + formatAmount(totalVenta) + '</td>' +
+    '<td>' + formatAmount(totalComision) + '</td>' +
+    '<td>' + formatAmount(totalPremios) + '</td>' +
+    '<td class="' + (totalResultado >= 0 ? 'result-ok' : 'result-bad') + '">' +
+      formatAmount(totalResultado) +
+    '</td>' +
+  '</tr>';
 }
 
 function toggleBalanceMenu(id, e){

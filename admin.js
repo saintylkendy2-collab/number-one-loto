@@ -4,6 +4,7 @@ const path = require("path");
 const router = express.Router();
 
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
+console.log("ADMIN VENDEURS_FILE =", VENDEURS_FILE);
 
 const TICKETS_FILE = path.join(__dirname, "tickets.json");
 

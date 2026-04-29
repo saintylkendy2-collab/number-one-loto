@@ -8,6 +8,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
+console.log("INDEX VENDEURS_FILE =", VENDEURS_FILE);
+
 const TICKETS_FILE = path.join(__dirname, "tickets.json");
 
 function ensureVendeursFile() {

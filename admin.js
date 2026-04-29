@@ -2072,7 +2072,13 @@ async function loadVentasReport(){
 
 async function loadBalanceReport(){
   try{
-    const res = await fetch("/api/reportes/balance");
+    const fecha = getValue("balanceFecha") || todayISO();
+    setValue("balanceFecha", fecha);
+
+    const res = await fetch(
+      "/api/reportes/balance?date=" + encodeURIComponent(fecha)
+    );
+
     const data = await res.json();
     balanceRows = Array.isArray(data) ? data : [];
     renderBalanceTable();
@@ -2082,6 +2088,7 @@ async function loadBalanceReport(){
     renderBalanceTable();
   }
 }
+
 
 function loginMaster() {
   const user = byId("username");

@@ -1460,6 +1460,9 @@ tbody tr:nth-child(even){background:#313652;}
 
   <div id="balanceVendorPage" class="page-block hidden">
     <div class="page-title">Balance Vendedores</div>
+<div id="balanceTotalTop" style="font-size:26px;font-weight:800;color:#79d98d;margin:6px 4px 14px;">
+  0.00
+</div>
 
     <div class="filters">
       <div class="filter-group">

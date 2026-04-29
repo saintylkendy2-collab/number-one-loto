@@ -2074,6 +2074,16 @@ function toggleSubmenu(id){
 function goPage(page){
   currentPage = page;
 
+const today = todayISO();
+
+setValue("fechaInicio", today);
+setValue("fechaFin", today);
+
+setValue("transactionStart", today);
+setValue("transactionEnd", today);
+
+setValue("balanceFecha", today);
+
   const ventasPage = byId("ventasPage");
   const vendorsPage = byId("vendorsPage");
   const editorPage = byId("vendorEditorPage");

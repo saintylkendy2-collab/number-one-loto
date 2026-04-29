@@ -981,9 +981,9 @@ tbody tr:nth-child(even){background:#313652;}
  color:#7b72ff;
 }
 
-#ventasTable th,
-#ventasTable td {
-  vertical-align: middle;
+#ventasTable tfoot th {
+  padding: 14px 0;
+  font-size: 16px;
 }
 
 .result-bad,.balance-negative{

@@ -1356,7 +1356,9 @@ tbody tr:nth-child(even){background:#313652;}
   <div class="side-menu-item" id="menu-cuenta"><span>Mi Cuenta</span></div>
 
   <div class="side-menu-section">MONITOREO</div>
-  <div class="side-menu-item"><span>Tickets</span></div>
+  <div class="side-menu-item" id="menu-tickets" onclick="goPage('tickets')">
+  <span>Tickets</span>
+</div>
   <div class="side-menu-item"><span>Sorteos</span></div>
 
   <div class="side-menu-section">REPORTES</div>
@@ -2158,12 +2160,14 @@ function goPage(page){
   setValue("balanceFecha", today);
 
   const ventasPage = byId("ventasPage");
+  const ticketsPage = byId("ticketsPage");
   const vendorsPage = byId("vendorsPage");
   const editorPage = byId("vendorEditorPage");
   const balancePage = byId("balanceVendorPage");
   const transactionsPage = byId("transactionsPage");
 
   if(ventasPage) ventasPage.classList.add("hidden");
+  if(ticketsPage) ticketsPage.classList.add("hidden");
   if(vendorsPage) vendorsPage.classList.add("hidden");
   if(editorPage) editorPage.classList.add("hidden");
   if(balancePage) balancePage.classList.add("hidden");
@@ -2188,6 +2192,10 @@ function goPage(page){
   }else if(page === "ventas_grupo"){
     if(ventasPage) ventasPage.classList.remove("hidden");
     loadVentasGrupo();
+
+  }else if(page === "tickets"){
+    if(ticketsPage) ticketsPage.classList.remove("hidden");
+    loadTicketsReport();
 
   }else if(page === "vendors"){
     if(vendorsPage) vendorsPage.classList.remove("hidden");

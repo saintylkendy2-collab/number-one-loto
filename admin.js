@@ -1508,6 +1508,16 @@ tbody tr:nth-child(even){background:#313652;}
     </div>
   </div>
 
+  <div id="ticketsPage" class="page-block hidden">
+  <div class="page-title">Tickets y Jugadas</div>
+
+  <div class="table-card">
+    <div class="empty-state">
+      Paj Tickets la ap vini
+    </div>
+  </div>
+</div>
+
 <div id="transactionsPage" class="page-block hidden">
   <div class="page-title">Transactions</div>
 

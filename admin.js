@@ -678,16 +678,16 @@ router.get("/master/vendors", (req, res) => {
 <title>Master Ventas</title>
 <style>
 #ticketsPage .table-card{
-  padding: 10px;
+  padding:0;
 }
 
 #ticketsPage .table-scroll{
-  overflow-x: auto;
+  overflow-x:auto;
+  padding:0 14px 14px;
 }
 
 #ticketsPage table{
-  min-width: 1000px;
-  margin-left: 5px;
+  min-width:950px;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -2210,23 +2210,33 @@ function showTicketsTab(tab){
 }
 
 function renderTicketsReport(){
-  var filters = byId("ticketsFilters");
-  var head = byId("ticketsHead");
-  var body = byId("ticketsBody");
+  const filters = byId("ticketsFilters");
+  const head = byId("ticketsHead");
+  const body = byId("ticketsBody");
   if(!filters || !head || !body) return;
+
+  const oldId = safe(byId("ticketFilterId")?.value);
+  const oldDate = safe(byId("ticketFilterDate")?.value) || todayISO();
+  const oldVendor = safe(byId("ticketFilterVendor")?.value);
+  const oldStatus = safe(byId("ticketFilterStatus")?.value);
+
+  let vendorOptions = '<option value="">-</option>';
+  vendors.forEach(function(v){
+    vendorOptions += '<option value="' + safe(v.id) + '">' + safe(v.nombre || v.nom || v.id) + '</option>';
+  });
 
   filters.innerHTML =
     '<label>ID</label>' +
-    '<input class="filter-input" id="ticketFilterId" oninput="renderTicketsReport()">' +
+    '<input class="filter-input" id="ticketFilterId" oninput="renderTicketsReport()" value="' + oldId + '">' +
+
     '<label>Fecha</label>' +
-    '<input type="date" class="filter-input" id="ticketFilterDate" onchange="renderTicketsReport()" value="' + todayISO() + '">' +
+    '<input type="date" class="filter-input" id="ticketFilterDate" onchange="renderTicketsReport()" value="' + oldDate + '">' +
+
     '<label>Vendedor</label>' +
-'<select class="filter-select" id="ticketFilterVendor" onchange="renderTicketsReport()">' +
-  '<option value="">-</option>' +
-  vendors.map(function(v){
-    return '<option value="' + v.id + '">' + (v.nombre || v.nom || v.id) + '</option>';
-  }).join("") +
-'</select>' +
+    '<select class="filter-select" id="ticketFilterVendor" onchange="renderTicketsReport()">' +
+      vendorOptions +
+    '</select>' +
+
     '<label>Estatus</label>' +
     '<select class="filter-select" id="ticketFilterStatus" onchange="renderTicketsReport()">' +
       '<option value="">-</option>' +
@@ -2236,6 +2246,22 @@ function renderTicketsReport(){
       '<option value="ANILE">ANILE</option>' +
     '</select>';
 
+  setValue("ticketFilterVendor", oldVendor);
+  setValue("ticketFilterStatus", oldStatus);
+
+  let rows = ticketsRows.slice();
+
+  rows = rows.filter(function(t){
+    const d = new Date(t.createdAt || Date.now());
+    const day = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+
+    if(oldId && !safe(t.id).toLowerCase().includes(oldId.toLowerCase())) return false;
+    if(oldDate && day !== oldDate) return false;
+    if(oldVendor && safe(t.vendeur) !== oldVendor) return false;
+    if(oldStatus && safe(t.status).toUpperCase() !== oldStatus) return false;
+
+    return true;
+  });
 
   head.innerHTML =
     '<tr>' +
@@ -2249,7 +2275,7 @@ function renderTicketsReport(){
       '<th></th>' +
     '</tr>';
 
-  body.innerHTML = ticketsRows.map(function(t){
+  body.innerHTML = rows.map(function(t){
     return '<tr>' +
       '<td>🖨 ' + safe(t.id) + '</td>' +
       '<td>' + safe(t.createdAtLabel || t.dateLabel || "") + '</td>' +
@@ -2262,6 +2288,7 @@ function renderTicketsReport(){
     '</tr>';
   }).join("");
 }
+
 
 function goPage(page){
   currentPage = page;

@@ -982,8 +982,13 @@ tbody tr:nth-child(even){background:#313652;}
 }
 
 #ventasTable tfoot th {
-  padding: 14px 0;
-  font-size: 16px;
+  padding: 18px 14px;
+  line-height: 22px;
+  vertical-align: middle;
+}
+
+#ventasTable tfoot tr {
+  height: 58px;
 }
 
 .result-bad,.balance-negative{
@@ -1447,7 +1452,7 @@ tbody tr:nth-child(even){background:#313652;}
 
     <div class="table-card">
       <div class="table-scroll">
-        <table>
+       <table id="ventasTable"> 
           <thead>
             <tr>
               <th>VENDEDOR</th>

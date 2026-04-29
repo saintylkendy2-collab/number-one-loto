@@ -2556,8 +2556,17 @@ function renderBalanceTable(){
 
   tbody.innerHTML = "";
 
+  let totalBalance = 0;
+
   if(!rows.length){
     tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Pa gen done balance pou moman an</td></tr>';
+
+    const totalTop = byId("balanceTotalTop");
+    if(totalTop){
+      totalTop.textContent = "0.00";
+      totalTop.style.color = "#79d98d";
+    }
+
     return;
   }
 
@@ -2565,24 +2574,14 @@ function renderBalanceTable(){
     const id = safe(r.id || r.vendeur);
     const nombre = safe(r.nombre || r.nom || id);
 
-const movimientos = r.movimientos || [];
-
-const totalCobro = movimientos
-  .filter(m => m.tipo === "cobro")
-  .reduce((s, m) => s + Number(m.monto || 0), 0);
-
-const totalPago = movimientos
-  .filter(m => m.tipo === "pago")
-  .reduce((s, m) => s + Number(m.monto || 0), 0);
-
-const total = totalCobro - totalPago;
-
     const bal = parseAmount(
       r.balanceFinal !== undefined ? r.balanceFinal :
       r.balance !== undefined ? r.balance :
       r.resultado !== undefined ? r.resultado :
       0
     );
+
+    totalBalance += bal;
 
     const cls = bal >= 0 ? "balance-positive" : "balance-negative";
     const cleanVal = (bal < 0 ? "-" : "") + formatAmount(Math.abs(bal));
@@ -2635,7 +2634,6 @@ const total = totalCobro - totalPago;
 
     wrap.appendChild(btn);
     wrap.appendChild(menu);
-
     tdAction.appendChild(wrap);
 
     tr.appendChild(tdName);
@@ -2645,6 +2643,14 @@ const total = totalCobro - totalPago;
 
     tbody.appendChild(tr);
   });
+
+  const totalTop = byId("balanceTotalTop");
+  if(totalTop){
+    totalTop.textContent =
+      (totalBalance < 0 ? "-" : "") + formatAmount(Math.abs(totalBalance));
+
+    totalTop.style.color = totalBalance < 0 ? "#ff6767" : "#79d98d";
+  }
 }
 
 function blankVendor(){

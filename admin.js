@@ -3709,28 +3709,32 @@ function openTicketDetail(ticketId){
     return;
   }
 
-  var msg = "Ticket: " + safe(ticket.id) + "\n";
-  msg += "Vendeur: " + safe(ticket.vendeurNom || ticket.vendeur) + "\n";
-  msg += "Date: " + safe(ticket.createdAtLabel || ticket.dateLabel || "") + "\n\n";
-
-  msg += "Jugada:\n";
+  var jeuxHTML = "";
 
   if(Array.isArray(ticket.jeux)){
-    ticket.jeux.forEach(function(j){
-      msg += safe(j.numero || "") + " - " +
-             safe(j.type || "") + " - " +
-             formatAmount(j.montant || j.monto || j.amount || 0) + "\n";
-    });
+    jeuxHTML = ticket.jeux.map(function(j){
+      return '<div style="padding:8px;border-bottom:1px solid #444;">' +
+        '<strong>' + safe(j.numero || "") + '</strong> - ' +
+        safe(j.type || "") + ' - ' +
+        formatAmount(j.montant || j.monto || j.amount || 0) +
+      '</div>';
+    }).join("");
   }
 
-  msg += "\nTotal: " + formatAmount(ticket.total);
-  msg += "\nPremio: " + formatAmount(ticket.premio);
+  var html =
+    '<div style="background:#2a2f4a;padding:16px;border-radius:12px;color:#fff;font-family:Arial;">' +
+      '<h3>Ticket ' + safe(ticket.id) + '</h3>' +
+      '<div><b>Vendeur:</b> ' + safe(ticket.vendeurNom || ticket.vendeur) + '</div>' +
+      '<div><b>Date:</b> ' + safe(ticket.createdAtLabel || ticket.dateLabel || "") + '</div>' +
+      '<div style="margin-top:10px;"><b>Jugada:</b>' + (jeuxHTML || "Aucune") + '</div>' +
+      '<div style="margin-top:10px;"><b>Total:</b> ' + formatAmount(ticket.total) + '</div>' +
+      '<div><b>Premio:</b> ' + formatAmount(ticket.premio) + '</div>' +
+    '</div>';
 
-  if(confirm(msg + "\n\nOu vle ANILE ticket sa?")){
-    cancelTicket(ticket.id);
-  }
+  var w = window.open("", "_blank");
+  w.document.write(html);
+  w.document.close();
 }
-
 
 async function cancelTicket(ticketId){
 

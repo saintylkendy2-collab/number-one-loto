@@ -3699,6 +3699,24 @@ async function deleteMovimiento(vendorId, movimientoId){
   }
 }
 
+function openTicketDetail(ticketId){
+  var ticket = ticketsRows.find(function(t){
+    return String(t.id) === String(ticketId);
+  });
+
+  if(!ticket){
+    alert("Ticket introuvable");
+    return;
+  }
+
+  alert(
+    "Ticket: " + safe(ticket.id) + "\n" +
+    "Vendeur: " + safe(ticket.vendeurNom || ticket.vendeur) + "\n" +
+    "Total: " + formatAmount(ticket.total) + "\n" +
+    "Premio: " + formatAmount(ticket.premio)
+  );
+}
+
 async function cancelTicket(ticketId){
 
   if(!confirm("Ou vle anile ticket sa?")) return;

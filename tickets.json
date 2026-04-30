@@ -55,7 +55,7 @@
     "createdAtLabel": "22/04/2026 20:39:34",
     "dateLabel": "22/04/2026",
     "timeLabel": "20:39",
-    "status": "ANATAN",
+    "status": "ANILE",
     "premio": 0,
     "channel": "PRINT",
     "total": 2,
@@ -69,7 +69,9 @@
         "loterie": "KING LOTTERY DIA",
         "montant": 2
       }
-    ]
+    ],
+    "anilePar": "ADMIN",
+    "anileAt": "2026-04-30T17:36:33.791Z"
   },
   {
     "id": "04994763-4905",
@@ -95,7 +97,7 @@
       }
     ],
     "anilePar": "ADMIN",
-    "anileAt": "2026-04-30T17:13:14.298Z"
+    "anileAt": "2026-04-30T17:36:28.546Z"
   },
   {
     "id": "08232404-9575",
@@ -1302,5 +1304,99 @@
     ],
     "anilePar": "ADMIN",
     "anileAt": "2026-04-30T17:20:53.118Z"
+  },
+  {
+    "id": "70650353-5485",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-30T17:37:30.335Z",
+    "createdAtLabel": "30/04/2026 13:37:30",
+    "dateLabel": "30/04/2026",
+    "timeLabel": "13:37:30",
+    "status": "ANILE",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 50,
+    "tirages": [
+      "GEORGIA MIDDAY"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "58",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 25
+      },
+      {
+        "type": "BOR",
+        "numero": "85",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 25
+      }
+    ],
+    "anilePar": "ADMIN",
+    "anileAt": "2026-04-30T17:39:29.265Z"
+  },
+  {
+    "id": "70670081-9517",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-30T17:37:50.063Z",
+    "createdAtLabel": "30/04/2026 13:37:50",
+    "dateLabel": "30/04/2026",
+    "timeLabel": "13:37:50",
+    "status": "ANATAN",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 10,
+    "tirages": [
+      "LA SUERTE DIA"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "23",
+        "loterie": "LA SUERTE DIA",
+        "montant": 5
+      },
+      {
+        "type": "BOR",
+        "numero": "32",
+        "loterie": "LA SUERTE DIA",
+        "montant": 5
+      }
+    ]
+  },
+  {
+    "id": "70705764-7099",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-30T17:38:25.744Z",
+    "createdAtLabel": "30/04/2026 13:38:25",
+    "dateLabel": "30/04/2026",
+    "timeLabel": "13:38:25",
+    "status": "ANILE",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 16,
+    "tirages": [
+      "GEORGIA MIDDAY"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "87",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 8
+      },
+      {
+        "type": "BOR",
+        "numero": "25",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 8
+      }
+    ],
+    "anilePar": "ADMIN",
+    "anileAt": "2026-04-30T17:40:14.607Z"
   }
 ]

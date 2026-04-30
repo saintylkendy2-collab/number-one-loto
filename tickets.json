@@ -151,7 +151,7 @@
     "createdAtLabel": "22/04/2026 21:52:55",
     "dateLabel": "22/04/2026",
     "timeLabel": "21:52",
-    "status": "ANATAN",
+    "status": "ANILE",
     "premio": 0,
     "channel": "PRINT",
     "total": 2,
@@ -166,7 +166,9 @@
         "montant": 2
       }
     ],
-    "updatedAt": "2026-04-23T19:43:14.192Z"
+    "updatedAt": "2026-04-23T19:43:14.192Z",
+    "anilePar": "ADMIN",
+    "anileAt": "2026-04-30T14:28:16.306Z"
   },
   {
     "id": "09195096-6206",

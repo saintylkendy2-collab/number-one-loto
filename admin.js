@@ -3768,7 +3768,11 @@ if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
   loadBalanceReport();
 });
 
-goPage("ventas");
+if(window.location.hash === "#tickets"){
+  goPage("tickets");
+}else{
+  goPage("ventas");
+}
 
 async function deleteMovimiento(vendorId, movimientoId){
   if(!confirm("Ou vle siprime transaction sa?")) return;

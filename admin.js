@@ -2359,14 +2359,6 @@ function renderTicketsReport(){
   }).join("");
 }
 
-document.querySelectorAll("#ticketsBody .mini-btn").forEach(function(btn){
-  btn.addEventListener("click", function(e){
-    e.stopPropagation();
-    var id = this.getAttribute("data-id");
-    openTicketDetail(id);
-  });
-});
-
 function goPage(page){
   currentPage = page;
 
@@ -3771,6 +3763,17 @@ async function cancelTicket(ticketId){
     alert("Erreur serveur");
   }
 }
+
+document.addEventListener("click", function(e){
+  const btn = e.target.closest("#ticketsBody .mini-btn");
+  if(!btn) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const id = btn.getAttribute("data-id");
+  openTicketDetail(id);
+});
 
 </script>
 

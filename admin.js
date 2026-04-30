@@ -3700,51 +3700,6 @@ async function deleteMovimiento(vendorId, movimientoId){
 }
 
 function openTicketDetail(ticketId){
-  var ticket = ticketsRows.find(function(t){
-    return String(t.id) === String(ticketId);
-  });
-
-  if(!ticket){
-    alert("Ticket introuvable");
-    return;
-  }
-
-  var jeuxHTML = "";
-
-  if(Array.isArray(ticket.jeux)){
-    jeuxHTML = ticket.jeux.map(function(j){
-      return '<div style="padding:8px;border-bottom:1px solid #444;">' +
-        '<strong>' + safe(j.numero || "") + '</strong> - ' +
-        safe(j.type || "") + ' - ' +
-        formatAmount(j.montant || j.monto || j.amount || 0) +
-      '</div>';
-    }).join("");
-  }
-
-  var html =
-    '<div style="background:#2a2f4a;padding:16px;border-radius:12px;color:#fff;font-family:Arial;">' +
-      '<h3>Ticket ' + safe(ticket.id) + '</h3>' +
-      '<div><b>Vendeur:</b> ' + safe(ticket.vendeurNom || ticket.vendeur) + '</div>' +
-      '<div><b>Date:</b> ' + safe(ticket.createdAtLabel || ticket.dateLabel || "") + '</div>' +
-      '<div style="margin-top:10px;"><b>Jugada:</b>' + (jeuxHTML || "Aucune") + '</div>' +
-      '<div style="margin-top:10px;"><b>Total:</b> ' + formatAmount(ticket.total) + '</div>' +
- '<div><b>Premio:</b> ' + formatAmount(ticket.premio) + '</div>' +
-
-'<button onclick="fetch(\'/api/tickets/' + ticket.id + '/anile\', {method:\'POST\'})' +
-'.then(r=>r.json())' +
-'.then(()=>{alert(\'Ticket annulé ✔\'); window.close();})' +
-'.catch(()=>alert(\'Erreur\'))" ' +
-'style="margin-top:16px;width:100%;height:46px;background:#ff5555;color:white;border:0;border-radius:10px;font-size:17px;font-weight:700;">ANILE TICKET</button>' +
-
-'<button onclick="window.close()" ' +
-'style="margin-top:10px;width:100%;height:42px;background:#444b70;color:white;border:0;border-radius:10px;font-size:16px;">TOUNEN</button>' +
-
-'</div>';
-
-  var w = window.open("", "_blank");
-  w.document.write(html);
-  w.document.close();
-}
 
 async function cancelTicket(ticketId){
 

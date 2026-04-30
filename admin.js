@@ -677,25 +677,6 @@ router.get("/master/vendors", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Master Ventas</title>
 <style>
-#ticketsPage .table-card{
-  padding-left:0 !important;
-  padding-right:0 !important;
-}
-
-#ticketsPage #ticketsFilters{
-  padding-left:08px;
-  padding-right:08px;
-}
-
-#ticketsPage .table-scroll{
-  padding-left:0 !important;
-  padding-right:0 !important;
-}
-
-#ticketsPage table{
-  margin-left:0 !important;
-}
-
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{
  font-family:Arial,sans-serif;
@@ -1530,14 +1511,13 @@ tbody tr:nth-child(even){background:#313652;}
  <div id="ticketsPage" class="page-block hidden">
   <div class="page-title">Tickets y Jugadas</div>
 
-  <div class="tabs-scroll">
-  <div class="tabs tickets-tabs">
-    <div class="tab active" onclick="showTicketsTab('tickets')">TICKETS</div>
-    <div class="tab" onclick="showTicketsTab('jugadas')">JUGADAS</div>
-    <div class="tab" onclick="showTicketsTab('loterias')">LOTERIAS</div>
-    <div class="tab" onclick="showTicketsTab('vendedores')">VENDEDORES</div>
-  </div>
-</div>
+  <div class="table-card">
+    <div class="tabs">
+      <div class="tab active" onclick="showTicketsTab('tickets')">TICKETS</div>
+      <div class="tab" onclick="showTicketsTab('jugadas')">JUGADAS</div>
+      <div class="tab" onclick="showTicketsTab('loterias')">LOTERIAS</div>
+      <div class="tab" onclick="showTicketsTab('vendedores')">VENDEDORES</div>
+    </div>
 
     <div style="padding:14px;">
       <div id="ticketsFilters"></div>
@@ -2217,33 +2197,20 @@ function showTicketsTab(tab){
 }
 
 function renderTicketsReport(){
-  const filters = byId("ticketsFilters");
-  const head = byId("ticketsHead");
-  const body = byId("ticketsBody");
+  var filters = byId("ticketsFilters");
+  var head = byId("ticketsHead");
+  var body = byId("ticketsBody");
   if(!filters || !head || !body) return;
-
-  const oldId = safe(byId("ticketFilterId")?.value);
-  const oldDate = safe(byId("ticketFilterDate")?.value) || todayISO();
-  const oldVendor = safe(byId("ticketFilterVendor")?.value);
-  const oldStatus = safe(byId("ticketFilterStatus")?.value);
-
-  let vendorOptions = '<option value="">-</option>';
-  vendors.forEach(function(v){
-    vendorOptions += '<option value="' + safe(v.id) + '">' + safe(v.nombre || v.nom || v.id) + '</option>';
-  });
 
   filters.innerHTML =
     '<label>ID</label>' +
-    '<input class="filter-input" id="ticketFilterId" oninput="renderTicketsReport()" value="' + oldId + '">' +
-
+    '<input class="filter-input" id="ticketFilterId" oninput="renderTicketsReport()">' +
     '<label>Fecha</label>' +
-    '<input type="date" class="filter-input" id="ticketFilterDate" onchange="renderTicketsReport()" value="' + oldDate + '">' +
-
+    '<input type="date" class="filter-input" id="ticketFilterDate" onchange="renderTicketsReport()" value="' + todayISO() + '">' +
     '<label>Vendedor</label>' +
     '<select class="filter-select" id="ticketFilterVendor" onchange="renderTicketsReport()">' +
-      vendorOptions +
+      '<option value="">-</option>' +
     '</select>' +
-
     '<label>Estatus</label>' +
     '<select class="filter-select" id="ticketFilterStatus" onchange="renderTicketsReport()">' +
       '<option value="">-</option>' +
@@ -2252,23 +2219,6 @@ function renderTicketsReport(){
       '<option value="PEDI">PEDI</option>' +
       '<option value="ANILE">ANILE</option>' +
     '</select>';
-
-  setValue("ticketFilterVendor", oldVendor);
-  setValue("ticketFilterStatus", oldStatus);
-
-  let rows = ticketsRows.slice();
-
-  rows = rows.filter(function(t){
-    const d = new Date(t.createdAt || Date.now());
-    const day = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
-
-    if(oldId && !safe(t.id).toLowerCase().includes(oldId.toLowerCase())) return false;
-    if(oldDate && day !== oldDate) return false;
-    if(oldVendor && safe(t.vendeur) !== oldVendor) return false;
-    if(oldStatus && safe(t.status).toUpperCase() !== oldStatus) return false;
-
-    return true;
-  });
 
   head.innerHTML =
     '<tr>' +
@@ -2282,7 +2232,7 @@ function renderTicketsReport(){
       '<th></th>' +
     '</tr>';
 
-  body.innerHTML = rows.map(function(t){
+  body.innerHTML = ticketsRows.map(function(t){
     return '<tr>' +
       '<td>🖨 ' + safe(t.id) + '</td>' +
       '<td>' + safe(t.createdAtLabel || t.dateLabel || "") + '</td>' +
@@ -2295,7 +2245,6 @@ function renderTicketsReport(){
     '</tr>';
   }).join("");
 }
-
 
 function goPage(page){
   currentPage = page;

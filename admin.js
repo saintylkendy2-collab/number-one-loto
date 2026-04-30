@@ -2354,7 +2354,7 @@ function renderTicketsReport(){
       '<td>' + formatAmount(t.total) + '</td>' +
       '<td>' + formatAmount(t.premio) + '</td>' +
       '<td style="text-align:center;">' + getStatusIcon(t.status || "ANATAN") + '</td>' +
-      '<td><button class="mini-btn" onclick="openTicketDetail(\'' + safe(t.id) + '\')">🔍</button></td>' +
+      '<td>🔍</td>' +
     '</tr>';
   }).join("");
 }

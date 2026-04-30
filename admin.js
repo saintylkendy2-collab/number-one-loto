@@ -683,8 +683,8 @@ router.get("/master/vendors", (req, res) => {
 }
 
 #ticketsPage #ticketsFilters{
-  padding-left:26px;
-  padding-right:26px;
+  padding-left:16px;
+  padding-right:16px;
 }
 
 #ticketsPage .table-scroll{

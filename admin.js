@@ -796,7 +796,7 @@ router.post("/master/ticket/:id/anile", (req, res) => {
       <script>
 window.onload = () => {
   setTimeout(() => {
-    window.location.href = '/master/vendors'
+    window.location.href = "/master/vendors#tickets";
   }, 1500)
 }
 </script>

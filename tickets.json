@@ -176,7 +176,7 @@
     "createdAtLabel": "22/04/2026 21:53:15",
     "dateLabel": "22/04/2026",
     "timeLabel": "21:53",
-    "status": "ANATAN",
+    "status": "ANILE",
     "premio": 0,
     "channel": "WHATSAPP",
     "total": 4,
@@ -196,7 +196,9 @@
         "loterie": "KING LOTTERY DIA",
         "montant": 2
       }
-    ]
+    ],
+    "anilePar": "ADMIN",
+    "anileAt": "2026-04-30T14:24:27.917Z"
   },
   {
     "id": "09601760-5558",

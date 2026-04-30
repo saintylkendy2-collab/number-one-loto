@@ -3728,10 +3728,11 @@ function openTicketDetail(ticketId){
       '<div><b>Date:</b> ' + safe(ticket.createdAtLabel || ticket.dateLabel || "") + '</div>' +
       '<div style="margin-top:10px;"><b>Jugada:</b>' + (jeuxHTML || "Aucune") + '</div>' +
       '<div style="margin-top:10px;"><b>Total:</b> ' + formatAmount(ticket.total) + '</div>' +
-  '<div><b>Premio:</b> ' + formatAmount(ticket.premio) + '</div>' +
+ '<div><b>Premio:</b> ' + formatAmount(ticket.premio) + '</div>' +
 
-'<button onclick="fetch(\'/api/tickets/' + safe(ticket.id) + '/anile\', {method:\'POST\'})' +
-'.then(r=>r.json()).then(d=>{alert(\'Ticket annulé ✔\'); window.close();})' +
+'<button onclick="fetch(\'/api/tickets/' + ticket.id + '/anile\', {method:\'POST\'})' +
+'.then(r=>r.json())' +
+'.then(()=>{alert(\'Ticket annulé ✔\'); window.close();})' +
 '.catch(()=>alert(\'Erreur\'))" ' +
 'style="margin-top:16px;width:100%;height:46px;background:#ff5555;color:white;border:0;border-radius:10px;font-size:17px;font-weight:700;">ANILE TICKET</button>' +
 

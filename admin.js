@@ -2203,15 +2203,28 @@ function renderTicketsReport(){
   var body = byId("ticketsBody");
   if(!filters || !head || !body) return;
 
+  var oldId = safe(byId("ticketFilterId") ? byId("ticketFilterId").value : "");
+  var oldDate = safe(byId("ticketFilterDate") ? byId("ticketFilterDate").value : "") || todayISO();
+  var oldVendor = safe(byId("ticketFilterVendor") ? byId("ticketFilterVendor").value : "");
+  var oldStatus = safe(byId("ticketFilterStatus") ? byId("ticketFilterStatus").value : "");
+
+  var vendorOptions = '<option value="">-</option>';
+  vendors.forEach(function(v){
+    vendorOptions += '<option value="' + safe(v.id) + '">' + safe(v.nombre || v.nom || v.id) + '</option>';
+  });
+
   filters.innerHTML =
     '<label>ID</label>' +
-    '<input class="filter-input" id="ticketFilterId" oninput="renderTicketsReport()">' +
+    '<input class="filter-input" id="ticketFilterId" oninput="renderTicketsReport()" value="' + oldId + '">' +
+
     '<label>Fecha</label>' +
-    '<input type="date" class="filter-input" id="ticketFilterDate" onchange="renderTicketsReport()" value="' + todayISO() + '">' +
+    '<input type="date" class="filter-input" id="ticketFilterDate" onchange="renderTicketsReport()" value="' + oldDate + '">' +
+
     '<label>Vendedor</label>' +
     '<select class="filter-select" id="ticketFilterVendor" onchange="renderTicketsReport()">' +
-      '<option value="">-</option>' +
+      vendorOptions +
     '</select>' +
+
     '<label>Estatus</label>' +
     '<select class="filter-select" id="ticketFilterStatus" onchange="renderTicketsReport()">' +
       '<option value="">-</option>' +
@@ -2220,6 +2233,37 @@ function renderTicketsReport(){
       '<option value="PEDI">PEDI</option>' +
       '<option value="ANILE">ANILE</option>' +
     '</select>';
+
+  setValue("ticketFilterVendor", oldVendor);
+  setValue("ticketFilterStatus", oldStatus);
+
+  var rows = ticketsRows.slice();
+
+  rows = rows.filter(function(t){
+    var d;
+
+    if(t.createdAt){
+      d = new Date(t.createdAt);
+    }else if(t.dateLabel){
+      var p = String(t.dateLabel).split("/");
+      if(p.length === 3){
+        d = new Date(p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0"));
+      }else{
+        d = new Date();
+      }
+    }else{
+      d = new Date();
+    }
+
+    var day = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+
+    if(oldId && !safe(t.id).toLowerCase().includes(oldId.toLowerCase())) return false;
+    if(oldDate && day !== oldDate) return false;
+    if(oldVendor && safe(t.vendeur) !== oldVendor) return false;
+    if(oldStatus && safe(t.status).toUpperCase() !== oldStatus) return false;
+
+    return true;
+  });
 
   head.innerHTML =
     '<tr>' +
@@ -2233,7 +2277,12 @@ function renderTicketsReport(){
       '<th></th>' +
     '</tr>';
 
-  body.innerHTML = ticketsRows.map(function(t){
+  if(!rows.length){
+    body.innerHTML = '<tr><td colspan="8" class="empty-state">Pa gen tickets pou dat sa</td></tr>';
+    return;
+  }
+
+  body.innerHTML = rows.map(function(t){
     return '<tr>' +
       '<td>🖨 ' + safe(t.id) + '</td>' +
       '<td>' + safe(t.createdAtLabel || t.dateLabel || "") + '</td>' +

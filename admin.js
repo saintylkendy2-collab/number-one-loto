@@ -1518,7 +1518,6 @@ tbody tr:nth-child(even){background:#313652;}
     <div class="tab" onclick="showTicketsTab('vendedores')">VENDEDORES</div>
   </div>
 </div>
-  
 
     <div style="padding:14px;">
       <div id="ticketsFilters"></div>
@@ -1530,8 +1529,6 @@ tbody tr:nth-child(even){background:#313652;}
         </table>
       </div>
     </div>
-  </div>
-</div>
 
 <div id="transactionsPage" class="page-block hidden">
   <div class="page-title">Transactions</div>

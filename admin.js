@@ -792,18 +792,17 @@ router.post("/master/ticket/:id/anile", (req, res) => {
   res.send(`
     <html>
     <body style="font-family:Arial;background:#1c2037;color:white;padding:20px;text-align:center">
-      <h2>Ticket annulé ✅</h2>
+    <h2 style="margin-top:80px;font-size:28px;">
+  Ticket annulé ✅
+</h2>
 
-      <button
+<button 
+  style="margin-top:40px;height:50px;width:90%;font-size:20px;border-radius:8px;"
   onclick="
-    if (window.opener) {
-      window.opener.location.href = '/master/vendors#tickets';
-      window.opener.location.reload();
-    }
-    window.close();
-  "
-  style="height:45px;width:100%;font-size:18px">
+    window.location.href='/master/vendors#tickets'
+  ">
   RETOUNEN
+</button>
 </button>
     </body>
     </html>

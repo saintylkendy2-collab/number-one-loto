@@ -2235,6 +2235,31 @@ function showTicketsTab(tab){
   renderTicketsReport();
 }
 
+function getStatusIcon(status) {
+  if (!status) return "";
+
+  status = status.toUpperCase();
+
+  if (status.includes("PEDI")) {
+    return '<span style="color:#ff4d4d;">✖</span>';
+  }
+
+  if (status.includes("ANATAN")) {
+    return '<span style="color:#7c4dff;">🕒</span>';
+  }
+
+  if (status.includes("ANILE")) {
+    return '<span style="color:#999;">🚫</span>';
+  }
+
+  if (status.includes("GANYE")) {
+    return '<span style="color:#4caf50;">✔</span>';
+  }
+
+  return status;
+}
+
+
 function renderTicketsReport(){
   var filters = byId("ticketsFilters");
   var head = byId("ticketsHead");
@@ -2328,7 +2353,7 @@ function renderTicketsReport(){
       '<td>' + (Array.isArray(t.jeux) ? t.jeux.length : 0) + '</td>' +
       '<td>' + formatAmount(t.total) + '</td>' +
       '<td>' + formatAmount(t.premio) + '</td>' +
-      '<td>' + safe(t.status || "ANATAN") + '</td>' +
+      '<td style="text-align:center;">' + getStatusIcon(t.status || "ANATAN") + '</td>' +
       '<td>🔍</td>' +
     '</tr>';
   }).join("");

@@ -790,7 +790,7 @@ router.post("/master/ticket/:id/anile", (req, res) => {
   writeTicketsArray(tickets);
 
    res.send(`
-  <html>
+ <html>
 <body style="font-family:Arial;background:#1c2037;color:white;text-align:center;padding-top:50px;">
 
 <h2>Ticket annulé ✅</h2>

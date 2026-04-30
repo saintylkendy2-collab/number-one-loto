@@ -7,6 +7,7 @@ const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 console.log("ADMIN VENDEURS_FILE =", VENDEURS_FILE);
 
 const TICKETS_FILE = path.join(__dirname, "tickets.json");
+const SORTEOS_FILE = path.join(__dirname, "sorteos.json");
 
 function readTicketsArray() {
   try {
@@ -23,6 +24,27 @@ function readTicketsArray() {
     console.error("Erreur lecture tickets.json :", err);
     return [];
   }
+}
+
+function readSorteosObject() {
+  try {
+    if (!fs.existsSync(SORTEOS_FILE)) {
+      fs.writeFileSync(SORTEOS_FILE, JSON.stringify({}, null, 2), "utf8");
+    }
+
+    const raw = fs.readFileSync(SORTEOS_FILE, "utf8").trim();
+    if (!raw) return {};
+
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (err) {
+    console.error("Erreur lecture sorteos.json :", err);
+    return {};
+  }
+}
+
+function writeSorteosObject(data) {
+  fs.writeFileSync(SORTEOS_FILE, JSON.stringify(data, null, 2), "utf8");
 }
 
 function ensureVendeursFile() {
@@ -823,6 +845,74 @@ router.post("/master/ticket/:id/anile", (req, res) => {
     </body>
     </html>
   `);
+});
+
+router.get("/api/sorteos", (req, res) => {
+  try {
+    res.json(readSorteosObject());
+  } catch (err) {
+    console.error("Erreur get sorteos :", err);
+    res.status(500).json({});
+  }
+});
+
+router.post("/api/sorteos/save", (req, res) => {
+  try {
+    const body = req.body || {};
+    const date = String(body.date || "").trim();
+    const rows = Array.isArray(body.rows) ? body.rows : [];
+
+    if (!date) {
+      return res.status(400).json({ ok: false, message: "Date obligatoire" });
+    }
+
+    const sorteos = readSorteosObject();
+
+    if (!sorteos[date]) {
+      sorteos[date] = {};
+    }
+
+    rows.forEach((r) => {
+      const loteria = String(r.loteria || "").trim();
+      const r1 = String(r.r1 || "").trim();
+      const r2 = String(r.r2 || "").trim();
+
+      if (!loteria) return;
+
+      sorteos[date][loteria] = {
+        r1,
+        r2,
+        updatedAt: new Date().toISOString()
+      };
+    });
+
+    writeSorteosObject(sorteos);
+
+    res.json({ ok: true, sorteos: sorteos[date] });
+  } catch (err) {
+    console.error("Erreur save sorteos :", err);
+    res.status(500).json({ ok: false, message: "Erreur save sorteos" });
+  }
+});
+
+router.delete("/api/sorteos/:date/:loteria", (req, res) => {
+  try {
+    const date = String(req.params.date || "").trim();
+    const loteria = String(req.params.loteria || "").trim();
+
+    const sorteos = readSorteosObject();
+
+    if (sorteos[date] && sorteos[date][loteria]) {
+      delete sorteos[date][loteria];
+    }
+
+    writeSorteosObject(sorteos);
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Erreur delete sorteos :", err);
+    res.status(500).json({ ok: false, message: "Erreur delete sorteos" });
+  }
 });
 
 router.get("/master/vendors", (req, res) => {

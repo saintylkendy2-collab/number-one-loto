@@ -793,7 +793,7 @@ router.post("/master/ticket/:id/anile", (req, res) => {
     <html>
     <body style="font-family:Arial;background:#1c2037;color:white;padding:20px">
       <h2>Ticket annulé ✔</h2>
-      <button onclick="window.close()" style="height:45px;width:100%;font-size:18px">FÈMEN</button>
+      <button onclick="history.back()">FÈMEN</button>
     </body>
     </html>
   `);

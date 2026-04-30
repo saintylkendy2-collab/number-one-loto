@@ -779,28 +779,17 @@ router.post("/master/ticket/:id/anile", (req, res) => {
 
   const index = tickets.findIndex(t => String(t.id || "").trim() === ticketId);
 
-  if (index === -1) {
-    return res.send("Ticket introuvable");
+  if (index !== -1) {
+    tickets[index].status = "ANILE";
+    tickets[index].anilePar = "ADMIN";
+    tickets[index].anileAt = new Date().toISOString();
+    writeTicketsArray(tickets);
   }
 
-  tickets[index].status = "ANILE";
-  tickets[index].anilePar = "ADMIN";
-  tickets[index].anileAt = new Date().toISOString();
-
-  writeTicketsArray(tickets);
-
   res.send(`
-    <html>
-    <body style="font-family:Arial;background:#1c2037;color:white;padding:20px;text-align:center">
-      <h2>Ticket annulé ✅</h2>
-
-      <script>
-        setTimeout(function(){
-          window.close();
-        }, 700);
-      </script>
-    </body>
-    </html>
+    <script>
+      window.location.href = "/master/vendors#tickets";
+    </script>
   `);
 });
 

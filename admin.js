@@ -2681,52 +2681,6 @@ function renderVendorTable(){
   });
 }
 
-function openTicketDetail(ticketId){
-  var ticket = ticketsRows.find(function(t){
-    return String(t.id) === String(ticketId);
-  });
-
-  if(!ticket){
-    alert("Ticket introuvable");
-    return;
-  }
-
-  var jeuxHTML = "";
-
-  if(Array.isArray(ticket.jeux)){
-    jeuxHTML = ticket.jeux.map(function(j){
-      return "<div style='padding:6px;border-bottom:1px solid #444'>" +
-        "<b>" + (j.numero || "") + "</b> - " +
-        (j.type || "") + " - " +
-        formatAmount(j.montant || j.monto || j.amount || 0) +
-      "</div>";
-    }).join("");
-  }
-
-  var html =
-    "<div style='background:#2a2f4a;color:white;padding:15px;font-family:Arial'>" +
-      "<h3>Ticket " + ticket.id + "</h3>" +
-      "<div><b>Vendeur:</b> " + (ticket.vendeurNom || ticket.vendeur) + "</div>" +
-      "<div><b>Date:</b> " + (ticket.createdAtLabel || ticket.dateLabel || "") + "</div>" +
-      "<div style='margin-top:10px'><b>Jugada:</b>" + (jeuxHTML || "Aucune") + "</div>" +
-      "<div style='margin-top:10px'><b>Total:</b> " + formatAmount(ticket.total) + "</div>" +
-      "<div><b>Premio:</b> " + formatAmount(ticket.premio) + "</div>" +
-
-      "<button onclick=\"fetch('/api/tickets/" + ticket.id + "/anile',{method:'POST'})" +
-      ".then(()=>{alert('Ticket annulé');window.close();})" +
-      ".catch(()=>alert('Erreur'))\" " +
-      "style='margin-top:15px;width:100%;height:45px;background:#ff5555;color:white;border:0;border-radius:8px'>ANILE TICKET</button>" +
-
-      "<button onclick='window.close()' " +
-      "style='margin-top:10px;width:100%;height:40px;background:#444b70;color:white;border:0;border-radius:8px'>TOUNEN</button>" +
-
-    "</div>";
-
-  var w = window.open("", "_blank");
-  w.document.write(html);
-  w.document.close();
-}
-
 function renderVentasTable(){
   const tbody = byId("ventasTableBody");
   const tfoot = byId("ventasTableFoot");
@@ -3743,6 +3697,94 @@ async function deleteMovimiento(vendorId, movimientoId){
     console.error(err);
     alert("Erreur delete transaction");
   }
+}
+
+function openTicketDetail(ticketId){
+  var ticket = ticketsRows.find(function(t){
+    return String(t.id) === String(ticketId);
+  });
+
+  if(!ticket){
+    alert("Ticket introuvable");
+    return;
+  }
+
+  var box = document.createElement("div");
+  box.style.position = "fixed";
+  box.style.inset = "0";
+  box.style.background = "rgba(0,0,0,.55)";
+  box.style.zIndex = "99999";
+  box.style.padding = "18px";
+
+  var card = document.createElement("div");
+  card.style.background = "#2a2f4a";
+  card.style.color = "#fff";
+  card.style.padding = "16px";
+  card.style.borderRadius = "12px";
+  card.style.fontFamily = "Arial";
+  card.style.maxHeight = "85vh";
+  card.style.overflow = "auto";
+
+  var close = document.createElement("button");
+  close.textContent = "×";
+  close.style.float = "right";
+  close.style.fontSize = "24px";
+  close.onclick = function(){
+    box.remove();
+  };
+
+  var title = document.createElement("h3");
+  title.textContent = "Ticket " + safe(ticket.id);
+
+  var info = document.createElement("div");
+  info.innerHTML =
+    "<b>Vendeur:</b> " + safe(ticket.vendeurNom || ticket.vendeur) + "<br>" +
+    "<b>Date:</b> " + safe(ticket.createdAtLabel || ticket.dateLabel || "") + "<br><br>" +
+    "<b>Jugada:</b>";
+
+  card.appendChild(close);
+  card.appendChild(title);
+  card.appendChild(info);
+
+  if(Array.isArray(ticket.jeux)){
+    ticket.jeux.forEach(function(j){
+      var line = document.createElement("div");
+      line.style.padding = "8px";
+      line.style.borderBottom = "1px solid #444";
+      line.textContent =
+        safe(j.numero || "") + " - " +
+        safe(j.type || "") + " - " +
+        formatAmount(j.montant || j.monto || j.amount || 0);
+      card.appendChild(line);
+    });
+  }
+
+  var total = document.createElement("div");
+  total.style.marginTop = "12px";
+  total.innerHTML =
+    "<b>Total:</b> " + formatAmount(ticket.total) + "<br>" +
+    "<b>Premio:</b> " + formatAmount(ticket.premio);
+  card.appendChild(total);
+
+  var anile = document.createElement("button");
+  anile.textContent = "ANILE TICKET";
+  anile.style.marginTop = "16px";
+  anile.style.width = "100%";
+  anile.style.height = "46px";
+  anile.style.background = "#ff5555";
+  anile.style.color = "white";
+  anile.style.border = "0";
+  anile.style.borderRadius = "10px";
+  anile.style.fontSize = "17px";
+  anile.style.fontWeight = "700";
+  anile.onclick = function(){
+    box.remove();
+    cancelTicket(ticket.id);
+  };
+
+  card.appendChild(anile);
+  box.appendChild(card);
+  document.body.appendChild(box);
 }
 
 async function cancelTicket(ticketId){

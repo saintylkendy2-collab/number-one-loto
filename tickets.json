@@ -103,7 +103,7 @@
     "createdAtLabel": "22/04/2026 21:37:12",
     "dateLabel": "22/04/2026",
     "timeLabel": "21:37",
-    "status": "ANATAN",
+    "status": "ANILE",
     "premio": 0,
     "channel": "PRINT",
     "total": 25,
@@ -117,7 +117,9 @@
         "loterie": "ANGUILLA 01:00 PM",
         "montant": 25
       }
-    ]
+    ],
+    "anilePar": "ADMIN",
+    "anileAt": "2026-04-30T14:38:08.818Z"
   },
   {
     "id": "08248055-6246",

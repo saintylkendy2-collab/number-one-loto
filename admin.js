@@ -789,19 +789,17 @@ router.post("/master/ticket/:id/anile", (req, res) => {
 
   writeTicketsArray(tickets);
 
-  res.send(`
+   res.send(`
     <html>
-    <body style="font-family:Arial;background:#1c2037;color:white;text-align:center;padding-top:50px;">
+<body style="font-family:Arial;background:#1c2037;color:white;padding:20px">
+  <h2>Ticket annulé ✔</h2>
 
-  <h2>Ticket annulé &#10004;</h2>
-
-  <script>
-    setTimeout(function(){
-      history.back();
-    }, 1500);
-  </script>
-    </body>
-    </html>
+  <button onclick="history.back()"
+    style="height:45px;width:100%;font-size:18px">
+    RETOUNEN
+  </button>
+</body>
+</html>
   `);
 });
 

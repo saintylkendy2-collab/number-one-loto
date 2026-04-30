@@ -677,6 +677,22 @@ router.get("/master/vendors", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Master Ventas</title>
 <style>
+#ticketsPage .tabs-scroll{
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+
+#ticketsPage .tickets-tabs{
+  width:max-content;
+  min-width:max-content;
+}
+
+#ticketsPage .tickets-tabs .tab{
+  min-width:190px;
+  text-align:center;
+}
+
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{
  font-family:Arial,sans-serif;
@@ -1510,14 +1526,15 @@ tbody tr:nth-child(even){background:#313652;}
 
  <div id="ticketsPage" class="page-block hidden">
   <div class="page-title">Tickets y Jugadas</div>
-
-  <div class="table-card">
-    <div class="tabs">
-      <div class="tab active" onclick="showTicketsTab('tickets')">TICKETS</div>
-      <div class="tab" onclick="showTicketsTab('jugadas')">JUGADAS</div>
-      <div class="tab" onclick="showTicketsTab('loterias')">LOTERIAS</div>
-      <div class="tab" onclick="showTicketsTab('vendedores')">VENDEDORES</div>
-    </div>
+<div class="tabs-scroll">
+  <div class="tabs tickets-tabs">
+    <div class="tab active" onclick="showTicketsTab('tickets')">TICKETS</div>
+    <div class="tab" onclick="showTicketsTab('jugadas')">JUGADAS</div>
+    <div class="tab" onclick="showTicketsTab('loterias')">LOTERIAS</div>
+    <div class="tab" onclick="showTicketsTab('vendedores')">VENDEDORES</div>
+  </div>
+</div>
+  
 
     <div style="padding:14px;">
       <div id="ticketsFilters"></div>

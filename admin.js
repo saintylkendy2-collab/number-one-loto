@@ -2011,6 +2011,52 @@ const loteriasList = [
   "GEORGIA EVENING"
 ];
 
+function openTicketDetail(ticketId){
+  var ticket = ticketsRows.find(function(t){
+    return String(t.id) === String(ticketId);
+  });
+
+  if(!ticket){
+    alert("Ticket introuvable");
+    return;
+  }
+
+  var jeuxHTML = "";
+
+  if(Array.isArray(ticket.jeux)){
+    jeuxHTML = ticket.jeux.map(function(j){
+      return "<div style='padding:6px;border-bottom:1px solid #444'>" +
+        "<b>" + (j.numero || "") + "</b> - " +
+        (j.type || "") + " - " +
+        formatAmount(j.montant || j.monto || j.amount || 0) +
+      "</div>";
+    }).join("");
+  }
+
+  var html =
+    "<div style='background:#2a2f4a;color:white;padding:15px;font-family:Arial'>" +
+      "<h3>Ticket " + ticket.id + "</h3>" +
+      "<div><b>Vendeur:</b> " + (ticket.vendeurNom || ticket.vendeur) + "</div>" +
+      "<div><b>Date:</b> " + (ticket.createdAtLabel || ticket.dateLabel || "") + "</div>" +
+      "<div style='margin-top:10px'><b>Jugada:</b>" + (jeuxHTML || "Aucune") + "</div>" +
+      "<div style='margin-top:10px'><b>Total:</b> " + formatAmount(ticket.total) + "</div>" +
+      "<div><b>Premio:</b> " + formatAmount(ticket.premio) + "</div>" +
+
+      "<button onclick=\"fetch('/api/tickets/" + ticket.id + "/anile',{method:'POST'})" +
+      ".then(()=>{alert('Ticket annulé');window.close();})" +
+      ".catch(()=>alert('Erreur'))\" " +
+      "style='margin-top:15px;width:100%;height:45px;background:#ff5555;color:white;border:0;border-radius:8px'>ANILE TICKET</button>" +
+
+      "<button onclick='window.close()' " +
+      "style='margin-top:10px;width:100%;height:40px;background:#444b70;color:white;border:0;border-radius:8px'>TOUNEN</button>" +
+
+    "</div>";
+
+  var w = window.open("", "_blank");
+  w.document.write(html);
+  w.document.close();
+}
+
 function safe(v){
   return v == null ? "" : String(v);
 }
@@ -3737,52 +3783,6 @@ document.addEventListener("click", function(e){
   const id = btn.getAttribute("data-id");
   openTicketDetail(id);
 });
-
-function openTicketDetail(ticketId){
-  var ticket = ticketsRows.find(function(t){
-    return String(t.id) === String(ticketId);
-  });
-
-  if(!ticket){
-    alert("Ticket introuvable");
-    return;
-  }
-
-  var jeuxHTML = "";
-
-  if(Array.isArray(ticket.jeux)){
-    jeuxHTML = ticket.jeux.map(function(j){
-      return "<div style='padding:6px;border-bottom:1px solid #444'>" +
-        "<b>" + (j.numero || "") + "</b> - " +
-        (j.type || "") + " - " +
-        formatAmount(j.montant || j.monto || j.amount || 0) +
-      "</div>";
-    }).join("");
-  }
-
-  var html =
-    "<div style='background:#2a2f4a;color:white;padding:15px;font-family:Arial'>" +
-      "<h3>Ticket " + ticket.id + "</h3>" +
-      "<div><b>Vendeur:</b> " + (ticket.vendeurNom || ticket.vendeur) + "</div>" +
-      "<div><b>Date:</b> " + (ticket.createdAtLabel || ticket.dateLabel || "") + "</div>" +
-      "<div style='margin-top:10px'><b>Jugada:</b>" + (jeuxHTML || "Aucune") + "</div>" +
-      "<div style='margin-top:10px'><b>Total:</b> " + formatAmount(ticket.total) + "</div>" +
-      "<div><b>Premio:</b> " + formatAmount(ticket.premio) + "</div>" +
-
-      "<button onclick=\"fetch('/api/tickets/" + ticket.id + "/anile',{method:'POST'})" +
-      ".then(()=>{alert('Ticket annulé');window.close();})" +
-      ".catch(()=>alert('Erreur'))\" " +
-      "style='margin-top:15px;width:100%;height:45px;background:#ff5555;color:white;border:0;border-radius:8px'>ANILE TICKET</button>" +
-
-      "<button onclick='window.close()' " +
-      "style='margin-top:10px;width:100%;height:40px;background:#444b70;color:white;border:0;border-radius:8px'>TOUNEN</button>" +
-
-    "</div>";
-
-  var w = window.open("", "_blank");
-  w.document.write(html);
-  w.document.close();
-}
 
 </script>
 

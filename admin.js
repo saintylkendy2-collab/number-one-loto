@@ -1519,6 +1519,10 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
 </div>
 
+<div style="padding:14px;">
+  <div id="ticketsFilters"></div>
+</div>
+
 <div class="table-card">
   <div class="table-scroll">
     <table>
@@ -1526,6 +1530,7 @@ tbody tr:nth-child(even){background:#313652;}
       <tbody id="ticketsBody"></tbody>
     </table>
   </div>
+</div>
 </div>
 
 <div id="transactionsPage" class="page-block hidden">

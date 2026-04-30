@@ -668,6 +668,44 @@ const movement = {
   }
 });
 
+function writeTicketsArray(data) {
+  fs.writeFileSync(TICKETS_FILE, JSON.stringify(data, null, 2), "utf8");
+}
+
+router.get("/api/reportes/tickets", (req, res) => {
+  try {
+    const tickets = readTicketsArray();
+    res.json(tickets);
+  } catch (err) {
+    console.error("Erreur report tickets :", err);
+    res.status(500).json([]);
+  }
+});
+
+router.post("/api/tickets/:id/anile", (req, res) => {
+  try {
+    const ticketId = String(req.params.id || "").trim();
+    const tickets = readTicketsArray();
+
+    const index = tickets.findIndex(t => String(t.id || "").trim() === ticketId);
+
+    if (index === -1) {
+      return res.status(404).json({ ok: false, message: "Ticket introuvable" });
+    }
+
+    tickets[index].status = "ANILE";
+    tickets[index].anilePar = "ADMIN";
+    tickets[index].anileAt = new Date().toISOString();
+
+    writeTicketsArray(tickets);
+
+    res.json({ ok: true, ticket: tickets[index] });
+  } catch (err) {
+    console.error("Erreur anile ticket :", err);
+    res.status(500).json({ ok: false, message: "Erreur anile ticket" });
+  }
+});
+
 router.get("/master/vendors", (req, res) => {
   res.send(`
 <!DOCTYPE html>

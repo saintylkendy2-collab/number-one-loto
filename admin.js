@@ -677,14 +677,6 @@ router.get("/master/vendors", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Master Ventas</title>
 <style>
-#ticketsPage .tabs{
-  overflow-x:auto;
-  overflow-y:hidden;
-  -webkit-overflow-scrolling:touch;
-  display:flex;
-  flex-wrap:nowrap;
-}
-
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{
  font-family:Arial,sans-serif;

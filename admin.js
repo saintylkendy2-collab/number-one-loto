@@ -790,17 +790,20 @@ router.post("/master/ticket/:id/anile", (req, res) => {
   writeTicketsArray(tickets);
 
    res.send(`
-    <html>
-<body style="font-family:Arial;background:#1c2037;color:white;padding:20px">
-  <h2>Ticket annulé ✅</h2>
+  <html>
+<body style="font-family:Arial;background:#1c2037;color:white;text-align:center;padding-top:50px;">
 
-<button onclick="window.location.href='/master/vendors?open=tickets'" 
-style="height:45px;width:100%;font-size:18px">
-RETOUNEN
-</button>
+<h2>Ticket annulé ✅</h2>
+
+<script>
+setTimeout(() => {
+  history.back();
+}, 800);
+</script>
+
 </body>
 </html>
-  `);
+`);
 });
 
 router.get("/master/vendors", (req, res) => {
@@ -3766,12 +3769,7 @@ if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
   loadBalanceReport();
 });
 
-const url = new URLSearchParams(window.location.search);
-if (url.get("open") === "tickets") {
-  goPage("tickets");
-} else {
-  goPage("ventas");
-}
+goPage("ventas");
 
 async function deleteMovimiento(vendorId, movimientoId){
   if(!confirm("Ou vle siprime transaction sa?")) return;

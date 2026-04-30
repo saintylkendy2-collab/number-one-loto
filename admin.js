@@ -1606,7 +1606,9 @@ tbody tr:nth-child(even){background:#313652;}
   <div class="side-menu-item" id="menu-tickets" onclick="goPage('tickets')">
   <span>Tickets</span>
 </div>
-  <div class="side-menu-item"><span>Sorteos</span></div>
+  <div class="side-menu-item" id="menu-sorteos" onclick="goPage('sorteos')">
+  <span>Sorteos</span>
+</div>
 
   <div class="side-menu-section">REPORTES</div>
   <div class="side-menu-item" id="menu-venta" onclick="toggleSubmenu('ventaMenu')">
@@ -1763,6 +1765,31 @@ tbody tr:nth-child(even){background:#313652;}
     <div class="tab" onclick="showTicketsTab('jugadas')">JUGADAS</div>
     <div class="tab" onclick="showTicketsTab('loterias')">LOTERIAS</div>
     <div class="tab" onclick="showTicketsTab('vendedores')">VENDEDORES</div>
+  </div>
+</div>
+
+<div id="sorteosPage" class="page-block hidden">
+  <div class="page-title">Sorteos</div>
+
+  <div class="table-card" style="padding:14px;">
+    <div class="field-group">
+      <input type="date" id="sorteosDate" class="field-input">
+    </div>
+
+    <div id="sorteosRows"></div>
+
+    <button onclick="saveSorteos()" style="
+      width:100%;
+      height:56px;
+      margin-top:18px;
+      border:0;
+      border-radius:12px;
+      background:linear-gradient(90deg,#6c6cff,#7a5cff);
+      color:white;
+      font-size:20px;
+      font-weight:800;">
+      SAVE
+    </button>
   </div>
 </div>
 

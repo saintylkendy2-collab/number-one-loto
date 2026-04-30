@@ -3698,39 +3698,6 @@ async function deleteMovimiento(vendorId, movimientoId){
     alert("Erreur delete transaction");
   }
 }
-function openTicketDetail(ticketId){
-  var ticket = ticketsRows.find(function(t){
-    return String(t.id) === String(ticketId);
-  });
-
-  if(!ticket){
-    alert("Ticket introuvable");
-    return;
-  }
-
-  var lignes = "";
-  if(Array.isArray(ticket.jeux)){
-    ticket.jeux.forEach(function(j){
-      lignes += safe(j.numero || "") + " - " +
-                safe(j.type || "") + " - " +
-                formatAmount(j.montant || j.monto || j.amount || 0) + "\n";
-    });
-  }
-
-  var message =
-    "Ticket: " + safe(ticket.id) + "\n" +
-    "Vendeur: " + safe(ticket.vendeurNom || ticket.vendeur) + "\n" +
-    "Date: " + safe(ticket.createdAtLabel || ticket.dateLabel || "") + "\n\n" +
-    "Jugada:\n" + (lignes || "Aucune\n") + "\n" +
-    "Total: " + formatAmount(ticket.total) + "\n" +
-    "Premio: " + formatAmount(ticket.premio) + "\n\n" +
-    "Ou vle ANILE ticket sa?";
-
-  if(confirm(message)){
-    cancelTicket(ticket.id);
-  }
-}
-
 
 async function cancelTicket(ticketId){
 

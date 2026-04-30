@@ -3753,6 +3753,10 @@ if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
   loadVendorsFromServer();
   loadVentasReport();
   loadBalanceReport();
+
+  if (window.location.hash === "#tickets") {
+  goPage("tickets");
+}
 });
 
 goPage("ventas");

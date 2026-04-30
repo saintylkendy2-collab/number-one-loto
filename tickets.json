@@ -1345,7 +1345,7 @@
     "createdAtLabel": "30/04/2026 13:37:50",
     "dateLabel": "30/04/2026",
     "timeLabel": "13:37:50",
-    "status": "ANATAN",
+    "status": "ANILE",
     "premio": 0,
     "channel": "PRINT",
     "total": 10,
@@ -1365,7 +1365,9 @@
         "loterie": "LA SUERTE DIA",
         "montant": 5
       }
-    ]
+    ],
+    "anilePar": "ADMIN",
+    "anileAt": "2026-04-30T17:47:33.029Z"
   },
   {
     "id": "70705764-7099",

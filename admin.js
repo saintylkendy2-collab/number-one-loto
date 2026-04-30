@@ -2323,6 +2323,12 @@ async function loadTicketsReport(){
   renderTicketsReport();
 }
 
+window.addEventListener("focus", function(){
+  if (currentPage === "tickets") {
+    loadTicketsReport();
+  }
+});
+
 function showTicketsTab(tab){
   ticketsTab = tab;
 

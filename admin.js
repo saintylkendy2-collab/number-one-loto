@@ -3699,35 +3699,6 @@ async function deleteMovimiento(vendorId, movimientoId){
   }
 }
 
-async function cancelTicket(ticketId){
-
-  if(!confirm("Ou vle anile ticket sa?")) return;
-
-  try{
-    const res = await fetch("/api/tickets/" + encodeURIComponent(ticketId) + "/cancel", {
-      method: "POST"
-    });
-
-    const data = await res.json();
-
-    if(!res.ok){
-      alert(data.message || "Erreur annulation");
-      return;
-    }
-
-    alert("Ticket annulé ✔");
-
-    await loadTicketsReport();
-    await loadVentasReport();
-    await loadBalanceReport();
-
-  }catch(err){
-    console.error(err);
-    alert("Erreur serveur");
-  }
-}
-
-
 </script>
 
 </body>

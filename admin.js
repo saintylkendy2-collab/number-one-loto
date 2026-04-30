@@ -3699,6 +3699,8 @@ async function deleteMovimiento(vendorId, movimientoId){
   }
 }
 
+
+
 function openTicketDetail(ticketId){
   var ticket = ticketsRows.find(function(t){
     return String(t.id) === String(ticketId);
@@ -3709,30 +3711,27 @@ function openTicketDetail(ticketId){
     return;
   }
 
-  var lignes = "";
+  var msg = "Ticket: " + safe(ticket.id) + "\n";
+  msg += "Vendeur: " + safe(ticket.vendeurNom || ticket.vendeur) + "\n";
+  msg += "Date: " + safe(ticket.createdAtLabel || ticket.dateLabel || "") + "\n\n";
+
+  msg += "Jugada:\n";
+
   if(Array.isArray(ticket.jeux)){
     ticket.jeux.forEach(function(j){
-      lignes += safe(j.numero || "") + " - " +
-                safe(j.type || "") + " - " +
-                formatAmount(j.montant || j.monto || j.amount || 0) + "\n";
+      msg += safe(j.numero || "") + " - " +
+             safe(j.type || "") + " - " +
+             formatAmount(j.montant || j.monto || j.amount || 0) + "\n";
     });
   }
 
-  var message =
-    "Ticket: " + safe(ticket.id) + "\n" +
-    "Vendeur: " + safe(ticket.vendeurNom || ticket.vendeur) + "\n" +
-    "Date: " + safe(ticket.createdAtLabel || ticket.dateLabel || "") + "\n\n" +
-    "Jugada:\n" + (lignes || "Aucune\n") + "\n" +
-    "Total: " + formatAmount(ticket.total) + "\n" +
-    "Premio: " + formatAmount(ticket.premio) + "\n\n" +
-    "Ou vle ANILE ticket sa?";
+  msg += "\nTotal: " + formatAmount(ticket.total);
+  msg += "\nPremio: " + formatAmount(ticket.premio);
 
-  if(confirm(message)){
+  if(confirm(msg + "\n\nOu vle ANILE ticket sa?")){
     cancelTicket(ticket.id);
   }
-}
-
-async function cancelTicket(ticketId){
+}async function cancelTicket(ticketId){
 
   if(!confirm("Ou vle anile ticket sa?")) return;
 

@@ -677,21 +677,6 @@ router.get("/master/vendors", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Master Ventas</title>
 <style>
-#ticketsPage{
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-
-#ticketsPage .page-title{
-  padding-left: 16px;
-  padding-right: 16px;
-}
-
-#ticketsPage .filters{
-  padding-left: 16px;
-  padding-right: 16px;
-}
-
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{
  font-family:Arial,sans-serif;

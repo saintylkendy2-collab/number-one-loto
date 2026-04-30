@@ -3699,8 +3699,6 @@ async function deleteMovimiento(vendorId, movimientoId){
   }
 }
 
-
-
 function openTicketDetail(ticketId){
   var ticket = ticketsRows.find(function(t){
     return String(t.id) === String(ticketId);
@@ -3731,7 +3729,10 @@ function openTicketDetail(ticketId){
   if(confirm(msg + "\n\nOu vle ANILE ticket sa?")){
     cancelTicket(ticket.id);
   }
-}async function cancelTicket(ticketId){
+}
+
+
+async function cancelTicket(ticketId){
 
   if(!confirm("Ou vle anile ticket sa?")) return;
 

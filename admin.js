@@ -789,8 +789,19 @@ router.post("/master/ticket/:id/anile", (req, res) => {
 
   writeTicketsArray(tickets);
 
-  // RETOUNEN DIRÈK SOU LIS BIYÈ YO
-  return res.redirect("/master/vendors#tickets");
+  res.send(`
+    <html>
+    <body style="font-family:Arial;background:#1c2037;color:white;padding:20px;text-align:center">
+      <h2>Ticket annulé ✅</h2>
+
+      <script>
+        setTimeout(function(){
+          window.close();
+        }, 700);
+      </script>
+    </body>
+    </html>
+  `);
 });
 
 router.get("/master/vendors", (req, res) => {

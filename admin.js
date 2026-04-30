@@ -3743,9 +3743,9 @@ async function cancelTicket(ticketId){
   if(!confirm("Ou vle anile ticket sa?")) return;
 
   try{
-   const res = await fetch("/api/tickets/" + encodeURIComponent(ticketId) + "/cancel", {
-      method: "POST"
-    });
+   const res = await fetch("/api/tickets/" + encodeURIComponent(ticketId) + "/anile", {
+  method: "POST"
+});
 
     const data = await res.json();
 

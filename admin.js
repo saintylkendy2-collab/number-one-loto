@@ -2447,7 +2447,7 @@ function renderTicketsReport(){
       '<td>' + formatAmount(t.total) + '</td>' +
       '<td>' + formatAmount(t.premio) + '</td>' +
       '<td style="text-align:center;">' + getStatusIcon(t.status || "ANATAN") + '</td>' +
-     '<td><a class="mini-btn" href="/master/ticket/' + encodeURIComponent(t.id) + '" target="_blank">🔍</a></td>' +
+     '<td><a class="mini-btn" href="/master/ticket/' + encodeURIComponent(t.id) + '">🔍</a></td>' +
     '</tr>';
   }).join("");
 }
@@ -3819,17 +3819,6 @@ async function cancelTicket(ticketId){
     alert("Erreur serveur");
   }
 }
-
-document.addEventListener("click", function(e){
-  const btn = e.target.closest("#ticketsBody .mini-btn");
-  if(!btn) return;
-
-  e.preventDefault();
-  e.stopPropagation();
-
-  const id = btn.getAttribute("data-id");
-  openTicketDetail(id);
-});
 
 </script>
 

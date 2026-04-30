@@ -734,6 +734,15 @@ router.get("/master/ticket/:id", (req, res) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
         body{font-family:Arial;background:#1c2037;color:white;padding:14px}
+
+a,
+a:visited,
+a:hover,
+a:active{
+  color:white !important;
+  text-decoration:none !important;
+}
+
         .card{background:#2a2f4a;border-radius:14px;padding:16px}
         table{width:100%;border-collapse:collapse;margin-top:12px}
         th,td{padding:10px;border-bottom:1px solid #444;text-align:left}
@@ -791,9 +800,13 @@ router.post("/master/ticket/:id/anile", (req, res) => {
 
   res.send(`
     <html>
+    <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+
   <body style="font-family:Arial;background:#1c2037;color:white;padding:20px;text-align:center">
 
-    <h2 style="margin-top:80px;font-size:28px;">
+    <h2 style="margin-top:100px;font-size:34px;">
       Ticket annulé ✅
     </h2>
 
@@ -804,7 +817,7 @@ router.post("/master/ticket/:id/anile", (req, res) => {
         }
         window.close();
       "
-      style="margin-top:40px;height:55px;width:90%;font-size:20px;border-radius:8px;">
+      style="margin-top:50px;height:65px;width:95%;font-size:22px;border-radius:10px;">
       RETOUNEN
     </button>
     </body>

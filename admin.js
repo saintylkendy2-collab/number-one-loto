@@ -3740,21 +3740,18 @@ function openTicketDetail(ticketId){
   }
 
   var html =
-    '<div style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;padding:18px;">' +
-      '<div style="background:#2a2f4a;padding:16px;border-radius:12px;color:#fff;font-family:Arial;max-height:85vh;overflow:auto;">' +
-        '<button onclick="this.closest(\'.ticket-modal\').remove()" style="float:right;font-size:24px;background:#444b70;color:white;border:0;border-radius:8px;padding:4px 12px;">×</button>' +
-        '<div class="ticket-modal"></div>' +
-        '<h3>Ticket ' + safe(ticket.id) + '</h3>' +
-        '<div><b>Vendeur:</b> ' + safe(ticket.vendeurNom || ticket.vendeur) + '</div>' +
-        '<div><b>Date:</b> ' + safe(ticket.createdAtLabel || ticket.dateLabel || "") + '</div>' +
-        '<div style="margin-top:10px;"><b>Jugada:</b>' + (jeuxHTML || "Aucune") + '</div>' +
-        '<div style="margin-top:10px;"><b>Total:</b> ' + formatAmount(ticket.total) + '</div>' +
-        '<div><b>Premio:</b> ' + formatAmount(ticket.premio) + '</div>' +
-        '<button onclick="cancelTicket(\'' + safe(ticket.id) + '\')" style="margin-top:16px;width:100%;height:48px;background:#ff5555;color:white;border:0;border-radius:10px;font-size:18px;font-weight:700;">ANILE TICKET</button>' +
-      '</div>' +
+    '<div style="background:#2a2f4a;padding:16px;border-radius:12px;color:#fff;font-family:Arial;">' +
+      '<h3>Ticket ' + safe(ticket.id) + '</h3>' +
+      '<div><b>Vendeur:</b> ' + safe(ticket.vendeurNom || ticket.vendeur) + '</div>' +
+      '<div><b>Date:</b> ' + safe(ticket.createdAtLabel || ticket.dateLabel || "") + '</div>' +
+      '<div style="margin-top:10px;"><b>Jugada:</b>' + (jeuxHTML || "Aucune") + '</div>' +
+      '<div style="margin-top:10px;"><b>Total:</b> ' + formatAmount(ticket.total) + '</div>' +
+      '<div><b>Premio:</b> ' + formatAmount(ticket.premio) + '</div>' +
     '</div>';
 
-  document.body.insertAdjacentHTML("beforeend", html);
+  var w = window.open("", "_blank");
+  w.document.write(html);
+  w.document.close();
 }
 
 async function cancelTicket(ticketId){

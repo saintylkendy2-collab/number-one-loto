@@ -3728,9 +3728,16 @@ function openTicketDetail(ticketId){
       '<div><b>Date:</b> ' + safe(ticket.createdAtLabel || ticket.dateLabel || "") + '</div>' +
       '<div style="margin-top:10px;"><b>Jugada:</b>' + (jeuxHTML || "Aucune") + '</div>' +
       '<div style="margin-top:10px;"><b>Total:</b> ' + formatAmount(ticket.total) + '</div>' +
-      '<div><b>Premio:</b> ' + formatAmount(ticket.premio) + '</div>' +
-'<button onclick="window.opener.cancelTicket(\'' + safe(ticket.id) + '\'); window.close();" style="margin-top:16px;width:100%;height:46px;background:#ff5555;color:white;border:0;border-radius:10px;font-size:17px;font-weight:700;">ANILE TICKET</button>' +
-'<button onclick="window.close()" style="margin-top:10px;width:100%;height:42px;background:#444b70;color:white;border:0;border-radius:10px;font-size:16px;">TOUNEN</button>' +
+  '<div><b>Premio:</b> ' + formatAmount(ticket.premio) + '</div>' +
+
+'<button onclick="fetch(\'/api/tickets/' + safe(ticket.id) + '/anile\', {method:\'POST\'})' +
+'.then(r=>r.json()).then(d=>{alert(\'Ticket annulé ✔\'); window.close();})' +
+'.catch(()=>alert(\'Erreur\'))" ' +
+'style="margin-top:16px;width:100%;height:46px;background:#ff5555;color:white;border:0;border-radius:10px;font-size:17px;font-weight:700;">ANILE TICKET</button>' +
+
+'<button onclick="window.close()" ' +
+'style="margin-top:10px;width:100%;height:42px;background:#444b70;color:white;border:0;border-radius:10px;font-size:16px;">TOUNEN</button>' +
+
 '</div>';
 
   var w = window.open("", "_blank");

@@ -3699,6 +3699,45 @@ async function deleteMovimiento(vendorId, movimientoId){
   }
 }
 
+async function cancelTicket(ticketId){
+
+  if(!confirm("Ou vle anile ticket sa?")) return;
+
+  try{
+   const res = await fetch("/api/tickets/" + encodeURIComponent(ticketId) + "/anile", {
+  method: "POST"
+});
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.message || "Erreur annulation");
+      return;
+    }
+
+    alert("Ticket annulé ✔");
+
+    await loadTicketsReport();
+    await loadVentasReport();
+    await loadBalanceReport();
+
+  }catch(err){
+    console.error(err);
+    alert("Erreur serveur");
+  }
+}
+
+document.addEventListener("click", function(e){
+  const btn = e.target.closest("#ticketsBody .mini-btn");
+  if(!btn) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const id = btn.getAttribute("data-id");
+  openTicketDetail(id);
+});
+
 function openTicketDetail(ticketId){
   var ticket = ticketsRows.find(function(t){
     return String(t.id) === String(ticketId);
@@ -3744,45 +3783,6 @@ function openTicketDetail(ticketId){
   w.document.write(html);
   w.document.close();
 }
-
-async function cancelTicket(ticketId){
-
-  if(!confirm("Ou vle anile ticket sa?")) return;
-
-  try{
-   const res = await fetch("/api/tickets/" + encodeURIComponent(ticketId) + "/anile", {
-  method: "POST"
-});
-
-    const data = await res.json();
-
-    if(!res.ok){
-      alert(data.message || "Erreur annulation");
-      return;
-    }
-
-    alert("Ticket annulé ✔");
-
-    await loadTicketsReport();
-    await loadVentasReport();
-    await loadBalanceReport();
-
-  }catch(err){
-    console.error(err);
-    alert("Erreur serveur");
-  }
-}
-
-document.addEventListener("click", function(e){
-  const btn = e.target.closest("#ticketsBody .mini-btn");
-  if(!btn) return;
-
-  e.preventDefault();
-  e.stopPropagation();
-
-  const id = btn.getAttribute("data-id");
-  openTicketDetail(id);
-});
 
 </script>
 

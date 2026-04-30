@@ -790,19 +790,20 @@ router.post("/master/ticket/:id/anile", (req, res) => {
   writeTicketsArray(tickets);
 
   res.send(`
-       <html>
+    <html>
     <body style="font-family:Arial;background:#1c2037;color:white;padding:20px;text-align:center">
       <h2>Ticket annulé ✅</h2>
 
-      <button 
-  onclick="
-    if (window.opener) {
-      window.opener.location.href = '/master/vendors#tickets';
-    }
-    window.close();
-  ">
-  RETOUNEN
-</button>
+      <button
+        onclick="
+          if (window.opener) {
+            window.opener.location.href = '/master/vendors#tickets&reload=' + Date.now();
+          }
+          window.close();
+        "
+        style="height:45px;width:100%;font-size:18px">
+        RETOUNEN
+      </button>
     </body>
     </html>
   `);

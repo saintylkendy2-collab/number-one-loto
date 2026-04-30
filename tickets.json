@@ -79,7 +79,7 @@
     "createdAtLabel": "22/04/2026 20:43:14",
     "dateLabel": "22/04/2026",
     "timeLabel": "20:43",
-    "status": "ANATAN",
+    "status": "ANILE",
     "premio": 0,
     "channel": "PRINT",
     "total": 2,
@@ -93,7 +93,9 @@
         "loterie": "KING LOTTERY DIA",
         "montant": 2
       }
-    ]
+    ],
+    "anilePar": "ADMIN",
+    "anileAt": "2026-04-30T17:13:14.298Z"
   },
   {
     "id": "08232404-9575",
@@ -240,7 +242,7 @@
     "createdAtLabel": "22/04/2026 22:33:55",
     "dateLabel": "22/04/2026",
     "timeLabel": "22:33",
-    "status": "PEDI",
+    "status": "ANILE",
     "premio": 0,
     "channel": "WHATSAPP",
     "total": 49,
@@ -311,7 +313,9 @@
         "montant": 5
       }
     ],
-    "updatedAt": "2026-04-24T07:44:34.482Z"
+    "updatedAt": "2026-04-24T07:44:34.482Z",
+    "anilePar": "ADMIN",
+    "anileAt": "2026-04-30T17:02:56.585Z"
   },
   {
     "id": "11736615-1601",
@@ -355,7 +359,7 @@
       }
     ],
     "anilePar": "ADMIN",
-    "anileAt": "2026-04-30T16:48:08.732Z"
+    "anileAt": "2026-04-30T17:02:38.092Z"
   },
   {
     "id": "53050646-4003",
@@ -1253,5 +1257,50 @@
         "montant": 2500
       }
     ]
+  },
+  {
+    "id": "69324300-6619",
+    "vendeur": "NOC129",
+    "vendeurNom": "Gary",
+    "createdAt": "2026-04-30T17:15:24.269Z",
+    "createdAtLabel": "30/04/2026 13:15:24",
+    "dateLabel": "30/04/2026",
+    "timeLabel": "13:15:24",
+    "status": "ANILE",
+    "premio": 0,
+    "channel": "PRINT",
+    "total": 100,
+    "tirages": [
+      "LA SUERTE DIA",
+      "GEORGIA MIDDAY"
+    ],
+    "jeux": [
+      {
+        "type": "BOR",
+        "numero": "87",
+        "loterie": "LA SUERTE DIA",
+        "montant": 25
+      },
+      {
+        "type": "BOR",
+        "numero": "78",
+        "loterie": "LA SUERTE DIA",
+        "montant": 25
+      },
+      {
+        "type": "BOR",
+        "numero": "87",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 25
+      },
+      {
+        "type": "BOR",
+        "numero": "78",
+        "loterie": "GEORGIA MIDDAY",
+        "montant": 25
+      }
+    ],
+    "anilePar": "ADMIN",
+    "anileAt": "2026-04-30T17:20:53.118Z"
   }
 ]

@@ -1519,7 +1519,7 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
 </div>
 
-<div style="padding:14px;">
+<div style="padding:0;">
   <div id="ticketsFilters"></div>
 </div>
 

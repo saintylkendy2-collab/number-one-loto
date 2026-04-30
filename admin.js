@@ -3698,7 +3698,6 @@ async function deleteMovimiento(vendorId, movimientoId){
     alert("Erreur delete transaction");
   }
 }
-
 function openTicketDetail(ticketId){
   var ticket = ticketsRows.find(function(t){
     return String(t.id) === String(ticketId);
@@ -3709,35 +3708,29 @@ function openTicketDetail(ticketId){
     return;
   }
 
-  var jeuxHTML = "";
-
+  var lignes = "";
   if(Array.isArray(ticket.jeux)){
-    jeuxHTML = ticket.jeux.map(function(j){
-      return '<div style="padding:8px;border-bottom:1px solid #444;">' +
-        '<strong>' + safe(j.numero || "") + '</strong> - ' +
-        safe(j.type || "") + ' - ' +
-        formatAmount(j.montant || j.monto || j.amount || 0) +
-      '</div>';
-    }).join("");
+    ticket.jeux.forEach(function(j){
+      lignes += safe(j.numero || "") + " - " +
+                safe(j.type || "") + " - " +
+                formatAmount(j.montant || j.monto || j.amount || 0) + "\n";
+    });
   }
 
-  var html =
-    '<div style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;padding:18px;">' +
-      '<div style="background:#2a2f4a;padding:16px;border-radius:12px;color:#fff;font-family:Arial;max-height:85vh;overflow:auto;">' +
-        '<button onclick="this.closest(\'.ticket-modal\').remove()" style="float:right;font-size:24px;background:#444b70;color:white;border:0;border-radius:8px;padding:4px 12px;">×</button>' +
-        '<div class="ticket-modal"></div>' +
-        '<h3>Ticket ' + safe(ticket.id) + '</h3>' +
-        '<div><b>Vendeur:</b> ' + safe(ticket.vendeurNom || ticket.vendeur) + '</div>' +
-        '<div><b>Date:</b> ' + safe(ticket.createdAtLabel || ticket.dateLabel || "") + '</div>' +
-        '<div style="margin-top:10px;"><b>Jugada:</b>' + (jeuxHTML || "Aucune") + '</div>' +
-        '<div style="margin-top:10px;"><b>Total:</b> ' + formatAmount(ticket.total) + '</div>' +
-        '<div><b>Premio:</b> ' + formatAmount(ticket.premio) + '</div>' +
-        '<button onclick="cancelTicket(\'' + safe(ticket.id) + '\')" style="margin-top:16px;width:100%;height:48px;background:#ff5555;color:white;border:0;border-radius:10px;font-size:18px;font-weight:700;">ANILE TICKET</button>' +
-      '</div>' +
-    '</div>';
+  var message =
+    "Ticket: " + safe(ticket.id) + "\n" +
+    "Vendeur: " + safe(ticket.vendeurNom || ticket.vendeur) + "\n" +
+    "Date: " + safe(ticket.createdAtLabel || ticket.dateLabel || "") + "\n\n" +
+    "Jugada:\n" + (lignes || "Aucune\n") + "\n" +
+    "Total: " + formatAmount(ticket.total) + "\n" +
+    "Premio: " + formatAmount(ticket.premio) + "\n\n" +
+    "Ou vle ANILE ticket sa?";
 
-  document.body.insertAdjacentHTML("beforeend", html);
+  if(confirm(message)){
+    cancelTicket(ticket.id);
+  }
 }
+
 
 async function cancelTicket(ticketId){
 

@@ -206,7 +206,7 @@
     "createdAtLabel": "22/04/2026 22:00:01",
     "dateLabel": "22/04/2026",
     "timeLabel": "22:00",
-    "status": "ANATAN",
+    "status": "ANILE",
     "premio": 0,
     "channel": "PRINT",
     "total": 2,
@@ -220,7 +220,9 @@
         "loterie": "KING LOTTERY DIA",
         "montant": 2
       }
-    ]
+    ],
+    "anilePar": "ADMIN",
+    "anileAt": "2026-04-30T14:01:52.747Z"
   },
   {
     "id": "11635219-3663",
@@ -345,7 +347,7 @@
       }
     ],
     "anilePar": "ADMIN",
-    "anileAt": "2026-04-30T13:45:14.138Z"
+    "anileAt": "2026-04-30T14:00:15.996Z"
   },
   {
     "id": "53050646-4003",

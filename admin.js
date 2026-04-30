@@ -3699,7 +3699,6 @@ async function deleteMovimiento(vendorId, movimientoId){
   }
 }
 
-function openTicketDetail(ticketId){
 
 async function cancelTicket(ticketId){
 

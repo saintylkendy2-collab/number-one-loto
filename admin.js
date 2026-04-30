@@ -790,15 +790,15 @@ router.post("/master/ticket/:id/anile", (req, res) => {
   writeTicketsArray(tickets);
 
   res.send(`
-    <html>
+       <html>
     <body style="font-family:Arial;background:#1c2037;color:white;padding:20px;text-align:center">
       <h2>Ticket annulé ✅</h2>
 
-   <button 
-  onclick="window.opener.goPage('tickets'); window.close();" 
-  style="height:45px;width:100%;font-size:18px">
-  RETOUNEN
-</button>
+      <button 
+        onclick="window.location.href='/master/vendors#tickets'" 
+        style="height:45px;width:100%;font-size:18px">
+        RETOUNEN
+      </button>
     </body>
     </html>
   `);

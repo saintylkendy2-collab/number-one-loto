@@ -2359,6 +2359,14 @@ function renderTicketsReport(){
   }).join("");
 }
 
+document.querySelectorAll("#ticketsBody .mini-btn").forEach(function(btn){
+  btn.addEventListener("click", function(e){
+    e.stopPropagation();
+    var id = this.getAttribute("data-id");
+    openTicketDetail(id);
+  });
+});
+
 function goPage(page){
   currentPage = page;
 

@@ -789,7 +789,8 @@ router.post("/master/ticket/:id/anile", (req, res) => {
 
   writeTicketsArray(tickets);
 
-  res.redirect("/master/vendors#tickets");
+  // RETOUNEN DIRÈK SOU LIS BIYÈ YO
+  return res.redirect("/master/vendors#tickets");
 });
 
 router.get("/master/vendors", (req, res) => {
@@ -3753,10 +3754,6 @@ if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
   loadVendorsFromServer();
   loadVentasReport();
   loadBalanceReport();
-
-  if (window.location.hash === "#tickets") {
-  goPage("tickets");
-}
 });
 
 goPage("ventas");

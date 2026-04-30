@@ -706,6 +706,99 @@ router.post("/api/tickets/:id/anile", (req, res) => {
   }
 });
 
+router.get("/master/ticket/:id", (req, res) => {
+  const ticketId = String(req.params.id || "").trim();
+  const tickets = readTicketsArray();
+  const ticket = tickets.find(t => String(t.id || "").trim() === ticketId);
+
+  if (!ticket) {
+    return res.send("Ticket introuvable");
+  }
+
+  const jeux = Array.isArray(ticket.jeux) ? ticket.jeux : [];
+
+  const lignes = jeux.map(j => {
+    return `
+      <tr>
+        <td>${j.loterie || ""}</td>
+        <td>${j.type || ""}</td>
+        <td>${j.numero || ""}</td>
+        <td>${formatAmount(j.montant || j.monto || j.amount || 0)}</td>
+      </tr>
+    `;
+  }).join("");
+
+  res.send(`
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body{font-family:Arial;background:#1c2037;color:white;padding:14px}
+        .card{background:#2a2f4a;border-radius:14px;padding:16px}
+        table{width:100%;border-collapse:collapse;margin-top:12px}
+        th,td{padding:10px;border-bottom:1px solid #444;text-align:left}
+        button{width:100%;height:48px;border:0;border-radius:10px;margin-top:14px;font-size:17px;font-weight:700}
+        .red{background:#ff5555;color:white}
+        .gray{background:#444b70;color:white}
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <h2>Ticket ${ticket.id}</h2>
+        <div><b>Vendeur:</b> ${ticket.vendeurNom || ticket.vendeur || ""}</div>
+        <div><b>Date:</b> ${ticket.createdAtLabel || ticket.dateLabel || ""}</div>
+        <div><b>Total:</b> ${formatAmount(ticket.total)}</div>
+        <div><b>Premio:</b> ${formatAmount(ticket.premio)}</div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Loteria</th>
+              <th>Jugada</th>
+              <th>Numero</th>
+              <th>Monto</th>
+            </tr>
+          </thead>
+          <tbody>${lignes}</tbody>
+        </table>
+
+        <form method="POST" action="/master/ticket/${encodeURIComponent(ticket.id)}/anile">
+          <button class="red" type="submit">ANILE TICKET</button>
+        </form>
+
+        <button class="gray" onclick="window.close()">TOUNEN</button>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
+router.post("/master/ticket/:id/anile", (req, res) => {
+  const ticketId = String(req.params.id || "").trim();
+  const tickets = readTicketsArray();
+
+  const index = tickets.findIndex(t => String(t.id || "").trim() === ticketId);
+
+  if (index === -1) {
+    return res.send("Ticket introuvable");
+  }
+
+  tickets[index].status = "ANILE";
+  tickets[index].anilePar = "ADMIN";
+  tickets[index].anileAt = new Date().toISOString();
+
+  writeTicketsArray(tickets);
+
+  res.send(`
+    <html>
+    <body style="font-family:Arial;background:#1c2037;color:white;padding:20px">
+      <h2>Ticket annulé ✔</h2>
+      <button onclick="window.close()" style="height:45px;width:100%;font-size:18px">FÈMEN</button>
+    </body>
+    </html>
+  `);
+});
+
 router.get("/master/vendors", (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -2354,7 +2447,7 @@ function renderTicketsReport(){
       '<td>' + formatAmount(t.total) + '</td>' +
       '<td>' + formatAmount(t.premio) + '</td>' +
       '<td style="text-align:center;">' + getStatusIcon(t.status || "ANATAN") + '</td>' +
-     '<td><button class="mini-btn" data-id="' + safe(t.id) + '">🔍</button></td>' + 
+     '<td><a class="mini-btn" href="/master/ticket/' + encodeURIComponent(t.id) + '" target="_blank">🔍</a></td>' +
     '</tr>';
   }).join("");
 }
@@ -3697,94 +3790,6 @@ async function deleteMovimiento(vendorId, movimientoId){
     console.error(err);
     alert("Erreur delete transaction");
   }
-}
-
-function openTicketDetail(ticketId){
-  var ticket = ticketsRows.find(function(t){
-    return String(t.id) === String(ticketId);
-  });
-
-  if(!ticket){
-    alert("Ticket introuvable");
-    return;
-  }
-
-  var box = document.createElement("div");
-  box.style.position = "fixed";
-  box.style.inset = "0";
-  box.style.background = "rgba(0,0,0,.55)";
-  box.style.zIndex = "99999";
-  box.style.padding = "18px";
-
-  var card = document.createElement("div");
-  card.style.background = "#2a2f4a";
-  card.style.color = "#fff";
-  card.style.padding = "16px";
-  card.style.borderRadius = "12px";
-  card.style.fontFamily = "Arial";
-  card.style.maxHeight = "85vh";
-  card.style.overflow = "auto";
-
-  var close = document.createElement("button");
-  close.textContent = "×";
-  close.style.float = "right";
-  close.style.fontSize = "24px";
-  close.onclick = function(){
-    box.remove();
-  };
-
-  var title = document.createElement("h3");
-  title.textContent = "Ticket " + safe(ticket.id);
-
-  var info = document.createElement("div");
-  info.innerHTML =
-    "<b>Vendeur:</b> " + safe(ticket.vendeurNom || ticket.vendeur) + "<br>" +
-    "<b>Date:</b> " + safe(ticket.createdAtLabel || ticket.dateLabel || "") + "<br><br>" +
-    "<b>Jugada:</b>";
-
-  card.appendChild(close);
-  card.appendChild(title);
-  card.appendChild(info);
-
-  if(Array.isArray(ticket.jeux)){
-    ticket.jeux.forEach(function(j){
-      var line = document.createElement("div");
-      line.style.padding = "8px";
-      line.style.borderBottom = "1px solid #444";
-      line.textContent =
-        safe(j.numero || "") + " - " +
-        safe(j.type || "") + " - " +
-        formatAmount(j.montant || j.monto || j.amount || 0);
-      card.appendChild(line);
-    });
-  }
-
-  var total = document.createElement("div");
-  total.style.marginTop = "12px";
-  total.innerHTML =
-    "<b>Total:</b> " + formatAmount(ticket.total) + "<br>" +
-    "<b>Premio:</b> " + formatAmount(ticket.premio);
-  card.appendChild(total);
-
-  var anile = document.createElement("button");
-  anile.textContent = "ANILE TICKET";
-  anile.style.marginTop = "16px";
-  anile.style.width = "100%";
-  anile.style.height = "46px";
-  anile.style.background = "#ff5555";
-  anile.style.color = "white";
-  anile.style.border = "0";
-  anile.style.borderRadius = "10px";
-  anile.style.fontSize = "17px";
-  anile.style.fontWeight = "700";
-  anile.onclick = function(){
-    box.remove();
-    cancelTicket(ticket.id);
-  };
-
-  card.appendChild(anile);
-  box.appendChild(card);
-  document.body.appendChild(box);
 }
 
 async function cancelTicket(ticketId){

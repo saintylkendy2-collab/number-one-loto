@@ -127,7 +127,7 @@
     "createdAtLabel": "22/04/2026 21:37:28",
     "dateLabel": "22/04/2026",
     "timeLabel": "21:37",
-    "status": "ANATAN",
+    "status": "ANILE",
     "premio": 0,
     "channel": "WHATSAPP",
     "total": 2,
@@ -141,7 +141,9 @@
         "loterie": "ANGUILLA 01:00 PM",
         "montant": 2
       }
-    ]
+    ],
+    "anilePar": "ADMIN",
+    "anileAt": "2026-04-30T14:31:16.744Z"
   },
   {
     "id": "09175914-3544",

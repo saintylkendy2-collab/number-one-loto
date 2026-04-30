@@ -792,12 +792,12 @@ router.post("/master/ticket/:id/anile", (req, res) => {
    res.send(`
     <html>
 <body style="font-family:Arial;background:#1c2037;color:white;padding:20px">
-  <h2>Ticket annulé ✔</h2>
+  <h2>Ticket annulé ✅</h2>
 
-  <button onclick="history.back()"
-    style="height:45px;width:100%;font-size:18px">
-    RETOUNEN
-  </button>
+<button onclick="window.location.href='/master/vendors?open=tickets'" 
+style="height:45px;width:100%;font-size:18px">
+RETOUNEN
+</button>
 </body>
 </html>
   `);
@@ -3766,7 +3766,12 @@ if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
   loadBalanceReport();
 });
 
-goPage("ventas");
+const url = new URLSearchParams(window.location.search);
+if (url.get("open") === "tickets") {
+  goPage("tickets");
+} else {
+  goPage("ventas");
+}
 
 async function deleteMovimiento(vendorId, movimientoId){
   if(!confirm("Ou vle siprime transaction sa?")) return;

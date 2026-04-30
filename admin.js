@@ -2354,7 +2354,7 @@ function renderTicketsReport(){
       '<td>' + formatAmount(t.total) + '</td>' +
       '<td>' + formatAmount(t.premio) + '</td>' +
       '<td style="text-align:center;">' + getStatusIcon(t.status || "ANATAN") + '</td>' +
-      '<td>🔍</td>' +
+      '<td><button class="mini-btn" onclick="openTicketDetail(\'' + safe(t.id) + '\')">🔍</button></td>' +
     '</tr>';
   }).join("");
 }
@@ -3698,6 +3698,72 @@ async function deleteMovimiento(vendorId, movimientoId){
     alert("Erreur delete transaction");
   }
 }
+
+function openTicketDetail(ticketId){
+  var ticket = ticketsRows.find(function(t){
+    return String(t.id) === String(ticketId);
+  });
+
+  if(!ticket){
+    alert("Ticket introuvable");
+    return;
+  }
+
+  var jeuxHTML = "";
+
+  if(Array.isArray(ticket.jeux)){
+    jeuxHTML = ticket.jeux.map(function(j){
+      return '<div style="padding:8px;border-bottom:1px solid #444;">' +
+        '<strong>' + safe(j.numero || "") + '</strong> - ' +
+        safe(j.type || "") + ' - ' +
+        formatAmount(j.montant || j.monto || j.amount || 0) +
+      '</div>';
+    }).join("");
+  }
+
+  var html =
+    '<div style="background:#2a2f4a;padding:16px;border-radius:12px;color:#fff;font-family:Arial;">' +
+      '<h3>Ticket ' + safe(ticket.id) + '</h3>' +
+      '<div><b>Vendeur:</b> ' + safe(ticket.vendeurNom || ticket.vendeur) + '</div>' +
+      '<div><b>Date:</b> ' + safe(ticket.createdAtLabel || ticket.dateLabel || "") + '</div>' +
+      '<div style="margin-top:10px;"><b>Jugada:</b>' + (jeuxHTML || "Aucune") + '</div>' +
+      '<div style="margin-top:10px;"><b>Total:</b> ' + formatAmount(ticket.total) + '</div>' +
+      '<div><b>Premio:</b> ' + formatAmount(ticket.premio) + '</div>' +
+    '</div>';
+
+  var w = window.open("", "_blank");
+  w.document.write(html);
+  w.document.close();
+}
+
+async function cancelTicket(ticketId){
+
+  if(!confirm("Ou vle anile ticket sa?")) return;
+
+  try{
+    const res = await fetch("/api/tickets/" + encodeURIComponent(ticketId) + "/cancel", {
+      method: "POST"
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.message || "Erreur annulation");
+      return;
+    }
+
+    alert("Ticket annulé ✔");
+
+    await loadTicketsReport();
+    await loadVentasReport();
+    await loadBalanceReport();
+
+  }catch(err){
+    console.error(err);
+    alert("Erreur serveur");
+  }
+}
+
 
 </script>
 

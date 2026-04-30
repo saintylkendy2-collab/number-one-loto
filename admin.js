@@ -2452,7 +2452,7 @@ function renderTicketsReport(){
       '<td>' + formatAmount(t.total) + '</td>' +
       '<td>' + formatAmount(t.premio) + '</td>' +
       '<td style="text-align:center;">' + getStatusIcon(t.status || "ANATAN") + '</td>' +
-     '<td><a class="mini-btn" href="/master/ticket/' + encodeURIComponent(t.id) + '">🔍</a></td>' +
+     '<td><a class="mini-btn" href="/master/ticket/' + encodeURIComponent(t.id) + '" target="_blank">🔍</a></td>' +
     '</tr>';
   }).join("");
 }

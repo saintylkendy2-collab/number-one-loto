@@ -3984,7 +3984,7 @@ body{
 
 <div class="meta">
 SELLER ${sellerName}<br>
-TICKET ${ticket.id}<br>
+TICKET ${ticket.id || ticket.ticketId || ticket.serial || ticketId}<br>
 DATE ${dateStr} ${timeStr}
 </div>
 

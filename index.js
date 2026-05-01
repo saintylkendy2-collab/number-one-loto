@@ -2124,41 +2124,51 @@ function resetAfterSend(){
  updateFields();
 }
 
-
 function saveCurrentTicket(channel){
- if(jeux.length === 0){
-   alert("Pa gen jwèt pou voye.");
-   return Promise.resolve(null);
- }
+  if(jeux.length === 0){
+    alert("Pa gen jwèt pou voye.");
+    return Promise.resolve(null);
+  }
 
- return fetch("/api/tickets", {
-   method: "POST",
-   headers: { "Content-Type": "application/json" },
-   body: JSON.stringify({
-  sellerId: sellerId,
-  sellerName: sellerName,
-  jeux: buildPayloadGames(),
-  channel: channel || "MANUEL",
-  clientCreatedAt: new Date().toISOString(),
-  clientDateLabel: new Date().toLocaleDateString("fr-FR"),
-  clientTimeLabel: new Date().toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
+  return fetch("/api/tickets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sellerId: sellerId,
+      sellerName: sellerName,
+      jeux: buildPayloadGames(),
+      channel: channel || "MANUEL",
+      clientCreatedAt: new Date().toISOString(),
+      clientDateLabel: new Date().toLocaleDateString("fr-FR"),
+      clientTimeLabel: new Date().toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      })
+    })
   })
-})
- }).then(function(res){
-   return res.json();
- }).then(function(data){
-   if(!data.ok){
-     alert(data.message || "Erreur save ticket");
-     return null;
-   }
-   return data.ticket;
- }).catch(function(){
-   alert("Erreur save ticket");
-   return null;
- });
+  .then(function(res){
+    return res.text().then(function(text){
+      let data = {};
+      try{
+        data = JSON.parse(text);
+      }catch(e){
+        alert("Server pa voye JSON: " + text);
+        return null;
+      }
+
+      if(!res.ok || !data.ok){
+        alert(data.message || ("Erreur save ticket HTTP " + res.status));
+        return null;
+      }
+
+      return data.ticket;
+    });
+  })
+  .catch(function(err){
+    alert("Erreur save ticket: " + err.message);
+    return null;
+  });
 }
 
 function submitPrint(){

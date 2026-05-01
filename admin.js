@@ -791,7 +791,13 @@ router.get("/master/ticket/:id", async (req, res) => {
   try {
     const ticketId = String(req.params.id || "").trim();
 
-    const ticket = await Ticket.findOne({ id: ticketId }).lean();
+    const ticket = await Ticket.findOne({
+  $or: [
+    { id: ticketId },
+    { ticketId: ticketId },
+    { serial: ticketId }
+  ]
+}).lean();
 
     if (!ticket) {
       return res.send("Ticket introuvable");

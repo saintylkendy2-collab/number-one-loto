@@ -519,14 +519,27 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
     const sellerId = String(req.params.id || "").trim().toUpperCase();
 
     const tickets = await Ticket.find({ vendeur: sellerId })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.json(tickets);
+    const cleanTickets = tickets.map(t => {
+      const realId = t.id || t.ticketId || t.serial || String(t._id || "");
+
+      return {
+        ...t,
+        id: realId,
+        ticketId: realId,
+        serial: realId
+      };
+    });
+
+    res.json(cleanTickets);
   } catch (err) {
     console.error("GET TICKETS ERROR:", err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json([]);
   }
 });
+
 
 app.post("/api/tickets", async (req, res) => {
   try {

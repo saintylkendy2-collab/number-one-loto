@@ -3,7 +3,34 @@ const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
 
-const Ticket = require("./models/Ticket");
+const TicketSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
+  ticketId: String,
+  serial: String,
+  vendeur: String,
+  vendeurNom: String,
+  createdAt: Date,
+  createdAtLabel: String,
+  dateLabel: String,
+  timeLabel: String,
+  status: String,
+  premio: Number,
+  channel: String,
+  total: Number,
+  tirages: Array,
+  jeux: Array
+}, {
+  strict: false,
+  timestamps: true,
+  id: false
+});
+
+module.exports = mongoose.model("Ticket", TicketSchema);
 
 const app = express();
 

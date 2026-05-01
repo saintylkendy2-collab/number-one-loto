@@ -4107,6 +4107,15 @@ app.get("/tickets/:vendeur", (req, res) => {
 
 const adminRoutes = require("./admin");
 app.use(adminRoutes);
+
+app.get("/test-vendors", async (req, res) => {
+  try {
+    const vendors = await Vendor.find();
+    res.json(vendors);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
   
 app.listen(3000, "0.0.0.0", () => {
   console.log("Server ap mache sou rezo a");

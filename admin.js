@@ -271,10 +271,10 @@ function buildBalanceRows(obj) {
     .sort((a, b) => b.balance - a.balance);
 }
 
-router.get("/api/vendors", (req, res) => {
+router.get("/api/vendors", async (req, res) => {
   try {
-    const obj = readVendeursObject();
-    res.json(objectToArray(obj));
+    const vendors = await Vendor.find().lean();
+    res.json(vendors);
   } catch (err) {
     console.error(err);
     res.status(500).json([]);

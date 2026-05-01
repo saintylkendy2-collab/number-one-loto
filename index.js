@@ -2187,24 +2187,25 @@ function saveCurrentTicket(channel){
 }
 
 function submitPrint(){
-  var printWin = window.open("", "_blank");
+  if(jeux.length === 0){
+    alert("Pa gen jwèt pou enprime.");
+    return;
+  }
 
   saveCurrentTicket("PRINT").then(function(ticket){
-    if(!ticket){
-      if(printWin) printWin.close();
+    if(!ticket || !ticket.id){
+      alert("Ticket pa kreye oubyen ID pa vini.");
       return;
     }
 
-    if(printWin){
-      printWin.location.href =
-        "/print?ticketId=" + encodeURIComponent(ticket.id) +
-        "&sellerId=" + encodeURIComponent(sellerId);
-    }
+    window.location.href =
+      "/print?ticketId=" + encodeURIComponent(ticket.id) +
+      "&sellerId=" + encodeURIComponent(sellerId);
 
     loadBillets();
     resetAfterSend();
-  }).catch(function(){
-    if(printWin) printWin.close();
+  }).catch(function(err){
+    console.error(err);
     alert("Erreur impression");
   });
 }

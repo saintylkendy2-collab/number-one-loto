@@ -2601,6 +2601,128 @@ function renderTicketsReport(){
   }).join("");
 }
 
+var sorteosData = {};
+
+async function loadSorteos(){
+  try{
+    var res = await fetch("/api/sorteos?reload=" + Date.now());
+    sorteosData = await res.json();
+    renderSorteosPage();
+  }catch(err){
+    console.error(err);
+    sorteosData = {};
+    renderSorteosPage();
+  }
+}
+
+function renderSorteosPage(){
+  var box = byId("sorteosRows");
+  var dateInput = byId("sorteosDate");
+  if(!box || !dateInput) return;
+
+  var date = dateInput.value || todayISO();
+  dateInput.value = date;
+
+  var saved = sorteosData[date] || {};
+
+  var html = "";
+
+  loteriasList.forEach(function(l){
+    if(l === "TODAS") return;
+
+    var r = saved[l] || {};
+
+    html += ''
+      + '<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr 52px;gap:10px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
+      + '<div style="font-size:16px;color:#d7dcef;">' + safe(l) + '</div>'
+      + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:20px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:20px;">'
+      + '<button class="sorteos-delete-btn" data-loteria="' + safe(l) + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#d7dcef;font-size:24px;">🗑</button>'
+      + '</div>';
+  });
+
+  box.innerHTML = html;
+}
+
+async function saveSorteos(){
+  var date = getValue("sorteosDate") || todayISO();
+  var rowsMap = {};
+
+  document.querySelectorAll(".sorteos-input").forEach(function(input){
+    var loteria = input.getAttribute("data-loteria");
+    var field = input.getAttribute("data-field");
+
+    if(!rowsMap[loteria]){
+      rowsMap[loteria] = { loteria:loteria, r1:"", r2:"" };
+    }
+
+    rowsMap[loteria][field] = input.value.trim();
+  });
+
+  var rows = Object.keys(rowsMap).map(function(k){
+    return rowsMap[k];
+  });
+
+  try{
+    var res = await fetch("/api/sorteos/save", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ date:date, rows:rows })
+    });
+
+    var data = await res.json();
+
+    if(!res.ok){
+      alert(data.message || "Erreur save sorteos");
+      return;
+    }
+
+    alert("Sorteos guardado ✔");
+    await loadSorteos();
+
+  }catch(err){
+    console.error(err);
+    alert("Erreur save sorteos");
+  }
+}
+
+async function deleteSorteo(loteria){
+  var date = getValue("sorteosDate") || todayISO();
+
+  if(!confirm("Ou vle siprime rezilta sa?")) return;
+
+  try{
+    var res = await fetch(
+      "/api/sorteos/" + encodeURIComponent(date) + "/" + encodeURIComponent(loteria),
+      { method:"DELETE" }
+    );
+
+    var data = await res.json();
+
+    if(!res.ok){
+      alert(data.message || "Erreur delete sorteo");
+      return;
+    }
+
+    alert("Rezilta supprimée ✔");
+    await loadSorteos();
+
+  }catch(err){
+    console.error(err);
+    alert("Erreur delete sorteo");
+  }
+}
+
+document.addEventListener("click", function(e){
+  var btn = e.target.closest(".sorteos-delete-btn");
+  if(!btn) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  deleteSorteo(btn.getAttribute("data-loteria"));
+});
+
 function goPage(page){
   currentPage = page;
 
@@ -3966,129 +4088,6 @@ async function cancelTicket(ticketId){
   }catch(err){
     console.error(err);
     alert("Erreur serveur");
-  }
-}
-
-let sorteosData = {};
-
-async function loadSorteos(){
-  try{
-    const res = await fetch("/api/sorteos?reload=" + Date.now());
-    sorteosData = await res.json();
-    renderSorteosPage();
-  }catch(err){
-    console.error(err);
-    sorteosData = {};
-    renderSorteosPage();
-  }
-}
-
-function renderSorteosPage(){
-  const box = byId("sorteosRows");
-  const dateInput = byId("sorteosDate");
-  if(!box || !dateInput) return;
-
-  const date = dateInput.value || todayISO();
-  dateInput.value = date;
-
-  const saved = sorteosData[date] || {};
-
-  box.innerHTML = loteriasList
-    .filter(function(l){ return l !== "TODAS"; })
-    .map(function(l){
-
-      const r = saved[l] || {};
-      const safeLot = (l || "").replace(/'/g, "\\'");
-
-      return ''
-        + '<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr 52px;gap:10px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
-
-        + '<div style="font-size:16px;color:#d7dcef;">'+ safe(l) +'</div>'
-
-        + '<input class="field-input sorteos-input" '
-        + 'data-loteria="'+ safe(l) +'" '
-        + 'data-field="r1" '
-        + 'value="'+ safe(r.r1 || "") +'" '
-        + 'style="text-align:center;font-size:20px;">'
-
-        + '<input class="field-input sorteos-input" '
-        + 'data-loteria="'+ safe(l) +'" '
-        + 'data-field="r2" '
-        + 'value="'+ safe(r.r2 || "") +'" '
-        + 'style="text-align:center;font-size:20px;">'
-
-        + '<button onclick="deleteSorteo(\''+ safeLot +'\')" '
-        + 'style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#d7dcef;font-size:24px;">🗑</button>'
-
-        + '</div>';
-
-    }).join("");
-}
-
-async function saveSorteos(){
-  const date = getValue("sorteosDate") || todayISO();
-  const rowsMap = {};
-
-  document.querySelectorAll(".sorteos-input").forEach(function(input){
-    const loteria = input.dataset.loteria;
-    const field = input.dataset.field;
-
-    if(!rowsMap[loteria]){
-      rowsMap[loteria] = { loteria, r1:"", r2:"" };
-    }
-
-    rowsMap[loteria][field] = input.value.trim();
-  });
-
-  const rows = Object.values(rowsMap);
-
-  try{
-    const res = await fetch("/api/sorteos/save", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ date, rows })
-    });
-
-    const data = await res.json();
-
-    if(!res.ok){
-      alert(data.message || "Erreur save sorteos");
-      return;
-    }
-
-    alert("Sorteos guardado ✔");
-    await loadSorteos();
-
-  }catch(err){
-    console.error(err);
-    alert("Erreur save sorteos");
-  }
-}
-
-async function deleteSorteo(loteria){
-  const date = getValue("sorteosDate") || todayISO();
-
-  if(!confirm("Ou vle siprime rezilta sa?")) return;
-
-  try{
-    const res = await fetch(
-      "/api/sorteos/" + encodeURIComponent(date) + "/" + encodeURIComponent(loteria),
-      { method:"DELETE" }
-    );
-
-    const data = await res.json();
-
-    if(!res.ok){
-      alert(data.message || "Erreur delete sorteo");
-      return;
-    }
-
-    alert("Rezilta supprimée ✔");
-    await loadSorteos();
-
-  }catch(err){
-    console.error(err);
-    alert("Erreur delete sorteo");
   }
 }
 

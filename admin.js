@@ -1606,7 +1606,9 @@ tbody tr:nth-child(even){background:#313652;}
   <div class="side-menu-item" id="menu-tickets" onclick="goPage('tickets')">
   <span>Tickets</span>
 </div>
- <div class="side-menu-item"><span>Sorteos</span></div> 
+ <div class="side-menu-item" id="menu-sorteos" onclick="goPage('sorteos')">
+  <span>Sorteos</span>
+</div>
 
   <div class="side-menu-section">REPORTES</div>
   <div class="side-menu-item" id="menu-venta" onclick="toggleSubmenu('ventaMenu')">

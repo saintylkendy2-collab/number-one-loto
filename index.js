@@ -501,8 +501,6 @@ app.get("/logout", (req, res) => {
   res.redirect("/");
 });
 
-const Ticket = require("./models/Ticket");
-
 // GET tickets pa vendeur
 app.get("/api/vendor/:id/tickets", async (req, res) => {
   try {
@@ -4139,7 +4137,7 @@ app.get("/test-vendors", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});const Ticket = require("./models/Ticket");
+});
 
 app.get("/test-tickets", async (req, res) => {
   const tickets = await Ticket.find();

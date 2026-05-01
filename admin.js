@@ -6,6 +6,9 @@ const router = express.Router();
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 console.log("ADMIN VENDEURS_FILE =", VENDEURS_FILE);
 
+const mongoose = require("mongoose");
+const Vendor = require("./models/vendor");
+
 const TICKETS_FILE = path.join(__dirname, "tickets.json");
 const SORTEOS_FILE = path.join(__dirname, "sorteos.json");
 
@@ -276,7 +279,7 @@ router.get("/api/vendors", async (req, res) => {
     const vendors = await Vendor.find().lean();
     res.json(vendors);
   } catch (err) {
-    console.error(err);
+    console.error("Erreur get vendors Mongo:", err);
     res.status(500).json([]);
   }
 });
@@ -455,7 +458,7 @@ router.get("/api/reportes/balance", (req, res) => {
   }
 });
 
-router.post("/api/vendors", (req, res) => {
+router.post("/api/vendors", async (req, res) => {
   try {
     const body = req.body || {};
     const id = String(body.id || "").trim().toUpperCase();
@@ -474,18 +477,20 @@ router.post("/api/vendors", (req, res) => {
       return res.status(400).json({ ok: false, message: "Clave obligatoire" });
     }
 
-    const obj = readVendeursObject();
+    const exists = await Vendor.findOne({ id: id });
 
-    if (obj[id]) {
+    if (exists) {
       return res.status(409).json({ ok: false, message: "ID déjà existant" });
     }
 
-    obj[id] = data;
-    writeVendeursObject(obj);
+    await Vendor.create({
+      id: id,
+      ...data
+    });
 
     res.json({ ok: true });
   } catch (err) {
-    console.error(err);
+    console.error("Erreur save vendor Mongo:", err);
     res.status(500).json({ ok: false, message: "Erreur save vendor" });
   }
 });

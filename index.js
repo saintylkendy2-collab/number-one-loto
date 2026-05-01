@@ -4,7 +4,7 @@ const path = require("path");
 
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb+srv://adminn:admin123@cluster0.yzqmfuc.mongodb.net/loto", {
+mongoose.connect("mongodb+srv://adminn:test123@cluster0.yzqmfuc.mongodb.net/loto", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })

@@ -2,8 +2,36 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 
+const express = require("express");
 const mongoose = require("mongoose");
 
+const app = express();
+app.use(express.json());
+
+// 🔌 CONNECT MONGO
+mongoose.connect("mongodb+srv://adminn:Kendy2026@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority")
+.then(() => console.log("Mongo connecté"))
+.catch(err => console.error("Mongo erreur:", err.message));
+
+// 📦 MODEL
+const Vendor = require("./models/vendor");
+
+// 🚀 ROUTE SAVE VENDOR
+app.post("/api/vendors", async (req, res) => {
+  try {
+    const vendor = new Vendor(req.body);
+    await vendor.save();
+    res.json({ ok: true, message: "Vendor saved" });
+  } catch (err) {
+    console.error("SAVE ERROR:", err.message);
+    res.status(500).json({ ok: false, message: err.message });
+  }
+});
+
+// 🔥 TEST ROUTE (optionnel)
+app.get("/", (req, res) => {
+  res.send("Server ap mache 🔥");
+});
 
 mongoose.connect("mongodb+srv://adminn:Kendy2026@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority&appName=Cluster0")
 .then(() => console.log("Mongo connecté"))

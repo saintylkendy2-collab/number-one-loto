@@ -15,6 +15,22 @@ mongoose.connect("mongodb+srv://adminn:Kendy2026@cluster0.yzqmfuc.mongodb.net/lo
 .then(() => console.log("Mongo connecté"))
 .catch(err => console.error("Mongo erreur:", err.message));
 
+mongoose.connection.once("open", async () => {
+  try {
+    await Ticket.deleteMany({
+      $or: [
+        { id: null },
+        { id: { $exists: false } },
+        { id: "" }
+      ]
+    });
+
+    console.log("✅ Tickets id null supprimés");
+  } catch (err) {
+    console.error("Erreur nettoyage tickets null:", err.message);
+  }
+});
+
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 console.log("INDEX VENDEURS_FILE =", VENDEURS_FILE);
 
@@ -532,12 +548,18 @@ app.post("/api/tickets", async (req, res) => {
     const sellerName = String(req.body.sellerName || sellerId || "VENDEUR");
     const jeux = Array.isArray(req.body.jeux) ? req.body.jeux : [];
     const channel = String(req.body.channel || "MANUEL").trim().toUpperCase();
+
     const clientCreatedAt = String(req.body.clientCreatedAt || "");
     const clientDateLabel = String(req.body.clientDateLabel || "");
     const clientTimeLabel = String(req.body.clientTimeLabel || "");
 
-    if (!sellerId) return res.status(400).json({ ok: false, message: "sellerId obligatoire" });
-    if (!jeux.length) return res.status(400).json({ ok: false, message: "Pa gen jwèt" });
+    if (!sellerId) {
+      return res.status(400).json({ ok: false, message: "sellerId obligatoire" });
+    }
+
+    if (!jeux.length) {
+      return res.status(400).json({ ok: false, message: "Pa gen jwèt" });
+    }
 
     const safeJeux = jeux.map(j => ({
       type: String(j.type || "").trim(),
@@ -546,19 +568,25 @@ app.post("/api/tickets", async (req, res) => {
       montant: Number(j.montant || 0)
     })).filter(j => j.type && j.numero && j.loterie && j.montant > 0);
 
-    if (!safeJeux.length) return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
+    if (!safeJeux.length) {
+      return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
+    }
 
     const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
     const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
     const tirages = [...new Set(safeJeux.map(j => j.loterie))];
-    const ticketId = String(Date.now()).slice(-8) + "-" + Math.floor(1000 + Math.random() * 9000);
+
+    const ticketId =
+      Date.now().toString() + "_" + Math.random().toString(36).substring(2, 10);
 
     const ticket = await Ticket.create({
       id: ticketId,
       vendeur: sellerId,
       vendeurNom: sellerName,
       createdAt: now,
-      createdAtLabel: clientDateLabel && clientTimeLabel ? clientDateLabel + " " + clientTimeLabel : formatDateTimeFR(now),
+      createdAtLabel: clientDateLabel && clientTimeLabel
+        ? clientDateLabel + " " + clientTimeLabel
+        : formatDateTimeFR(now),
       dateLabel: clientDateLabel || formatDateFR(now),
       timeLabel: clientTimeLabel || formatTimeFR(now),
       status: "ANATAN",
@@ -570,6 +598,7 @@ app.post("/api/tickets", async (req, res) => {
     });
 
     res.json({ ok: true, ticket });
+
   } catch (err) {
     console.error("SAVE TICKET ERROR:", err);
     res.status(500).json({ ok: false, message: err.message });

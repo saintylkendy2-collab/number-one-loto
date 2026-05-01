@@ -780,7 +780,19 @@ function writeTicketsArray(data) {
 router.get("/api/reportes/tickets", async (req, res) => {
   try {
     const tickets = await Ticket.find().sort({ createdAt: -1 }).lean();
-    res.json(tickets);
+
+    const cleanTickets = tickets.map(t => {
+      const realId = t.id || t.ticketId || t.serial || String(t._id || "");
+
+      return {
+        ...t,
+        id: realId,
+        ticketId: realId,
+        serial: realId
+      };
+    });
+
+    res.json(cleanTickets);
   } catch (err) {
     console.error("Erreur report tickets Mongo:", err.message);
     res.status(500).json([]);

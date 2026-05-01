@@ -926,7 +926,7 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
     <button
       onclick="
         if (window.opener) {
-          window.location.href = '/master/vendors#tickets&reload=' + Date.now();
+          window.opener.location.href = '/master/vendors#tickets&reload=' + Date.now();
         }
         window.close();
       "

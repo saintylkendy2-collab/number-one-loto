@@ -3878,11 +3878,17 @@ app.get("/print", async (req, res) => {
     const ticketId = String(req.query.ticketId || "").trim();
     const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
 
-    const ticket = await Ticket.findOne({ id: ticketId }).lean();
+   const ticket = await Ticket.findOne({
+  $or: [
+    { id: ticketId },
+    { ticketId: ticketId },
+    { serial: ticketId }
+  ]
+}).lean();
 
-    if (!ticket) {
-      return res.status(404).send("Ticket introuvable");
-    }
+if (!ticket) {
+  return res.status(404).send("Ticket introuvable");
+}
 
     const vendeur = await Vendor.findOne({ id: sellerId }).lean();
     const sellerName = String(

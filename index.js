@@ -2125,50 +2125,39 @@ function resetAfterSend(){
 }
 
 function saveCurrentTicket(channel){
-  if(jeux.length === 0){
-    alert("Pa gen jwèt pou voye.");
-    return Promise.resolve(null);
-  }
+ if(jeux.length === 0){
+   alert("Pa gen jwèt pou voye.");
+   return Promise.resolve(null);
+ }
 
-  return fetch("/api/tickets", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      sellerId: sellerId,
-      sellerName: sellerName,
-      jeux: buildPayloadGames(),
-      channel: channel || "MANUEL",
-      clientCreatedAt: new Date().toISOString(),
-      clientDateLabel: new Date().toLocaleDateString("fr-FR"),
-      clientTimeLabel: new Date().toLocaleTimeString("fr-FR", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-      })
-    })
+ return fetch("/api/tickets", {
+   method: "POST",
+   headers: { "Content-Type": "application/json" },
+   body: JSON.stringify({
+  sellerId: sellerId,
+  sellerName: sellerName,
+  jeux: buildPayloadGames(),
+  channel: channel || "MANUEL",
+  clientCreatedAt: new Date().toISOString(),
+  clientDateLabel: new Date().toLocaleDateString("fr-FR"),
+  clientTimeLabel: new Date().toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
   })
-  .then(function(res){
-    return res.text().then(function(text){
-      let data = {};
-      try{
-        data = JSON.parse(text);
-      }catch(e){
-        alert("Server pa voye JSON: " + text);
-        return null;
-      }
-
-      if(!res.ok || !data.ok){
-        alert(data.message || ("Erreur save ticket HTTP " + res.status));
-        return null;
-      }
-
-      return data.ticket;
-    });
-  })
-  .catch(function(err){
-    alert("Erreur save ticket: " + err.message);
-    return null;
-  });
+})
+ }).then(function(res){
+   return res.json();
+ }).then(function(data){
+   if(!data.ok){
+     alert(data.message || "Erreur save ticket");
+     return null;
+   }
+   return data.ticket;
+ }).catch(function(){
+   alert("Erreur save ticket");
+   return null;
+ });
 }
 
 function submitPrint(){
@@ -3841,79 +3830,71 @@ function renderBalancePage(){
 `);
 });
 
-app.get("/print", (req, res) => {
-  const ticketId = String(req.query.ticketId || "").trim();
-  const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
+app.get("/print", async (req, res) => {
+  try {
+    const ticketId = String(req.query.ticketId || "").trim();
+    const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
 
-  const tickets = loadTickets();
-  const ticket = tickets.find((t) => String(t.id) === ticketId);
+    const ticket = await Ticket.findOne({ id: ticketId }).lean();
 
-  if (!ticket) {
-    return res.status(404).send("Ticket introuvable");
-  }
-
-  const vendeurs = loadVendeursForLogin();
-  const vendeur = vendeurs[sellerId] || {};
-  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
-
-  const total = Number(ticket.total || 0);
-  const dateStr = ticket.dateLabel || formatDateFR(new Date(ticket.createdAt || Date.now()));
-  const timeStr = ticket.timeLabel || formatTimeFR(new Date(ticket.createdAt || Date.now()));
-
-  // 🔥 Loteries (san repete)
-  let lotSeen = {};
-  let loteriesHtml = "";
-
-  (ticket.jeux || []).forEach(j => {
-    const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
-    if (!lotSeen[lot]) {
-      lotSeen[lot] = true;
-      loteriesHtml += '<div class="tirage">' + lot + '</div>';
+    if (!ticket) {
+      return res.status(404).send("Ticket introuvable");
     }
-  });
 
-  // 🔥 GROUP jwèt yo (kenbe kantite)
-const gameMap = {};
-let gamesHtml = "";
+    const vendeur = await Vendor.findOne({ id: sellerId }).lean();
+    const sellerName = String(
+      vendeur?.nom || vendeur?.nombre || ticket.vendeurNom || sellerId || "SELLER"
+    );
 
-(ticket.jeux || []).forEach(j => {
-  let typeRaw = String(j.type || "").toUpperCase();
-  let numero = String(j.numero || "").trim();
-  let montant = Number(j.montant || 0);
+    const total = Number(ticket.total || 0);
+    const dateStr = ticket.dateLabel || formatDateFR(new Date(ticket.createdAt || Date.now()));
+    const timeStr = ticket.timeLabel || formatTimeFR(new Date(ticket.createdAt || Date.now()));
 
-  let type = typeRaw;
-  if (typeRaw === "BOR") type = "Borlette";
-  else if (typeRaw === "MAR") type = "Mariage";
+    let lotSeen = {};
+    let loteriesHtml = "";
 
-  // kle san loterie (pou evite doublon tirage)
-  let key = type + "|" + numero + "|" + montant;
+    (ticket.jeux || []).forEach((j) => {
+      const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
+      if (!lotSeen[lot]) {
+        lotSeen[lot] = true;
+        loteriesHtml += '<div class="tirage">' + lot + '</div>';
+      }
+    });
 
-  if (!gameMap[key]) {
-    gameMap[key] = {
-      type,
-      numero,
-      montant,
-      count: 0
-    };
-  }
+    const gameMap = {};
+    let gamesHtml = "";
 
-  gameMap[key].count++;
-});
+    (ticket.jeux || []).forEach((j) => {
+      let typeRaw = String(j.type || "").toUpperCase();
+      let numero = String(j.numero || "").trim();
+      let montant = Number(j.montant || 0);
 
-// 🔥 AFFICHE AK KANTITE
-Object.values(gameMap).forEach(g => {
-  let total = (g.montant * g.count).toFixed(2);
+      let type = typeRaw;
+      if (typeRaw === "BOR") type = "Borlette";
+      else if (typeRaw === "MAR") type = "Mariage";
 
-  gamesHtml +=
-    '<div class="game-row">' +
-      '<div class="col-type">' + g.type + '</div>' +
-      '<div class="col-num">' + g.numero + '</div>' +
-      '<div class="col-amt">' + total + '</div>' +
-    '</div>';
-});
+      let key = type + "|" + numero + "|" + montant;
 
-  res.set("Content-Type", "text/html; charset=utf-8");
-  res.send(`
+      if (!gameMap[key]) {
+        gameMap[key] = { type, numero, montant, count: 0 };
+      }
+
+      gameMap[key].count++;
+    });
+
+    Object.values(gameMap).forEach((g) => {
+      let lineTotal = (g.montant * g.count).toFixed(2);
+
+      gamesHtml +=
+        '<div class="game-row">' +
+          '<div class="col-type">' + g.type + '</div>' +
+          '<div class="col-num">' + g.numero + '</div>' +
+          '<div class="col-amt">' + lineTotal + '</div>' +
+        '</div>';
+    });
+
+    res.set("Content-Type", "text/html; charset=utf-8");
+    res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -3962,12 +3943,18 @@ ${gamesHtml}
 <div class="total">TOTAL: ${total.toFixed(2)} G</div>
 
 <script>
-setTimeout(() => { window.print(); }, 300);
+setTimeout(function(){
+  window.print();
+}, 300);
 </script>
 
 </body>
 </html>
-  `);
+    `);
+  } catch (err) {
+    console.error("PRINT ERROR:", err.message);
+    res.status(500).send("Erreur impression");
+  }
 });
 
 app.get("/print-report", (req, res) => {

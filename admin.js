@@ -128,7 +128,7 @@ router.post("/ticket", async (req, res) => {
 
     console.log("✅ Ticket créé:", ticket.id);
 
-    res.json(ticket);
+    res.json({ ok: true, ticket });
 
   } catch (err) {
     console.error("❌ Erreur création ticket:", err);

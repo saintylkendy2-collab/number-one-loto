@@ -540,38 +540,29 @@ app.post("/api/tickets", async (req, res) => {
     const clientDateLabel = String(req.body.clientDateLabel || "");
     const clientTimeLabel = String(req.body.clientTimeLabel || "");
 
-    if (!sellerId) {
-      return res.status(400).json({ ok: false, message: "sellerId obligatoire" });
-    }
+    if (!sellerId) return res.status(400).json({ ok: false, message: "sellerId obligatoire" });
+    if (!jeux.length) return res.status(400).json({ ok: false, message: "Pa gen jwèt" });
 
-    if (!jeux.length) {
-      return res.status(400).json({ ok: false, message: "Pa gen jwèt" });
-    }
-
-    const safeJeux = jeux.map((j) => ({
+    const safeJeux = jeux.map(j => ({
       type: String(j.type || "").trim(),
       numero: String(j.numero || "").trim(),
       loterie: String(j.loterie || "").trim(),
       montant: Number(j.montant || 0)
-    })).filter((j) => j.type && j.numero && j.loterie && j.montant > 0);
+    })).filter(j => j.type && j.numero && j.loterie && j.montant > 0);
 
-    if (!safeJeux.length) {
-      return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
-    }
+    if (!safeJeux.length) return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
 
     const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
     const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
-    const tirages = [...new Set(safeJeux.map((j) => j.loterie))];
+    const tirages = [...new Set(safeJeux.map(j => j.loterie))];
     const ticketId = String(Date.now()).slice(-8) + "-" + Math.floor(1000 + Math.random() * 9000);
 
-    const ticket = {
+    const ticket = await Ticket.create({
       id: ticketId,
       vendeur: sellerId,
       vendeurNom: sellerName,
-      createdAt: now.toISOString(),
-      createdAtLabel: clientDateLabel && clientTimeLabel
-        ? clientDateLabel + " " + clientTimeLabel
-        : formatDateTimeFR(now),
+      createdAt: now,
+      createdAtLabel: clientDateLabel && clientTimeLabel ? clientDateLabel + " " + clientTimeLabel : formatDateTimeFR(now),
       dateLabel: clientDateLabel || formatDateFR(now),
       timeLabel: clientTimeLabel || formatTimeFR(now),
       status: "ANATAN",
@@ -580,21 +571,15 @@ app.post("/api/tickets", async (req, res) => {
       total,
       tirages,
       jeux: safeJeux
-    };
-
-    await Ticket.create(ticket);
-
-    const tickets = loadTickets();
-    tickets.push(ticket);
-    saveTickets(tickets);
+    });
 
     res.json({ ok: true, ticket });
-
   } catch (err) {
-    console.error("SAVE TICKET ERROR:", err.message);
+    console.error("SAVE TICKET ERROR:", err);
     res.status(500).json({ ok: false, message: err.message });
   }
 });
+
 
 app.post("/api/ticket-status", (req, res) => {
   const ticketId = String(req.body.id || "").trim();
@@ -4104,11 +4089,9 @@ setTimeout(function(){
 });
 
 
-app.get("/api/reportes/tickets", (req, res) => {
+app.get("/api/reportes/tickets", async (req, res) => {
   try {
-    const tickets = loadTickets().sort((a, b) => {
-      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-    });
+    const tickets = await Ticket.find().sort({ createdAt: -1 }).lean();
     res.json(tickets);
   } catch (err) {
     console.error(err);
@@ -4116,16 +4099,16 @@ app.get("/api/reportes/tickets", (req, res) => {
   }
 });
 
-app.get("/tickets/:vendeur", (req, res) => {
-  const vendeurId = String(req.params.vendeur || "").trim().toUpperCase();
-  const tickets = loadTickets();
-
-  const result = tickets.filter((t) =>
-    String(t.vendeur || "").trim().toUpperCase() === vendeurId
-  );
-
-  res.json(result);
+app.get("/tickets/:vendeur", async (req, res) => {
+  try {
+    const vendeurId = String(req.params.vendeur || "").trim().toUpperCase();
+    const tickets = await Ticket.find({ vendeur: vendeurId }).sort({ createdAt: -1 }).lean();
+    res.json(tickets);
+  } catch (err) {
+    res.status(500).json([]);
+  }
 });
+
 
 const adminRoutes = require("./admin");
 app.use(adminRoutes);

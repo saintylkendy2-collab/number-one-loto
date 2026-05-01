@@ -408,67 +408,75 @@ text-align:center;
 `);
 });
 
-app.post("/login", (req, res) => {
-  const id = String(req.body.id || "").trim().toUpperCase();
-  const password = String(req.body.password || "").trim();
+app.post("/login", async (req, res) => {
+  try {
+    const id = String(req.body.id || "").trim().toUpperCase();
+    const password = String(req.body.password || "").trim();
 
-  const vendeurs = loadVendeursForLogin();
-  const vendeur = vendeurs[id];
+    const vendeur = await Vendor.findOne({ id });
 
-  if (!vendeur) {
-    return res.send(loginErrorPage("ID pa egziste ✖"));
-  }
+    if (!vendeur) {
+      return res.send(loginErrorPage("ID pa egziste ✖"));
+    }
 
-  const savedPassword = String(vendeur.password || vendeur.clave || "").trim();
-  if (password !== savedPassword) {
-    return res.send(loginErrorPage("Identifiant ou mot de passe incorrect ✖"));
-  }
+    const savedPassword = String(vendeur.password || vendeur.clave || "").trim();
 
-  if (String(vendeur.estatus || "").toLowerCase() === "bloqueado") {
-    return res.send(loginErrorPage("Vandè sa bloke ✖"));
-  }
+    if (password !== savedPassword) {
+      return res.send(loginErrorPage("Identifiant ou mot de passe incorrect ✖"));
+    }
 
-  if (!Array.isArray(vendeur.conexiones)) vendeur.conexiones = [];
+    if (String(vendeur.estatus || "").toLowerCase() === "bloqueado") {
+      return res.send(loginErrorPage("Vandè sa bloke ✖"));
+    }
 
-  const connRow = buildConnectionRow(req, vendeur);
+    if (!Array.isArray(vendeur.conexiones)) vendeur.conexiones = [];
 
-const activeConn = Array.isArray(vendeur.conexiones)
-  ? vendeur.conexiones.find(c => c && c.st === true)
-  : null;
+    const connRow = buildConnectionRow(req, vendeur);
 
-if (activeConn) {
-  const sameDevice =
-    String(activeConn.userAgent || "") === String(connRow.userAgent || "") &&
-    String(activeConn.place || "") === String(connRow.place || "") &&
-    String(activeConn.marca || "") === String(connRow.marca || "") &&
-    String(activeConn.modelo || "") === String(connRow.modelo || "");
+    const activeConn = vendeur.conexiones.find(c => c && c.st === true);
 
-  if (sameDevice) {
-    activeConn.last = connRow.last;
-    activeConn.vinculado = activeConn.vinculado || connRow.vinculado;
-    activeConn.ip = connRow.ip;
-    activeConn.userAgent = connRow.userAgent;
-    activeConn.app = connRow.app;
-    activeConn.co = true;
-    activeConn.on = true;
-    activeConn.st = true;
+    if (activeConn) {
+      const sameDevice =
+        String(activeConn.userAgent || "") === String(connRow.userAgent || "") &&
+        String(activeConn.place || "") === String(connRow.place || "") &&
+        String(activeConn.marca || "") === String(connRow.marca || "") &&
+        String(activeConn.modelo || "") === String(connRow.modelo || "");
 
-    vendeur.conexion = activeConn.last;
+      if (sameDevice) {
+        activeConn.last = connRow.last;
+        activeConn.vinculado = activeConn.vinculado || connRow.vinculado;
+        activeConn.ip = connRow.ip;
+        activeConn.userAgent = connRow.userAgent;
+        activeConn.app = connRow.app;
+        activeConn.co = true;
+        activeConn.on = true;
+        activeConn.st = true;
+
+        vendeur.conexion = activeConn.last;
+        if (!vendeur.app) vendeur.app = "2.9.32";
+
+        vendeur.markModified("conexiones");
+        await vendeur.save();
+
+        return res.redirect("/dashboard?id=" + encodeURIComponent(id));
+      }
+
+      return res.send(loginErrorPage("ID sa konekte deja ✖"));
+    }
+
+    vendeur.conexiones.push(connRow);
+    vendeur.conexion = connRow.last;
     if (!vendeur.app) vendeur.app = "2.9.32";
 
-    saveVendeursForLogin(vendeurs);
+    vendeur.markModified("conexiones");
+    await vendeur.save();
+
     return res.redirect("/dashboard?id=" + encodeURIComponent(id));
+
+  } catch (err) {
+    console.error("LOGIN ERROR:", err.message);
+    return res.send(loginErrorPage("Erreur login ✖"));
   }
-
-    return res.send(loginErrorPage("ID sa konekte deja ✖"));
-}
-
-vendeur.conexiones.push(connRow);
-vendeur.conexion = connRow.last;
-if (!vendeur.app) vendeur.app = "2.9.32";
-
-saveVendeursForLogin(vendeurs);
-return res.redirect("/dashboard?id=" + encodeURIComponent(id));
 });
 
 app.get("/logout", (req, res) => {

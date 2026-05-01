@@ -3,6 +3,8 @@ const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
 
+const Ticket = require("./models/Ticket");
+
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
@@ -499,79 +501,101 @@ app.get("/logout", (req, res) => {
   res.redirect("/");
 });
 
-app.get("/api/vendor/:id/tickets", (req, res) => {
-  const sellerId = String(req.params.id || "").trim().toUpperCase();
-  const tickets = loadTickets()
-    .filter((t) => String(t.vendeur || "").trim().toUpperCase() === sellerId)
-    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-  res.json(tickets);
+const Ticket = require("./models/Ticket");
+
+// GET tickets pa vendeur
+app.get("/api/vendor/:id/tickets", async (req, res) => {
+  try {
+    const sellerId = String(req.params.id || "").trim().toUpperCase();
+
+    const tickets = await Ticket.find({ vendeur: sellerId })
+      .sort({ createdAt: -1 });
+
+    res.json(tickets);
+  } catch (err) {
+    console.error("GET TICKETS ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.get("/api/ticket/:id", (req, res) => {
-  const id = String(req.params.id || "").trim();
-  const tickets = loadTickets();
-  const ticket = tickets.find((t) => String(t.id) === id);
-  res.json(ticket || {});
+// GET 1 ticket
+app.get("/api/ticket/:id", async (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim();
+
+    const ticket = await Ticket.findOne({ id });
+
+    res.json(ticket || {});
+  } catch (err) {
+    console.error("GET ONE TICKET ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.post("/api/tickets", (req, res) => {
-  const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
-  const sellerName = String(req.body.sellerName || sellerId || "VENDEUR");
-  const jeux = Array.isArray(req.body.jeux) ? req.body.jeux : [];
-  const channel = String(req.body.channel || "MANUEL").trim().toUpperCase();
-const clientCreatedAt = String(req.body.clientCreatedAt || "");
-const clientDateLabel = String(req.body.clientDateLabel || "");
-const clientTimeLabel = String(req.body.clientTimeLabel || "");
+app.post("/api/tickets", async (req, res) => {
+  try {
+    const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
+    const sellerName = String(req.body.sellerName || sellerId || "VENDEUR");
+    const jeux = Array.isArray(req.body.jeux) ? req.body.jeux : [];
+    const channel = String(req.body.channel || "MANUEL").trim().toUpperCase();
+    const clientCreatedAt = String(req.body.clientCreatedAt || "");
+    const clientDateLabel = String(req.body.clientDateLabel || "");
+    const clientTimeLabel = String(req.body.clientTimeLabel || "");
 
+    if (!sellerId) {
+      return res.status(400).json({ ok: false, message: "sellerId obligatoire" });
+    }
 
-  if (!sellerId) {
-    return res.status(400).json({ ok: false, message: "sellerId obligatoire" });
+    if (!jeux.length) {
+      return res.status(400).json({ ok: false, message: "Pa gen jwèt" });
+    }
+
+    const safeJeux = jeux.map((j) => ({
+      type: String(j.type || "").trim(),
+      numero: String(j.numero || "").trim(),
+      loterie: String(j.loterie || "").trim(),
+      montant: Number(j.montant || 0)
+    })).filter((j) => j.type && j.numero && j.loterie && j.montant > 0);
+
+    if (!safeJeux.length) {
+      return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
+    }
+
+    const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
+    const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
+    const tirages = [...new Set(safeJeux.map((j) => j.loterie))];
+    const ticketId = String(Date.now()).slice(-8) + "-" + Math.floor(1000 + Math.random() * 9000);
+
+    const ticket = {
+      id: ticketId,
+      vendeur: sellerId,
+      vendeurNom: sellerName,
+      createdAt: now.toISOString(),
+      createdAtLabel: clientDateLabel && clientTimeLabel
+        ? clientDateLabel + " " + clientTimeLabel
+        : formatDateTimeFR(now),
+      dateLabel: clientDateLabel || formatDateFR(now),
+      timeLabel: clientTimeLabel || formatTimeFR(now),
+      status: "ANATAN",
+      premio: 0,
+      channel,
+      total,
+      tirages,
+      jeux: safeJeux
+    };
+
+    await Ticket.create(ticket);
+
+    const tickets = loadTickets();
+    tickets.push(ticket);
+    saveTickets(tickets);
+
+    res.json({ ok: true, ticket });
+
+  } catch (err) {
+    console.error("SAVE TICKET ERROR:", err.message);
+    res.status(500).json({ ok: false, message: err.message });
   }
-
-  if (!jeux.length) {
-    return res.status(400).json({ ok: false, message: "Pa gen jwèt" });
-  }
-
-  const safeJeux = jeux.map((j) => ({
-    type: String(j.type || "").trim(),
-    numero: String(j.numero || "").trim(),
-    loterie: String(j.loterie || "").trim(),
-    montant: Number(j.montant || 0)
-  })).filter((j) => j.type && j.numero && j.loterie && j.montant > 0);
-
-  if (!safeJeux.length) {
-    return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
-  }
-
- 
-const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
-  const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
-  const tirages = [...new Set(safeJeux.map((j) => j.loterie))];
-  const ticketId = String(Date.now()).slice(-8) + "-" + Math.floor(1000 + Math.random() * 9000);
-
-  const ticket = {
-    id: ticketId,
-    vendeur: sellerId,
-    vendeurNom: sellerName,
-    createdAt: now.toISOString(),
-createdAtLabel: clientDateLabel && clientTimeLabel
-  ? clientDateLabel + " " + clientTimeLabel
-  : formatDateTimeFR(now),
-dateLabel: clientDateLabel || formatDateFR(now),
-timeLabel: clientTimeLabel || formatTimeFR(now),
-    status: "ANATAN",
-    premio: 0,
-    channel,
-    total,
-    tirages,
-    jeux: safeJeux
-  };
-
-  const tickets = loadTickets();
-  tickets.push(ticket);
-  saveTickets(tickets);
-
-  res.json({ ok: true, ticket });
 });
 
 app.post("/api/ticket-status", (req, res) => {

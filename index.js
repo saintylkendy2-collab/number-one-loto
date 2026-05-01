@@ -528,21 +528,6 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
   }
 });
 
-app.get("/api/tickets/:id", async (req, res) => {
-  try {
-    const ticket = await Ticket.findOne({ id: req.params.id });
-
-    if (!ticket) {
-      return res.status(404).send("Ticket introuvable");
-    }
-
-    res.json({ ok: true, ticket });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Erreur serveur");
-  }
-});
-
 app.post("/api/tickets", async (req, res) => {
   try {
     const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
@@ -568,12 +553,7 @@ app.post("/api/tickets", async (req, res) => {
       numero: String(j.numero || "").trim(),
       loterie: String(j.loterie || "").trim(),
       montant: Number(j.montant || 0)
-    })).filter(j =>
-      j.type &&
-      j.numero &&
-      j.loterie &&
-      j.montant > 0
-    );
+    })).filter(j => j.type && j.numero && j.loterie && j.montant > 0);
 
     if (!safeJeux.length) {
       return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
@@ -581,43 +561,54 @@ app.post("/api/tickets", async (req, res) => {
 
     const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
 
-    const total = safeJeux.reduce((sum, j) => sum + j.montant, 0);
+    const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
     const tirages = [...new Set(safeJeux.map(j => j.loterie))];
 
-    // 🔥 ID FIX (evite doublon + garanti string)
     const ticketId =
       "T" + Date.now().toString() +
-      Math.random().toString(36).substring(2, 8);
+      Math.random().toString(36).substring(2, 8).toUpperCase();
 
-    const ticketData = {
+    const ticket = await Ticket.create({
       id: ticketId,
+      ticketId: ticketId,
+      serial: ticketId,
+
       vendeur: sellerId,
       vendeurNom: sellerName,
+
       createdAt: now,
       createdAtLabel: clientDateLabel && clientTimeLabel
         ? clientDateLabel + " " + clientTimeLabel
         : now.toLocaleString("fr-FR"),
+
       dateLabel: clientDateLabel || now.toLocaleDateString("fr-FR"),
       timeLabel: clientTimeLabel || now.toLocaleTimeString("fr-FR", {
         hour: "2-digit",
-        minute: "2-digit"
+        minute: "2-digit",
+        second: "2-digit"
       }),
+
       status: "ANATAN",
       premio: 0,
+
       channel,
       total,
       tirages,
       jeux: safeJeux
-    };
+    });
 
-    // 🔥 SAVE + LOG
-    const ticket = await Ticket.create(ticketData);
+    const obj = ticket.toObject();
 
-    console.log("✅ Ticket créé:", ticket.id);
+    console.log("✅ Ticket créé:", ticketId);
 
     return res.json({
       ok: true,
-      ticket: ticket
+      ticket: {
+        ...obj,
+        id: ticketId,
+        ticketId: ticketId,
+        serial: ticketId
+      }
     });
 
   } catch (err) {

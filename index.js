@@ -536,7 +536,7 @@ app.get("/api/tickets/:id", async (req, res) => {
       return res.status(404).send("Ticket introuvable");
     }
 
-    res.json(ticket);
+    res.json({ ok: true, ticket });
   } catch (err) {
     console.error(err);
     res.status(500).send("Erreur serveur");

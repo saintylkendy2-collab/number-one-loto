@@ -2742,6 +2742,7 @@ function goPage(page){
   const editorPage = byId("vendorEditorPage");
   const balancePage = byId("balanceVendorPage");
   const transactionsPage = byId("transactionsPage");
+const sorteosPage = byId("sorteosPage");
 
   if(ventasPage) ventasPage.classList.add("hidden");
   if(ticketsPage) ticketsPage.classList.add("hidden");
@@ -2749,6 +2750,7 @@ function goPage(page){
   if(editorPage) editorPage.classList.add("hidden");
   if(balancePage) balancePage.classList.add("hidden");
   if(transactionsPage) transactionsPage.classList.add("hidden");
+if(sorteosPage) sorteosPage.classList.add("hidden");
 
   if(page === "ventas"){
     if(ventasPage) ventasPage.classList.remove("hidden");
@@ -2773,6 +2775,11 @@ function goPage(page){
   }else if(page === "tickets"){
     if(ticketsPage) ticketsPage.classList.remove("hidden");
     loadTicketsReport();
+
+    }else if(page === "sorteos"){
+  if(sorteosPage) sorteosPage.classList.remove("hidden");
+  setValue("sorteosDate", todayISO());
+  loadSorteos();
 
   }else if(page === "vendors"){
     if(vendorsPage) vendorsPage.classList.remove("hidden");
@@ -3971,6 +3978,9 @@ const transactionGrupoFilter = byId("transactionGrupoFilter");
 const transactionVendorFilter = byId("transactionVendorFilter");
 const transactionStart = byId("transactionStart");
 const transactionEnd = byId("transactionEnd");
+
+const sorteosDate = byId("sorteosDate");
+if(sorteosDate) sorteosDate.addEventListener("change", loadSorteos);
 
 if(transactionGrupoFilter) transactionGrupoFilter.addEventListener("change", renderTransactionsTable);
 if(transactionVendorFilter) transactionVendorFilter.addEventListener("change", renderTransactionsTable);

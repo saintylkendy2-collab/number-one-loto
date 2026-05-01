@@ -3,6 +3,8 @@ const fs = require("fs");
 const path = require("path");
 const router = express.Router();
 
+const Ticket = require("./models/Ticket");
+
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 console.log("ADMIN VENDEURS_FILE =", VENDEURS_FILE);
 
@@ -699,36 +701,38 @@ function writeTicketsArray(data) {
   fs.writeFileSync(TICKETS_FILE, JSON.stringify(data, null, 2), "utf8");
 }
 
-router.get("/api/reportes/tickets", (req, res) => {
+router.get("/api/reportes/tickets", async (req, res) => {
   try {
-    const tickets = readTicketsArray();
+    const tickets = await Ticket.find().sort({ createdAt: -1 }).lean();
     res.json(tickets);
   } catch (err) {
-    console.error("Erreur report tickets :", err);
+    console.error("Erreur report tickets Mongo:", err.message);
     res.status(500).json([]);
   }
 });
 
-router.post("/api/tickets/:id/anile", (req, res) => {
+
+router.post("/api/tickets/:id/anile", async (req, res) => {
   try {
     const ticketId = String(req.params.id || "").trim();
-    const tickets = readTicketsArray();
 
-    const index = tickets.findIndex(t => String(t.id || "").trim() === ticketId);
+    const ticket = await Ticket.findOneAndUpdate(
+      { id: ticketId },
+      {
+        status: "ANILE",
+        anilePar: "ADMIN",
+        anileAt: new Date().toISOString()
+      },
+      { new: true }
+    );
 
-    if (index === -1) {
+    if (!ticket) {
       return res.status(404).json({ ok: false, message: "Ticket introuvable" });
     }
 
-    tickets[index].status = "ANILE";
-    tickets[index].anilePar = "ADMIN";
-    tickets[index].anileAt = new Date().toISOString();
-
-    writeTicketsArray(tickets);
-
-    res.json({ ok: true, ticket: tickets[index] });
+    res.json({ ok: true, ticket });
   } catch (err) {
-    console.error("Erreur anile ticket :", err);
+    console.error("Erreur anile ticket Mongo:", err.message);
     res.status(500).json({ ok: false, message: "Erreur anile ticket" });
   }
 });

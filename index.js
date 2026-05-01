@@ -3890,10 +3890,19 @@ if (!ticket) {
   return res.status(404).send("Ticket introuvable");
 }
 
-    const vendeur = await Vendor.findOne({ id: sellerId }).lean();
-    const sellerName = String(
-      vendeur?.nom || vendeur?.nombre || ticket.vendeurNom || sellerId || "SELLER"
-    );
+   let vendeur = null;
+
+if (sellerId) {
+  vendeur = await Vendor.findOne({ id: sellerId }).lean();
+}
+
+const sellerName = String(
+  (vendeur && (vendeur.nom || vendeur.nombre)) ||
+  ticket.vendeurNom ||
+  ticket.vendeur ||
+  sellerId ||
+  "VENDEUR"
+);
 
     const total = Number(ticket.total || 0);
     const dateStr = ticket.dateLabel || formatDateFR(new Date(ticket.createdAt || Date.now()));

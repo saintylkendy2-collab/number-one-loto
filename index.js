@@ -3879,7 +3879,7 @@ app.get("/print", async (req, res) => {
     let lotSeen = {};
     let loteriesHtml = "";
 
-    (ticket.jeux || []).forEach((j) => {
+    (ticket.jeux || []).forEach(j => {
       const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
       if (!lotSeen[lot]) {
         lotSeen[lot] = true;
@@ -3890,7 +3890,7 @@ app.get("/print", async (req, res) => {
     const gameMap = {};
     let gamesHtml = "";
 
-    (ticket.jeux || []).forEach((j) => {
+    (ticket.jeux || []).forEach(j => {
       let typeRaw = String(j.type || "").toUpperCase();
       let numero = String(j.numero || "").trim();
       let montant = Number(j.montant || 0);
@@ -3908,14 +3908,14 @@ app.get("/print", async (req, res) => {
       gameMap[key].count++;
     });
 
-    Object.values(gameMap).forEach((g) => {
-      let lineTotal = (g.montant * g.count).toFixed(2);
+    Object.values(gameMap).forEach(g => {
+      let totalLine = (g.montant * g.count).toFixed(2);
 
       gamesHtml +=
         '<div class="game-row">' +
           '<div class="col-type">' + g.type + '</div>' +
           '<div class="col-num">' + g.numero + '</div>' +
-          '<div class="col-amt">' + lineTotal + '</div>' +
+          '<div class="col-amt">' + totalLine + '</div>' +
         '</div>';
     });
 
@@ -3977,8 +3977,9 @@ setTimeout(function(){
 </body>
 </html>
     `);
+
   } catch (err) {
-    console.error("PRINT ERROR:", err.message);
+    console.error("PRINT ERROR:", err);
     res.status(500).send("Erreur impression");
   }
 });

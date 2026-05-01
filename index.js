@@ -4,33 +4,21 @@ const path = require("path");
 const mongoose = require("mongoose");
 
 const TicketSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    required: true,
-    unique: true,
-    index: true
-  },
-  ticketId: String,
-  serial: String,
+  id: { type: String, required: true, unique: true },
   vendeur: String,
   vendeurNom: String,
   createdAt: Date,
-  createdAtLabel: String,
   dateLabel: String,
   timeLabel: String,
   status: String,
   premio: Number,
-  channel: String,
   total: Number,
   tirages: Array,
   jeux: Array
-}, {
-  strict: false,
-  timestamps: true,
-  id: false
 });
 
-module.exports = mongoose.model("Ticket", TicketSchema);
+// 🔥 FIX LA
+module.exports = mongoose.models.Ticket || mongoose.model("Ticket", TicketSchema);
 
 const app = express();
 

@@ -16,7 +16,12 @@ mongoose.connect("mongodb+srv://adminn:Kendy2026@cluster0.yzqmfuc.mongodb.net/lo
 .catch(err => console.error("Mongo erreur:", err.message));
 
 mongoose.connection.once("open", async () => {
+
   try {
+
+    await Ticket.collection.dropIndex("id_1").catch(() => {});
+    await Ticket.collection.createIndex({ id: 1 }, { unique: true, sparse: true });
+
     await Ticket.deleteMany({
       $or: [
         { id: null },
@@ -26,9 +31,11 @@ mongoose.connection.once("open", async () => {
     });
 
     console.log("✅ Tickets id null supprimés");
+
   } catch (err) {
     console.error("Erreur nettoyage tickets null:", err.message);
   }
+
 });
 
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");

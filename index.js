@@ -3,22 +3,8 @@ const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
 
-const TicketSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
-  vendeur: String,
-  vendeurNom: String,
-  createdAt: Date,
-  dateLabel: String,
-  timeLabel: String,
-  status: String,
-  premio: Number,
-  total: Number,
-  tirages: Array,
-  jeux: Array
-});
-
-// 🔥 FIX LA
-module.exports = mongoose.models.Ticket || mongoose.model("Ticket", TicketSchema);
+const Ticket = require("./models/Ticket");
+const Vendor = require("./models/vendor");
 
 const app = express();
 
@@ -28,11 +14,6 @@ app.use(express.json());
 mongoose.connect("mongodb+srv://adminn:Kendy2026@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority&appName=Cluster0")
 .then(() => console.log("Mongo connecté"))
 .catch(err => console.error("Mongo erreur:", err.message));
-
-const Vendor = require("./models/vendor");
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
 
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 console.log("INDEX VENDEURS_FILE =", VENDEURS_FILE);

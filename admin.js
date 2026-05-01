@@ -1,15 +1,14 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+
 const router = express.Router();
 
 const Ticket = require("./models/Ticket");
+const Vendor = require("./models/vendor");
 
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 console.log("ADMIN VENDEURS_FILE =", VENDEURS_FILE);
-
-const mongoose = require("mongoose");
-const Vendor = require("./models/vendor");
 
 const TICKETS_FILE = path.join(__dirname, "tickets.json");
 const SORTEOS_FILE = path.join(__dirname, "sorteos.json");

@@ -2,6 +2,15 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 
+const mongoose = require("mongoose");
+
+mongoose.connect("mongodb+srv://adminn:12345@cluster0.yzqmfuc.mongodb.net/loto", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("Mongo connecté"))
+.catch(err => console.error("Mongo erreur:", err));
+
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));

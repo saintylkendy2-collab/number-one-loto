@@ -528,17 +528,18 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
   }
 });
 
-// GET 1 ticket
-app.get("/api/ticket/:id", async (req, res) => {
+app.get("/api/tickets/:id", async (req, res) => {
   try {
-    const id = String(req.params.id || "").trim();
+    const ticket = await Ticket.findOne({ id: req.params.id });
 
-    const ticket = await Ticket.findOne({ id });
+    if (!ticket) {
+      return res.status(404).send("Ticket introuvable");
+    }
 
-    res.json(ticket || {});
+    res.json(ticket);
   } catch (err) {
-    console.error("GET ONE TICKET ERROR:", err);
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).send("Erreur serveur");
   }
 });
 

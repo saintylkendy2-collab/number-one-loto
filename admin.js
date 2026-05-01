@@ -1768,6 +1768,20 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
 </div>
 
+<div style="padding:0;">
+  <div id="ticketsFilters"></div>
+</div>
+
+<div class="table-card">
+  <div class="table-scroll">
+    <table>
+      <thead id="ticketsHead"></thead>
+      <tbody id="ticketsBody"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
 <div id="sorteosPage" class="page-block hidden">
   <div class="page-title">Sorteos</div>
 
@@ -1791,20 +1805,6 @@ tbody tr:nth-child(even){background:#313652;}
       SAVE
     </button>
   </div>
-</div>
-
-<div style="padding:0;">
-  <div id="ticketsFilters"></div>
-</div>
-
-<div class="table-card">
-  <div class="table-scroll">
-    <table>
-      <thead id="ticketsHead"></thead>
-      <tbody id="ticketsBody"></tbody>
-    </table>
-  </div>
-</div>
 </div>
 
 <div id="transactionsPage" class="page-block hidden">

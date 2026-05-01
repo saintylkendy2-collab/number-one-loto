@@ -7,18 +7,42 @@ const router = express.Router();
 const Ticket = require("./models/Ticket");
 const Vendor = require("./models/vendor");
 
+// =============================
+// 📁 FILE PATHS
+// =============================
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
-console.log("ADMIN VENDEURS_FILE =", VENDEURS_FILE);
-
 const TICKETS_FILE = path.join(__dirname, "tickets.json");
 const SORTEOS_FILE = path.join(__dirname, "sorteos.json");
 
+console.log("ADMIN VENDEURS_FILE =", VENDEURS_FILE);
+
+// =============================
+// 🔒 ENSURE FILES EXIST
+// =============================
+function ensureVendeursFile() {
+  if (!fs.existsSync(VENDEURS_FILE)) {
+    fs.writeFileSync(VENDEURS_FILE, JSON.stringify({}, null, 2), "utf8");
+  }
+}
+
+function ensureTicketsFile() {
+  if (!fs.existsSync(TICKETS_FILE)) {
+    fs.writeFileSync(TICKETS_FILE, JSON.stringify([], null, 2), "utf8");
+  }
+}
+
+function ensureSorteosFile() {
+  if (!fs.existsSync(SORTEOS_FILE)) {
+    fs.writeFileSync(SORTEOS_FILE, JSON.stringify({}, null, 2), "utf8");
+  }
+}
+
+// =============================
+// 📖 READ FUNCTIONS
+// =============================
 function readTicketsArray() {
   try {
-    if (!fs.existsSync(TICKETS_FILE)) {
-      fs.writeFileSync(TICKETS_FILE, JSON.stringify([], null, 2), "utf8");
-    }
-
+    ensureTicketsFile();
     const raw = fs.readFileSync(TICKETS_FILE, "utf8").trim();
     if (!raw) return [];
 
@@ -32,30 +56,88 @@ function readTicketsArray() {
 
 function readSorteosObject() {
   try {
-    if (!fs.existsSync(SORTEOS_FILE)) {
-      fs.writeFileSync(SORTEOS_FILE, JSON.stringify({}, null, 2), "utf8");
-    }
-
+    ensureSorteosFile();
     const raw = fs.readFileSync(SORTEOS_FILE, "utf8").trim();
     if (!raw) return {};
 
     const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    return typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
   } catch (err) {
     console.error("Erreur lecture sorteos.json :", err);
     return {};
   }
 }
 
+// =============================
+// ✍️ WRITE FUNCTIONS
+// =============================
 function writeSorteosObject(data) {
   fs.writeFileSync(SORTEOS_FILE, JSON.stringify(data, null, 2), "utf8");
 }
 
-function ensureVendeursFile() {
-  if (!fs.existsSync(VENDEURS_FILE)) {
-    fs.writeFileSync(VENDEURS_FILE, JSON.stringify({}, null, 2), "utf8");
+// =============================
+// 🔥 CREATE TICKET (FIX TOTAL)
+// =============================
+router.post("/ticket", async (req, res) => {
+  try {
+    const {
+      sellerId,
+      sellerName,
+      total,
+      tirages,
+      jeux,
+      channel,
+      clientDateLabel,
+      clientTimeLabel
+    } = req.body;
+
+    const now = new Date();
+
+    // 🔒 sécuriser jeux
+    const safeJeux = Array.isArray(jeux) ? jeux : [];
+
+    // 🔥 ID JAMAIS NULL
+    const ticketId =
+      Date.now().toString() +
+      "_" +
+      Math.random().toString(36).substring(2, 10);
+
+    const ticket = await Ticket.create({
+      id: ticketId,
+      vendeur: sellerId,
+      vendeurNom: sellerName,
+
+      createdAt: now,
+
+      createdAtLabel:
+        clientDateLabel && clientTimeLabel
+          ? clientDateLabel + " " + clientTimeLabel
+          : now.toLocaleString(),
+
+      dateLabel: clientDateLabel || now.toLocaleDateString(),
+      timeLabel: clientTimeLabel || now.toLocaleTimeString(),
+
+      status: "ANATAN",
+      premio: 0,
+
+      channel,
+      total,
+      tirages,
+      jeux: safeJeux
+    });
+
+    console.log("✅ Ticket créé:", ticket.id);
+
+    res.json(ticket);
+
+  } catch (err) {
+    console.error("❌ Erreur création ticket:", err);
+    res.status(500).json({ error: "Erreur serveur" });
   }
-}
+});
+
+// =============================
+module.exports = router;
 
 function readVendeursObject() {
   try {

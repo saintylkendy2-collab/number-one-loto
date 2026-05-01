@@ -4,12 +4,10 @@ const path = require("path");
 
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb+srv://adminn:test123@cluster0.yzqmfuc.mongodb.net/loto", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+
+mongoose.connect("mongodb+srv://adminn:Kendy2026@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority&appName=Cluster0")
 .then(() => console.log("Mongo connecté"))
-.catch(err => console.error("Mongo erreur:", err));
+.catch(err => console.error("Mongo erreur:", err.message));
 
 const app = express();
 

@@ -547,6 +547,7 @@ app.post("/api/tickets", async (req, res) => {
   try {
     const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
     const sellerName = String(req.body.sellerName || sellerId || "VENDEUR");
+
     const jeux = Array.isArray(req.body.jeux) ? req.body.jeux : [];
     const channel = String(req.body.channel || "MANUEL").trim().toUpperCase();
 
@@ -567,42 +568,66 @@ app.post("/api/tickets", async (req, res) => {
       numero: String(j.numero || "").trim(),
       loterie: String(j.loterie || "").trim(),
       montant: Number(j.montant || 0)
-    })).filter(j => j.type && j.numero && j.loterie && j.montant > 0);
+    })).filter(j =>
+      j.type &&
+      j.numero &&
+      j.loterie &&
+      j.montant > 0
+    );
 
     if (!safeJeux.length) {
       return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
     }
 
     const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
-    const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
+
+    const total = safeJeux.reduce((sum, j) => sum + j.montant, 0);
     const tirages = [...new Set(safeJeux.map(j => j.loterie))];
 
+    // 🔥 ID FIX (evite doublon + garanti string)
     const ticketId =
-      Date.now().toString() + "_" + Math.random().toString(36).substring(2, 10);
+      "T" + Date.now().toString() +
+      Math.random().toString(36).substring(2, 8);
 
-    const ticket = await Ticket.create({
+    const ticketData = {
       id: ticketId,
       vendeur: sellerId,
       vendeurNom: sellerName,
       createdAt: now,
       createdAtLabel: clientDateLabel && clientTimeLabel
         ? clientDateLabel + " " + clientTimeLabel
-        : formatDateTimeFR(now),
-      dateLabel: clientDateLabel || formatDateFR(now),
-      timeLabel: clientTimeLabel || formatTimeFR(now),
+        : now.toLocaleString("fr-FR"),
+      dateLabel: clientDateLabel || now.toLocaleDateString("fr-FR"),
+      timeLabel: clientTimeLabel || now.toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      }),
       status: "ANATAN",
       premio: 0,
       channel,
       total,
       tirages,
       jeux: safeJeux
+    };
+
+    // 🔥 SAVE + LOG
+    const ticket = await Ticket.create(ticketData);
+
+    console.log("✅ Ticket créé:", ticket.id);
+
+    return res.json({
+      ok: true,
+      ticket: ticket
     });
 
-    res.json({ ok: true, ticket });
-
   } catch (err) {
-    console.error("SAVE TICKET ERROR:", err);
-    res.status(500).json({ ok: false, message: err.message });
+    console.error("❌ SAVE TICKET ERROR:", err);
+
+    return res.status(500).json({
+      ok: false,
+      message: "Erreur serveur",
+      error: err.message
+    });
   }
 });
 

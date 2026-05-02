@@ -433,7 +433,7 @@ router.get("/api/reportes/ventas", async (req, res) => {
   }
 });
 
-router.get("/api/reportes/balance", (req, res) => {
+router.get("/api/reportes/balance", async (req, res) => {
   try {
     const date = String(req.query.date || "").trim();
 
@@ -471,8 +471,14 @@ router.get("/api/reportes/balance", (req, res) => {
     }
 
     const selectedDate = date || toISODate(new Date());
-    const vendeurs = readVendeursObject();
-    const tickets = readTicketsArray();
+   const vendorsArr = await Vendor.find().lean();
+const tickets = await Ticket.find().lean();
+
+const vendeurs = {};
+vendorsArr.forEach(v => {
+  const id = String(v.id || "").trim().toUpperCase();
+  if (id) vendeurs[id] = v;
+});
     const map = {};
 
     Object.keys(vendeurs).forEach((id) => {

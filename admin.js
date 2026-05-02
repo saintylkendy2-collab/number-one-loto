@@ -710,40 +710,43 @@ router.delete("/api/vendors/:id/connections/:index", async (req, res) => {
   }
 });
 
-router.post("/api/vendors/:id/balance-action", (req, res) => {
+router.post("/api/vendors/:id/balance-action", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
     const { tipo, monto, fecha, comentario } = req.body;
 
-    const obj = readVendeursObject();
-    if (!obj[id]) {
+    const vendor = await Vendor.findOne({ id });
+
+    if (!vendor) {
       return res.status(404).json({ ok: false });
     }
 
-    const vendor = normalizeVendor(obj[id]);
+    if (!Array.isArray(vendor.movimientos)) {
+      vendor.movimientos = [];
+    }
 
-const now = new Date();
+    const now = new Date();
 
-const movement = {
-  id: Date.now(),
-  tipo,
-  monto: parseAmount(monto),
-  fecha: fecha || todayFR(),
-  hora: now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0"),
-  comentario: comentario || ""
-};
+    const movement = {
+      id: Date.now(),
+      tipo,
+      monto: parseAmount(monto),
+      fecha: fecha || todayFR(),
+      hora: now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0"),
+      comentario: comentario || ""
+    };
 
     // 🔥 AJUSTE BALANCE
     if (tipo === "cobro") {
-      vendor.balance += movement.monto;
+      vendor.balance = parseAmount(vendor.balance) + movement.monto;
     } else {
-      vendor.balance -= movement.monto;
+      vendor.balance = parseAmount(vendor.balance) - movement.monto;
     }
 
     vendor.movimientos.push(movement);
 
-    obj[id] = vendor;
-    writeVendeursObject(obj);
+    vendor.markModified("movimientos");
+    await vendor.save();
 
     res.json({ ok: true, balance: vendor.balance });
 

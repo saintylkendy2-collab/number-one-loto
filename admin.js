@@ -2765,12 +2765,14 @@ function renderSorteosPage(){
     var r = saved[l] || {};
 
     html += ''
-      + '<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr 52px;gap:10px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
-      + '<div style="font-size:16px;color:#d7dcef;">' + safe(l) + '</div>'
-      + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:20px;">'
-      + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:20px;">'
-      + '<button class="sorteos-delete-btn" data-loteria="' + safe(l) + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#d7dcef;font-size:24px;">🗑</button>'
-      + '</div>';
+  + '<div style="display:grid;grid-template-columns:1.2fr .7fr .7fr .7fr .7fr 52px;gap:8px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
+  + '<div style="font-size:16px;color:#d7dcef;">' + safe(l) + '</div>'
+  + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:18px;">'
+  + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:18px;">'
+  + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r3" value="' + safe(r.r3 || "") + '" style="text-align:center;font-size:18px;">'
+  + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r4" value="' + safe(r.r4 || "") + '" style="text-align:center;font-size:18px;">'
+  + '<button class="sorteos-delete-btn" data-loteria="' + safe(l) + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#d7dcef;font-size:24px;">🗑</button>'
+  + '</div>';
   });
 
   box.innerHTML = html;

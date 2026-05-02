@@ -7,6 +7,8 @@ const router = express.Router();
 const Ticket = require("./models/Ticket");
 const Vendor = require("./models/vendor");
 
+const Sorteo = require("./models/Sorteo");
+
 // =============================
 // 📁 FILE PATHS
 // =============================
@@ -967,17 +969,28 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
   `);
 });
 
-
-router.get("/api/sorteos", (req, res) => {
+router.get("/api/sorteos", async (req, res) => {
   try {
-    res.json(readSorteosObject());
+    const rows = await Sorteo.find().lean();
+
+    const obj = {};
+    rows.forEach(r => {
+      if (!obj[r.date]) obj[r.date] = {};
+      obj[r.date][r.loteria] = {
+        r1: r.r1 || "",
+        r2: r.r2 || "",
+        updatedAt: r.updatedAt
+      };
+    });
+
+    res.json(obj);
   } catch (err) {
-    console.error("Erreur get sorteos :", err);
+    console.error("Erreur get sorteos Mongo:", err);
     res.status(500).json({});
   }
 });
 
-router.post("/api/sorteos/save", (req, res) => {
+router.post("/api/sorteos/save", async (req, res) => {
   try {
     const body = req.body || {};
     const date = String(body.date || "").trim();
@@ -987,51 +1000,40 @@ router.post("/api/sorteos/save", (req, res) => {
       return res.status(400).json({ ok: false, message: "Date obligatoire" });
     }
 
-    const sorteos = readSorteosObject();
+    for (const r of rows) {
+      const loteria = String(r.loteria || "").trim();
+      if (!loteria) continue;
 
-    if (!sorteos[date]) {
-      sorteos[date] = {};
+      await Sorteo.findOneAndUpdate(
+        { date, loteria },
+        {
+          date,
+          loteria,
+          r1: String(r.r1 || "").trim(),
+          r2: String(r.r2 || "").trim(),
+          updatedAt: new Date()
+        },
+        { upsert: true, new: true }
+      );
     }
 
-    rows.forEach((r) => {
-      const loteria = String(r.loteria || "").trim();
-      const r1 = String(r.r1 || "").trim();
-      const r2 = String(r.r2 || "").trim();
-
-      if (!loteria) return;
-
-      sorteos[date][loteria] = {
-        r1,
-        r2,
-        updatedAt: new Date().toISOString()
-      };
-    });
-
-    writeSorteosObject(sorteos);
-
-    res.json({ ok: true, sorteos: sorteos[date] });
+    res.json({ ok: true });
   } catch (err) {
-    console.error("Erreur save sorteos :", err);
+    console.error("Erreur save sorteos Mongo:", err);
     res.status(500).json({ ok: false, message: "Erreur save sorteos" });
   }
 });
 
-router.delete("/api/sorteos/:date/:loteria", (req, res) => {
+router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
   try {
     const date = String(req.params.date || "").trim();
     const loteria = String(req.params.loteria || "").trim();
 
-    const sorteos = readSorteosObject();
-
-    if (sorteos[date] && sorteos[date][loteria]) {
-      delete sorteos[date][loteria];
-    }
-
-    writeSorteosObject(sorteos);
+    await Sorteo.deleteOne({ date, loteria });
 
     res.json({ ok: true });
   } catch (err) {
-    console.error("Erreur delete sorteos :", err);
+    console.error("Erreur delete sorteos Mongo:", err);
     res.status(500).json({ ok: false, message: "Erreur delete sorteos" });
   }
 });

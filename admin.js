@@ -612,28 +612,35 @@ router.put("/api/vendors/:id", (req, res) => {
     console.error(err);
     res.status(500).json({ ok: false, message: "Erreur update vendor" });
   }
+
+});
+
+
 router.delete("/api/vendors/:id", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
 
-    const deleted = await Vendor.findOneAndDelete({ id });
+    const vendor = await Vendor.findOne({ id });
 
-    if (!deleted) {
+    if (!vendor) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
 
-    await Ticket.deleteMany({ vendeur: id });
+    // ✅ Efase tout tickets ki gen rapò ak vendor sa
+    await Ticket.deleteMany({ sellerId: id });
+
+    // ✅ Efase vendor a li menm
+    await Vendor.deleteOne({ id });
 
     res.json({ ok: true });
+
   } catch (err) {
-    console.error("Erreur delete vendor Mongo:", err);
+    console.error("Erreur delete vendor:", err);
     res.status(500).json({ ok: false, message: "Erreur delete vendor" });
   }
-});});
+});
 
-;
-
-router.post("/api/vendors/:id/connections/:index/block", async (req, res) => {
+router.post("/api/vendors/:id/connections/:index/unblock", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
     const index = Number(req.params.index);
@@ -650,12 +657,13 @@ router.post("/api/vendors/:id/connections/:index/block", async (req, res) => {
       return res.status(404).json({ ok: false, message: "Connexion introuvable" });
     }
 
-    vendor.conexiones[index].co = false;
-    vendor.conexiones[index].on = false;
-    vendor.conexiones[index].st = false;
+    // ✅ Debloque sèlman, pa efase anyen
+    vendor.conexiones[index].co = true;
+    vendor.conexiones[index].on = true;
+    vendor.conexiones[index].st = true;
     vendor.conexiones[index].last = new Date().toLocaleString("fr-FR");
 
-    vendor.estatus = "Bloqueado";
+    vendor.estatus = "Activo";
     vendor.conexion = vendor.conexiones[index].last;
 
     vendor.markModified("conexiones");
@@ -663,8 +671,8 @@ router.post("/api/vendors/:id/connections/:index/block", async (req, res) => {
 
     res.json({ ok: true });
   } catch (err) {
-    console.error("Erreur blocage connexion:", err);
-    res.status(500).json({ ok: false, message: "Erreur blocage connexion" });
+    console.error("Erreur déblocage connexion:", err);
+    res.status(500).json({ ok: false, message: "Erreur déblocage connexion" });
   }
 });
 

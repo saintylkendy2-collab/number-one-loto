@@ -6,6 +6,8 @@ const mongoose = require("mongoose");
 const Ticket = require("./models/Ticket");
 const Vendor = require("./models/vendor");
 
+const Sorteo = require("./models/Sorteo");
+
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
@@ -642,6 +644,22 @@ app.post("/api/tickets", async (req, res) => {
   }
 });
 
+app.get("/api/vendor/sorteos", async (req, res) => {
+  try {
+    const date = String(req.query.date || "").trim();
+
+    const rows = await Sorteo.find(date ? { date } : {}).lean();
+
+    res.json(rows.map(r => ({
+      date: r.date,
+      loteria: r.loteria,
+      numeros: [r.r1, r.r2, r.r3, r.r4].filter(x => String(x || "").trim() !== "")
+    })));
+  } catch (err) {
+    console.error("Erreur vendor sorteos:", err);
+    res.status(500).json([]);
+  }
+});
 
 app.post("/api/ticket-status", (req, res) => {
   const ticketId = String(req.body.id || "").trim();

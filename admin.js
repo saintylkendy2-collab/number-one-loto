@@ -654,12 +654,12 @@ router.get("/api/vendors/:id", (req, res) => {
   }
 });
 
-router.post("/api/vendors/:id/connections/:index/block", (req, res) => {
+router.post("/api/vendors/:id/connections/:index/unblock", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
     const index = Number(req.params.index);
-    const obj = readVendeursObject();
-    const vendor = obj[id];
+
+    const vendor = await Vendor.findOne({ id });
 
     if (!vendor) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
@@ -671,62 +671,53 @@ router.post("/api/vendors/:id/connections/:index/block", (req, res) => {
       return res.status(404).json({ ok: false, message: "Connexion introuvable" });
     }
 
-    vendor.conexiones[index] = normalizeConnection({
-      ...vendor.conexiones[index],
-      co: false,
-      on: false,
-      st: false,
-      last: new Date().toLocaleString("fr-FR")
-    });
+    vendor.conexiones[index].co = true;
+    vendor.conexiones[index].on = true;
+    vendor.conexiones[index].st = true;
+    vendor.conexiones[index].last = new Date().toLocaleString("fr-FR");
+    vendor.conexion = vendor.conexiones[index].last;
 
-    vendor.estatus = "Bloqueado";
-    vendor.conexion = vendor.conexiones[index].last || vendor.conexion || "";
+    vendor.markModified("conexiones");
+    await vendor.save();
 
-    writeVendeursObject(obj);
     res.json({ ok: true });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ ok: false, message: "Erreur blocage connexion" });
+    console.error("Erreur déblocage connexion:", err);
+    res.status(500).json({ ok: false, message: "Erreur déblocage connexion" });
   }
 });
 
-router.delete("/api/vendors/:id/movimientos/:mid", (req, res) => {
+router.delete("/api/vendors/:id/connections/:index", async (req, res) => {
   try {
-    const id = String(req.params.id).toUpperCase();
-    const mid = Number(req.params.mid);
+    const id = String(req.params.id || "").trim().toUpperCase();
+    const index = Number(req.params.index);
 
-    const obj = readVendeursObject();
-    const vendor = normalizeVendor(obj[id]);
+    const vendor = await Vendor.findOne({ id });
 
     if (!vendor) {
-      return res.status(404).json({ ok: false });
+      return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
 
-    const index = vendor.movimientos.findIndex(m => m.id === mid);
+    if (!Array.isArray(vendor.conexiones)) vendor.conexiones = [];
 
-    if (index === -1) {
-      return res.status(404).json({ ok: false });
+    if (!vendor.conexiones[index]) {
+      return res.status(404).json({ ok: false, message: "Connexion introuvable" });
     }
 
-    const movement = vendor.movimientos[index];
+    vendor.conexiones.splice(index, 1);
 
-    // 🔥 RESTORE BALANCE
-    if (movement.tipo === "cobro") {
-      vendor.balance -= movement.monto;
-    } else {
-      vendor.balance += movement.monto;
+    if (vendor.conexiones.length === 0) {
+      vendor.conexion = "";
+      vendor.estatus = "Activo";
     }
 
-    vendor.movimientos.splice(index, 1);
+    vendor.markModified("conexiones");
+    await vendor.save();
 
-    obj[id] = vendor;
-    writeVendeursObject(obj);
-
-    res.json({ ok: true, balance: vendor.balance });
-
+    res.json({ ok: true });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ ok: false });
+    console.error("Erreur suppression connexion:", err);
+    res.status(500).json({ ok: false, message: "Erreur suppression connexion" });
   }
 });
 

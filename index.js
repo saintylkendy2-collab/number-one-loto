@@ -1431,19 +1431,20 @@ var savedTickets = [];
 var currentPageName = "salePage";
 
 var loteries = [
-{ name: "LA PRIMERA DIA", sub: "20 minutes", time: "11:55 AM" },
-{ name: "LOTEDOM", sub: "20 minutes", time: "11:55 AM" },
-{ name: "LA SUERTE DIA", sub: "40 minutes", time: "12:15 PM" },
-{ name: "GEORGIA MIDDAY", sub: "50 minutes", time: "12:25 PM" },
-{ name: "KING LOTTERY DIA", sub: "50 minutes", time: "12:25 PM" },
-{ name: "ANGUILLA 01:00 PM", sub: "1 heure 15 minutes", time: "12:50 PM" },
-{ name: "REAL", sub: "1 heure 20 minutes", time: "12:55 PM" },
-{ name: "FLORIDA MIDDAY", sub: "1 heure 50 minutes", time: "1:25 PM" },
-{ name: "NEW YORK MIDDAY", sub: "2 heures 50 minutes", time: "2:25 PM" },
-{ name: "GANAMAS", sub: "2 heures 55 minutes", time: "2:30 PM" },
-{ name: "LA SUERTE NOCHE", sub: "6 heures 15 minutes", time: "5:50 PM" },
-{ name: "ANGUILLA 6:00 PM", sub: "6 heures 15 minutes", time: "5:50 PM" },
-{ name: "GEORGIA EVENING", sub: "7 heures 15 minutes", time: "6:50 PM" }
+  { name: "TENNESSE MORNING", sub: "", openTime: "00:00", closeTime: "11:55", time: "11:55 AM" },
+  { name: "TEXAS MORNING", sub: "", openTime: "00:00", closeTime: "11:55", time: "11:55 AM" },
+
+  { name: "GEORGIA MIDDAY", sub: "", openTime: "00:00", closeTime: "12:25", time: "12:25 PM" },
+  { name: "FLORIDA MIDDAY", sub: "", openTime: "00:00", closeTime: "13:25", time: "1:25 PM" },
+  { name: "NEW YORK MIDDAY", sub: "", openTime: "00:00", closeTime: "14:25", time: "2:25 PM" },
+
+  { name: "TEXAS EVENING", sub: "", openTime: "00:00", closeTime: "18:25", time: "6:25 PM" },
+  { name: "GEORGIA EVENING", sub: "", openTime: "00:00", closeTime: "18:50", time: "6:50 PM" },
+  { name: "TENNESSE EVENING", sub: "", openTime: "00:00", closeTime: "19:25", time: "7:25 PM" },
+  { name: "FLORIDA EVENING", sub: "", openTime: "00:00", closeTime: "21:30", time: "9:30 PM" },
+  { name: "NEW YORK EVENING", sub: "", openTime: "00:00", closeTime: "22:25", time: "10:25 PM" },
+
+  { name: "GEORGIA NIGHT", sub: "", openTime: "00:00", closeTime: "23:15", time: "11:15 PM" }
 ];
 
 function getSelectedLoteriesText(){

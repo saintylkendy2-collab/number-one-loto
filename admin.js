@@ -640,6 +640,29 @@ router.delete("/api/vendors/:id", async (req, res) => {
   }
 });
 
+router.delete("/api/vendors/by-name/:name", async (req, res) => {
+  try {
+    const name = String(req.params.name || "").trim();
+
+    const deleted = await Vendor.findOneAndDelete({
+      id: { $in: [null, ""] },
+      $or: [
+        { nombre: name },
+        { nom: name }
+      ]
+    });
+
+    if (!deleted) {
+      return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Erreur delete vendor by name:", err);
+    res.status(500).json({ ok: false, message: "Erreur delete vendor" });
+  }
+});
+
 router.post("/api/vendors/:id/connections/:index/unblock", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();

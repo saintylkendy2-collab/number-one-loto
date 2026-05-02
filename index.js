@@ -3433,14 +3433,15 @@ function renderTiragesPage(){
 
   loteries.forEach(function(l){
     html +=
-      '<div style="display:grid;grid-template-columns:80px 1fr;align-items:center;min-height:92px;border-bottom:1px solid #ddd;padding:8px 10px;">' +
+      '<div data-loteria="' + l.name + '" style="display:grid;grid-template-columns:80px 1fr;align-items:center;min-height:92px;border-bottom:1px solid #ddd;padding:8px 10px;">' +
         '<div style="font-size:12px;font-weight:800;color:#2f49d1;text-align:center;">LOGO</div>' +
         '<div>' +
           '<div style="font-size:21px;font-weight:800;color:#64b5e8;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + l.name + '</div>' +
           '<div style="display:flex;gap:9px;margin-top:8px;">' +
-            '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
-            '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
-            '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+            '<div class="ball" style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+            '<div class="ball" style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+            '<div class="ball" style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+            '<div class="ball" style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -3448,6 +3449,31 @@ function renderTiragesPage(){
 
   html += '</div>';
   box.innerHTML = html;
+
+  loadSorteosVendor();
+}
+
+
+async function loadSorteosVendor() {
+  try {
+    const date = currentTirageDate || todayISO();
+    const res = await fetch("/api/vendor/sorteos?date=" + encodeURIComponent(date));
+    const data = await res.json();
+
+    document.querySelectorAll("[data-loteria]").forEach(row => {
+      const loteria = row.getAttribute("data-loteria");
+      const r = data[loteria] || {};
+
+      const nums = [r.r1, r.r2, r.r3, r.r4].filter(x => String(x || "").trim() !== "");
+      const balls = row.querySelectorAll(".ball");
+
+      balls.forEach((b, i) => {
+        b.textContent = nums[i] || "--";
+      });
+    });
+  } catch (err) {
+    console.error("Erreur load sorteos vendor:", err);
+  }
 }
 
 function renderParametrePage(){

@@ -2368,15 +2368,21 @@ const gruposList = [
 
 const loteriasList = [
   "TODAS",
+
   "TENNESSE MORNING",
   "TEXAS MORNING",
+
   "GEORGIA MIDDAY",
-  "TENNESSE MIDDAY",
   "FLORIDA MIDDAY",
   "NEW YORK MIDDAY",
+
+  "TEXAS EVENING",
+  "GEORGIA EVENING",
+  "TENNESSE EVENING",
   "FLORIDA EVENING",
   "NEW YORK EVENING",
-  "GEORGIA EVENING"
+
+  "GEORGIA NIGHT"
 ];
 
 function safe(v){

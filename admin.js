@@ -974,16 +974,23 @@ router.get("/api/sorteos", async (req, res) => {
     const rows = await Sorteo.find().lean();
 
     const obj = {};
+
     rows.forEach(r => {
-      if (!obj[r.date]) obj[r.date] = {};
+      if (!obj[r.date]) {
+        obj[r.date] = {};
+      }
+
       obj[r.date][r.loteria] = {
         r1: r.r1 || "",
         r2: r.r2 || "",
+        r3: r.r3 || "",
+        r4: r.r4 || "",
         updatedAt: r.updatedAt
       };
     });
 
     res.json(obj);
+
   } catch (err) {
     console.error("Erreur get sorteos Mongo:", err);
     res.status(500).json({});
@@ -1004,18 +1011,18 @@ router.post("/api/sorteos/save", async (req, res) => {
       const loteria = String(r.loteria || "").trim();
       if (!loteria) continue;
 
-await Sorteo.findOneAndUpdate(
-  { date, loteria },
-  {
-    date,
-    loteria,
-    r1: String(r.r1 || "").trim(),
-    r2: String(r.r2 || "").trim(),
-    r3: String(r.r3 || "").trim(),
-    r4: String(r.r4 || "").trim()
-  },
-  { upsert: true, new: true }
-);
+      await Sorteo.findOneAndUpdate(
+        { date, loteria },
+        {
+          date,
+          loteria,
+          r1: String(r.r1 || "").trim(),
+          r2: String(r.r2 || "").trim(),
+          r3: String(r.r3 || "").trim(),
+          r4: String(r.r4 || "").trim()
+        },
+        { upsert: true, new: true }
+      );
     }
 
     res.json({ ok: true });
@@ -1024,6 +1031,7 @@ await Sorteo.findOneAndUpdate(
     res.status(500).json({ ok: false, message: "Erreur save sorteos" });
   }
 });
+
 
 router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
   try {

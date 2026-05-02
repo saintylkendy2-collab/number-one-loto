@@ -923,7 +923,7 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
       Ticket annulé ✅
     </h2>
 
-    <button
+   <button
   onclick="
     window.location.href = '/master/vendors#tickets&reload=' + Date.now();
   "

@@ -640,68 +640,6 @@ router.delete("/api/vendors/:id", async (req, res) => {
   }
 });
 
-router.delete("/api/vendors/by-name/:name", async (req, res) => {
-  try {
-    const name = String(req.params.name || "").trim();
-
-    const deleted = await Vendor.findOneAndDelete({
-      id: { $in: [null, ""] },
-      $or: [
-        { nombre: name },
-        { nom: name }
-      ]
-    });
-
-    if (!deleted) {
-      return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
-    }
-
-    res.json({ ok: true });
-  } catch (err) {
-    console.error("Erreur delete vendor by name:", err);
-    res.status(500).json({ ok: false, message: "Erreur delete vendor" });
-  }
-});
-
-async function deleteVendorByIndex(index){
-  if(!confirm("Eliminar vendedor?")) return;
-
-  try{
-    const vendor = vendors[index];
-
-    let url = "";
-
-    if(vendor.id){
-      url = "/api/vendors/" + encodeURIComponent(vendor.id);
-    }else if(vendor._id){
-      url = "/api/vendors/mongo/" + encodeURIComponent(vendor._id);
-    }else{
-      alert("Vendeur sa pa gen ID ni Mongo ID");
-      return;
-    }
-
-    const res = await fetch(url, {
-      method: "DELETE"
-    });
-
-    const data = await res.json();
-
-    if(!res.ok){
-      alert(data.message || "Erreur delete");
-      return;
-    }
-
-    currentVendorIndex = null;
-    await loadVendorsFromServer();
-    await loadVentasReport();
-    await loadBalanceReport();
-
-  }catch(err){
-    console.error(err);
-    alert("Erreur delete vendor");
-  }
-}
-
 router.post("/api/vendors/:id/connections/:index/unblock", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
@@ -3757,19 +3695,7 @@ async function deleteVendorByIndex(index){
 
   try{
     const vendor = vendors[index];
-
-    let url = "";
-
-    if(vendor.id){
-      url = "/api/vendors/" + encodeURIComponent(vendor.id);
-    }else if(vendor._id){
-      url = "/api/vendors/mongo/" + encodeURIComponent(vendor._id);
-    }else{
-      alert("Vendeur sa pa gen ID ni Mongo ID");
-      return;
-    }
-
-    const res = await fetch(url, {
+    const res = await fetch("/api/vendors/" + encodeURIComponent(vendor.id), {
       method: "DELETE"
     });
 
@@ -3784,7 +3710,6 @@ async function deleteVendorByIndex(index){
     await loadVendorsFromServer();
     await loadVentasReport();
     await loadBalanceReport();
-
   }catch(err){
     console.error(err);
     alert("Erreur delete vendor");

@@ -1004,17 +1004,18 @@ router.post("/api/sorteos/save", async (req, res) => {
       const loteria = String(r.loteria || "").trim();
       if (!loteria) continue;
 
-      await Sorteo.findOneAndUpdate(
-        { date, loteria },
-        {
-          date,
-          loteria,
-          r1: String(r.r1 || "").trim(),
-          r2: String(r.r2 || "").trim(),
-          updatedAt: new Date()
-        },
-        { upsert: true, new: true }
-      );
+await Sorteo.findOneAndUpdate(
+  { date, loteria },
+  {
+    date,
+    loteria,
+    r1: String(r.r1 || "").trim(),
+    r2: String(r.r2 || "").trim(),
+    r3: String(r.r3 || "").trim(),
+    r4: String(r.r4 || "").trim()
+  },
+  { upsert: true, new: true }
+);
     }
 
     res.json({ ok: true });

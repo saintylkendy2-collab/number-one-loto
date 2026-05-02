@@ -682,6 +682,46 @@ router.post("/api/vendors/:id/connections/:index/unblock", async (req, res) => {
   }
 });
 
+router.delete("/api/vendors/:id/movimientos/:movId", async (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim().toUpperCase();
+    const movId = Number(req.params.movId);
+
+    const vendor = await Vendor.findOne({ id });
+    if (!vendor) {
+      return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
+    }
+
+    if (!Array.isArray(vendor.movimientos)) {
+      vendor.movimientos = [];
+    }
+
+    const index = vendor.movimientos.findIndex(m => Number(m.id) === movId);
+
+    if (index === -1) {
+      return res.status(404).json({ ok: false, message: "Transaction introuvable" });
+    }
+
+    // 🔥 retire movement
+    const removed = vendor.movimientos.splice(index, 1)[0];
+
+    // 🔥 REAJISTE BALANCE
+    if (removed.tipo === "cobro") {
+      vendor.balance -= removed.monto;
+    } else {
+      vendor.balance += removed.monto;
+    }
+
+    await vendor.save();
+
+    res.json({ ok: true, balance: vendor.balance });
+
+  } catch (err) {
+    console.error("Erreur delete transaction:", err);
+    res.status(500).json({ ok: false });
+  }
+});
+
 router.delete("/api/vendors/:id/connections/:index", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();

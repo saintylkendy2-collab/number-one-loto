@@ -650,14 +650,21 @@ app.get("/api/vendor/sorteos", async (req, res) => {
 
     const rows = await Sorteo.find(date ? { date } : {}).lean();
 
-    res.json(rows.map(r => ({
-      date: r.date,
-      loteria: r.loteria,
-      numeros: [r.r1, r.r2, r.r3, r.r4].filter(x => String(x || "").trim() !== "")
-    })));
+    const obj = {};
+
+    rows.forEach(r => {
+      obj[r.loteria] = {
+        r1: r.r1 || "",
+        r2: r.r2 || "",
+        r3: r.r3 || "",
+        r4: r.r4 || ""
+      };
+    });
+
+    res.json(obj);
   } catch (err) {
     console.error("Erreur vendor sorteos:", err);
-    res.status(500).json([]);
+    res.status(500).json({});
   }
 });
 

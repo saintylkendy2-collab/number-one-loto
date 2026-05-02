@@ -722,25 +722,6 @@ router.delete("/api/vendors/:id/movimientos/:movId", async (req, res) => {
   }
 });
 
-fetch("/api/vendors/" + vendorId + "/movimientos/" + movId, {
-  method: "DELETE"
-})
-.then(res => res.json())
-.then(function(data){
-  if(!data.ok){
-    alert(data.message || "Erreur delete transaction");
-    return;
-  }
-
-  closeBalanceModal && closeBalanceModal();
-
-  // 🔥 SA A KI ENPÒTAN
-  loadBalanceReport();
-})
-.catch(function(){
-  alert("Erreur delete transaction");
-});
-
 router.delete("/api/vendors/:id/connections/:index", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
@@ -4240,6 +4221,25 @@ async function cancelTicket(ticketId){
     alert("Erreur serveur");
   }
 }
+
+fetch("/api/vendors/" + vendorId + "/movimientos/" + movId, {
+  method: "DELETE"
+})
+.then(res => res.json())
+.then(function(data){
+  if(!data.ok){
+    alert(data.message || "Erreur delete transaction");
+    return;
+  }
+
+  closeBalanceModal && closeBalanceModal();
+
+  // 🔥 SA A KI ENPÒTAN
+  loadBalanceReport();
+})
+.catch(function(){
+  alert("Erreur delete transaction");
+});
 
 </script>
 

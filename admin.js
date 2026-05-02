@@ -4222,25 +4222,6 @@ async function cancelTicket(ticketId){
   }
 }
 
-fetch("/api/vendors/" + vendorId + "/movimientos/" + movId, {
-  method: "DELETE"
-})
-.then(res => res.json())
-.then(function(data){
-  if(!data.ok){
-    alert(data.message || "Erreur delete transaction");
-    return;
-  }
-
-  closeBalanceModal && closeBalanceModal();
-
-  // 🔥 SA A KI ENPÒTAN
-  loadBalanceReport();
-})
-.catch(function(){
-  alert("Erreur delete transaction");
-});
-
 </script>
 
 </body>

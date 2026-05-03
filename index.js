@@ -1946,51 +1946,45 @@ function buildSlashMarriageEntries(num){
 }
 
 function buildGameEntries(num){
-  num = num.trim();
+ num = num.trim();
 
-  if(/^\d{2}$/.test(num)){
-    return [{ type: "BOR", numero: num }];
-  }
+ if(/^\\d{2}$/.test(num)){
+   return [{ type: "BOR", numero: num }];
+ }
 
-  if(/^\d{2}\/$/.test(num)){
-    return buildSlashMarriageEntries(num);
-  }
+ if(/^\\d{2}\\/$/.test(num)){
+   return buildSlashMarriageEntries(num);
+ }
 
-  if(/^\d{3}$/.test(num)){
-    return [{ type: "L3", numero: num }];
-  }
+ if(/^\\d{3}$/.test(num)){
+   return [{ type: "L3", numero: num }];
+ }
 
-  if(/^\d{4}$/.test(num)){
-    return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
-  }
+ if(/^\\d{4}$/.test(num)){
+   return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
+ }
 
-  if(/^\d{4}\/$/.test(num)){
-    return buildSlashMarriageEntries(num);
-  }
+ if(/^\\d{4}\\/$/.test(num)){
+   return buildSlashMarriageEntries(num);
+ }
 
-  if(/^\d{4}\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
-    var raw4 = num.split("+")[0];
-    var types4 = uniqueStrings(num.split("+")[1].split(","));
+ if(/^\\d{4}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
+   var raw4 = num.split("+")[0];
+   var types4 = uniqueStrings(num.split("+")[1].split(","));
+   return types4.map(function(t){
+     return { type: t === "L1" ? "L41" : t === "L2" ? "L42" : "L43", numero: raw4 };
+   });
+ }
 
-    return types4.map(function(t){
-      if(t === "L1") return { type: "L41", numero: raw4 };
-      if(t === "L2") return { type: "L42", numero: raw4 };
-      if(t === "L3") return { type: "L43", numero: raw4 };
-    }).filter(Boolean);
-  }
+ if(/^\\d{5}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
+   var raw5 = num.split("+")[0];
+   var types5 = uniqueStrings(num.split("+")[1].split(","));
+   return types5.map(function(t){
+     return { type: t === "L1" ? "L51" : t === "L2" ? "L52" : "L53", numero: raw5 };
+   });
+ }
 
-  if(/^\d{5}\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
-    var raw5 = num.split("+")[0];
-    var types5 = uniqueStrings(num.split("+")[1].split(","));
-
-    return types5.map(function(t){
-      if(t === "L1") return { type: "L51", numero: raw5 };
-      if(t === "L2") return { type: "L52", numero: raw5 };
-      if(t === "L3") return { type: "L53", numero: raw5 };
-    }).filter(Boolean);
-  }
-
-  return null;
+ return null;
 }
 
 function mergeOrPushGame(entry){

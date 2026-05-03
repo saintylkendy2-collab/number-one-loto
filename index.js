@@ -1938,45 +1938,57 @@ function uniqueStrings(arr){
 }
 
 function buildGameEntries(num){
- num = num.trim();
+  num = num.trim();
 
- if(/^\\d{2}$/.test(num)){
-   return [{ type: "BOR", numero: num }];
- }
+  if(/^\d{2}$/.test(num)){
+    return [{ type: "BOR", numero: num }];
+  }
 
- if(/^\\d{2}\\/$/.test(num)){
-   return buildSlashMarriageEntries(num);
- }
+  if(/^\d{2}\/$/.test(num)){
+    return buildSlashMarriageEntries(num);
+  }
 
- if(/^\\d{3}$/.test(num)){
-   return [{ type: "L3", numero: num }];
- }
+  // Loto 3
+  if(/^\d{3}$/.test(num)){
+    return [{ type: "L3", numero: num }];
+  }
 
- if(/^\\d{4}$/.test(num)){
-   return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
- }
+  // Mariage direct
+  if(/^\d{4}$/.test(num)){
+    return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
+  }
 
- if(/^\\d{4}\\/$/.test(num)){
-   return buildSlashMarriageEntries(num);
- }
+  if(/^\d{4}\/$/.test(num)){
+    return buildSlashMarriageEntries(num);
+  }
 
- if(/^\\d{4}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
-   var raw4 = num.split("+")[0];
-   var types4 = uniqueStrings(num.split("+")[1].split(","));
-   return types4.map(function(t){
-     return { type: t, numero: raw4 };
-   });
- }
+  // 🔥 LOTO 4 (ACCEPTE L1 L2 L3 epi konvèti)
+  if(/^\d{4}\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
+    var raw4 = num.split("+")[0];
+    var types4 = uniqueStrings(num.split("+")[1].split(","));
 
- if(/^\\d{5}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
-   var raw5 = num.split("+")[0];
-   var types5 = uniqueStrings(num.split("+")[1].split(","));
-   return types5.map(function(t){
-     return { type: t, numero: raw5 };
-   });
- }
+    return types4.map(function(t){
+      return {
+        type: "L4" + t.replace("L",""), // L1 → L41
+        numero: raw4
+      };
+    });
+  }
 
- return null;
+  // 🔥 LOTO 5 (ACCEPTE L1 L2 L3 epi konvèti)
+  if(/^\d{5}\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
+    var raw5 = num.split("+")[0];
+    var types5 = uniqueStrings(num.split("+")[1].split(","));
+
+    return types5.map(function(t){
+      return {
+        type: "L5" + t.replace("L",""), // L2 → L52
+        numero: raw5
+      };
+    });
+  }
+
+  return null;
 }
 
 function mergeOrPushGame(entry){

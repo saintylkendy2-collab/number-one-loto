@@ -642,66 +642,43 @@ app.post("/api/tickets", async (req, res) => {
     const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
 
     const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
-    const tirages = [...new Set(safeJeux.map(j => j.loterie))];
+    const tirages = [...new Set(safeJeux.map(j => String(j.loterie || "").trim().toUpperCase()))];
 
-const ticketDate = String(clientDateLabel || "").trim();
+    const ticketDate = String(clientDateLabel || "").trim();
 
-const sorteosRows = await Sorteo.find({
-  date: ticketDate,
-  loteria: { $in: tirages }
-}).lean();
+    const sorteosRows = await Sorteo.find({
+      date: ticketDate,
+      loteria: { $in: tirages }
+    }).lean();
 
-sorteosRows.forEach(s => {
-  sorteosMap[String(s.loteria || "").trim().toUpperCase()] = s;
-});
+    const sorteosMap = {};
+    sorteosRows.forEach(s => {
+      sorteosMap[String(s.loteria || "").trim().toUpperCase()] = s;
+    });
 
-let hasResult = false;
-let hasWinner = false;
+    let hasResult = false;
+    let hasWinner = false;
 
-safeJeux.forEach(j => {
-  const lot = String(j.loterie || "").trim().toUpperCase();
-  const result = sorteosMap[lot];
+    safeJeux.forEach(j => {
+      const lot = String(j.loterie || "").trim().toUpperCase();
+      const result = sorteosMap[lot];
 
-  if(!result) return;
+      if (!result) return;
 
-  const nums = [result.r1, result.r2, result.r3, result.r4]
-    .map(x => String(x || "").trim())
-    .filter(Boolean);
+      const nums = [result.r1, result.r2, result.r3, result.r4]
+        .map(x => String(x || "").trim())
+        .filter(Boolean);
 
-  if(nums.length > 0){
-    hasResult = true;
-  }
+      if (nums.length > 0) {
+        hasResult = true;
+      }
 
-  if(isWinningGame(j, result)){
-    hasWinner = true;
-  }
-});
+      if (isWinningGame(j, result)) {
+        hasWinner = true;
+      }
+    });
 
-const finalStatus = !hasResult ? "ANATAN" : (hasWinner ? "GANYE" : "PEDI");
-
-const ticketDateISO = clientCreatedAt
-  ? new Date(clientCreatedAt).toISOString().slice(0, 10)
-  : new Date().toISOString().slice(0, 10);
-
-const sorteosMap = {};
-sorteosRows.forEach(s => {
-  sorteosMap[String(s.loteria || "").trim().toUpperCase()] = [
-    s.r1, s.r2, s.r3, s.r4
-  ].map(x => String(x || "").trim()).filter(Boolean);
-});
-
-safeJeux.forEach(j => {
-  const lot = String(j.loterie || "").trim().toUpperCase();
-  const nums = sorteosMap[lot] || [];
-
-  if (nums.length) hasResult = true;
-
-  const played = String(j.numero || "").trim();
-
-  if (nums.includes(played)) {
-    hasWinner = true;
-  }
-});
+    const finalStatus = !hasResult ? "ANATAN" : (hasWinner ? "GANYE" : "PEDI");
 
     const ticketId =
       "T" + Date.now().toString() +
@@ -728,6 +705,7 @@ safeJeux.forEach(j => {
       }),
 
       status: finalStatus,
+      premio: 0,
 
       channel,
       total,
@@ -737,7 +715,7 @@ safeJeux.forEach(j => {
 
     const obj = ticket.toObject();
 
-    console.log("✅ Ticket créé:", ticketId);
+    console.log("✅ Ticket créé:", ticketId, finalStatus);
 
     return res.json({
       ok: true,

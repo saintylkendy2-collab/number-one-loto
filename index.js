@@ -1935,61 +1935,64 @@ function uniqueStrings(arr){
    }
  });
  return out;
-}
-
 function buildGameEntries(num){
   num = String(num || "").trim();
 
-  if(/^\d{2}$/.test(num)){
+  // BOR
+  if(num.length === 2 && /^\d+$/.test(num)){
     return [{ type: "BOR", numero: num }];
   }
 
-  if(/^\d{2}\/$/.test(num)){
+  // Mariage slash
+  if(num.endsWith("/")){
     return buildSlashMarriageEntries(num);
   }
 
   // Loto 3
-  if(/^\d{3}$/.test(num)){
+  if(num.length === 3 && /^\d+$/.test(num)){
     return [{ type: "L3", numero: num }];
   }
 
-  // Mariage direct: 2265 => 22*65
-  if(/^\d{4}$/.test(num)){
+  // Mariage direct 4 chiffres: 2265 = 22*65
+  if(num.length === 4 && /^\d+$/.test(num)){
     return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
   }
 
-  if(/^\d{4}\/$/.test(num)){
-    return buildSlashMarriageEntries(num);
-  }
+  // Options avec +
+  if(num.indexOf("+") > -1){
+    var parts = num.split("+");
+    var raw = parts[0];
+    var opts = parts[1] ? parts[1].split(",") : [];
 
-  // Loto 4: aksepte L1/L2/L3 oubyen L41/L42/L43
-  if(/^\d{4}\+(L1|L2|L3|L41|L42|L43)(,(L1|L2|L3|L41|L42|L43))*$/.test(num)){
-    var raw4 = num.split("+")[0];
-    var types4 = uniqueStrings(num.split("+")[1].split(","));
+    if(!/^\d+$/.test(raw)) return null;
 
-    return types4.map(function(t){
-      if(t === "L1") t = "L41";
-      if(t === "L2") t = "L42";
-      if(t === "L3") t = "L43";
-      return { type: t, numero: raw4 };
-    });
-  }
+    opts = uniqueStrings(opts.map(function(x){
+      return String(x || "").trim().toUpperCase();
+    }).filter(Boolean));
 
-  // Loto 5: aksepte L1/L2/L3 oubyen L51/L52/L53
-  if(/^\d{5}\+(L1|L2|L3|L51|L52|L53)(,(L1|L2|L3|L51|L52|L53))*$/.test(num)){
-    var raw5 = num.split("+")[0];
-    var types5 = uniqueStrings(num.split("+")[1].split(","));
+    if(raw.length === 4){
+      return opts.map(function(t){
+        if(t === "L1") t = "L41";
+        if(t === "L2") t = "L42";
+        if(t === "L3") t = "L43";
+        return { type: t, numero: raw };
+      });
+    }
 
-    return types5.map(function(t){
-      if(t === "L1") t = "L51";
-      if(t === "L2") t = "L52";
-      if(t === "L3") t = "L53";
-      return { type: t, numero: raw5 };
-    });
+    if(raw.length === 5){
+      return opts.map(function(t){
+        if(t === "L1") t = "L51";
+        if(t === "L2") t = "L52";
+        if(t === "L3") t = "L53";
+        return { type: t, numero: raw };
+      });
+    }
   }
 
   return null;
-}
+}}
+
+
 
 function mergeOrPushGame(entry){
  var found = jeux.find(function(j){

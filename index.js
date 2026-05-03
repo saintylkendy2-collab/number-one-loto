@@ -682,14 +682,26 @@ const finalStatus = !hasResult ? "ANATAN" : (hasWinner ? "GANYE" : "PEDI");
 
 app.get("/api/vendor/sorteos", async (req, res) => {
   try {
-    const date = String(req.query.date || "").trim();
+    function toFRDate(value) {
+      if (!value) return "";
+      const s = String(value).trim();
+
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const p = s.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
+
+      return s;
+    }
+
+    const date = toFRDate(String(req.query.date || "").trim());
 
     const rows = await Sorteo.find(date ? { date } : {}).lean();
 
     const obj = {};
 
     rows.forEach(r => {
-      obj[r.loteria] = {
+      obj[String(r.loteria || "").trim().toUpperCase()] = {
         r1: r.r1 || "",
         r2: r.r2 || "",
         r3: r.r3 || "",

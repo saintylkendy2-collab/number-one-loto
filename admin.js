@@ -991,7 +991,7 @@ router.get("/api/sorteos", async (req, res) => {
 
       if (!obj[dateKey]) obj[dateKey] = {};
 
-      obj[dateKey][r.loteria] = {
+      obj[dateKey][String(r.loteria || "").trim().toUpperCase()] = {
         r1: r.r1 || "",
         r2: r.r2 || "",
         r3: r.r3 || "",
@@ -1018,7 +1018,6 @@ router.post("/api/sorteos/save", async (req, res) => {
       if (!value) return "";
       const s = String(value).trim();
 
-      // 2026-05-02 -> 02/05/2026
       if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
         const p = s.split("-");
         return p[2] + "/" + p[1] + "/" + p[0];
@@ -2784,31 +2783,44 @@ function renderSorteosPage(){
   var dateInput = byId("sorteosDate");
   if(!box || !dateInput) return;
 
+  function toFRDate(value) {
+    if (!value) return "";
+    const s = String(value).trim();
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+      const p = s.split("-");
+      return p[2] + "/" + p[1] + "/" + p[0];
+    }
+
+    return s;
+  }
+
   var date = dateInput.value || todayISO();
   dateInput.value = date;
 
-  var saved = sorteosData[date] || {};
-
+  var saved = sorteosData[toFRDate(date)] || {};
   var html = "";
 
   loteriasList.forEach(function(l){
     if(l === "TODAS") return;
 
-    var r = saved[l] || {};
+    var key = String(l || "").trim().toUpperCase();
+    var r = saved[key] || {};
 
     html += ''
-  + '<div style="display:grid;grid-template-columns:1.2fr .7fr .7fr .7fr .7fr 52px;gap:8px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
-  + '<div style="font-size:16px;color:#d7dcef;">' + safe(l) + '</div>'
-  + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:18px;">'
-  + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:18px;">'
-  + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r3" value="' + safe(r.r3 || "") + '" style="text-align:center;font-size:18px;">'
-  + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r4" value="' + safe(r.r4 || "") + '" style="text-align:center;font-size:18px;">'
-  + '<button class="sorteos-delete-btn" data-loteria="' + safe(l) + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#d7dcef;font-size:24px;">🗑</button>'
-  + '</div>';
+      + '<div style="display:grid;grid-template-columns:1.2fr .7fr .7fr .7fr .7fr 52px;gap:8px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
+      + '<div style="font-size:16px;color:#d7dcef;">' + safe(l) + '</div>'
+      + '<input class="field-input sorteos-input" data-loteria="' + safe(key) + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + safe(key) + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + safe(key) + '" data-field="r3" value="' + safe(r.r3 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + safe(key) + '" data-field="r4" value="' + safe(r.r4 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<button class="sorteos-delete-btn" data-loteria="' + safe(key) + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#d7dcef;font-size:24px;">🗑</button>'
+      + '</div>';
   });
 
   box.innerHTML = html;
 }
+
 
 async function saveSorteos(){
   var date = getValue("sorteosDate") || todayISO();

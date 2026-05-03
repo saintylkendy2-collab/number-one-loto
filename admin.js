@@ -758,20 +758,6 @@ router.delete("/api/vendors/:id/connections/:index", async (req, res) => {
   }
 });
 
-
-router.get("/api/sorteos/clear", async (req, res) => {
-  try {
-    const result = await Sorteo.deleteMany({});
-    console.log("✅ Sorteos supprimés:", result.deletedCount);
-    res.send("✅ Sorteos efase: " + result.deletedCount);
-  } catch (err) {
-    console.error("Erreur clear sorteos:", err);
-    res.status(500).send("Erreur clear sorteos");
-  }
-});
-
-
-
 router.post("/api/vendors/:id/balance-action", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();

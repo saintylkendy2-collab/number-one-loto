@@ -18,6 +18,19 @@ mongoose.connect("mongodb+srv://adminn:Kendy2026@cluster0.yzqmfuc.mongodb.net/lo
 .catch(err => console.error("Mongo erreur:", err.message));
 
 mongoose.connection.once("open", async () => {
+  try {
+    const Sorteo = require("./models/Sorteo");
+
+    const result = await Sorteo.deleteMany({});
+    console.log("🧹 Sorteos supprimés:", result.deletedCount);
+
+  } catch (err) {
+    console.error("Erreur nettoyage sorteos:", err);
+  }
+});
+
+
+mongoose.connection.once("open", async () => {
 
   try {
 

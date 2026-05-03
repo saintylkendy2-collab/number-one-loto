@@ -690,9 +690,6 @@ sorteosRows.forEach(s => {
   ].map(x => String(x || "").trim()).filter(Boolean);
 });
 
-let hasResult = false;
-let hasWinner = false;
-
 safeJeux.forEach(j => {
   const lot = String(j.loterie || "").trim().toUpperCase();
   const nums = sorteosMap[lot] || [];

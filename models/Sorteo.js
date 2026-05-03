@@ -1,9 +1,8 @@
 const mongoose = require("mongoose");
 
 const SorteoSchema = new mongoose.Schema({
-  date: { type: String, required: true },
-  loteria: { type: String, required: true },
-
+  date: String,
+  loteria: String,
   r1: String,
   r2: String,
   r3: String,

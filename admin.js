@@ -1016,13 +1016,16 @@ router.post("/api/sorteos/save", async (req, res) => {
 
     function toFRDate(value) {
       if (!value) return "";
+
       const s = String(value).trim();
 
+      // 2026-05-02 -> 02/05/2026
       if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
         const p = s.split("-");
         return p[2] + "/" + p[1] + "/" + p[0];
       }
 
+      // si li deja 02/05/2026
       return s;
     }
 
@@ -1037,35 +1040,52 @@ router.post("/api/sorteos/save", async (req, res) => {
       if (!loteria) continue;
 
       await Sorteo.findOneAndUpdate(
-        { date, loteria },
+        { date: date, loteria: loteria },
         {
-          date,
-          loteria,
-          r1: String(r.r1 || "").trim(),
-          r2: String(r.r2 || "").trim(),
-          r3: String(r.r3 || "").trim(),
-          r4: String(r.r4 || "").trim()
+          $set: {
+            date: date,
+            loteria: loteria,
+            r1: String(r.r1 || "").trim(),
+            r2: String(r.r2 || "").trim(),
+            r3: String(r.r3 || "").trim(),
+            r4: String(r.r4 || "").trim()
+          }
         },
         { upsert: true, new: true }
       );
     }
 
-    res.json({ ok: true });
+    res.json({ ok: true, date: date });
 
   } catch (err) {
     console.error("Erreur save sorteos Mongo:", err);
-    res.status(500).json({ ok: false, message: "Erreur save sorteos" });
+    res.status(500).json({ ok: false, message: err.message });
   }
 });
 
 router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
   try {
-    const date = String(req.params.date || "").trim();
-    const loteria = String(req.params.loteria || "").trim();
+    function toFRDate(value) {
+      if (!value) return "";
+
+      const s = String(value).trim();
+
+      // 2026-05-02 → 02/05/2026
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const p = s.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
+
+      return s;
+    }
+
+    const date = toFRDate(req.params.date);
+    const loteria = String(req.params.loteria || "").trim().toUpperCase();
 
     await Sorteo.deleteOne({ date, loteria });
 
     res.json({ ok: true });
+
   } catch (err) {
     console.error("Erreur delete sorteos Mongo:", err);
     res.status(500).json({ ok: false, message: "Erreur delete sorteos" });

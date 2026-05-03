@@ -2894,7 +2894,6 @@ async function saveSorteos(){
       return;
     }
 
-    await loadSorteos();
 
     alert("Sorteos sauvegardé ✔");
 

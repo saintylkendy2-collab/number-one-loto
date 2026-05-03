@@ -761,11 +761,12 @@ router.delete("/api/vendors/:id/connections/:index", async (req, res) => {
 
 router.get("/api/sorteos/clear", async (req, res) => {
   try {
-    await Sorteo.deleteMany({});
-    res.send("✅ Sorteos efase nèt");
+    const result = await Sorteo.deleteMany({});
+    console.log("✅ Sorteos supprimés:", result.deletedCount);
+    res.send("✅ Sorteos efase: " + result.deletedCount);
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Erreur");
+    console.error("Erreur clear sorteos:", err);
+    res.status(500).send("Erreur clear sorteos");
   }
 });
 

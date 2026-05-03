@@ -685,11 +685,6 @@ const ticketDateISO = clientCreatedAt
   ? new Date(clientCreatedAt).toISOString().slice(0, 10)
   : new Date().toISOString().slice(0, 10);
 
-const sorteosRows = await Sorteo.find({
-  date: ticketDateISO,
-  loteria: { $in: tirages }
-}).lean();
-
 const sorteosMap = {};
 sorteosRows.forEach(s => {
   sorteosMap[String(s.loteria || "").trim().toUpperCase()] = [

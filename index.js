@@ -1946,57 +1946,48 @@ function buildSlashMarriageEntries(num){
 }
 
 function buildGameEntries(num){
-  num = String(num || "").trim();
+  num = num.trim();
 
-  // BOR
-  if(num.length === 2 && /^\d+$/.test(num)){
+  if(/^\d{2}$/.test(num)){
     return [{ type: "BOR", numero: num }];
   }
 
-  // Mariage slash
-  if(num.endsWith("/")){
+  if(/^\d{2}\/$/.test(num)){
     return buildSlashMarriageEntries(num);
   }
 
-  // Loto 3
-  if(num.length === 3 && /^\d+$/.test(num)){
+  if(/^\d{3}$/.test(num)){
     return [{ type: "L3", numero: num }];
   }
 
-  // Mariage direct 4 chiffres: 2265 = 22*65
-  if(num.length === 4 && /^\d+$/.test(num)){
+  if(/^\d{4}$/.test(num)){
     return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
   }
 
-  // Options avec +
-  if(num.indexOf("+") > -1){
-    var parts = num.split("+");
-    var raw = parts[0];
-    var opts = parts[1] ? parts[1].split(",") : [];
+  if(/^\d{4}\/$/.test(num)){
+    return buildSlashMarriageEntries(num);
+  }
 
-    if(!/^\d+$/.test(raw)) return null;
+  if(/^\d{4}\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
+    var raw4 = num.split("+")[0];
+    var types4 = uniqueStrings(num.split("+")[1].split(","));
 
-    opts = uniqueStrings(opts.map(function(x){
-      return String(x || "").trim().toUpperCase();
-    }).filter(Boolean));
+    return types4.map(function(t){
+      if(t === "L1") return { type: "L41", numero: raw4 };
+      if(t === "L2") return { type: "L42", numero: raw4 };
+      if(t === "L3") return { type: "L43", numero: raw4 };
+    }).filter(Boolean);
+  }
 
-    if(raw.length === 4){
-      return opts.map(function(t){
-        if(t === "L1") t = "L41";
-        if(t === "L2") t = "L42";
-        if(t === "L3") t = "L43";
-        return { type: t, numero: raw };
-      });
-    }
+  if(/^\d{5}\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
+    var raw5 = num.split("+")[0];
+    var types5 = uniqueStrings(num.split("+")[1].split(","));
 
-    if(raw.length === 5){
-      return opts.map(function(t){
-        if(t === "L1") t = "L51";
-        if(t === "L2") t = "L52";
-        if(t === "L3") t = "L53";
-        return { type: t, numero: raw };
-      });
-    }
+    return types5.map(function(t){
+      if(t === "L1") return { type: "L51", numero: raw5 };
+      if(t === "L2") return { type: "L52", numero: raw5 };
+      if(t === "L3") return { type: "L53", numero: raw5 };
+    }).filter(Boolean);
   }
 
   return null;

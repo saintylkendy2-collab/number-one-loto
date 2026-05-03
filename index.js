@@ -586,6 +586,42 @@ app.post("/api/tickets", async (req, res) => {
     const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
     const tirages = [...new Set(safeJeux.map(j => j.loterie))];
 
+
+const ticketDateISO = clientCreatedAt
+  ? new Date(clientCreatedAt).toISOString().slice(0, 10)
+  : new Date().toISOString().slice(0, 10);
+
+const sorteosRows = await Sorteo.find({
+  date: ticketDateISO,
+  loteria: { $in: tirages }
+}).lean();
+
+const sorteosMap = {};
+sorteosRows.forEach(s => {
+  sorteosMap[String(s.loteria || "").trim().toUpperCase()] = [
+    s.r1, s.r2, s.r3, s.r4
+  ].map(x => String(x || "").trim()).filter(Boolean);
+});
+
+let hasResult = false;
+let hasWinner = false;
+
+safeJeux.forEach(j => {
+  const lot = String(j.loterie || "").trim().toUpperCase();
+  const nums = sorteosMap[lot] || [];
+
+  if (nums.length) hasResult = true;
+
+  const played = String(j.numero || "").trim();
+
+  if (nums.includes(played)) {
+    hasWinner = true;
+  }
+});
+
+const finalStatus = !hasResult ? "ANATAN" : (hasWinner ? "GANYE" : "PEDI");
+
+
     const ticketId =
       "T" + Date.now().toString() +
       Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -611,7 +647,7 @@ app.post("/api/tickets", async (req, res) => {
       }),
 
       status: "ANATAN",
-      premio: 0,
+      status: finalStatus,
 
       channel,
       total,

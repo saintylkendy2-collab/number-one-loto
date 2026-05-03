@@ -1000,30 +1000,30 @@ router.get("/api/sorteos", async (req, res) => {
 router.post("/api/sorteos/save", async (req, res) => {
   try {
     const body = req.body || {};
-const rawDate = String(body.date || "").trim();
-
-function toFRDate(value){
-  if (!value) return "";
-  const s = String(value).trim();
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-    const p = s.split("-");
-    return p[2] + "/" + p[1] + "/" + p[0];
-  }
-
-  return s;
-}
-
-const date = toFRDate(rawDate);
-
+    const rawDate = String(body.date || "").trim();
     const rows = Array.isArray(body.rows) ? body.rows : [];
+
+    function toFRDate(value) {
+      if (!value) return "";
+      const s = String(value).trim();
+
+      // 2026-05-02 -> 02/05/2026
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const p = s.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
+
+      return s;
+    }
+
+    const date = toFRDate(rawDate);
 
     if (!date) {
       return res.status(400).json({ ok: false, message: "Date obligatoire" });
     }
 
     for (const r of rows) {
-      const loteria = String(r.loteria || "").trim();
+      const loteria = String(r.loteria || "").trim().toUpperCase();
       if (!loteria) continue;
 
       await Sorteo.findOneAndUpdate(
@@ -1041,12 +1041,12 @@ const date = toFRDate(rawDate);
     }
 
     res.json({ ok: true });
+
   } catch (err) {
     console.error("Erreur save sorteos Mongo:", err);
     res.status(500).json({ ok: false, message: "Erreur save sorteos" });
   }
 });
-
 
 router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
   try {

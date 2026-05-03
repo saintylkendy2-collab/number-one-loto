@@ -971,16 +971,27 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
 
 router.get("/api/sorteos", async (req, res) => {
   try {
-    const rows = await Sorteo.find().lean();
+    function toFRDate(value) {
+      if (!value) return "";
+      const s = String(value).trim();
 
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const p = s.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
+
+      return s;
+    }
+
+    const rows = await Sorteo.find().lean();
     const obj = {};
 
     rows.forEach(r => {
-      if (!obj[r.date]) {
-        obj[r.date] = {};
-      }
+      const dateKey = toFRDate(r.date);
 
-      obj[r.date][r.loteria] = {
+      if (!obj[dateKey]) obj[dateKey] = {};
+
+      obj[dateKey][r.loteria] = {
         r1: r.r1 || "",
         r2: r.r2 || "",
         r3: r.r3 || "",

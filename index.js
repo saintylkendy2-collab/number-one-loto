@@ -558,65 +558,39 @@ function isWinningGame(j, result){
   const r3 = String(result.r3 || "").trim();
   const r4 = String(result.r4 || "").trim();
 
-  const nums = [r1, r2, r3, r4].filter(Boolean);
-
-  // -------------------------
-  // BORLETTE (2 chiffres)
-  // -------------------------
+  // BORLETTE
   if(type === "BOR"){
-    return nums.includes(played);
+    return [r1, r2, r3, r4].includes(played);
   }
 
-  // -------------------------
   // MARIAGE
-  // -------------------------
   if(type === "MAR"){
-    const parts = played.split("*").map(x => x.trim());
-    if(parts.length !== 2) return false;
+    const wins = [...new Set([
+      r2 + "*" + r3,
+      r2 + "*" + r4,
+      r3 + "*" + r4
+    ])];
 
-    const [a, b] = parts;
-
-    const combos = new Set();
-
-    for(let i=0;i<nums.length;i++){
-      for(let j=i+1;j<nums.length;j++){
-        if(nums[i] !== nums[j]){
-          combos.add(nums[i] + "*" + nums[j]);
-          combos.add(nums[j] + "*" + nums[i]);
-        }
-      }
-    }
-
-    return combos.has(a + "*" + b);
+    return wins.includes(played);
   }
 
-  // -------------------------
-  // LOTO 3 (L3)
-  // -------------------------
-  if(type === "L3"){
-    const last3 = nums.map(n => n.slice(-3));
-    return last3.includes(played);
+  // ✅ LOTO 3 (PA L3)
+  if(type === "LOTO3"){
+    return (r1 + r2) === played;
   }
 
-  // -------------------------
-  // LOTO 4 (L41 L42 L43)
-  // -------------------------
-  if(type.startsWith("L4")){
-    const last4 = nums.map(n => n.slice(-4));
-
-    // permutation simple (ordre pa enpòtan)
-    return last4.some(n => {
-      return n.split("").sort().join("") === played.split("").sort().join("");
-    });
+  // LOTO 4
+  if(played.length === 4){
+    if(type === "L1") return (r3 + r4) === played;
+    if(type === "L2") return (r2 + r3) === played;
+    if(type === "L3") return (r2 + r4) === played;
   }
 
-  // -------------------------
-  // LOTO 5 (L51 L52 L53)
-  // -------------------------
-  if(type.startsWith("L5")){
-    const all = nums.join("");
-
-    return played.split("").every(d => all.includes(d));
+  // LOTO 5
+  if(played.length === 5){
+    if(type === "L1") return (r1 + r2 + r3) === played;
+    if(type === "L2") return (r1 + r2 + r4) === played;
+    if(type === "L3") return (r1 + r3 + r4) === played;
   }
 
   return false;
@@ -1784,7 +1758,6 @@ function press(val){
  updateFields();
 }
 
-
 function backspaceKey(){
  if(activeField === "numero"){
    if(cursorNumero > 0){
@@ -1936,6 +1909,42 @@ function uniqueStrings(arr){
    }
  });
  return out;
+}
+
+function buildSlashMarriageEntries(num){
+ var raw = num.slice(0, -1);
+
+ if(/^\\d{2}$/.test(raw)){
+   var a2 = raw;
+   var ar2 = reverse2(a2);
+
+   return uniqueStrings([a2, ar2]).map(function(x){
+     return { type: "BOR", numero: x };
+   });
+ }
+
+ if(/^\\d{4}$/.test(raw)){
+   var a = raw.slice(0,2);
+   var b = raw.slice(2,4);
+   var ar = reverse2(a);
+   var br = reverse2(b);
+
+   return uniqueStrings([
+     a + "*" + b,
+     a + "*" + br,
+     ar + "*" + b,
+     ar + "*" + br
+   ]).map(function(x){
+     var parts = x.split("*");
+     if(parts[0] === parts[1]) return null;
+     if(parts[0] === reverse2(parts[1])) return null;
+     return { type: "MAR", numero: x };
+   }).filter(Boolean);
+ }
+
+ return null;
+}
+
 function buildGameEntries(num){
   num = String(num || "").trim();
 
@@ -1991,9 +2000,7 @@ function buildGameEntries(num){
   }
 
   return null;
-}}
-
-
+}
 
 function mergeOrPushGame(entry){
  var found = jeux.find(function(j){
@@ -4358,7 +4365,7 @@ app.get("/test-tickets", async (req, res) => {
 });
 
 
-  
+ 
 app.listen(3000, "0.0.0.0", () => {
   console.log("Server ap mache sou rezo a");
 });

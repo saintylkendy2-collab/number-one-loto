@@ -1938,7 +1938,7 @@ function uniqueStrings(arr){
 }
 
 function buildGameEntries(num){
-  num = num.trim();
+  num = String(num || "").trim();
 
   if(/^\d{2}$/.test(num)){
     return [{ type: "BOR", numero: num }];
@@ -1953,7 +1953,7 @@ function buildGameEntries(num){
     return [{ type: "L3", numero: num }];
   }
 
-  // Mariage direct
+  // Mariage direct: 2265 => 22*65
   if(/^\d{4}$/.test(num)){
     return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
   }
@@ -1962,29 +1962,29 @@ function buildGameEntries(num){
     return buildSlashMarriageEntries(num);
   }
 
-  // 🔥 LOTO 4 (ACCEPTE L1 L2 L3 epi konvèti)
-  if(/^\d{4}\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
+  // Loto 4: aksepte L1/L2/L3 oubyen L41/L42/L43
+  if(/^\d{4}\+(L1|L2|L3|L41|L42|L43)(,(L1|L2|L3|L41|L42|L43))*$/.test(num)){
     var raw4 = num.split("+")[0];
     var types4 = uniqueStrings(num.split("+")[1].split(","));
 
     return types4.map(function(t){
-      return {
-        type: "L4" + t.replace("L",""), // L1 → L41
-        numero: raw4
-      };
+      if(t === "L1") t = "L41";
+      if(t === "L2") t = "L42";
+      if(t === "L3") t = "L43";
+      return { type: t, numero: raw4 };
     });
   }
 
-  // 🔥 LOTO 5 (ACCEPTE L1 L2 L3 epi konvèti)
-  if(/^\d{5}\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
+  // Loto 5: aksepte L1/L2/L3 oubyen L51/L52/L53
+  if(/^\d{5}\+(L1|L2|L3|L51|L52|L53)(,(L1|L2|L3|L51|L52|L53))*$/.test(num)){
     var raw5 = num.split("+")[0];
     var types5 = uniqueStrings(num.split("+")[1].split(","));
 
     return types5.map(function(t){
-      return {
-        type: "L5" + t.replace("L",""), // L2 → L52
-        numero: raw5
-      };
+      if(t === "L1") t = "L51";
+      if(t === "L2") t = "L52";
+      if(t === "L3") t = "L53";
+      return { type: t, numero: raw5 };
     });
   }
 

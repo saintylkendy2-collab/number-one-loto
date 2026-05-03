@@ -549,6 +549,64 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
   }
 });
 
+function isWinningGame(j, result){
+  const type = String(j.type || "").trim().toUpperCase();
+  const played = String(j.numero || "").trim();
+
+  const r1 = String(result.r1 || "").trim();
+  const r2 = String(result.r2 || "").trim();
+  const r3 = String(result.r3 || "").trim();
+  const r4 = String(result.r4 || "").trim();
+
+  // BORLETTE
+  if(type === "BOR"){
+    return [r1, r2, r3, r4].includes(played);
+  }
+
+  // LOTO 3
+  if(type === "LOTO3"){
+    return (r1 + r2) === played;
+  }
+
+  // MARIAGE (unique sèlman)
+  if(type === "MAR"){
+    const wins = [...new Set([
+      r2 + "*" + r3,
+      r2 + "*" + r4,
+      r3 + "*" + r4
+    ])];
+
+    return wins.includes(played);
+  }
+
+  // LOTO 4
+  if(type === "L1"){
+    return (r3 + r4) === played;
+  }
+
+  if(type === "L2"){
+    return (r2 + r3) === played;
+  }
+
+  if(type === "L3"){
+    return (r2 + r4) === played;
+  }
+
+  // LOTO 5 (3 opsyon)
+  if(type === "L5L1"){
+    return (r1 + r2 + r3) === played;
+  }
+
+  if(type === "L5L2"){
+    return (r1 + r2 + r4) === played; // ✅ sa ou te di a
+  }
+
+  if(type === "L5L3"){
+    return (r1 + r3 + r4) === played;
+  }
+
+  return false;
+}
 
 app.post("/api/tickets", async (req, res) => {
   try {
@@ -586,6 +644,42 @@ app.post("/api/tickets", async (req, res) => {
     const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
     const tirages = [...new Set(safeJeux.map(j => j.loterie))];
 
+const ticketDate = String(clientDateLabel || "").trim();
+
+const sorteosRows = await Sorteo.find({
+  date: ticketDate,
+  loteria: { $in: tirages }
+}).lean();
+
+const sorteosMap = {};
+
+sorteosRows.forEach(s => {
+  sorteosMap[String(s.loteria || "").trim().toUpperCase()] = s;
+});
+
+let hasResult = false;
+let hasWinner = false;
+
+safeJeux.forEach(j => {
+  const lot = String(j.loterie || "").trim().toUpperCase();
+  const result = sorteosMap[lot];
+
+  if(!result) return;
+
+  const nums = [result.r1, result.r2, result.r3, result.r4]
+    .map(x => String(x || "").trim())
+    .filter(Boolean);
+
+  if(nums.length > 0){
+    hasResult = true;
+  }
+
+  if(isWinningGame(j, result)){
+    hasWinner = true;
+  }
+});
+
+const finalStatus = !hasResult ? "ANATAN" : (hasWinner ? "GANYE" : "PEDI");
 
 const ticketDateISO = clientCreatedAt
   ? new Date(clientCreatedAt).toISOString().slice(0, 10)
@@ -646,7 +740,6 @@ const finalStatus = !hasResult ? "ANATAN" : (hasWinner ? "GANYE" : "PEDI");
         second: "2-digit"
       }),
 
-      status: "ANATAN",
       status: finalStatus,
 
       channel,

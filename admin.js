@@ -971,39 +971,28 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
 
 router.get("/api/sorteos", async (req, res) => {
   try {
-    function toFRDate(value) {
-      if (!value) return "";
-      const s = String(value).trim();
-
-      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-        const p = s.split("-");
-        return p[2] + "/" + p[1] + "/" + p[0];
-      }
-
-      return s;
-    }
-
     const rows = await Sorteo.find().lean();
+
     const obj = {};
 
     rows.forEach(r => {
-      const dateKey = toFRDate(r.date);
+      const date = String(r.date || "").trim();
+      const loteria = String(r.loteria || "").trim().toUpperCase();
 
-      if (!obj[dateKey]) obj[dateKey] = {};
+      if (!obj[date]) obj[date] = {};
 
-      obj[dateKey][String(r.loteria || "").trim().toUpperCase()] = {
+      obj[date][loteria] = {
         r1: r.r1 || "",
         r2: r.r2 || "",
         r3: r.r3 || "",
-        r4: r.r4 || "",
-        updatedAt: r.updatedAt
+        r4: r.r4 || ""
       };
     });
 
     res.json(obj);
 
   } catch (err) {
-    console.error("Erreur get sorteos Mongo:", err);
+    console.error("Erreur get sorteos:", err);
     res.status(500).json({});
   }
 });
@@ -2843,40 +2832,52 @@ function renderSorteosPage(){
 
 
 async function saveSorteos(){
-  var date = getValue("sorteosDate") || todayISO();
-  var rowsMap = {};
-
-  document.querySelectorAll(".sorteos-input").forEach(function(input){
-    var loteria = input.getAttribute("data-loteria");
-    var field = input.getAttribute("data-field");
-
-    if(!rowsMap[loteria]){
-      rowsMap[loteria] = { loteria:loteria, r1:"", r2:"" };
-    }
-
-    rowsMap[loteria][field] = input.value.trim();
-  });
-
-  var rows = Object.keys(rowsMap).map(function(k){
-    return rowsMap[k];
-  });
-
   try{
-    var res = await fetch("/api/sorteos/save", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ date:date, rows:rows })
-    });
-
-    var data = await res.json();
-
-    if(!res.ok){
-      alert(data.message || "Erreur save sorteos");
+    var dateInput = byId("sorteosDate");
+    if(!dateInput){
+      alert("Date pa jwenn");
       return;
     }
 
-    alert("Sorteos guardado ✔");
-    await loadSorteos();
+    var date = dateInput.value;
+
+    var rows = [];
+
+    document.querySelectorAll(".sorteos-input").forEach(function(input){
+      var loteria = input.getAttribute("data-loteria");
+      var field = input.getAttribute("data-field");
+      var value = String(input.value || "").trim();
+
+      var row = rows.find(r => r.loteria === loteria);
+      if(!row){
+        row = { loteria: loteria, r1:"", r2:"", r3:"", r4:"" };
+        rows.push(row);
+      }
+
+      row[field] = value;
+    });
+
+    const res = await fetch("/api/sorteos/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date: date,
+        rows: rows
+      })
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.message || "Erreur save");
+      return;
+    }
+
+    // 🔥 SA KI PI ENPÒTAN
+    await loadSorteos();  
+    renderSorteosPage();
+
+    alert("Sorteos sauvegardé ✔");
 
   }catch(err){
     console.error(err);

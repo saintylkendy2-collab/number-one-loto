@@ -1,8 +1,4 @@
 const express = require("express");
-
-const express = require("express");
-const router = express.Router();
-
 const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
@@ -553,7 +549,7 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
   }
 });
 
-router.post("/check-tickets", async (req, res) => {
+app.post("/check-tickets", async (req, res) => {
   try {
     const tickets = await Ticket.find();
 

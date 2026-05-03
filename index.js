@@ -651,8 +651,6 @@ const sorteosRows = await Sorteo.find({
   loteria: { $in: tirages }
 }).lean();
 
-const sorteosMap = {};
-
 sorteosRows.forEach(s => {
   sorteosMap[String(s.loteria || "").trim().toUpperCase()] = s;
 });

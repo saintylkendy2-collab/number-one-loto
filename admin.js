@@ -2791,12 +2791,14 @@ async function loadSorteos(){
   try{
     var res = await fetch("/api/sorteos?reload=" + Date.now());
     sorteosData = await res.json();
+    renderSorteosPage();
   }catch(err){
     console.error(err);
     sorteosData = {};
     renderSorteosPage();
   }
 }
+
 
 function renderSorteosPage(){
   var box = byId("sorteosRows");
@@ -2851,7 +2853,6 @@ async function saveSorteos(){
     }
 
     var date = dateInput.value;
-
     var rows = [];
 
     document.querySelectorAll(".sorteos-input").forEach(function(input){
@@ -2868,26 +2869,20 @@ async function saveSorteos(){
       row[field] = value;
     });
 
-    const res = await fetch("/api/sorteos/save", {
+    var res = await fetch("/api/sorteos/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        date: date,
-        rows: rows
-      })
+      body: JSON.stringify({ date: date, rows: rows })
     });
 
-    const data = await res.json();
+    var data = await res.json();
 
     if(!res.ok){
       alert(data.message || "Erreur save");
       return;
     }
 
-    // 🔥 SA KI PI ENPÒTAN
     await loadSorteos();
-byId("sorteosDate").value = date;
-renderSorteosPage();
 
     alert("Sorteos sauvegardé ✔");
 

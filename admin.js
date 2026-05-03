@@ -2799,18 +2799,17 @@ async function loadSorteos(){
   }
 }
 
-
 function renderSorteosPage(){
   var box = byId("sorteosRows");
   var dateInput = byId("sorteosDate");
   if(!box || !dateInput) return;
 
-  function toFRDate(value) {
-    if (!value) return "";
-    const s = String(value).trim();
+  function toFRDate(value){
+    if(!value) return "";
+    var s = String(value).trim();
 
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-      const p = s.split("-");
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+      var p = s.split("-");
       return p[2] + "/" + p[1] + "/" + p[0];
     }
 
@@ -2820,29 +2819,42 @@ function renderSorteosPage(){
   var date = dateInput.value || todayISO();
   dateInput.value = date;
 
-  var saved = sorteosData[toFRDate(date)] || {};
+  var dateKey = toFRDate(date);
+  var saved = sorteosData[dateKey] || {};
+
+  var list = [
+    "TENNESSE MORNING",
+    "TEXAS MORNING",
+    "GEORGIA MIDDAY",
+    "FLORIDA MIDDAY",
+    "NEW YORK MIDDAY",
+    "TEXAS EVENING",
+    "GEORGIA EVENING",
+    "TENNESSE EVENING",
+    "FLORIDA EVENING",
+    "NEW YORK EVENING",
+    "GEORGIA NIGHT"
+  ];
+
   var html = "";
 
-  loteriasList.forEach(function(l){
-    if(l === "TODAS") return;
-
-    var key = String(l || "").trim().toUpperCase();
+  list.forEach(function(l){
+    var key = String(l).trim().toUpperCase();
     var r = saved[key] || {};
 
     html += ''
       + '<div style="display:grid;grid-template-columns:1.2fr .7fr .7fr .7fr .7fr 52px;gap:8px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
-      + '<div style="font-size:16px;color:#d7dcef;">' + safe(l) + '</div>'
-      + '<input class="field-input sorteos-input" data-loteria="' + safe(key) + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:18px;">'
-      + '<input class="field-input sorteos-input" data-loteria="' + safe(key) + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:18px;">'
-      + '<input class="field-input sorteos-input" data-loteria="' + safe(key) + '" data-field="r3" value="' + safe(r.r3 || "") + '" style="text-align:center;font-size:18px;">'
-      + '<input class="field-input sorteos-input" data-loteria="' + safe(key) + '" data-field="r4" value="' + safe(r.r4 || "") + '" style="text-align:center;font-size:18px;">'
-      + '<button class="sorteos-delete-btn" data-loteria="' + safe(key) + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#d7dcef;font-size:24px;">🗑</button>'
+      + '<div style="font-size:16px;color:#d7dcef;">' + key + '</div>'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r3" value="' + safe(r.r3 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r4" value="' + safe(r.r4 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<button class="sorteos-delete-btn" data-loteria="' + key + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#d7dcef;font-size:24px;">🗑</button>'
       + '</div>';
   });
 
   box.innerHTML = html;
 }
-
 
 async function saveSorteos(){
   try{

@@ -563,12 +563,7 @@ function isWinningGame(j, result){
     return [r1, r2, r3, r4].includes(played);
   }
 
-  // LOTO 3
-  if(type === "LOTO3"){
-    return (r1 + r2) === played;
-  }
-
-  // MARIAGE (unique sèlman)
+  // MARIAGE
   if(type === "MAR"){
     const wins = [...new Set([
       r2 + "*" + r3,
@@ -579,30 +574,23 @@ function isWinningGame(j, result){
     return wins.includes(played);
   }
 
+  // ✅ LOTO 3 (PA L3)
+  if(type === "LOTO3"){
+    return (r1 + r2) === played;
+  }
+
   // LOTO 4
-  if(type === "L1"){
-    return (r3 + r4) === played;
+  if(played.length === 4){
+    if(type === "L1") return (r3 + r4) === played;
+    if(type === "L2") return (r2 + r3) === played;
+    if(type === "L3") return (r2 + r4) === played;
   }
 
-  if(type === "L2"){
-    return (r2 + r3) === played;
-  }
-
-  if(type === "L3"){
-    return (r2 + r4) === played;
-  }
-
-  // LOTO 5 (3 opsyon)
-  if(type === "L5L1"){
-    return (r1 + r2 + r3) === played;
-  }
-
-  if(type === "L5L2"){
-    return (r1 + r2 + r4) === played; // ✅ sa ou te di a
-  }
-
-  if(type === "L5L3"){
-    return (r1 + r3 + r4) === played;
+  // LOTO 5
+  if(played.length === 5){
+    if(type === "L1") return (r1 + r2 + r3) === played;
+    if(type === "L2") return (r1 + r2 + r4) === played;
+    if(type === "L3") return (r1 + r3 + r4) === played;
   }
 
   return false;

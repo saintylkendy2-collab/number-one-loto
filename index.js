@@ -549,6 +549,62 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
   }
 });
 
+router.post("/check-tickets", async (req, res) => {
+  try {
+    const tickets = await Ticket.find();
+
+    for (let ticket of tickets) {
+      let isWinner = false;
+      let totalPremio = 0;
+
+      for (let jeu of ticket.jeux) {
+        const tirage = await Sorteo.findOne({
+          date: ticket.dateLabel,
+          loteria: jeu.loteria
+        });
+
+        if (!tirage) continue;
+
+        const { r1, r2, r3, r4 } = tirage;
+
+        // L3
+        if (jeu.type === "L3" && jeu.numero === r1) {
+          isWinner = true;
+          totalPremio += jeu.montant || 0;
+        }
+
+        // BOR
+        if (jeu.type === "BOR" && [r2, r3, r4].includes(jeu.numero)) {
+          isWinner = true;
+          totalPremio += jeu.montant || 0;
+        }
+
+        // MAR
+        if (jeu.type === "MAR") {
+          const mar = `${r1}*${r2}`;
+          if (jeu.numero === mar) {
+            isWinner = true;
+            totalPremio += jeu.montant || 0;
+          }
+        }
+      }
+
+      // Mete status
+      ticket.status = isWinner ? "GANYE" : "PEDI";
+      ticket.premio = totalPremio;
+
+      await ticket.save();
+    }
+
+    res.json({ message: "Tous les tickets ont été vérifiés" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur check tickets" });
+  }
+});
+
+
 function isWinningGame(j, result){
   const type = String(j.type || "").trim().toUpperCase();
   const played = String(j.numero || "").trim();
@@ -591,7 +647,6 @@ function isWinningGame(j, result){
   return false;
 }
 
-
 app.post("/api/tickets", async (req, res) => {
   try {
     const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
@@ -626,46 +681,9 @@ app.post("/api/tickets", async (req, res) => {
     const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
 
     const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
-    const tirages = [...new Set(safeJeux.map(j => String(j.loterie || "").trim().toUpperCase()))];
-
-    const ticketDate = String(clientDateLabel || "").trim();
-
-const sorteosRows = await Sorteo.find({
-  date: ticketDate,
-  loteria: { $in: tirages }
-}).lean();
-
-const sorteosMap = {};
-
-sorteosRows.forEach(s => {
-  sorteosMap[String(s.loteria || "").trim().toUpperCase()] = s;
-});
-
-let hasResult = false;
-let hasWinner = false;
-
-safeJeux.forEach(j => {
-  const lot = String(j.loterie || "").trim().toUpperCase();
-  const result = sorteosMap[lot];
-
-  if(!result) return;
-
-  const nums = [result.r1, result.r2, result.r3, result.r4]
-    .map(x => String(x || "").trim())
-    .filter(Boolean);
-
-  if(nums.length){
-    hasResult = true;
-  }
-
-  if(isWinningGame(j, result)){
-    hasWinner = true;
-  }
-});
-
-const finalStatus = !hasResult
-  ? "ANATAN"
-  : (hasWinner ? "GANYE" : "PEDI");
+    const tirages = [...new Set(
+      safeJeux.map(j => String(j.loterie || "").trim().toUpperCase())
+    )];
 
     const ticketId =
       "T" + Date.now().toString() +
@@ -691,7 +709,8 @@ const finalStatus = !hasResult
         second: "2-digit"
       }),
 
-      status: finalStatus,
+      // ✅ Tikè toujou ANATAN lè li fèt
+      status: "ANATAN",
       premio: 0,
 
       channel,
@@ -702,7 +721,7 @@ const finalStatus = !hasResult
 
     const obj = ticket.toObject();
 
-    console.log("✅ Ticket créé:", ticketId, finalStatus);
+    console.log("✅ Ticket créé:", ticketId, "ANATAN");
 
     return res.json({
       ok: true,

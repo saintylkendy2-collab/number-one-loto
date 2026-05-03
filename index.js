@@ -703,9 +703,6 @@ safeJeux.forEach(j => {
   }
 });
 
-const finalStatus = !hasResult ? "ANATAN" : (hasWinner ? "GANYE" : "PEDI");
-
-
     const ticketId =
       "T" + Date.now().toString() +
       Math.random().toString(36).substring(2, 8).toUpperCase();

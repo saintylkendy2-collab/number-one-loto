@@ -1000,7 +1000,22 @@ router.get("/api/sorteos", async (req, res) => {
 router.post("/api/sorteos/save", async (req, res) => {
   try {
     const body = req.body || {};
-    const date = String(body.date || "").trim();
+const rawDate = String(body.date || "").trim();
+
+function toFRDate(value){
+  if (!value) return "";
+  const s = String(value).trim();
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const p = s.split("-");
+    return p[2] + "/" + p[1] + "/" + p[0];
+  }
+
+  return s;
+}
+
+const date = toFRDate(rawDate);
+
     const rows = Array.isArray(body.rows) ? body.rows : [];
 
     if (!date) {

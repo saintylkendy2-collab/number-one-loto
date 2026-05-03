@@ -1738,50 +1738,50 @@ function hideChoicePanel(){
 }
 
 function press(val){
- val = String(val);
+  val = String(val);
 
- if(activeField === "numero"){
-   if(val === "+"){
-     if(numero.length === 4){
-       pendingChoiceNumber = numero;
-       showChoicePanel(["L1","L2","L3"]);
-       return;
-     }
+  if(activeField === "numero"){
+    if(val === "+"){
+      if(numero.length === 4){
+        pendingChoiceNumber = numero;
+        showChoicePanel(["L41","L42","L43"]);
+        return;
+      }
 
-     if(numero.length === 5){
-       pendingChoiceNumber = numero;
-       showChoicePanel(["L1","L2","L3"]);
-       return;
-     }
+      if(numero.length === 5){
+        pendingChoiceNumber = numero;
+        showChoicePanel(["L51","L52","L53"]);
+        return;
+      }
 
-     return;
-   }
+      return;
+    }
 
-   if(val === "/"){
-     if(/^\\d{2}$/.test(numero) || /^\\d{4}$/.test(numero)){
-       numero = numero + "/";
-       cursorNumero = numero.length;
-       activeField = "montant";
-       cursorMontant = montant.length;
-       updateFields();
-       return;
-     }
-     return;
-   }
+    if(val === "/"){
+      if(/^\d{2}$/.test(numero) || /^\d{4}$/.test(numero)){
+        numero = numero + "/";
+        cursorNumero = numero.length;
+        activeField = "montant";
+        cursorMontant = montant.length;
+        updateFields();
+        return;
+      }
+      return;
+    }
 
-   if(!/[0-9]/.test(val)) return;
-   if(numero.indexOf("/") >= 0) return;
-   if(numero.length >= 5) return;
+    if(!/[0-9]/.test(val)) return;
+    if(numero.indexOf("/") >= 0) return;
+    if(numero.length >= 5) return;
 
-   numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
-   cursorNumero += val.length;
- }else if(activeField === "montant"){
-   if(!/[0-9.]/.test(val)) return;
-   montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
-   cursorMontant += val.length;
- }
+    numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
+    cursorNumero += val.length;
+  }else if(activeField === "montant"){
+    if(!/[0-9.]/.test(val)) return;
+    montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
+    cursorMontant += val.length;
+  }
 
- updateFields();
+  updateFields();
 }
 
 function backspaceKey(){
@@ -1972,45 +1972,49 @@ function buildSlashMarriageEntries(num){
 }
 
 function buildGameEntries(num){
- num = num.trim();
+  num = num.trim();
 
- if(/^\\d{2}$/.test(num)){
-   return [{ type: "BOR", numero: num }];
- }
+  if(/^\d{2}$/.test(num)){
+    return [{ type: "BOR", numero: num }];
+  }
 
- if(/^\\d{2}\\/$/.test(num)){
-   return buildSlashMarriageEntries(num);
- }
+  if(/^\d{2}\/$/.test(num)){
+    return buildSlashMarriageEntries(num);
+  }
 
- if(/^\\d{3}$/.test(num)){
-   return [{ type: "L3", numero: num }];
- }
+  // Loto 3
+  if(/^\d{3}$/.test(num)){
+    return [{ type: "L3", numero: num }];
+  }
 
- if(/^\\d{4}$/.test(num)){
-   return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
- }
+  // Mariage direct: 2265 => 22*65
+  if(/^\d{4}$/.test(num)){
+    return [{ type: "MAR", numero: num.slice(0,2) + "*" + num.slice(2,4) }];
+  }
 
- if(/^\\d{4}\\/$/.test(num)){
-   return buildSlashMarriageEntries(num);
- }
+  if(/^\d{4}\/$/.test(num)){
+    return buildSlashMarriageEntries(num);
+  }
 
- if(/^\\d{4}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
-   var raw4 = num.split("+")[0];
-   var types4 = uniqueStrings(num.split("+")[1].split(","));
-   return types4.map(function(t){
-     return { type: t, numero: raw4 };
-   });
- }
+  // Loto 4 options: 2207+L41,L42,L43
+  if(/^\d{4}\+(L41|L42|L43)(,(L41|L42|L43))*$/.test(num)){
+    var raw4 = num.split("+")[0];
+    var types4 = uniqueStrings(num.split("+")[1].split(","));
+    return types4.map(function(t){
+      return { type: t, numero: raw4 };
+    });
+  }
 
- if(/^\\d{5}\\+(L1|L2|L3)(,(L1|L2|L3))*$/.test(num)){
-   var raw5 = num.split("+")[0];
-   var types5 = uniqueStrings(num.split("+")[1].split(","));
-   return types5.map(function(t){
-     return { type: t, numero: raw5 };
-   });
- }
+  // Loto 5 options: 02265+L51,L52,L53
+  if(/^\d{5}\+(L51|L52|L53)(,(L51|L52|L53))*$/.test(num)){
+    var raw5 = num.split("+")[0];
+    var types5 = uniqueStrings(num.split("+")[1].split(","));
+    return types5.map(function(t){
+      return { type: t, numero: raw5 };
+    });
+  }
 
- return null;
+  return null;
 }
 
 function mergeOrPushGame(entry){

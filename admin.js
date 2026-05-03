@@ -758,6 +758,19 @@ router.delete("/api/vendors/:id/connections/:index", async (req, res) => {
   }
 });
 
+
+router.get("/api/sorteos/clear", async (req, res) => {
+  try {
+    await Sorteo.deleteMany({});
+    res.send("✅ Sorteos efase nèt");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erreur");
+  }
+});
+
+
+
 router.post("/api/vendors/:id/balance-action", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();

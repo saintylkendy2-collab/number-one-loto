@@ -1738,51 +1738,52 @@ function hideChoicePanel(){
 }
 
 function press(val){
-  val = String(val);
+ val = String(val);
 
-  if(activeField === "numero"){
-    if(val === "+"){
-      if(numero.length === 4){
-        pendingChoiceNumber = numero;
-        showChoicePanel(["L41","L42","L43"]);
-        return;
-      }
+ if(activeField === "numero"){
+   if(val === "+"){
+     if(numero.length === 4){
+       pendingChoiceNumber = numero;
+       showChoicePanel(["L1","L2","L3"]);
+       return;
+     }
 
-      if(numero.length === 5){
-        pendingChoiceNumber = numero;
-        showChoicePanel(["L51","L52","L53"]);
-        return;
-      }
+     if(numero.length === 5){
+       pendingChoiceNumber = numero;
+       showChoicePanel(["L1","L2","L3"]);
+       return;
+     }
 
-      return;
-    }
+     return;
+   }
 
-    if(val === "/"){
-      if(/^\d{2}$/.test(numero) || /^\d{4}$/.test(numero)){
-        numero = numero + "/";
-        cursorNumero = numero.length;
-        activeField = "montant";
-        cursorMontant = montant.length;
-        updateFields();
-        return;
-      }
-      return;
-    }
+   if(val === "/"){
+     if(/^\\d{2}$/.test(numero) || /^\\d{4}$/.test(numero)){
+       numero = numero + "/";
+       cursorNumero = numero.length;
+       activeField = "montant";
+       cursorMontant = montant.length;
+       updateFields();
+       return;
+     }
+     return;
+   }
 
-    if(!/[0-9]/.test(val)) return;
-    if(numero.indexOf("/") >= 0) return;
-    if(numero.length >= 5) return;
+   if(!/[0-9]/.test(val)) return;
+   if(numero.indexOf("/") >= 0) return;
+   if(numero.length >= 5) return;
 
-    numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
-    cursorNumero += val.length;
-  }else if(activeField === "montant"){
-    if(!/[0-9.]/.test(val)) return;
-    montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
-    cursorMontant += val.length;
-  }
+   numero = numero.slice(0, cursorNumero) + val + numero.slice(cursorNumero);
+   cursorNumero += val.length;
+ }else if(activeField === "montant"){
+   if(!/[0-9.]/.test(val)) return;
+   montant = montant.slice(0, cursorMontant) + val + montant.slice(cursorMontant);
+   cursorMontant += val.length;
+ }
 
-  updateFields();
+ updateFields();
 }
+
 
 function backspaceKey(){
  if(activeField === "numero"){

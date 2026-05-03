@@ -549,8 +549,8 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
   }
 });
 
-function isWinningGame(j, result){
-  const type = String(j.type || "").trim().toUpperCase();
+ function isWinningGame(j, result){
+  const type = String(j.type || "").toUpperCase();
   const played = String(j.numero || "").trim();
 
   const r1 = String(result.r1 || "").trim();
@@ -558,39 +558,55 @@ function isWinningGame(j, result){
   const r3 = String(result.r3 || "").trim();
   const r4 = String(result.r4 || "").trim();
 
-  // BORLETTE
+  const all = [r1, r2, r3, r4];
+
+  // BORLETTE (2 chiffres)
   if(type === "BOR"){
-    return [r1, r2, r3, r4].includes(played);
+    return all.includes(played);
   }
 
-  // MARIAGE
+  // LOTO 3
+  if(type === "L3"){
+    return all.includes(played);
+  }
+
+  // LOTO 4 OPTIONS
+  if(type === "L41"){
+    return played === (r1 + r2);
+  }
+
+  if(type === "L42"){
+    return played === (r2 + r3);
+  }
+
+  if(type === "L43"){
+    return played === (r3 + r4);
+  }
+
+  // LOTO 5 OPTIONS
+  if(type === "L51"){
+    return played === (r1 + r2 + r3);
+  }
+
+  if(type === "L52"){
+    return played === (r2 + r3 + r4);
+  }
+
+  if(type === "L53"){
+    return played === (r1 + r3 + r4);
+  }
+
+  // MARIAGE (22*65)
   if(type === "MAR"){
-    const wins = [...new Set([
-      r2 + "*" + r3,
-      r2 + "*" + r4,
-      r3 + "*" + r4
-    ])];
+    const parts = played.split("*");
+    if(parts.length !== 2) return false;
 
-    return wins.includes(played);
-  }
+    const a = parts[0];
+    const b = parts[1];
 
-  // ✅ LOTO 3 (PA L3)
-  if(type === "LOTO3"){
-    return (r1 + r2) === played;
-  }
+    const set = new Set(all);
 
-  // LOTO 4
-  if(played.length === 4){
-    if(type === "L1") return (r3 + r4) === played;
-    if(type === "L2") return (r2 + r3) === played;
-    if(type === "L3") return (r2 + r4) === played;
-  }
-
-  // LOTO 5
-  if(played.length === 5){
-    if(type === "L1") return (r1 + r2 + r3) === played;
-    if(type === "L2") return (r1 + r2 + r4) === played;
-    if(type === "L3") return (r1 + r3 + r4) === played;
+    return set.has(a) && set.has(b);
   }
 
   return false;
@@ -634,39 +650,42 @@ app.post("/api/tickets", async (req, res) => {
 
     const ticketDate = String(clientDateLabel || "").trim();
 
-    const sorteosRows = await Sorteo.find({
-      date: ticketDate,
-      loteria: { $in: tirages }
-    }).lean();
+const sorteosRows = await Sorteo.find({
+  date: ticketDate,
+  loteria: { $in: tirages }
+}).lean();
 
-    const sorteosMap = {};
-    sorteosRows.forEach(s => {
-      sorteosMap[String(s.loteria || "").trim().toUpperCase()] = s;
-    });
+const sorteosMap = {};
 
-    let hasResult = false;
-    let hasWinner = false;
+sorteosRows.forEach(s => {
+  sorteosMap[String(s.loteria || "").trim().toUpperCase()] = s;
+});
 
-    safeJeux.forEach(j => {
-      const lot = String(j.loterie || "").trim().toUpperCase();
-      const result = sorteosMap[lot];
+let hasResult = false;
+let hasWinner = false;
 
-      if (!result) return;
+safeJeux.forEach(j => {
+  const lot = String(j.loterie || "").trim().toUpperCase();
+  const result = sorteosMap[lot];
 
-      const nums = [result.r1, result.r2, result.r3, result.r4]
-        .map(x => String(x || "").trim())
-        .filter(Boolean);
+  if(!result) return;
 
-      if (nums.length > 0) {
-        hasResult = true;
-      }
+  const nums = [result.r1, result.r2, result.r3, result.r4]
+    .map(x => String(x || "").trim())
+    .filter(Boolean);
 
-      if (isWinningGame(j, result)) {
-        hasWinner = true;
-      }
-    });
+  if(nums.length){
+    hasResult = true;
+  }
 
-    const finalStatus = !hasResult ? "ANATAN" : (hasWinner ? "GANYE" : "PEDI");
+  if(isWinningGame(j, result)){
+    hasWinner = true;
+  }
+});
+
+const finalStatus = !hasResult
+  ? "ANATAN"
+  : (hasWinner ? "GANYE" : "PEDI");
 
     const ticketId =
       "T" + Date.now().toString() +

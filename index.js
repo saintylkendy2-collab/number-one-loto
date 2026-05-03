@@ -558,39 +558,65 @@ function isWinningGame(j, result){
   const r3 = String(result.r3 || "").trim();
   const r4 = String(result.r4 || "").trim();
 
-  // BORLETTE
+  const nums = [r1, r2, r3, r4].filter(Boolean);
+
+  // -------------------------
+  // BORLETTE (2 chiffres)
+  // -------------------------
   if(type === "BOR"){
-    return [r1, r2, r3, r4].includes(played);
+    return nums.includes(played);
   }
 
+  // -------------------------
   // MARIAGE
+  // -------------------------
   if(type === "MAR"){
-    const wins = [...new Set([
-      r2 + "*" + r3,
-      r2 + "*" + r4,
-      r3 + "*" + r4
-    ])];
+    const parts = played.split("*").map(x => x.trim());
+    if(parts.length !== 2) return false;
 
-    return wins.includes(played);
+    const [a, b] = parts;
+
+    const combos = new Set();
+
+    for(let i=0;i<nums.length;i++){
+      for(let j=i+1;j<nums.length;j++){
+        if(nums[i] !== nums[j]){
+          combos.add(nums[i] + "*" + nums[j]);
+          combos.add(nums[j] + "*" + nums[i]);
+        }
+      }
+    }
+
+    return combos.has(a + "*" + b);
   }
 
-  // ✅ LOTO 3 (PA L3)
-  if(type === "LOTO3"){
-    return (r1 + r2) === played;
+  // -------------------------
+  // LOTO 3 (L3)
+  // -------------------------
+  if(type === "L3"){
+    const last3 = nums.map(n => n.slice(-3));
+    return last3.includes(played);
   }
 
-  // LOTO 4
-  if(played.length === 4){
-    if(type === "L1") return (r3 + r4) === played;
-    if(type === "L2") return (r2 + r3) === played;
-    if(type === "L3") return (r2 + r4) === played;
+  // -------------------------
+  // LOTO 4 (L41 L42 L43)
+  // -------------------------
+  if(type.startsWith("L4")){
+    const last4 = nums.map(n => n.slice(-4));
+
+    // permutation simple (ordre pa enpòtan)
+    return last4.some(n => {
+      return n.split("").sort().join("") === played.split("").sort().join("");
+    });
   }
 
-  // LOTO 5
-  if(played.length === 5){
-    if(type === "L1") return (r1 + r2 + r3) === played;
-    if(type === "L2") return (r1 + r2 + r4) === played;
-    if(type === "L3") return (r1 + r3 + r4) === played;
+  // -------------------------
+  // LOTO 5 (L51 L52 L53)
+  // -------------------------
+  if(type.startsWith("L5")){
+    const all = nums.join("");
+
+    return played.split("").every(d => all.includes(d));
   }
 
   return false;

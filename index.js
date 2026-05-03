@@ -549,8 +549,8 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
   }
 });
 
- function isWinningGame(j, result){
-  const type = String(j.type || "").toUpperCase();
+function isWinningGame(j, result){
+  const type = String(j.type || "").trim().toUpperCase();
   const played = String(j.numero || "").trim();
 
   const r1 = String(result.r1 || "").trim();
@@ -558,59 +558,39 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
   const r3 = String(result.r3 || "").trim();
   const r4 = String(result.r4 || "").trim();
 
-  const all = [r1, r2, r3, r4];
-
-  // BORLETTE (2 chiffres)
   if(type === "BOR"){
-    return all.includes(played);
+    return [r1, r2, r3, r4].includes(played);
   }
 
-  // LOTO 3
+  // Loto 3
   if(type === "L3"){
-    return all.includes(played);
+    return (r1 + r2) === played;
   }
 
-  // LOTO 4 OPTIONS
-  if(type === "L41"){
-    return played === (r1 + r2);
-  }
-
-  if(type === "L42"){
-    return played === (r2 + r3);
-  }
-
-  if(type === "L43"){
-    return played === (r3 + r4);
-  }
-
-  // LOTO 5 OPTIONS
-  if(type === "L51"){
-    return played === (r1 + r2 + r3);
-  }
-
-  if(type === "L52"){
-    return played === (r2 + r3 + r4);
-  }
-
-  if(type === "L53"){
-    return played === (r1 + r3 + r4);
-  }
-
-  // MARIAGE (22*65)
+  // Mariage: sèlman 2e, 3e, 4e boul yo
   if(type === "MAR"){
-    const parts = played.split("*");
-    if(parts.length !== 2) return false;
+    const wins = [...new Set([
+      r2 + "*" + r3,
+      r2 + "*" + r4,
+      r3 + "*" + r4
+    ])];
 
-    const a = parts[0];
-    const b = parts[1];
-
-    const set = new Set(all);
-
-    return set.has(a) && set.has(b);
+    return wins.includes(played);
   }
+
+  // Loto 4
+  if(type === "L41") return (r3 + r4) === played;
+  if(type === "L42") return (r2 + r3) === played;
+  if(type === "L43") return (r2 + r4) === played;
+
+  // Loto 5
+  if(type === "L51") return (r1 + r2 + r3) === played;
+  if(type === "L52") return (r1 + r2 + r4) === played;
+  if(type === "L53") return (r1 + r3 + r4) === played;
 
   return false;
 }
+
 
 app.post("/api/tickets", async (req, res) => {
   try {
@@ -2144,7 +2124,7 @@ function autoLoto4(){
  Object.keys(results).forEach(function(numeroAuto){
    selectedLoteries.forEach(function(lot){
      mergeOrPushGame({
-       type: "L1",
+       type: "L41",
        numero: numeroAuto,
        loterie: lot,
        montant: parseFloat(montant) || 0
@@ -3763,7 +3743,7 @@ function renderImprimantePage(){
       combos.forEach(function(num){
         selectedLoteries.forEach(function(lot){
           mergeOrPushGame({
-            type: "L1",
+            type: "L41",
             numero: num,
             loterie: lot,
             montant: parseFloat(montant) || 0

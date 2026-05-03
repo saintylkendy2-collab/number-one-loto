@@ -2791,7 +2791,6 @@ async function loadSorteos(){
   try{
     var res = await fetch("/api/sorteos?reload=" + Date.now());
     sorteosData = await res.json();
-    renderSorteosPage();
   }catch(err){
     console.error(err);
     sorteosData = {};
@@ -2886,8 +2885,9 @@ async function saveSorteos(){
     }
 
     // 🔥 SA KI PI ENPÒTAN
-    await loadSorteos();  
-    renderSorteosPage();
+    await loadSorteos();
+byId("sorteosDate").value = date;
+renderSorteosPage();
 
     alert("Sorteos sauvegardé ✔");
 

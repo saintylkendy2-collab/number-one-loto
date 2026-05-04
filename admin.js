@@ -938,6 +938,64 @@ router.get("/api/sorteos", (req, res) => {
   }
 });
 
+function isWinningGame(jeu, tirage) {
+  if (!jeu || !tirage) return false;
+
+  const type = normalizeGameType(jeu.type);
+  const numero = String(jeu.numero || "").trim();
+
+  const r1 = String(tirage.r1 || "").trim(); // egzanp 385
+  const r2 = String(tirage.r2 || "").trim(); // egzanp 1368
+
+  if (!r1 && !r2) return false;
+
+  // 3 boul yo
+  const boul1 = r1[0] || "";
+  const boul2 = r1[1] || "";
+  const boul3 = r1[2] || "";
+
+  const tet = boul1 + boul2;       // 38
+  const second = boul2 + boul3;    // 85
+  const third = boul1 + boul3;     // 35
+
+  // BORLETTE
+  if (type === "BOR") {
+    return numero === tet || numero === second || numero === third;
+  }
+
+  // MARIAGE: egzanp 38*85
+  if (type === "MAR") {
+    const parts = numero.split("*");
+    if (parts.length !== 2) return false;
+
+    const a = parts[0];
+    const b = parts[1];
+
+    const combos = [
+      tet + "*" + second,
+      second + "*" + tet,
+      tet + "*" + third,
+      third + "*" + tet,
+      second + "*" + third,
+      third + "*" + second
+    ];
+
+    return combos.includes(a + "*" + b);
+  }
+
+  // LOTO 3
+  if (type === "L3") {
+    return numero === r1;
+  }
+
+  // LOTO 4 / L1
+  if (type === "L1") {
+    return numero === r2;
+  }
+
+  return false;
+}
+
 router.post("/api/sorteos/save", (req, res) => {
   try {
     const body = req.body || {};
@@ -968,7 +1026,9 @@ router.post("/api/sorteos/save", (req, res) => {
       };
     });
 
-    writeSorteosObject(sorteos);
+  writeSorteosObject(sorteos);
+
+  await validateTicketsForSorteoDate(date);
 
     res.json({ ok: true, sorteos: sorteos[date] });
   } catch (err) {

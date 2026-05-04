@@ -92,5 +92,47 @@
       "r2": "4567",
       "updatedAt": "2026-05-02T18:36:33.197Z"
     }
+  },
+  "2026-05-04": {
+    "TENNESSE MORNING": {
+      "r1": "",
+      "r2": "",
+      "updatedAt": "2026-05-04T16:54:45.720Z"
+    },
+    "TEXAS MORNING": {
+      "r1": "",
+      "r2": "",
+      "updatedAt": "2026-05-04T16:54:45.720Z"
+    },
+    "GEORGIA MIDDAY": {
+      "r1": "",
+      "r2": "",
+      "updatedAt": "2026-05-04T16:54:45.720Z"
+    },
+    "TENNESSE MIDDAY": {
+      "r1": "",
+      "r2": "",
+      "updatedAt": "2026-05-04T16:54:45.720Z"
+    },
+    "FLORIDA MIDDAY": {
+      "r1": "",
+      "r2": "",
+      "updatedAt": "2026-05-04T16:54:45.720Z"
+    },
+    "FLORIDA EVENING": {
+      "r1": "",
+      "r2": "",
+      "updatedAt": "2026-05-04T16:54:45.720Z"
+    },
+    "NEW YORK EVENING": {
+      "r1": "",
+      "r2": "",
+      "updatedAt": "2026-05-04T16:54:45.720Z"
+    },
+    "GEORGIA EVENING": {
+      "r1": "",
+      "r2": "",
+      "updatedAt": "2026-05-04T16:54:45.720Z"
+    }
   }
 }

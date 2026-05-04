@@ -780,51 +780,62 @@ app.get("/api/vendor/sorteos", async (req, res) => {
   }
 });
 
-app.post("/api/ticket-status", (req, res) => {
-  const ticketId = String(req.body.id || "").trim();
-  const status = normalizeStatus(req.body.status);
-  const premio = Number(req.body.premio || 0);
+app.post("/api/ticket-status", async (req, res) => {
+  try {
+    const ticketId = String(req.body.id || "").trim();
+    const status = normalizeStatus(req.body.status);
+    const premio = Number(req.body.premio || 0);
 
-  const tickets = loadTickets();
-  const ticket = tickets.find((t) => String(t.id) === ticketId);
+    const ticket = await Ticket.findOne({
+      $or: [
+        { id: ticketId },
+        { ticketId: ticketId },
+        { serial: ticketId }
+      ]
+    });
 
-  if (!ticket) {
-    return res.status(404).json({ ok: false, message: "Ticket introuvable" });
-  }
-
-  const currentStatus = normalizeStatus(ticket.status);
-
-  if (status === "ANILE") {
-    const createdAt = new Date(ticket.createdAt || Date.now()).getTime();
-    const now = Date.now();
-    const diffMinutes = (now - createdAt) / 60000;
-
-    if (diffMinutes > 10) {
-      return res.json({
-        ok: false,
-        message: "Ou pa ka anile ticket sa ankò. 10 minit yo pase."
-      });
+    if (!ticket) {
+      return res.status(404).json({ ok: false, message: "Ticket introuvable" });
     }
 
-    if (currentStatus === "GANYE" || currentStatus === "PEDI") {
-      return res.json({
-        ok: false,
-        message: "Ticket sa deja trete."
-      });
+    const currentStatus = normalizeStatus(ticket.status);
+
+    if (status === "ANILE") {
+      const createdAt = new Date(ticket.createdAt || Date.now()).getTime();
+      const diffMinutes = (Date.now() - createdAt) / 60000;
+
+      if (diffMinutes > 10) {
+        return res.json({
+          ok: false,
+          message: "Ou pa ka anile ticket sa ankò. 10 minit yo pase."
+        });
+      }
+
+      if (currentStatus === "GANYE" || currentStatus === "PEDI") {
+        return res.json({
+          ok: false,
+          message: "Ticket sa deja trete."
+        });
+      }
     }
+
+    ticket.status = status;
+    ticket.updatedAt = new Date();
+
+    if (status === "GANYE") {
+      ticket.premio = premio > 0 ? premio : Number(ticket.premio || 0);
+    } else {
+      ticket.premio = 0;
+    }
+
+    await ticket.save();
+
+    res.json({ ok: true, ticket });
+
+  } catch (err) {
+    console.error("UPDATE TICKET STATUS ERROR:", err);
+    res.status(500).json({ ok: false, message: "Erreur update ticket" });
   }
-
-  ticket.status = status;
-  ticket.updatedAt = new Date().toISOString();
-
-  if (status === "GANYE") {
-    ticket.premio = premio > 0 ? premio : Number(ticket.premio || 0);
-  } else {
-    ticket.premio = 0;
-  }
-
-  saveTickets(tickets);
-  res.json({ ok: true, ticket });
 });
 
 

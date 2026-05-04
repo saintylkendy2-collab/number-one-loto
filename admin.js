@@ -970,73 +970,96 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
   `);
 });
 
-function isWinningGame(j, result){
-  const type = String(j.type || "").trim().toUpperCase();
-  const played = String(j.numero || "").trim();
+function normalizeText(v) {
+  return String(v || "").trim().toUpperCase();
+}
 
-  const tet = String(result.r1 || "").trim();
-  const lo1 = String(result.r2 || "").trim();
-  const lo2 = String(result.r3 || "").trim();
-  const lo3 = String(result.r4 || "").trim();
+function isWinningGame(j, result) {
+  const type = normalizeText(j.type);
+  const played = normalizeText(j.numero).replace(/\s+/g, "");
 
-  if(type === "BOR"){
-    return [lo1, lo2, lo3].includes(played);
+  const tet = normalizeText(result.r1);
+  const lo1 = normalizeText(result.r2);
+  const lo2 = normalizeText(result.r3);
+  const lo3 = normalizeText(result.r4);
+
+  if (!played) return false;
+
+  if (type === "BOR" || type === "BORLETTE") {
+    return [tet, lo1, lo2, lo3].includes(played);
   }
 
-  if(type === "L3"){
+  if (type === "L3" || type === "LOTO3") {
     return (tet + lo1) === played;
   }
 
-  if(type === "MAR"){
-    return [
-      lo1 + "*" + lo2,
-      lo1 + "*" + lo3,
-      lo2 + "*" + lo3
-    ].includes(played);
+  if (type === "MAR" || type === "MARIAGE") {
+    const playedParts = played.split("*").map(normalizeText).sort().join("*");
+
+    const combos = [
+      [tet, lo1],
+      [tet, lo2],
+      [tet, lo3],
+      [lo1, lo2],
+      [lo1, lo3],
+      [lo2, lo3]
+    ].map(x => x.sort().join("*"));
+
+    return combos.includes(playedParts);
   }
 
   return false;
 }
 
-router.get("/api/sorteos", async (req, res) => {
-  try {
-    const rows = await Sorteo.find().lean();
+async function runCheckTickets() {
+  const tickets = await Ticket.find({
+    status: { $ne: "ANILE" }
+  });
 
-    function toFRDate(value) {
-      if (!value) return "";
-      const s = String(value).trim();
+  let checked = 0;
 
-      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-        const p = s.split("-");
-        return p[2] + "/" + p[1] + "/" + p[0];
+  for (const ticket of tickets) {
+    let hasResult = false;
+    let isWinner = false;
+    let totalPremio = 0;
+
+    for (const jeu of ticket.jeux || []) {
+      const loteria = normalizeText(jeu.loterie);
+      const date = String(ticket.dateLabel || "").trim();
+
+      const tirage = await Sorteo.findOne({
+        date: date,
+        loteria: loteria
+      }).lean();
+
+      if (!tirage) continue;
+
+      const hasBalls =
+        String(tirage.r1 || "").trim() ||
+        String(tirage.r2 || "").trim() ||
+        String(tirage.r3 || "").trim() ||
+        String(tirage.r4 || "").trim();
+
+      if (!hasBalls) continue;
+
+      hasResult = true;
+
+      if (isWinningGame(jeu, tirage)) {
+        isWinner = true;
+        totalPremio += Number(jeu.montant || jeu.monto || jeu.amount || 0);
       }
-
-      return s;
     }
 
-    const obj = {};
+    ticket.status = !hasResult ? "ANATAN" : isWinner ? "GANYE" : "PEDI";
+    ticket.premio = isWinner ? totalPremio : 0;
+    ticket.updatedAt = new Date();
 
-    rows.forEach(r => {
-      const date = toFRDate(r.date); // 🔥 KOREKSYON AN
-      const loteria = String(r.loteria || "").trim().toUpperCase();
-
-      if (!obj[date]) obj[date] = {};
-
-      obj[date][loteria] = {
-        r1: r.r1 || "",
-        r2: r.r2 || "",
-        r3: r.r3 || "",
-        r4: r.r4 || ""
-      };
-    });
-
-    res.json(obj);
-
-  } catch (err) {
-    console.error("Erreur get sorteos:", err);
-    res.status(500).json({});
+    await ticket.save();
+    checked++;
   }
-});
+
+  console.log("✅ Tickets vérifiés:", checked);
+}
 
 router.post("/api/sorteos/save", async (req, res) => {
   try {

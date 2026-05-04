@@ -551,7 +551,9 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
 
 app.get("/check-tickets", async (req, res) => {
   try {
-    const tickets = await Ticket.find({ status: "ANATAN" });
+   const tickets = await Ticket.find({
+  status: { $ne: "ANILE" }
+}); 
 
     let checked = 0;
 
@@ -628,8 +630,8 @@ function isWinningGame(j, result){
 
   // Loto 3
   if(type === "L3"){
-    return (r1 + r2) === played;
-  }
+  return r1 === played;
+}
 
   // Mariage: sèlman 2e, 3e, 4e boul yo
   if(type === "MAR"){

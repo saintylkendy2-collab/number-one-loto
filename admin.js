@@ -1034,6 +1034,15 @@ async function runCheckTickets() {
 
       if (!tirage) continue;
 
+      console.log("CHECK:", {
+  ticket: ticket.id,
+  ticketDate: ticket.dateLabel,
+  jeuLoterie: jeu.loterie,
+  searchDate: date,
+  searchLoteria: loteria,
+  tirageFound: !!tirage
+});
+
       const hasBalls =
         String(tirage.r1 || "").trim() ||
         String(tirage.r2 || "").trim() ||

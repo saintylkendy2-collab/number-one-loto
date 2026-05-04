@@ -1,3 +1,4 @@
+
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -969,86 +970,6 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
   `);
 });
 
-function isWinningGame(j, result){
-  const type = String(j.type || "").trim().toUpperCase();
-  const played = String(j.numero || "").trim();
-
-  const tet = String(result.r1 || "").trim();
-  const lo1 = String(result.r2 || "").trim();
-  const lo2 = String(result.r3 || "").trim();
-  const lo3 = String(result.r4 || "").trim();
-
-  if(type === "BOR"){
-    return [lo1, lo2, lo3].includes(played);
-  }
-
-  if(type === "L3"){
-    return (tet + lo1) === played;
-  }
-
-  if(type === "MAR"){
-    return [
-      lo1 + "*" + lo2,
-      lo1 + "*" + lo3,
-      lo2 + "*" + lo3
-    ].includes(played);
-  }
-
-  return false;
-}
-
-async function runCheckTickets() {
-  const tickets = await Ticket.find({
-    status: { $ne: "ANILE" }
-  });
-
-  for (let ticket of tickets) {
-    let hasResult = false;
-    let isWinner = false;
-    let totalPremio = 0;
-
-    for (let jeu of ticket.jeux || []) {
-      const lot = String(jeu.loterie || "").trim().toUpperCase();
-      const date = String(ticket.dateLabel || "").trim();
-
-      const tirage = await Sorteo.findOne({
-        date: date,
-        loteria: lot
-      }).lean();
-
-      if (!tirage) continue;
-
-      const tet = String(tirage.r1 || "").trim();
-      const lo1 = String(tirage.r2 || "").trim();
-      const lo2 = String(tirage.r3 || "").trim();
-      const lo3 = String(tirage.r4 || "").trim();
-
-      if (!tet && !lo1 && !lo2 && !lo3) continue;
-
-      hasResult = true;
-
-      if (isWinningGame(jeu, tirage)) {
-        isWinner = true;
-        totalPremio += Number(jeu.montant || 0);
-      }
-    }
-
-    if (!hasResult) {
-  ticket.status = "ANATAN";
-  ticket.premio = 0;
-} else {
-  ticket.status = isWinner ? "GANYE" : "PEDI";
-  ticket.premio = isWinner ? totalPremio : 0;
-}
-
-ticket.updatedAt = new Date();
-await ticket.save();
-  }
-
-
-  console.log("AUTO CHECK FINI");
-}
-
 router.get("/api/sorteos", async (req, res) => {
   try {
     const rows = await Sorteo.find().lean();
@@ -1136,8 +1057,6 @@ router.post("/api/sorteos/save", async (req, res) => {
       );
     }
 
-await runCheckTickets();
-
     res.json({ ok: true, date: date });
 
   } catch (err) {
@@ -1145,8 +1064,6 @@ await runCheckTickets();
     res.status(500).json({ ok: false, message: err.message });
   }
 });
-
-
 
 router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
   try {

@@ -2505,7 +2505,9 @@ function statusLabel(status){
 }
 
 function loadBillets(){
- fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
+ fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets?ts=" + Date.now(), {
+  cache: "no-store"
+})
  .then(function(res){ return res.json(); })
  .then(function(rows){
  savedTickets = Array.isArray(rows) ? rows : [];

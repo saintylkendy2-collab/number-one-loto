@@ -938,62 +938,88 @@ router.get("/api/sorteos", (req, res) => {
   }
 });
 
+function normalizeGameType(type = "") {
+  const t = String(type || "").trim().toUpperCase();
+
+  if (t === "BOR" || t === "BORLETTE") return "BOR";
+  if (t === "MAR" || t === "MARIAGE") return "MAR";
+  if (t === "L3" || t === "LOTO3") return "L3";
+  if (t === "L1" || t === "L2" || t === "L3") return t;
+
+  return t;
+}
+
 function isWinningGame(jeu, tirage) {
   if (!jeu || !tirage) return false;
 
   const type = normalizeGameType(jeu.type);
   const numero = String(jeu.numero || "").trim();
 
-  const r1 = String(tirage.r1 || "").trim(); // egzanp 385
-  const r2 = String(tirage.r2 || "").trim(); // egzanp 1368
+  const r1 = String(tirage.r1 || "").trim(); // 385
+  const r2 = String(tirage.r2 || "").trim(); // 1368
 
   if (!r1 && !r2) return false;
 
-  // 3 boul yo
-  const boul1 = r1[0] || "";
-  const boul2 = r1[1] || "";
-  const boul3 = r1[2] || "";
+  const b1 = r1[0] || "";
+  const b2 = r1[1] || "";
+  const b3 = r1[2] || "";
 
-  const tet = boul1 + boul2;       // 38
-  const second = boul2 + boul3;    // 85
-  const third = boul1 + boul3;     // 35
+  const tet = b1 + b2;
+  const sec = b2 + b3;
+  const tri = b1 + b3;
 
-  // BORLETTE
   if (type === "BOR") {
-    return numero === tet || numero === second || numero === third;
+    return numero === tet || numero === sec || numero === tri;
   }
 
-  // MARIAGE: egzanp 38*85
   if (type === "MAR") {
     const parts = numero.split("*");
     if (parts.length !== 2) return false;
 
-    const a = parts[0];
-    const b = parts[1];
-
     const combos = [
-      tet + "*" + second,
-      second + "*" + tet,
-      tet + "*" + third,
-      third + "*" + tet,
-      second + "*" + third,
-      third + "*" + second
+      tet+"*"+sec, sec+"*"+tet,
+      tet+"*"+tri, tri+"*"+tet,
+      sec+"*"+tri, tri+"*"+sec
     ];
 
-    return combos.includes(a + "*" + b);
+    return combos.includes(parts[0]+"*"+parts[1]);
   }
 
-  // LOTO 3
-  if (type === "L3") {
-    return numero === r1;
-  }
-
-  // LOTO 4 / L1
-  if (type === "L1") {
-    return numero === r2;
-  }
+  if (type === "L3") return numero === r1;
+  if (type === "L1") return numero === r2;
 
   return false;
+}
+
+async function validateTicketsForSorteoDate(date) {
+  const sorteos = readSorteosObject();
+  const dayResults = sorteos[date] || {};
+
+  const tickets = await Ticket.find({
+    dateLabel: date,
+    status: { $nin: ["ANILE"] }
+  });
+
+  for (const ticket of tickets) {
+    let hasWin = false;
+
+    const newJeux = (ticket.jeux || []).map(j => {
+      const tirage = dayResults[j.loterie];
+      const win = tirage ? isWinningGame(j, tirage) : false;
+
+      if (win) hasWin = true;
+
+      return {
+        ...j.toObject?.() || j,
+        win
+      };
+    });
+
+    ticket.jeux = newJeux;
+    ticket.status = hasWin ? "GANYE" : "PEDI";
+
+    await ticket.save();
+  }
 }
 
 router.post("/api/sorteos/save", async (req, res) => {

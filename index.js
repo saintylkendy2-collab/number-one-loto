@@ -576,6 +576,20 @@ app.get("/check-tickets", async (req, res) => {
 
         if (!tirage) continue;
 
+        console.log("TEST JEU:", {
+  ticket: ticket.id || ticket.ticketId,
+  date: ticket.dateLabel,
+  loterieTicket: jeu.loterie,
+  type: jeu.type,
+  numero: jeu.numero,
+  tirageFound: !!tirage,
+  r1: tirage && tirage.r1,
+  r2: tirage && tirage.r2,
+  r3: tirage && tirage.r3,
+  r4: tirage && tirage.r4,
+  win: tirage ? isWinningGame(jeu, tirage) : false
+});
+
         const tet = String(tirage.r1 || "").trim();
         const lo1 = String(tirage.r2 || "").trim();
         const lo2 = String(tirage.r3 || "").trim();

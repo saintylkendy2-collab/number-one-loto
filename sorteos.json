@@ -107,7 +107,7 @@
     "GEORGIA MIDDAY": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "TENNESSE MIDDAY": {
       "r1": "",
@@ -117,72 +117,67 @@
     "FLORIDA EVENING": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "NEW YORK EVENING": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "GEORGIA EVENING": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "LA PRIMERA DIA": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "LOTEDOM": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "LA SUERTE DIA": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "KING LOTTERY DIA": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "ANGUILLA 01:00 PM": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "REAL": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "FLORIDA MIDDAY": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "GANAMAS": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "LA SUERTE NOCHE": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "ANGUILLA 6:00 PM": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
-    },
-    "NEW YORK MIDDAY": {
-      "r1": "555",
-      "r2": "0880",
-      "updatedAt": "2026-05-04T18:06:12.019Z"
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     },
     "TEXAS EVENING": {
       "r1": "",
@@ -198,6 +193,11 @@
       "r1": "",
       "r2": "",
       "updatedAt": "2026-05-04T18:03:23.205Z"
+    },
+    "NEW YORK MIDDAY": {
+      "r1": "555",
+      "r2": "0880",
+      "updatedAt": "2026-05-04T18:14:08.119Z"
     }
   }
 }

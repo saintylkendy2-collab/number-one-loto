@@ -3423,20 +3423,20 @@ function renderTiragesPage(){
       var b3 = r1[2] || "--";
 
       html +=
-        '<div style="display:grid;grid-template-columns:80px 1fr;align-items:center;min-height:92px;border-bottom:1px solid #ddd;padding:8px 10px;">' +
-          '<div style="font-size:12px;font-weight:800;color:#2f49d1;text-align:center;">LOGO</div>' +
-          '<div>' +
-            '<div style="font-size:21px;font-weight:800;color:#64b5e8;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + l.name + '</div>' +
+  '<div style="display:grid;grid-template-columns:70px 1fr;align-items:center;min-height:92px;border-bottom:1px solid #ddd;padding:8px 10px;">' +
+    '<div style="font-size:12px;font-weight:800;color:#2f49d1;text-align:center;">LOGO</div>' +
 
-            '<div style="display:flex;gap:9px;margin-top:8px;align-items:center;">' +
-              '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">' + b1 + '</div>' +
-              '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">' + b2 + '</div>' +
-              '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">' + b3 + '</div>' +
-              '<div style="margin-left:auto;font-size:20px;font-weight:800;color:#333;">' + r2 + '</div>' +
-            '</div>' +
+    '<div>' +
+      '<div style="font-size:21px;font-weight:800;color:#64b5e8;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + l.name + '</div>' +
 
-          '</div>' +
-        '</div>';
+      '<div style="display:grid;grid-template-columns:48px 48px 48px 80px;gap:8px;align-items:center;margin-top:8px;justify-content:end;">' +
+        '<div style="width:48px;height:48px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">' + b1 + '</div>' +
+        '<div style="width:48px;height:48px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">' + b2 + '</div>' +
+        '<div style="width:48px;height:48px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">' + b3 + '</div>' +
+        '<div style="height:48px;border:1px solid #bbb;border-radius:10px;background:#fff;color:#111;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;">' + (r2 || "--") + '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
     });
 
     html += '</div>';

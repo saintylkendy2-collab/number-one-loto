@@ -551,9 +551,9 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
 
 app.get("/check-tickets", async (req, res) => {
   try {
-   const tickets = await Ticket.find({
-  status: { $ne: "ANILE" }
-}); 
+    const tickets = await Ticket.find({
+      status: { $ne: "ANILE" }
+    });
 
     let checked = 0;
 
@@ -587,13 +587,14 @@ app.get("/check-tickets", async (req, res) => {
       }
 
       if (!hasResult) {
-        continue;
+        ticket.status = "ANATAN";
+        ticket.premio = 0;
+      } else {
+        ticket.status = isWinner ? "GANYE" : "PEDI";
+        ticket.premio = totalPremio;
       }
 
-      ticket.status = isWinner ? "GANYE" : "PEDI";
-      ticket.premio = totalPremio;
       ticket.updatedAt = new Date();
-
       await ticket.save();
       checked++;
     }
@@ -615,25 +616,27 @@ app.get("/check-tickets", async (req, res) => {
 });
 
 
+
 function isWinningGame(j, result){
   const type = String(j.type || "").trim().toUpperCase();
   const played = String(j.numero || "").trim();
 
-  const r1 = String(result.r1 || "").trim();
-  const r2 = String(result.r2 || "").trim();
-  const r3 = String(result.r3 || "").trim();
-  const r4 = String(result.r4 || "").trim();
+  const r1 = String(result.r1 || "").trim(); // tèt loto
+  const r2 = String(result.r2 || "").trim(); // premye lo
+  const r3 = String(result.r3 || "").trim(); // dezyèm lo
+  const r4 = String(result.r4 || "").trim(); // twazyèm lo
 
+  // BORLETTE = premye lo, dezyèm lo, twazyèm lo
   if(type === "BOR"){
-    return [r1, r2, r3, r4].includes(played);
+    return [r2, r3, r4].includes(played);
   }
 
-  // Loto 3
+  // LOTO 3 = tèt loto + premye lo
   if(type === "L3"){
-  return r1 === played;
-}
+    return (r1 + r2) === played;
+  }
 
-  // Mariage: sèlman 2e, 3e, 4e boul yo
+  // MARIAGE = konbinezon ant 3 lo yo sèlman
   if(type === "MAR"){
     const wins = [...new Set([
       r2 + "*" + r3,
@@ -644,12 +647,12 @@ function isWinningGame(j, result){
     return wins.includes(played);
   }
 
-  // Loto 4
+  // LOTO 4
   if(type === "L41") return (r3 + r4) === played;
   if(type === "L42") return (r2 + r3) === played;
   if(type === "L43") return (r2 + r4) === played;
 
-  // Loto 5
+  // LOTO 5
   if(type === "L51") return (r1 + r2 + r3) === played;
   if(type === "L52") return (r1 + r2 + r4) === played;
   if(type === "L53") return (r1 + r3 + r4) === played;

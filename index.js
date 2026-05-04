@@ -573,20 +573,7 @@ app.get("/check-tickets", async (req, res) => {
           loteria: { $regex: "^" + lot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$", $options: "i" }
         }).lean();
 
-        console.log("TEST JEU:", {
-          ticket: ticket.id || ticket.ticketId,
-          date: date,
-          loterieTicket: jeu.loterie,
-          type: jeu.type,
-          numero: jeu.numero,
-          tirageFound: !!tirage,
-          r1: tirage && tirage.r1,
-          r2: tirage && tirage.r2,
-          r3: tirage && tirage.r3,
-          r4: tirage && tirage.r4,
-          win: tirage ? isWinningGame(jeu, tirage) : false
-        });
-
+        
         if (!tirage) continue;
 
         const tet = String(tirage.r1 || "").trim();

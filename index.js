@@ -566,9 +566,17 @@ app.get("/check-tickets", async (req, res) => {
         const lot = String(jeu.loterie || "").trim().toUpperCase();
 
         const tirage = await Sorteo.findOne({
-          date: String(ticket.dateLabel || "").trim(),
-          loteria: lot
-        }).lean();
+  date: String(ticket.dateLabel || "").trim(),
+  loteria: { $regex: "^" + lot + "$", $options: "i" }
+}).lean();
+
+console.log("CHECK:", {
+  ticket: ticket.id || ticket.ticketId,
+  date: ticket.dateLabel,
+  lot,
+  found: !!tirage
+});
+
 
         if (!tirage) continue;
 

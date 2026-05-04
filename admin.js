@@ -1034,14 +1034,17 @@ async function runCheckTickets() {
     }
 
     if (!hasResult) {
-      ticket.status = "AN ATAN";
-    } else {
-      ticket.status = isWinner ? "GAGNE" : "PERDU";
-    }
+  ticket.status = "ANATAN";
+  ticket.premio = 0;
+} else {
+  ticket.status = isWinner ? "GANYE" : "PEDI";
+  ticket.premio = isWinner ? totalPremio : 0;
+}
 
-    ticket.totalPremio = totalPremio;
-    await ticket.save();
+ticket.updatedAt = new Date();
+await ticket.save();
   }
+
 
   console.log("AUTO CHECK FINI");
 }

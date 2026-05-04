@@ -1063,6 +1063,19 @@ router.post("/api/sorteos/save", async (req, res) => {
   }
 });
 
+router.post("/api/sorteos/validate/:date", async (req, res) => {
+  try {
+    const date = String(req.params.date || "").trim();
+
+    await validateTicketsForSorteoDate(date);
+
+    res.json({ ok: true, message: "Tickets valide pou " + date });
+  } catch (err) {
+    console.error("Erreur validation tickets:", err);
+    res.status(500).json({ ok: false, message: err.message });
+  }
+});
+
 router.delete("/api/sorteos/:date/:loteria", (req, res) => {
   try {
     const date = String(req.params.date || "").trim();

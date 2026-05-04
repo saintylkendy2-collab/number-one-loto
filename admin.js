@@ -1084,56 +1084,7 @@ router.post("/api/sorteos/save", async (req, res) => {
       );
     }
 
-// Verifye tickets otomatik apre rezilta yo save
-let checked = 0;
-
-try {
-  const tickets = await Ticket.find({
-    status: { $ne: "ANILE" }
-  });
-
-  for (let ticket of tickets) {
-    let hasResult = false;
-    let isWinner = false;
-    let totalPremio = 0;
-
-    for (let jeu of ticket.jeux || []) {
-      const lot = String(jeu.loterie || "").trim().toUpperCase();
-
-      const tirage = await Sorteo.findOne({
-        date: String(ticket.dateLabel || "").trim(),
-        loteria: { $regex: "^" + lot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$", $options: "i" }
-      }).lean();
-
-      if (!tirage) continue;
-
-      const tet = String(tirage.r1 || "").trim();
-      const lo1 = String(tirage.r2 || "").trim();
-      const lo2 = String(tirage.r3 || "").trim();
-      const lo3 = String(tirage.r4 || "").trim();
-
-      if (!tet && !lo1 && !lo2 && !lo3) continue;
-
-      hasResult = true;
-
-      if (isWinningGame(jeu, tirage)) {
-        isWinner = true;
-        totalPremio += Number(jeu.montant || 0);
-      }
-    }
-
-    ticket.status = !hasResult ? "ANATAN" : (isWinner ? "GANYE" : "PEDI");
-    ticket.premio = isWinner ? totalPremio : 0;
-    ticket.updatedAt = new Date();
-
-    await ticket.save();
-    checked++;
-  }
-} catch (e) {
-  console.error("AUTO CHECK AFTER SORTEOS SAVE ERROR:", e);
-}
-
-    res.json({ ok: true, date: date, checked: checked });
+    res.json({ ok: true, date: date });
 
   } catch (err) {
     console.error("Erreur save sorteos Mongo:", err);

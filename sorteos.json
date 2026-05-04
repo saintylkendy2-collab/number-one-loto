@@ -107,7 +107,7 @@
     "GEORGIA MIDDAY": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "TENNESSE MIDDAY": {
       "r1": "",
@@ -117,67 +117,67 @@
     "FLORIDA EVENING": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "NEW YORK EVENING": {
-      "r1": "",
-      "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "r1": "555",
+      "r2": "0880",
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "GEORGIA EVENING": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "LA PRIMERA DIA": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "LOTEDOM": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "LA SUERTE DIA": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "KING LOTTERY DIA": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "ANGUILLA 01:00 PM": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "REAL": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "FLORIDA MIDDAY": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "GANAMAS": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "LA SUERTE NOCHE": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "ANGUILLA 6:00 PM": {
       "r1": "",
       "r2": "",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     },
     "TEXAS EVENING": {
       "r1": "",
@@ -197,7 +197,7 @@
     "NEW YORK MIDDAY": {
       "r1": "555",
       "r2": "0880",
-      "updatedAt": "2026-05-04T18:14:08.119Z"
+      "updatedAt": "2026-05-04T18:40:43.372Z"
     }
   }
 }

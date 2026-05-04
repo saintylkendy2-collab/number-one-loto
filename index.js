@@ -7,6 +7,8 @@ const mongoose = require("mongoose");
 const Ticket = require("./models/Ticket");
 const Vendor = require("./models/vendor");
 
+const Sorteo = require("./models/Sorteo");
+
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
@@ -537,7 +539,9 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
         ...t,
         id: realId,
         ticketId: realId,
-        serial: realId
+        serial: realId,
+        status: String(t.status || "ANATAN").trim().toUpperCase(),
+        premio: Number(t.premio || 0)
       };
     });
 
@@ -547,6 +551,100 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
     res.status(500).json([]);
   }
 });
+
+app.get("/check-tickets", async (req, res) => {
+  try {
+    const tickets = await Ticket.find({
+      status: { $ne: "ANILE" }
+    });
+
+    let checked = 0;
+
+    for (let ticket of tickets) {
+      let hasResult = false;
+      let isWinner = false;
+      let totalPremio = 0;
+
+      for (let jeu of ticket.jeux || []) {
+        const lot = String(jeu.loterie || "").trim().toUpperCase();
+        const date = String(ticket.dateLabel || "").trim();
+
+        const tirage = await Sorteo.findOne({
+          date: date,
+          loteria: { $regex: "^" + lot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$", $options: "i" }
+        }).lean();
+
+
+        if (!tirage) continue;
+
+        const tet = String(tirage.r1 || "").trim();
+        const lo1 = String(tirage.r2 || "").trim();
+        const lo2 = String(tirage.r3 || "").trim();
+        const lo3 = String(tirage.r4 || "").trim();
+
+        if (!tet && !lo1 && !lo2 && !lo3) continue;
+
+        hasResult = true;
+
+        if (isWinningGame(jeu, tirage)) {
+          isWinner = true;
+          totalPremio += Number(jeu.montant || 0);
+        }
+      }
+
+      ticket.status = !hasResult ? "ANATAN" : (isWinner ? "GANYE" : "PEDI");
+      ticket.premio = isWinner ? totalPremio : 0;
+      ticket.updatedAt = new Date();
+
+      await ticket.save();
+      checked++;
+    }
+
+    res.json({
+      ok: true,
+      message: "Tickets vérifiés",
+      checked
+    });
+
+  } catch (err) {
+    console.error("CHECK TICKETS ERROR:", err);
+    res.status(500).json({
+      ok: false,
+      message: "Erreur check tickets",
+      error: err.message
+    });
+  }
+});
+
+
+
+function isWinningGame(j, result){
+  const type = String(j.type || "").trim().toUpperCase();
+  const played = String(j.numero || "").trim();
+
+  const tet = String(result.r1 || "").trim(); // tèt loto
+  const lo1 = String(result.r2 || "").trim(); // premye lo
+  const lo2 = String(result.r3 || "").trim(); // dezyèm lo
+  const lo3 = String(result.r4 || "").trim(); // twazyèm lo
+
+  if(type === "BOR"){
+    return [lo1, lo2, lo3].includes(played);
+  }
+
+  if(type === "L3"){
+    return (tet + lo1) === played;
+  }
+
+  if(type === "MAR"){
+    return [
+      lo1 + "*" + lo2,
+      lo1 + "*" + lo3,
+      lo2 + "*" + lo3
+    ].includes(played);
+  }
+
+  return false;
+}
 
 
 app.post("/api/tickets", async (req, res) => {
@@ -583,7 +681,9 @@ app.post("/api/tickets", async (req, res) => {
     const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
 
     const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
-    const tirages = [...new Set(safeJeux.map(j => j.loterie))];
+    const tirages = [...new Set(
+      safeJeux.map(j => String(j.loterie || "").trim().toUpperCase())
+    )];
 
     const ticketId =
       "T" + Date.now().toString() +
@@ -609,6 +709,7 @@ app.post("/api/tickets", async (req, res) => {
         second: "2-digit"
       }),
 
+      // ✅ Tikè toujou ANATAN lè li fèt
       status: "ANATAN",
       premio: 0,
 
@@ -620,7 +721,7 @@ app.post("/api/tickets", async (req, res) => {
 
     const obj = ticket.toObject();
 
-    console.log("✅ Ticket créé:", ticketId);
+    console.log("✅ Ticket créé:", ticketId, "ANATAN");
 
     return res.json({
       ok: true,
@@ -643,6 +744,41 @@ app.post("/api/tickets", async (req, res) => {
   }
 });
 
+app.get("/api/vendor/sorteos", async (req, res) => {
+  try {
+    function toFRDate(value) {
+      if (!value) return "";
+      const s = String(value).trim();
+
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const p = s.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
+
+      return s;
+    }
+
+    const date = toFRDate(String(req.query.date || "").trim());
+
+    const rows = await Sorteo.find(date ? { date } : {}).lean();
+
+    const obj = {};
+
+    rows.forEach(r => {
+      obj[String(r.loteria || "").trim().toUpperCase()] = {
+        r1: r.r1 || "",
+        r2: r.r2 || "",
+        r3: r.r3 || "",
+        r4: r.r4 || ""
+      };
+    });
+
+    res.json(obj);
+  } catch (err) {
+    console.error("Erreur vendor sorteos:", err);
+    res.status(500).json({});
+  }
+});
 
 app.post("/api/ticket-status", (req, res) => {
   const ticketId = String(req.body.id || "").trim();
@@ -1407,19 +1543,20 @@ var savedTickets = [];
 var currentPageName = "salePage";
 
 var loteries = [
-{ name: "LA PRIMERA DIA", sub: "20 minutes", time: "11:55 AM" },
-{ name: "LOTEDOM", sub: "20 minutes", time: "11:55 AM" },
-{ name: "LA SUERTE DIA", sub: "40 minutes", time: "12:15 PM" },
-{ name: "GEORGIA MIDDAY", sub: "50 minutes", time: "12:25 PM" },
-{ name: "KING LOTTERY DIA", sub: "50 minutes", time: "12:25 PM" },
-{ name: "ANGUILLA 01:00 PM", sub: "1 heure 15 minutes", time: "12:50 PM" },
-{ name: "REAL", sub: "1 heure 20 minutes", time: "12:55 PM" },
-{ name: "FLORIDA MIDDAY", sub: "1 heure 50 minutes", time: "1:25 PM" },
-{ name: "NEW YORK MIDDAY", sub: "2 heures 50 minutes", time: "2:25 PM" },
-{ name: "GANAMAS", sub: "2 heures 55 minutes", time: "2:30 PM" },
-{ name: "LA SUERTE NOCHE", sub: "6 heures 15 minutes", time: "5:50 PM" },
-{ name: "ANGUILLA 6:00 PM", sub: "6 heures 15 minutes", time: "5:50 PM" },
-{ name: "GEORGIA EVENING", sub: "7 heures 15 minutes", time: "6:50 PM" }
+  { name: "TENNESSE MORNING", sub: "", openTime: "00:00", closeTime: "11:55", time: "11:55 AM" },
+  { name: "TEXAS MORNING", sub: "", openTime: "00:00", closeTime: "11:55", time: "11:55 AM" },
+
+  { name: "GEORGIA MIDDAY", sub: "", openTime: "00:00", closeTime: "12:25", time: "12:25 PM" },
+  { name: "FLORIDA MIDDAY", sub: "", openTime: "00:00", closeTime: "13:25", time: "1:25 PM" },
+  { name: "NEW YORK MIDDAY", sub: "", openTime: "00:00", closeTime: "14:25", time: "2:25 PM" },
+
+  { name: "TEXAS EVENING", sub: "", openTime: "00:00", closeTime: "18:25", time: "6:25 PM" },
+  { name: "GEORGIA EVENING", sub: "", openTime: "00:00", closeTime: "18:50", time: "6:50 PM" },
+  { name: "TENNESSE EVENING", sub: "", openTime: "00:00", closeTime: "19:25", time: "7:25 PM" },
+  { name: "FLORIDA EVENING", sub: "", openTime: "00:00", closeTime: "21:30", time: "9:30 PM" },
+  { name: "NEW YORK EVENING", sub: "", openTime: "00:00", closeTime: "22:25", time: "10:25 PM" },
+
+  { name: "GEORGIA NIGHT", sub: "", openTime: "00:00", closeTime: "23:15", time: "11:15 PM" }
 ];
 
 function getSelectedLoteriesText(){
@@ -1853,7 +1990,7 @@ function buildGameEntries(num){
    var raw4 = num.split("+")[0];
    var types4 = uniqueStrings(num.split("+")[1].split(","));
    return types4.map(function(t){
-     return { type: t, numero: raw4 };
+     return { type: t === "L1" ? "L41" : t === "L2" ? "L42" : "L43", numero: raw4 };
    });
  }
 
@@ -1861,7 +1998,7 @@ function buildGameEntries(num){
    var raw5 = num.split("+")[0];
    var types5 = uniqueStrings(num.split("+")[1].split(","));
    return types5.map(function(t){
-     return { type: t, numero: raw5 };
+     return { type: t === "L1" ? "L51" : t === "L2" ? "L52" : "L53", numero: raw5 };
    });
  }
 
@@ -2006,7 +2143,7 @@ function autoLoto4(){
  Object.keys(results).forEach(function(numeroAuto){
    selectedLoteries.forEach(function(lot){
      mergeOrPushGame({
-       type: "L1",
+       type: "L41",
        numero: numeroAuto,
        loterie: lot,
        montant: parseFloat(montant) || 0
@@ -2223,6 +2360,7 @@ function saveCurrentTicket(channel){
  });
 }
 
+
 function submitPrint(){
   if(jeux.length === 0){
     alert("Pa gen jwèt pou enprime.");
@@ -2355,7 +2493,9 @@ function statusLabel(status){
 }
 
 function loadBillets(){
- fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
+ fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets?ts=" + Date.now(), {
+  cache: "no-store"
+})
  .then(function(res){ return res.json(); })
  .then(function(rows){
  savedTickets = Array.isArray(rows) ? rows : [];
@@ -3397,54 +3537,59 @@ function renderTiragesPage(){
   var box = document.getElementById("tiragesWrap");
   if(!box) return;
 
-  fetch("/api/sorteos?reload=" + Date.now())
-  .then(function(res){ return res.json(); })
-  .then(function(allSorteos){
-    var saved = allSorteos[currentTirageDate] || {};
+  var html = "";
 
-    var html = "";
+  html += '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Tirages</div>';
+  html += '<div style="background:#fff;text-align:center;padding:10px 0;border-bottom:1px solid #aaa;">';
+  html += '<div style="font-size:16px;color:#777;">Date</div>';
+  html += '<input type="date" value="' + currentTirageDate + '" onchange="currentTirageDate=this.value;renderTiragesPage();" style="border:none;background:transparent;text-align:center;font-size:24px;font-weight:700;width:190px;outline:none;">';
+  html += '</div>';
 
-    html += '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Tirages</div>';
+  html += '<div style="background:#fff;">';
 
-    html += '<div style="background:#fff;text-align:center;padding:10px 0;border-bottom:1px solid #aaa;">';
-    html += '<div style="font-size:16px;color:#777;">Date</div>';
-    html += '<input type="date" value="' + currentTirageDate + '" onchange="currentTirageDate=this.value;renderTiragesPage();" style="border:none;background:transparent;text-align:center;font-size:24px;font-weight:700;width:190px;outline:none;">';
-    html += '</div>';
-
-    html += '<div style="background:#fff;">';
-
-    loteries.forEach(function(l){
-      var r = saved[l.name] || {};
-      var r1 = String(r.r1 || "");
-      var r2 = String(r.r2 || "");
-
-      var b1 = r1[0] || "--";
-      var b2 = r1[1] || "--";
-      var b3 = r1[2] || "--";
-
-      html +=
-  '<div style="display:grid;grid-template-columns:70px 1fr;align-items:center;min-height:92px;border-bottom:1px solid #ddd;padding:8px 10px;">' +
-    '<div style="font-size:12px;font-weight:800;color:#2f49d1;text-align:center;">LOGO</div>' +
-
-    '<div>' +
-      '<div style="font-size:21px;font-weight:800;color:#64b5e8;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + l.name + '</div>' +
-
-      '<div style="display:grid;grid-template-columns:48px 48px 48px 80px;gap:8px;align-items:center;margin-top:8px;justify-content:end;">' +
-        '<div style="width:48px;height:48px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">' + b1 + '</div>' +
-        '<div style="width:48px;height:48px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">' + b2 + '</div>' +
-        '<div style="width:48px;height:48px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">' + b3 + '</div>' +
-        '<div style="height:48px;border:1px solid #bbb;border-radius:10px;background:#fff;color:#111;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;">' + (r2 || "--") + '</div>' +
-      '</div>' +
-    '</div>' +
-  '</div>';
-    });
-
-    html += '</div>';
-    box.innerHTML = html;
-  })
-  .catch(function(){
-    box.innerHTML = '<div class="empty-zone">Erreur lecture tirages</div>';
+  loteries.forEach(function(l){
+    html +=
+      '<div data-loteria="' + l.name + '" style="display:grid;grid-template-columns:80px 1fr;align-items:center;min-height:92px;border-bottom:1px solid #ddd;padding:8px 10px;">' +
+        '<div style="font-size:12px;font-weight:800;color:#2f49d1;text-align:center;">LOGO</div>' +
+        '<div>' +
+          '<div style="font-size:21px;font-weight:800;color:#64b5e8;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + l.name + '</div>' +
+          '<div style="display:flex;gap:9px;margin-top:8px;">' +
+            '<div class="ball" style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+            '<div class="ball" style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+            '<div class="ball" style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+            '<div class="ball" style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
   });
+
+  html += '</div>';
+  box.innerHTML = html;
+
+  loadSorteosVendor();
+}
+
+
+async function loadSorteosVendor() {
+  try {
+    const date = currentTirageDate || todayISO();
+    const res = await fetch("/api/vendor/sorteos?date=" + encodeURIComponent(date));
+    const data = await res.json();
+
+    document.querySelectorAll("[data-loteria]").forEach(row => {
+      const loteria = row.getAttribute("data-loteria");
+      const r = data[loteria] || {};
+
+      const nums = [r.r1, r.r2, r.r3, r.r4].filter(x => String(x || "").trim() !== "");
+      const balls = row.querySelectorAll(".ball");
+
+      balls.forEach((b, i) => {
+        b.textContent = nums[i] || "--";
+      });
+    });
+  } catch (err) {
+    console.error("Erreur load sorteos vendor:", err);
+  }
 }
 
 function renderParametrePage(){
@@ -3620,7 +3765,7 @@ function renderImprimantePage(){
       combos.forEach(function(num){
         selectedLoteries.forEach(function(lot){
           mergeOrPushGame({
-            type: "L1",
+            type: "L41",
             numero: num,
             loterie: lot,
             montant: parseFloat(montant) || 0

@@ -8,6 +8,8 @@ const router = express.Router();
 const Ticket = require("./models/Ticket");
 const Vendor = require("./models/vendor");
 
+const Sorteo = require("./models/Sorteo");
+
 // =============================
 // 📁 FILE PATHS
 // =============================
@@ -683,6 +685,46 @@ router.post("/api/vendors/:id/connections/:index/unblock", async (req, res) => {
   }
 });
 
+router.delete("/api/vendors/:id/movimientos/:movId", async (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim().toUpperCase();
+    const movId = Number(req.params.movId);
+
+    const vendor = await Vendor.findOne({ id });
+    if (!vendor) {
+      return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
+    }
+
+    if (!Array.isArray(vendor.movimientos)) {
+      vendor.movimientos = [];
+    }
+
+    const index = vendor.movimientos.findIndex(m => Number(m.id) === movId);
+
+    if (index === -1) {
+      return res.status(404).json({ ok: false, message: "Transaction introuvable" });
+    }
+
+    // 🔥 retire movement
+    const removed = vendor.movimientos.splice(index, 1)[0];
+
+    // 🔥 REAJISTE BALANCE
+    if (removed.tipo === "cobro") {
+      vendor.balance -= removed.monto;
+    } else {
+      vendor.balance += removed.monto;
+    }
+
+    await vendor.save();
+
+    res.json({ ok: true, balance: vendor.balance });
+
+  } catch (err) {
+    console.error("Erreur delete transaction:", err);
+    res.status(500).json({ ok: false });
+  }
+});
+
 router.delete("/api/vendors/:id/connections/:index", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();
@@ -928,170 +970,158 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
   `);
 });
 
+function isWinningGame(j, result){
+  const type = String(j.type || "").trim().toUpperCase();
+  const played = String(j.numero || "").trim();
 
-router.get("/api/sorteos", (req, res) => {
-  try {
-    res.json(readSorteosObject());
-  } catch (err) {
-    console.error("Erreur get sorteos :", err);
-    res.status(500).json({});
-  }
-});
+  const tet = String(result.r1 || "").trim();
+  const lo1 = String(result.r2 || "").trim();
+  const lo2 = String(result.r3 || "").trim();
+  const lo3 = String(result.r4 || "").trim();
 
-function normalizeGameType(type = "") {
-  const t = String(type || "").trim().toUpperCase();
-
-  if (t === "BOR" || t === "BORLETTE") return "BOR";
-  if (t === "MAR" || t === "MARIAGE") return "MAR";
-  if (t === "L3" || t === "LOTO3") return "L3";
-  if (t === "L1" || t === "L2" || t === "L3") return t;
-
-  return t;
-}
-
-function isWinningGame(jeu, tirage) {
-  if (!jeu || !tirage) return false;
-
-  const type = normalizeGameType(jeu.type);
-  const numero = String(jeu.numero || "").trim();
-
-  const r1 = String(tirage.r1 || "").trim(); // 385
-  const r2 = String(tirage.r2 || "").trim(); // 1368
-
-  if (!r1 && !r2) return false;
-
-  const b1 = r1[0] || "";
-  const b2 = r1[1] || "";
-  const b3 = r1[2] || "";
-
-  const tet = b1 + b2;
-  const sec = b2 + b3;
-  const tri = b1 + b3;
-
-  if (type === "BOR") {
-    return numero === tet || numero === sec || numero === tri;
+  if(type === "BOR"){
+    return [lo1, lo2, lo3].includes(played);
   }
 
-  if (type === "MAR") {
-    const parts = numero.split("*");
-    if (parts.length !== 2) return false;
-
-    const combos = [
-      tet+"*"+sec, sec+"*"+tet,
-      tet+"*"+tri, tri+"*"+tet,
-      sec+"*"+tri, tri+"*"+sec
-    ];
-
-    return combos.includes(parts[0]+"*"+parts[1]);
+  if(type === "L3"){
+    return (tet + lo1) === played;
   }
 
-  if (type === "L3") return numero === r1;
-  if (type === "L1") return numero === r2;
+  if(type === "MAR"){
+    return [
+      lo1 + "*" + lo2,
+      lo1 + "*" + lo3,
+      lo2 + "*" + lo3
+    ].includes(played);
+  }
 
   return false;
 }
 
-async function validateTicketsForSorteoDate(date) {
-  const sorteos = readSorteosObject();
-  const dayResults = sorteos[date] || {};
+router.get("/api/sorteos", async (req, res) => {
+  try {
+    const rows = await Sorteo.find().lean();
 
-  const tickets = await Ticket.find({
-    dateLabel: date,
-    status: { $nin: ["ANILE"] }
-  });
+    function toFRDate(value) {
+      if (!value) return "";
+      const s = String(value).trim();
 
-  for (const ticket of tickets) {
-    let hasWin = false;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const p = s.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
 
-    const newJeux = (ticket.jeux || []).map(j => {
-      const tirage = dayResults[j.loterie];
-      const win = tirage ? isWinningGame(j, tirage) : false;
+      return s;
+    }
 
-      if (win) hasWin = true;
+    const obj = {};
 
-      return {
-        ...j.toObject?.() || j,
-        win
+    rows.forEach(r => {
+      const date = toFRDate(r.date); // 🔥 KOREKSYON AN
+      const loteria = String(r.loteria || "").trim().toUpperCase();
+
+      if (!obj[date]) obj[date] = {};
+
+      obj[date][loteria] = {
+        r1: r.r1 || "",
+        r2: r.r2 || "",
+        r3: r.r3 || "",
+        r4: r.r4 || ""
       };
     });
 
-    ticket.jeux = newJeux;
-    ticket.status = hasWin ? "GANYE" : "PEDI";
+    res.json(obj);
 
-    await ticket.save();
+  } catch (err) {
+    console.error("Erreur get sorteos:", err);
+    res.status(500).json({});
   }
-}
+});
 
 router.post("/api/sorteos/save", async (req, res) => {
   try {
     const body = req.body || {};
-    const date = String(body.date || "").trim();
+    const rawDate = String(body.date || "").trim();
     const rows = Array.isArray(body.rows) ? body.rows : [];
+
+    function toFRDate(value) {
+      if (!value) return "";
+
+      const s = String(value).trim();
+
+      // 2026-05-02 -> 02/05/2026
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const p = s.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
+
+      // si li deja 02/05/2026
+      return s;
+    }
+
+    const date = toFRDate(rawDate);
 
     if (!date) {
       return res.status(400).json({ ok: false, message: "Date obligatoire" });
     }
 
-    const sorteos = readSorteosObject();
+    for (const r of rows) {
+      const loteria = String(r.loteria || "").trim().toUpperCase();
+      if (!loteria) continue;
 
-    if (!sorteos[date]) {
-      sorteos[date] = {};
+      await Sorteo.findOneAndUpdate(
+        { date: date, loteria: loteria },
+        {
+          $set: {
+            date: date,
+            loteria: loteria,
+            r1: String(r.r1 || "").trim(),
+            r2: String(r.r2 || "").trim(),
+            r3: String(r.r3 || "").trim(),
+            r4: String(r.r4 || "").trim()
+          }
+        },
+        { upsert: true, new: true }
+      );
     }
 
-    rows.forEach((r) => {
-      const loteria = String(r.loteria || "").trim();
-      const r1 = String(r.r1 || "").trim();
-      const r2 = String(r.r2 || "").trim();
+await runCheckTickets();
 
-      if (!loteria) return;
+    res.json({ ok: true, date: date });
 
-      sorteos[date][loteria] = {
-        r1,
-        r2,
-        updatedAt: new Date().toISOString()
-      };
-    });
-
-  writeSorteosObject(sorteos);
-
-  await validateTicketsForSorteoDate(date);
-
-    res.json({ ok: true, sorteos: sorteos[date] });
   } catch (err) {
-    console.error("Erreur save sorteos :", err);
-    res.status(500).json({ ok: false, message: "Erreur save sorteos" });
-  }
-});
-
-router.post("/api/sorteos/validate/:date", async (req, res) => {
-  try {
-    const date = String(req.params.date || "").trim();
-
-    await validateTicketsForSorteoDate(date);
-
-    res.json({ ok: true, message: "Tickets valide pou " + date });
-  } catch (err) {
-    console.error("Erreur validation tickets:", err);
+    console.error("Erreur save sorteos Mongo:", err);
     res.status(500).json({ ok: false, message: err.message });
   }
 });
 
-router.delete("/api/sorteos/:date/:loteria", (req, res) => {
+
+
+router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
   try {
-    const date = String(req.params.date || "").trim();
-    const loteria = String(req.params.loteria || "").trim();
+    function toFRDate(value) {
+      if (!value) return "";
 
-    const sorteos = readSorteosObject();
+      const s = String(value).trim();
 
-    if (sorteos[date] && sorteos[date][loteria]) {
-      delete sorteos[date][loteria];
+      // 2026-05-02 → 02/05/2026
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const p = s.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
+
+      return s;
     }
 
-    writeSorteosObject(sorteos);
+    const date = toFRDate(req.params.date);
+    const loteria = String(req.params.loteria || "").trim().toUpperCase();
+
+    await Sorteo.deleteOne({ date, loteria });
 
     res.json({ ok: true });
+
   } catch (err) {
-    console.error("Erreur delete sorteos :", err);
+    console.error("Erreur delete sorteos Mongo:", err);
     res.status(500).json({ ok: false, message: "Erreur delete sorteos" });
   }
 });
@@ -2417,21 +2447,21 @@ const gruposList = [
 
 const loteriasList = [
   "TODAS",
-  "LA PRIMERA DIA",
-  "LOTEDOM",
-  "LA SUERTE DIA",
+
+  "TENNESSE MORNING",
+  "TEXAS MORNING",
+
   "GEORGIA MIDDAY",
-  "KING LOTTERY DIA",
-  "ANGUILLA 01:00 PM",
-  "REAL",
   "FLORIDA MIDDAY",
   "NEW YORK MIDDAY",
-  "GANAMAS",
-  "LA SUERTE NOCHE",
-  "ANGUILLA 6:00 PM",
+
+  "TEXAS EVENING",
   "GEORGIA EVENING",
+  "TENNESSE EVENING",
   "FLORIDA EVENING",
-  "NEW YORK EVENING"
+  "NEW YORK EVENING",
+
+  "GEORGIA NIGHT"
 ];
 
 function safe(v){
@@ -2807,24 +2837,52 @@ function renderSorteosPage(){
   var dateInput = byId("sorteosDate");
   if(!box || !dateInput) return;
 
+  function toFRDate(value){
+    if(!value) return "";
+    var s = String(value).trim();
+
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+      var p = s.split("-");
+      return p[2] + "/" + p[1] + "/" + p[0];
+    }
+
+    return s;
+  }
+
   var date = dateInput.value || todayISO();
   dateInput.value = date;
 
-  var saved = sorteosData[date] || {};
+  var dateKey = toFRDate(date);
+  var saved = sorteosData[dateKey] || {};
+
+  var list = [
+    "TENNESSE MORNING",
+    "TEXAS MORNING",
+    "GEORGIA MIDDAY",
+    "FLORIDA MIDDAY",
+    "NEW YORK MIDDAY",
+    "TEXAS EVENING",
+    "GEORGIA EVENING",
+    "TENNESSE EVENING",
+    "FLORIDA EVENING",
+    "NEW YORK EVENING",
+    "GEORGIA NIGHT"
+  ];
 
   var html = "";
 
-  loteriasList.forEach(function(l){
-    if(l === "TODAS") return;
-
-    var r = saved[l] || {};
+  list.forEach(function(l){
+    var key = String(l).trim().toUpperCase();
+    var r = saved[key] || {};
 
     html += ''
-      + '<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr 52px;gap:10px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
-      + '<div style="font-size:16px;color:#d7dcef;">' + safe(l) + '</div>'
-      + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:20px;">'
-      + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:20px;">'
-      + '<button class="sorteos-delete-btn" data-loteria="' + safe(l) + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#d7dcef;font-size:24px;">🗑</button>'
+      + '<div style="display:grid;grid-template-columns:1.2fr .7fr .7fr .7fr .7fr 52px;gap:8px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
+      + '<div style="font-size:16px;color:#d7dcef;">' + key + '</div>'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r3" value="' + safe(r.r3 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r4" value="' + safe(r.r4 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<button class="sorteos-delete-btn" data-loteria="' + key + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#d7dcef;font-size:24px;">🗑</button>'
       + '</div>';
   });
 
@@ -2832,40 +2890,45 @@ function renderSorteosPage(){
 }
 
 async function saveSorteos(){
-  var date = getValue("sorteosDate") || todayISO();
-  var rowsMap = {};
-
-  document.querySelectorAll(".sorteos-input").forEach(function(input){
-    var loteria = input.getAttribute("data-loteria");
-    var field = input.getAttribute("data-field");
-
-    if(!rowsMap[loteria]){
-      rowsMap[loteria] = { loteria:loteria, r1:"", r2:"" };
+  try{
+    var dateInput = byId("sorteosDate");
+    if(!dateInput){
+      alert("Date pa jwenn");
+      return;
     }
 
-    rowsMap[loteria][field] = input.value.trim();
-  });
+    var date = dateInput.value;
+    var rows = [];
 
-  var rows = Object.keys(rowsMap).map(function(k){
-    return rowsMap[k];
-  });
+    document.querySelectorAll(".sorteos-input").forEach(function(input){
+      var loteria = input.getAttribute("data-loteria");
+      var field = input.getAttribute("data-field");
+      var value = String(input.value || "").trim();
 
-  try{
+      var row = rows.find(r => r.loteria === loteria);
+      if(!row){
+        row = { loteria: loteria, r1:"", r2:"", r3:"", r4:"" };
+        rows.push(row);
+      }
+
+      row[field] = value;
+    });
+
     var res = await fetch("/api/sorteos/save", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ date:date, rows:rows })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: date, rows: rows })
     });
 
     var data = await res.json();
 
     if(!res.ok){
-      alert(data.message || "Erreur save sorteos");
+      alert(data.message || "Erreur save");
       return;
     }
 
-    alert("Sorteos guardado ✔");
-    await loadSorteos();
+
+    alert("Sorteos sauvegardé ✔");
 
   }catch(err){
     console.error(err);
@@ -4252,6 +4315,7 @@ async function deleteMovimiento(vendorId, movimientoId){
     await loadVendorsFromServer();
     await loadVentasReport();
     await loadBalanceReport();
+    renderTransactionsTable();
 
     alert("Transaction supprimée ✔");
   }catch(err){

@@ -1009,34 +1009,6 @@ router.get("/api/sorteos", async (req, res) => {
   }
 });
 
-function isWinningGame(j, result){
-  const type = String(j.type || "").trim().toUpperCase();
-  const played = String(j.numero || "").trim();
-
-  const tet = String(result.r1 || "").trim();
-  const lo1 = String(result.r2 || "").trim();
-  const lo2 = String(result.r3 || "").trim();
-  const lo3 = String(result.r4 || "").trim();
-
-  if(type === "BOR"){
-    return [lo1, lo2, lo3].includes(played);
-  }
-
-  if(type === "L3"){
-    return (tet + lo1) === played;
-  }
-
-  if(type === "MAR"){
-    return [
-      lo1 + "*" + lo2,
-      lo1 + "*" + lo3,
-      lo2 + "*" + lo3
-    ].includes(played);
-  }
-
-  return false;
-}
-
 router.post("/api/sorteos/save", async (req, res) => {
   try {
     const body = req.body || {};

@@ -1013,7 +1013,7 @@ async function runCheckTickets() {
 
       const tirage = await Sorteo.findOne({
         date: date,
-        loteria: { $regex: "^" + lot }
+        loteria: lot
       }).lean();
 
       if (!tirage) continue;

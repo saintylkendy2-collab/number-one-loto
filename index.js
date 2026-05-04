@@ -3397,33 +3397,54 @@ function renderTiragesPage(){
   var box = document.getElementById("tiragesWrap");
   if(!box) return;
 
-  var html = "";
+  fetch("/api/sorteos?reload=" + Date.now())
+  .then(function(res){ return res.json(); })
+  .then(function(allSorteos){
+    var saved = allSorteos[currentTirageDate] || {};
 
-  html += '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Tirages</div>';
-  html += '<div style="background:#fff;text-align:center;padding:10px 0;border-bottom:1px solid #aaa;">';
-  html += '<div style="font-size:16px;color:#777;">Date</div>';
-  html += '<input type="date" value="' + currentTirageDate + '" onchange="currentTirageDate=this.value;renderTiragesPage();" style="border:none;background:transparent;text-align:center;font-size:24px;font-weight:700;width:190px;outline:none;">';
-  html += '</div>';
+    var html = "";
 
-  html += '<div style="background:#fff;">';
+    html += '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Tirages</div>';
 
-  loteries.forEach(function(l){
-    html +=
-      '<div style="display:grid;grid-template-columns:80px 1fr;align-items:center;min-height:92px;border-bottom:1px solid #ddd;padding:8px 10px;">' +
-        '<div style="font-size:12px;font-weight:800;color:#2f49d1;text-align:center;">LOGO</div>' +
-        '<div>' +
-          '<div style="font-size:21px;font-weight:800;color:#64b5e8;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + l.name + '</div>' +
-          '<div style="display:flex;gap:9px;margin-top:8px;">' +
-            '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
-            '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
-            '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">--</div>' +
+    html += '<div style="background:#fff;text-align:center;padding:10px 0;border-bottom:1px solid #aaa;">';
+    html += '<div style="font-size:16px;color:#777;">Date</div>';
+    html += '<input type="date" value="' + currentTirageDate + '" onchange="currentTirageDate=this.value;renderTiragesPage();" style="border:none;background:transparent;text-align:center;font-size:24px;font-weight:700;width:190px;outline:none;">';
+    html += '</div>';
+
+    html += '<div style="background:#fff;">';
+
+    loteries.forEach(function(l){
+      var r = saved[l.name] || {};
+      var r1 = String(r.r1 || "");
+      var r2 = String(r.r2 || "");
+
+      var b1 = r1[0] || "--";
+      var b2 = r1[1] || "--";
+      var b3 = r1[2] || "--";
+
+      html +=
+        '<div style="display:grid;grid-template-columns:80px 1fr;align-items:center;min-height:92px;border-bottom:1px solid #ddd;padding:8px 10px;">' +
+          '<div style="font-size:12px;font-weight:800;color:#2f49d1;text-align:center;">LOGO</div>' +
+          '<div>' +
+            '<div style="font-size:21px;font-weight:800;color:#64b5e8;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + l.name + '</div>' +
+
+            '<div style="display:flex;gap:9px;margin-top:8px;align-items:center;">' +
+              '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">' + b1 + '</div>' +
+              '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">' + b2 + '</div>' +
+              '<div style="width:50px;height:50px;border-radius:50%;background:#8ccc5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">' + b3 + '</div>' +
+              '<div style="margin-left:auto;font-size:20px;font-weight:800;color:#333;">' + r2 + '</div>' +
+            '</div>' +
+
           '</div>' +
-        '</div>' +
-      '</div>';
-  });
+        '</div>';
+    });
 
-  html += '</div>';
-  box.innerHTML = html;
+    html += '</div>';
+    box.innerHTML = html;
+  })
+  .catch(function(){
+    box.innerHTML = '<div class="empty-zone">Erreur lecture tirages</div>';
+  });
 }
 
 function renderParametrePage(){

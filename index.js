@@ -549,7 +549,7 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
   }
 });
 
-app.post("/check-tickets", async (req, res) => {
+app.get("/check-tickets", async (req, res) => {
   try {
     const tickets = await Ticket.find({ status: "ANATAN" });
 

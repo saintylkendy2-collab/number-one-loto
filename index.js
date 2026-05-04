@@ -573,7 +573,7 @@ app.get("/check-tickets", async (req, res) => {
           loteria: { $regex: "^" + lot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$", $options: "i" }
         }).lean();
 
-        
+
         if (!tirage) continue;
 
         const tet = String(tirage.r1 || "").trim();
@@ -2324,39 +2324,49 @@ function resetAfterSend(){
 }
 
 function saveCurrentTicket(channel){
- if(jeux.length === 0){
-   alert("Pa gen jwèt pou voye.");
-   return Promise.resolve(null);
- }
+  if(jeux.length === 0){
+    alert("Pa gen jwèt pou voye.");
+    return Promise.resolve(null);
+  }
 
- return fetch("/api/tickets", {
-   method: "POST",
-   headers: { "Content-Type": "application/json" },
-   body: JSON.stringify({
-  sellerId: sellerId,
-  sellerName: sellerName,
-  jeux: buildPayloadGames(),
-  channel: channel || "MANUEL",
-  clientCreatedAt: new Date().toISOString(),
-  clientDateLabel: new Date().toLocaleDateString("fr-FR"),
-  clientTimeLabel: new Date().toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
+  return fetch("/api/tickets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sellerId: sellerId,
+      sellerName: sellerName,
+      jeux: buildPayloadGames(),
+      channel: channel || "MANUEL",
+      clientCreatedAt: new Date().toISOString(),
+      clientDateLabel: new Date().toLocaleDateString("fr-FR"),
+      clientTimeLabel: new Date().toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      })
+    })
   })
-})
- }).then(function(res){
-   return res.json();
- }).then(function(data){
-   if(!data.ok){
-     alert(data.message || "Erreur save ticket");
-     return null;
-   }
-   return data.ticket;
- }).catch(function(){
-   alert("Erreur save ticket");
-   return null;
- });
+  .then(function(res){
+    return res.json();
+  })
+  .then(function(data){
+    if(!data || !data.ok){
+      alert((data && data.message) || "Erreur save ticket");
+      return null;
+    }
+
+    return fetch("/check-tickets")
+      .then(function(){
+        return loadBillets();
+      })
+      .then(function(){
+        return data.ticket;
+      });
+  })
+  .catch(function(){
+    alert("Erreur save ticket");
+    return null;
+  });
 }
 
 function submitPrint(){

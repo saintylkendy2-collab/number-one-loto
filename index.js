@@ -538,7 +538,9 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
         ...t,
         id: realId,
         ticketId: realId,
-        serial: realId
+        serial: realId,
+        status: String(t.status || "ANATAN").trim().toUpperCase(),
+        premio: Number(t.premio || 0)
       };
     });
 
@@ -564,19 +566,26 @@ app.get("/check-tickets", async (req, res) => {
 
       for (let jeu of ticket.jeux || []) {
         const lot = String(jeu.loterie || "").trim().toUpperCase();
+        const date = String(ticket.dateLabel || "").trim();
 
         const tirage = await Sorteo.findOne({
-  date: String(ticket.dateLabel || "").trim(),
-  loteria: { $regex: "^" + lot + "$", $options: "i" }
-}).lean();
+          date: date,
+          loteria: { $regex: "^" + lot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$", $options: "i" }
+        }).lean();
 
-console.log("CHECK:", {
-  ticket: ticket.id || ticket.ticketId,
-  date: ticket.dateLabel,
-  lot,
-  found: !!tirage
-});
-
+        console.log("TEST JEU:", {
+          ticket: ticket.id || ticket.ticketId,
+          date: date,
+          loterieTicket: jeu.loterie,
+          type: jeu.type,
+          numero: jeu.numero,
+          tirageFound: !!tirage,
+          r1: tirage && tirage.r1,
+          r2: tirage && tirage.r2,
+          r3: tirage && tirage.r3,
+          r4: tirage && tirage.r4,
+          win: tirage ? isWinningGame(jeu, tirage) : false
+        });
 
         if (!tirage) continue;
 
@@ -595,15 +604,10 @@ console.log("CHECK:", {
         }
       }
 
-      if (!hasResult) {
-        ticket.status = "ANATAN";
-        ticket.premio = 0;
-      } else {
-        ticket.status = isWinner ? "GANYE" : "PEDI";
-        ticket.premio = totalPremio;
-      }
-
+      ticket.status = !hasResult ? "ANATAN" : (isWinner ? "GANYE" : "PEDI");
+      ticket.premio = isWinner ? totalPremio : 0;
       ticket.updatedAt = new Date();
+
       await ticket.save();
       checked++;
     }

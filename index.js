@@ -566,17 +566,18 @@ app.get("/check-tickets", async (req, res) => {
         const lot = String(jeu.loterie || "").trim().toUpperCase();
 
         const tirage = await Sorteo.findOne({
-          date: ticket.dateLabel,
+          date: String(ticket.dateLabel || "").trim(),
           loteria: lot
         }).lean();
 
         if (!tirage) continue;
 
-        const nums = [tirage.r1, tirage.r2, tirage.r3, tirage.r4]
-          .map(x => String(x || "").trim())
-          .filter(Boolean);
+        const tet = String(tirage.r1 || "").trim();
+        const lo1 = String(tirage.r2 || "").trim();
+        const lo2 = String(tirage.r3 || "").trim();
+        const lo3 = String(tirage.r4 || "").trim();
 
-        if (!nums.length) continue;
+        if (!tet && !lo1 && !lo2 && !lo3) continue;
 
         hasResult = true;
 
@@ -621,44 +622,30 @@ function isWinningGame(j, result){
   const type = String(j.type || "").trim().toUpperCase();
   const played = String(j.numero || "").trim();
 
-  const r1 = String(result.r1 || "").trim(); // tèt loto
-  const r2 = String(result.r2 || "").trim(); // premye lo
-  const r3 = String(result.r3 || "").trim(); // dezyèm lo
-  const r4 = String(result.r4 || "").trim(); // twazyèm lo
+  const tet = String(result.r1 || "").trim(); // tèt loto
+  const lo1 = String(result.r2 || "").trim(); // premye lo
+  const lo2 = String(result.r3 || "").trim(); // dezyèm lo
+  const lo3 = String(result.r4 || "").trim(); // twazyèm lo
 
-  // BORLETTE = premye lo, dezyèm lo, twazyèm lo
   if(type === "BOR"){
-    return [r2, r3, r4].includes(played);
+    return [lo1, lo2, lo3].includes(played);
   }
 
-  // LOTO 3 = tèt loto + premye lo
   if(type === "L3"){
-    return (r1 + r2) === played;
+    return (tet + lo1) === played;
   }
 
-  // MARIAGE = konbinezon ant 3 lo yo sèlman
   if(type === "MAR"){
-    const wins = [...new Set([
-      r2 + "*" + r3,
-      r2 + "*" + r4,
-      r3 + "*" + r4
-    ])];
-
-    return wins.includes(played);
+    return [
+      lo1 + "*" + lo2,
+      lo1 + "*" + lo3,
+      lo2 + "*" + lo3
+    ].includes(played);
   }
-
-  // LOTO 4
-  if(type === "L41") return (r3 + r4) === played;
-  if(type === "L42") return (r2 + r3) === played;
-  if(type === "L43") return (r2 + r4) === played;
-
-  // LOTO 5
-  if(type === "L51") return (r1 + r2 + r3) === played;
-  if(type === "L52") return (r1 + r2 + r4) === played;
-  if(type === "L53") return (r1 + r3 + r4) === played;
 
   return false;
 }
+
 
 app.post("/api/tickets", async (req, res) => {
   try {

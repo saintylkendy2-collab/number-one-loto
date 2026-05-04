@@ -996,7 +996,7 @@ function isWinningGame(jeu, tirage) {
   return false;
 }
 
-router.post("/api/sorteos/save", (req, res) => {
+router.post("/api/sorteos/save", async (req, res) => {
   try {
     const body = req.body || {};
     const date = String(body.date || "").trim();

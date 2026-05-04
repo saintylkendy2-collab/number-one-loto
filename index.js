@@ -551,56 +551,64 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
 
 app.post("/check-tickets", async (req, res) => {
   try {
-    const tickets = await Ticket.find();
+    const tickets = await Ticket.find({ status: "ANATAN" });
+
+    let checked = 0;
 
     for (let ticket of tickets) {
+      let hasResult = false;
       let isWinner = false;
       let totalPremio = 0;
 
-      for (let jeu of ticket.jeux) {
+      for (let jeu of ticket.jeux || []) {
+        const lot = String(jeu.loterie || "").trim().toUpperCase();
+
         const tirage = await Sorteo.findOne({
           date: ticket.dateLabel,
-          loteria: jeu.loteria
-        });
+          loteria: lot
+        }).lean();
 
         if (!tirage) continue;
 
-        const { r1, r2, r3, r4 } = tirage;
+        const nums = [tirage.r1, tirage.r2, tirage.r3, tirage.r4]
+          .map(x => String(x || "").trim())
+          .filter(Boolean);
 
-        // L3
-        if (jeu.type === "L3" && jeu.numero === r1) {
+        if (!nums.length) continue;
+
+        hasResult = true;
+
+        if (isWinningGame(jeu, tirage)) {
           isWinner = true;
-          totalPremio += jeu.montant || 0;
-        }
-
-        // BOR
-        if (jeu.type === "BOR" && [r2, r3, r4].includes(jeu.numero)) {
-          isWinner = true;
-          totalPremio += jeu.montant || 0;
-        }
-
-        // MAR
-        if (jeu.type === "MAR") {
-          const mar = `${r1}*${r2}`;
-          if (jeu.numero === mar) {
-            isWinner = true;
-            totalPremio += jeu.montant || 0;
-          }
+          totalPremio += Number(jeu.montant || 0);
         }
       }
 
-      // Mete status
+      if (!hasResult) {
+        continue;
+      }
+
       ticket.status = isWinner ? "GANYE" : "PEDI";
       ticket.premio = totalPremio;
+      ticket.updatedAt = new Date();
 
       await ticket.save();
+      checked++;
     }
 
-    res.json({ message: "Tous les tickets ont été vérifiés" });
+    res.json({
+      ok: true,
+      message: "Tickets vérifiés",
+      checked
+    });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erreur check tickets" });
+    console.error("CHECK TICKETS ERROR:", err);
+    res.status(500).json({
+      ok: false,
+      message: "Erreur check tickets",
+      error: err.message
+    });
   }
 });
 

@@ -2584,16 +2584,20 @@ function renderBillets(){
 
     if(Array.isArray(t.jeux)){
       t.jeux.forEach(function(j){
-        var gain = Number(j.gain || j.premio || 0);
+        var gain = Number(j.gain || 0);
 
-        var row = document.createElement("div");
-        row.className = "billet-game";
-        row.innerHTML =
-          '<div>' + j.type + '</div>' +
-          '<div>' + j.numero + ' - ' + j.loterie +
-          (gain > 0 ? '<div style="font-size:13px;font-weight:800;color:#157347;margin-top:3px;">Gain: ' + gain.toFixed(2) + '</div>' : '') +
-          '</div>' +
-          '<div style="text-align:right">' + Number(j.montant || 0).toFixed(2) + '</div>';
+var row = document.createElement("div");
+row.className = "billet-game";
+
+row.innerHTML =
+  '<div>' + j.type + '</div>' +
+  '<div>' +
+    j.numero + ' - ' + j.loterie +
+    (gain > 0
+      ? ' <span style="background:#d1f7de;color:#157347;font-size:12px;font-weight:900;padding:2px 6px;border-radius:8px;margin-left:6px;">+' + gain.toFixed(2) + '</span>'
+      : '') +
+  '</div>' +
+  '<div style="text-align:right">' + Number(j.montant || 0).toFixed(2) + '</div>';
 
         card.appendChild(row);
       });

@@ -2335,17 +2335,7 @@ function buildPayloadGames(){
  });
 }
 
-function buildPrintableTextFromTicket(ticket){
- if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
- var lines = [];
-
- ticket.jeux.forEach(function(j){
-   lines.push(j.type + " " + j.numero + " - " + j.loterie + (j.gain > 0 ? " +" + j.gain.toFixed(2) : "")
- });
-
- return lines.join("\\n");
-}
 
 function resetAfterSend(){
  jeux = [];

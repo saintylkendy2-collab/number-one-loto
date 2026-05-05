@@ -3,17 +3,34 @@ const mongoose = require("mongoose");
 const TicketSchema = new mongoose.Schema({
   id: { type: String },
   ticketId: { type: String },
-  serial: { type: String }
+  serial: { type: String },
+
+  vendeur: { type: String },
+  vendeurNom: { type: String },
+
+  status: {
+    type: String,
+    default: "ANATAN"
+  },
+
+  premio: {
+    type: Number,
+    default: 0
+  },
+
+  total: Number,
+  jeux: Array,
+  tirages: [String],
+
+  createdAt: Date,
+  dateLabel: String,
+  timeLabel: String,
+
+  updatedAt: Date
+
 }, {
-  strict: false,
   timestamps: true,
   id: false
 });
-
-TicketSchema.index({ id: 1 }, { unique: true, sparse: true });
-TicketSchema.index({ ticketId: 1 }, { sparse: true });
-TicketSchema.index({ serial: 1 }, { sparse: true });
-TicketSchema.index({ vendeur: 1 });
-TicketSchema.index({ sellerId: 1 });
 
 module.exports = mongoose.model("Ticket", TicketSchema);

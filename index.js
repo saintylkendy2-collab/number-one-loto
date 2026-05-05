@@ -597,11 +597,19 @@ app.get("/check-tickets", async (req, res) => {
         }
       }
 
-      ticket.status = !hasResult ? "ANATAN" : (isWinner ? "GANYE" : "PEDI");
-      ticket.premio = isWinner ? totalPremio : 0;
-      ticket.updatedAt = new Date();
+      if (!hasResult) {
+  ticket.status = "ANATAN";
+  ticket.premio = 0;
+} else if (isWinner) {
+  ticket.status = "GANYE";
+  ticket.premio = totalPremio;
+} else {
+  ticket.status = "PEDI";
+  ticket.premio = 0;
+}
 
-      await ticket.save();
+ticket.updatedAt = new Date();
+await ticket.save();
       checked++;
     }
 

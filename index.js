@@ -556,7 +556,6 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
   }
 });
 
-
 app.get("/check-tickets", async (req, res) => {
   try {
     const tickets = await Ticket.find({
@@ -576,40 +575,46 @@ app.get("/check-tickets", async (req, res) => {
 
         const tirage = await Sorteo.findOne({
           date: date,
-          loteria: { $regex: "^" + lot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$", $options: "i" }
+          loteria: {
+            $regex: "^" + lot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+            $options: "i"
+          }
         }).lean();
 
+        jeu.gagne = false;
+        jeu.gain = 0;
 
         if (!tirage) continue;
 
-        const tet = String(tirage.r1 || "").trim();
-        const lo1 = String(tirage.r2 || "").trim();
-        const lo2 = String(tirage.r3 || "").trim();
-        const lo3 = String(tirage.r4 || "").trim();
+        const r1 = String(tirage.r1 || "").trim();
+        const r2 = String(tirage.r2 || "").trim();
+        const r3 = String(tirage.r3 || "").trim();
+        const r4 = String(tirage.r4 || "").trim();
 
-        if (!tet && !lo1 && !lo2 && !lo3) continue;
+        const hasBalls = r1 || r2 || r3 || r4;
+
+        if (!hasBalls) continue;
 
         hasResult = true;
 
         if (isWinningGame(jeu, tirage)) {
           isWinner = true;
-          totalPremio += Number(jeu.montant || 0);
+
+          const gain = Number(jeu.montant || 0);
+          jeu.gagne = true;
+          jeu.gain = gain;
+
+          totalPremio += gain;
         }
       }
 
-      if (!hasResult) {
-  ticket.status = "ANATAN";
-  ticket.premio = 0;
-} else if (isWinner) {
-  ticket.status = "GANYE";
-  ticket.premio = totalPremio;
-} else {
-  ticket.status = "PEDI";
-  ticket.premio = 0;
-}
+      ticket.status = !hasResult ? "ANATAN" : (isWinner ? "GANYE" : "PEDI");
+      ticket.premio = isWinner ? totalPremio : 0;
+      ticket.updatedAt = new Date();
 
-ticket.updatedAt = new Date();
-await ticket.save();
+      ticket.markModified("jeux");
+      await ticket.save();
+
       checked++;
     }
 
@@ -630,35 +635,39 @@ await ticket.save();
 });
 
 
-
 function isWinningGame(j, result){
   const type = String(j.type || "").trim().toUpperCase();
   const played = String(j.numero || "").trim();
 
-  const tet = String(result.r1 || "").trim(); // tèt loto
-  const lo1 = String(result.r2 || "").trim(); // premye lo
-  const lo2 = String(result.r3 || "").trim(); // dezyèm lo
-  const lo3 = String(result.r4 || "").trim(); // twazyèm lo
+  const r1 = String(result.r1 || "").trim();
+  const r2 = String(result.r2 || "").trim();
+  const r3 = String(result.r3 || "").trim();
+  const r4 = String(result.r4 || "").trim();
+
+  if(type === "TET"){
+    return played === r1;
+  }
 
   if(type === "BOR"){
-    return [lo1, lo2, lo3].includes(played);
+    return [r2, r3, r4].includes(played);
   }
 
   if(type === "L3"){
-    return (tet + lo1) === played;
+    return played === (r1 + r2 + r3);
   }
 
   if(type === "MAR"){
+    const marPlayed = played.replace("-", "*").replace("/", "*");
+
     return [
-      lo1 + "*" + lo2,
-      lo1 + "*" + lo3,
-      lo2 + "*" + lo3
-    ].includes(played);
+      r2 + "*" + r3,
+      r2 + "*" + r4,
+      r3 + "*" + r4
+    ].includes(marPlayed);
   }
 
   return false;
 }
-
 
 app.post("/api/tickets", async (req, res) => {
   try {

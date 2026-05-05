@@ -526,7 +526,9 @@ app.get("/logout", (req, res) => {
 // GET tickets pa vendeur
 app.get("/api/vendor/:id/tickets", async (req, res) => {
   try {
-    res.set("Cache-Control", "no-store");
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
 
     const sellerId = String(req.params.id || "").trim().toUpperCase();
 
@@ -534,18 +536,34 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    res.json(tickets.map(t => ({
-      ...t,
-      id: t.id || t.ticketId || t.serial || String(t._id || ""),
-      status: String(t.status || "ANATAN").trim().toUpperCase(),
-      premio: Number(t.premio || 0)
-    })));
+    const cleanTickets = tickets.map(t => {
+      const realId = t.id || t.ticketId || t.serial || String(t._id || "");
 
+      const cleanJeux = Array.isArray(t.jeux)
+        ? t.jeux.map(j => ({
+            ...j,
+            gain: Number(j.gain || 0)
+          }))
+        : [];
+
+      return {
+        ...t,
+        id: realId,
+        ticketId: realId,
+        serial: realId,
+        jeux: cleanJeux,
+        status: String(t.status || "ANATAN").trim().toUpperCase(),
+        premio: Number(t.premio || 0)
+      };
+    });
+
+    res.json(cleanTickets);
   } catch (err) {
     console.error("GET TICKETS ERROR:", err);
     res.status(500).json([]);
   }
 });
+
 
 app.get("/check-tickets", async (req, res) => {
   try {

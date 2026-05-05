@@ -526,6 +526,10 @@ app.get("/logout", (req, res) => {
 // GET tickets pa vendeur
 app.get("/api/vendor/:id/tickets", async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+
     const sellerId = String(req.params.id || "").trim().toUpperCase();
 
     const tickets = await Ticket.find({ vendeur: sellerId })
@@ -551,6 +555,7 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
     res.status(500).json([]);
   }
 });
+
 
 app.get("/check-tickets", async (req, res) => {
   try {
@@ -3372,6 +3377,16 @@ loadBillets();
     oldRenderBillets();
     fixMontantButtons();
   };
+
+  setInterval(function(){
+  if(currentPageName === "billetsPage" || currentPageName === "balancePage" || currentPageName === "rapportsPage"){
+    loadBillets();
+  }
+}, 3000);
+
+window.addEventListener("focus", function(){
+  loadBillets();
+});
 
   function fixMontantButtons(){
     var cards = document.querySelectorAll(".billet-card");

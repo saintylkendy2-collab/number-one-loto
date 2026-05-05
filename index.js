@@ -597,10 +597,19 @@ app.get("/check-tickets", async (req, res) => {
 
       let cleanJeux = [];
 
+ticket.jeux = (ticket.jeux || []).map(j => ({ ...j, gain: 0 }));
+
 for (let jeu of ticket.jeux || []) {
-  jeu.gain = 0;
-  cleanJeux.push(jeu);
+  if (isWinningGame(jeu, tirage)) {
+    const gain = Number(jeu.montant || 0);
+
+    jeu.gain = gain;
+    isWinner = true;
+    totalPremio += gain;
+  }
 }
+
+ticket.markModified("jeux");
 
 ticket.jeux = cleanJeux;
 
@@ -2336,7 +2345,7 @@ function buildPrintableTextFromTicket(ticket){
  var lines = [];
 
  ticket.jeux.forEach(function(j){
-   lines.push(j.type + " " + j.numero + " " + Number(j.montant).toFixed(2) + " - " + j.loterie);
+   lines.push(j.type + " " + j.numero + " - " + j.loterie + (j.gain > 0 ? " +" + j.gain.toFixed(2) : "")
  });
 
  return lines.join("\\n");

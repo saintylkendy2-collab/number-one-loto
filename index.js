@@ -523,44 +523,63 @@ app.get("/logout", (req, res) => {
   res.redirect("/");
 });
 
+function clean(v){
+  return String(v || "").trim().replace(/\s+/g, "");
+}
+
+function pad2(v){
+  const s = clean(v);
+  if (/^\d$/.test(s)) return "0" + s;
+  return s;
+}
+
+function payout(config, keys){
+  for (const k of keys) {
+    const v = k.split(".").reduce((o, p) => o && o[p], config);
+    if (Number(v) > 0) return Number(v);
+  }
+  return 0;
+}
+
 function getGain(j, tirage, config){
   if (!tirage) return 0;
 
-  const type = String(j.type || "").toUpperCase();
-  const num = String(j.numero || "").trim();
+  const type = clean(j.type).toUpperCase();
+  const num = clean(j.numero);
+  const montant = Number(j.montant || 0);
 
-  const r1 = String(tirage.r1 || "").trim();
-  const r2 = String(tirage.r2 || "").trim();
-  const r3 = String(tirage.r3 || "").trim();
-  const r4 = String(tirage.r4 || "").trim();
+  const r1 = clean(tirage.r1);
+  const r2 = pad2(tirage.r2);
+  const r3 = pad2(tirage.r3);
+  const r4 = pad2(tirage.r4);
 
-  // 🔹 BORLETTE (pozisyon)
-  if(type === "BOR"){
-    if(num === r2) return Number(config?.premios?.borlette1 || 0);
-    if(num === r3) return Number(config?.premios?.borlette2 || 0);
-    if(num === r4) return Number(config?.premios?.borlette3 || 0);
+  let pay = 0;
+
+  if (type === "BOR") {
+    const played = pad2(num);
+    if (played === r2) pay = payout(config, ["premios.borlette1","premios.borlette.0"]);
+    if (played === r3) pay = payout(config, ["premios.borlette2","premios.borlette.1"]);
+    if (played === r4) pay = payout(config, ["premios.borlette3","premios.borlette.2"]);
   }
 
-  // 🔹 LOTO 3
-  if(type === "L3"){
-    if(num === (r1 + r2)){
-      return Number(config?.premios?.loto3 || 0);
-    }
+  if (type === "L3" && num === (r1 + r2)) {
+    pay = payout(config, ["premios.loto3","premios.l3"]);
   }
 
-  // 🔹 MARIAGE
-  if(type === "MAR"){
-    const combos = [
-      r2 + "*" + r3,
-      r2 + "*" + r4,
-      r3 + "*" + r4
-    ];
-    if(combos.includes(num)){
-      return Number(config?.premios?.mariage || 0);
-    }
+  if (type === "MAR") {
+    const combos = [r2+"*"+r3, r2+"*"+r4, r3+"*"+r4];
+    if (combos.includes(num)) pay = payout(config, ["premios.mariage","premios.mar"]);
   }
 
-  return 0;
+  if (type === "L41" || type === "L42" || type === "L43") {
+    if (num.length === 4) pay = payout(config, ["premios.loto4","premios.l4"]);
+  }
+
+  if (type === "L51" || type === "L52" || type === "L53") {
+    if (num.length === 5) pay = payout(config, ["premios.loto5","premios.l5"]);
+  }
+
+  return montant * pay;
 }
 
 // GET tickets pa vendeur

@@ -570,19 +570,18 @@ app.get("/check-tickets", async (req, res) => {
       let totalPremio = 0;
 
       for (let jeu of ticket.jeux || []) {
+        jeu.gain = 0;
+
         const lot = String(jeu.loterie || "").trim().toUpperCase();
         const date = String(ticket.dateLabel || "").trim();
 
         const tirage = await Sorteo.findOne({
           date: date,
-          loteria: {
+          loteria: { 
             $regex: "^" + lot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
             $options: "i"
           }
         }).lean();
-
-        jeu.gagne = false;
-        jeu.gain = 0;
 
         if (!tirage) continue;
 
@@ -591,19 +590,16 @@ app.get("/check-tickets", async (req, res) => {
         const r3 = String(tirage.r3 || "").trim();
         const r4 = String(tirage.r4 || "").trim();
 
-        const hasBalls = r1 || r2 || r3 || r4;
-
-        if (!hasBalls) continue;
+        if (!r1 && !r2 && !r3 && !r4) continue;
 
         hasResult = true;
 
-        if (isWinningGame(jeu, tirage)) {
+        const won = isWinningGame(jeu, tirage);
+
+        if (won) {
           isWinner = true;
-
           const gain = Number(jeu.montant || 0);
-          jeu.gagne = true;
           jeu.gain = gain;
-
           totalPremio += gain;
         }
       }
@@ -614,7 +610,6 @@ app.get("/check-tickets", async (req, res) => {
 
       ticket.markModified("jeux");
       await ticket.save();
-
       checked++;
     }
 

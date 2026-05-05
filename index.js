@@ -532,52 +532,112 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
 
     const tickets = await Ticket.find({ vendeur: sellerId })
       .sort({ createdAt: -1 })
+      .limit(100)
       .lean();
 
-    const cleanTickets = [];
+    const dates = [...new Set(tickets.map(t => String(t.dateLabel || "").trim()).filter(Boolean))];
 
-    for (const t of tickets) {
+    const sorteos = await Sorteo.find({ date: { $in: dates } }).lean();
+
+    const sorteoMap = {};
+    sorteos.forEach(s => {
+      const key =
+        String(s.date || "").trim() + "|" +
+        String(s.loteria || "").trim().toUpperCase();
+
+      sorteoMap[key] = s;
+    });
+
+    function clean(v){
+      return String(v || "").trim().replace(/\s+/g, "");
+    }
+
+    function pad2(v){
+      const s = clean(v);
+      if (/^\d$/.test(s)) return "0" + s;
+      return s;
+    }
+
+    function gameWin(j, tirage){
+      const type = String(j.type || "").trim().toUpperCase();
+      const played = clean(j.numero);
+
+      const r1 = clean(tirage.r1);  // tèt
+      const r2 = pad2(tirage.r2);
+      const r3 = pad2(tirage.r3);
+      const r4 = pad2(tirage.r4);
+
+      if (type === "BOR") {
+        return [r2, r3, r4].includes(pad2(played));
+      }
+
+      if (type === "L3") {
+        return played === (r1 + r2); // 5 + 55 = 555
+      }
+
+      if (type === "MAR") {
+        return [
+          r2 + "*" + r3,
+          r2 + "*" + r4,
+          r3 + "*" + r4
+        ].includes(played);
+      }
+
+      return false;
+    }
+
+    const cleanTickets = tickets.map(t => {
+      const date = String(t.dateLabel || "").trim();
       let totalGain = 0;
+      let hasResult = false;
 
-      const jeux = [];
-
-      for (const j of t.jeux || []) {
+      const jeux = (t.jeux || []).map(j => {
         const lot = String(j.loterie || "").trim().toUpperCase();
-        const date = String(t.dateLabel || "").trim();
-
-        const tirage = await Sorteo.findOne({
-          date: date,
-          loteria: {
-            $regex: "^" + lot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
-            $options: "i"
-          }
-        }).lean();
+        const tirage = sorteoMap[date + "|" + lot];
 
         let gain = 0;
 
-        if (tirage && isWinningGame(j, tirage)) {
-          gain = Number(j.montant || 0);
-          totalGain += gain;
+        if (tirage) {
+          const hasBalls =
+            clean(tirage.r1) || clean(tirage.r2) || clean(tirage.r3) || clean(tirage.r4);
+
+          if (hasBalls) {
+            hasResult = true;
+
+            if (gameWin(j, tirage)) {
+              gain = Number(j.montant || 0);
+              totalGain += gain;
+            }
+          }
         }
 
-        jeux.push({
-          ...j,
+        return {
+          type: j.type,
+          numero: j.numero,
+          loterie: j.loterie,
+          montant: Number(j.montant || 0),
           gain: gain
-        });
-      }
+        };
+      });
 
       const realId = t.id || t.ticketId || t.serial || String(t._id || "");
 
-      cleanTickets.push({
-        ...t,
+      return {
         id: realId,
         ticketId: realId,
         serial: realId,
+        vendeur: t.vendeur,
+        vendeurNom: t.vendeurNom,
+        createdAt: t.createdAt,
+        createdAtLabel: t.createdAtLabel,
+        dateLabel: t.dateLabel,
+        timeLabel: t.timeLabel,
+        total: Number(t.total || 0),
         jeux: jeux,
         premio: totalGain,
-        status: totalGain > 0 ? "GANYE" : String(t.status || "ANATAN").trim().toUpperCase()
-      });
-    }
+        status: !hasResult ? "ANATAN" : (totalGain > 0 ? "GANYE" : "PEDI")
+      };
+    });
 
     res.json(cleanTickets);
 

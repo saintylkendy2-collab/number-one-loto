@@ -534,52 +534,12 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    const cleanTickets = [];
-
-    for (const t of tickets) {
-      let totalGain = 0;
-
-      const jeux = [];
-
-      for (const j of t.jeux || []) {
-        const lot = String(j.loterie || "").trim().toUpperCase();
-        const date = String(t.dateLabel || "").trim();
-
-        const tirage = await Sorteo.findOne({
-          date: date,
-          loteria: {
-            $regex: "^" + lot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
-            $options: "i"
-          }
-        }).lean();
-
-        let gain = 0;
-
-        if (tirage && isWinningGame(j, tirage)) {
-          gain = Number(j.montant || 0);
-          totalGain += gain;
-        }
-
-        jeux.push({
-          ...j,
-          gain: gain
-        });
-      }
-
-      const realId = t.id || t.ticketId || t.serial || String(t._id || "");
-
-      cleanTickets.push({
-        ...t,
-        id: realId,
-        ticketId: realId,
-        serial: realId,
-        jeux: jeux,
-        premio: totalGain,
-        status: totalGain > 0 ? "GANYE" : String(t.status || "ANATAN").trim().toUpperCase()
-      });
-    }
-
-    res.json(cleanTickets);
+    res.json(tickets.map(t => ({
+      ...t,
+      id: t.id || t.ticketId || t.serial || String(t._id || ""),
+      status: String(t.status || "ANATAN").trim().toUpperCase(),
+      premio: Number(t.premio || 0)
+    })));
 
   } catch (err) {
     console.error("GET TICKETS ERROR:", err);
@@ -635,6 +595,15 @@ app.get("/check-tickets", async (req, res) => {
         }
       }
 
+      let cleanJeux = [];
+
+for (let jeu of ticket.jeux || []) {
+  jeu.gain = 0;
+  cleanJeux.push(jeu);
+}
+
+ticket.jeux = cleanJeux;
+
       ticket.status = !hasResult ? "ANATAN" : (isWinner ? "GANYE" : "PEDI");
       ticket.premio = isWinner ? totalPremio : 0;
       ticket.updatedAt = new Date();
@@ -661,39 +630,43 @@ app.get("/check-tickets", async (req, res) => {
 });
 
 
+function pad2(v){
+  const s = String(v || "").trim();
+  if (/^\d$/.test(s)) return "0" + s;
+  return s;
+}
+
 function isWinningGame(j, result){
   const type = String(j.type || "").trim().toUpperCase();
   const played = String(j.numero || "").trim();
 
   const r1 = String(result.r1 || "").trim();
-  const r2 = String(result.r2 || "").trim();
-  const r3 = String(result.r3 || "").trim();
-  const r4 = String(result.r4 || "").trim();
+  const r2 = pad2(result.r2);
+  const r3 = pad2(result.r3);
+  const r4 = pad2(result.r4);
 
-  if(type === "TET"){
-    return played === r1;
-  }
-
+  // BOR
   if(type === "BOR"){
-    return [r2, r3, r4].includes(played);
+    return [r2, r3, r4].includes(pad2(played));
   }
 
+  // L3
   if(type === "L3"){
     return played === (r1 + r2 + r3);
   }
 
+  // MAR
   if(type === "MAR"){
-    const marPlayed = played.replace("-", "*").replace("/", "*");
-
     return [
       r2 + "*" + r3,
       r2 + "*" + r4,
       r3 + "*" + r4
-    ].includes(marPlayed);
+    ].includes(played);
   }
 
   return false;
 }
+
 
 app.post("/api/tickets", async (req, res) => {
   try {

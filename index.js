@@ -589,6 +589,9 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
 
     const sellerId = String(req.params.id || "").trim().toUpperCase();
 
+const vendor = await Vendor.findOne({ id: sellerId }).lean();
+const vendorConfig = vendor || {};
+
     const tickets = await Ticket.find({ vendeur: sellerId })
       .sort({ createdAt: -1 })
       .limit(100)
@@ -666,7 +669,7 @@ if (tirage) {
   if (hasBalls) {
     hasResult = true;
 
-    gain = getGain(j, tirage, t.config || {});
+    gain = getGain(j, tirage, vendorConfig);
     totalGain += gain;
   }
 }

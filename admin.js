@@ -1034,26 +1034,39 @@ async function runCheckTickets() {
 
       if (!tirage) continue;
 
+      const r1 = String(tirage.r1 || "").trim();
+      const r2 = String(tirage.r2 || "").trim();
+      const r3 = String(tirage.r3 || "").trim();
+      const r4 = String(tirage.r4 || "").trim();
+
       console.log("CHECK:", {
-  ticket: ticket.id,
-  ticketDate: ticket.dateLabel,
-  jeuLoterie: jeu.loterie,
-  searchDate: date,
-  searchLoteria: loteria,
-  tirageFound: !!tirage
-});
+        ticket: ticket.id,
+        ticketDate: ticket.dateLabel,
+        jeuLoterie: jeu.loterie,
+        searchDate: date,
+        searchLoteria: loteria,
+        r1, r2, r3, r4,
+        tirageFound: !!tirage
+      });
 
-      const hasBalls =
-        String(tirage.r1 || "").trim() ||
-        String(tirage.r2 || "").trim() ||
-        String(tirage.r3 || "").trim() ||
-        String(tirage.r4 || "").trim();
-
-      if (!hasBalls) continue;
+      if (!r1 && !r2 && !r3 && !r4) continue;
 
       hasResult = true;
 
-      if (isWinningGame(jeu, tirage)) {
+      const numero = String(jeu.numero || "").trim();
+      const type = String(jeu.type || "").trim().toUpperCase();
+
+      const win = isWinningGame(jeu, tirage);
+
+      console.log("RESULT:", {
+        ticket: ticket.id,
+        type,
+        numero,
+        r1, r2, r3, r4,
+        isWinner: win
+      });
+
+      if (win) {
         isWinner = true;
         totalPremio += Number(jeu.montant || jeu.monto || jeu.amount || 0);
       }
@@ -1062,6 +1075,14 @@ async function runCheckTickets() {
     ticket.status = !hasResult ? "ANATAN" : isWinner ? "GANYE" : "PEDI";
     ticket.premio = isWinner ? totalPremio : 0;
     ticket.updatedAt = new Date();
+
+    console.log("FINAL STATUS:", {
+      ticket: ticket.id,
+      hasResult,
+      isWinner,
+      status: ticket.status,
+      premio: ticket.premio
+    });
 
     await ticket.save();
     checked++;

@@ -523,6 +523,56 @@ app.get("/logout", (req, res) => {
   res.redirect("/");
 });
 
+function getGain(j, tirage, config){
+  if (!tirage) return 0;
+
+  const type = String(j.type || "").toUpperCase();
+  const num = String(j.numero || "").trim();
+
+  const r1 = String(tirage.r1 || "").trim();
+  const r2 = String(tirage.r2 || "").trim();
+  const r3 = String(tirage.r3 || "").trim();
+  const r4 = String(tirage.r4 || "").trim();
+
+  // 🔹 BORLETTE (pa pozisyon)
+  if(type === "BOR"){
+    if(num === r2) return Number(config?.premios?.borlette1 || 0); // 1er lo
+    if(num === r3) return Number(config?.premios?.borlette2 || 0); // 2e lo
+    if(num === r4) return Number(config?.premios?.borlette3 || 0); // 3e lo
+  }
+
+  // 🔹 LOTO 3
+  if(type === "L3"){
+    if(num === (r1 + r2)){
+      return Number(config?.premios?.loto3 || 0);
+    }
+  }
+
+  // 🔹 MARIAGE
+  if(type === "MAR"){
+    const combos = [
+      r2 + "*" + r3,
+      r2 + "*" + r4,
+      r3 + "*" + r4
+    ];
+    if(combos.includes(num)){
+      return Number(config?.premios?.mariage || 0);
+    }
+  }
+
+  // 🔹 LOTO 4
+  if(type === "L41" && num === r1 + r2 + r3 + r4){
+    return Number(config?.premios?.loto4_1 || 0);
+  }
+
+  // 🔹 LOTO 5 (si ou gen li)
+  if(type === "L51"){
+    return Number(config?.premios?.loto5_1 || 0);
+  }
+
+  return 0;
+}
+
 // GET tickets pa vendeur
 app.get("/api/vendor/:id/tickets", async (req, res) => {
   try {

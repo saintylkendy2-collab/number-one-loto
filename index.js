@@ -595,8 +595,6 @@ app.get("/check-tickets", async (req, res) => {
         }
       }
 
-      let cleanJeux = [];
-
 ticket.jeux = (ticket.jeux || []).map(j => ({ ...j, gain: 0 }));
 
 for (let jeu of ticket.jeux || []) {
@@ -610,8 +608,6 @@ for (let jeu of ticket.jeux || []) {
 }
 
 ticket.markModified("jeux");
-
-ticket.jeux = cleanJeux;
 
       ticket.status = !hasResult ? "ANATAN" : (isWinner ? "GANYE" : "PEDI");
       ticket.premio = isWinner ? totalPremio : 0;

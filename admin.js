@@ -582,7 +582,7 @@ router.post("/api/vendors", async (req, res) => {
   }
 });
 
-router.put("/api/vendors/:id", (req, res) => {
+router.put("/api/vendors/:id", async (req, res) => {
   try {
     const oldId = String(req.params.id || "").trim().toUpperCase();
     const body = req.body || {};
@@ -602,26 +602,35 @@ router.put("/api/vendors/:id", (req, res) => {
       return res.status(400).json({ ok: false, message: "Clave obligatoire" });
     }
 
-    const obj = readVendeursObject();
+    const vendor = await Vendor.findOne({ id: oldId });
 
-    if (!obj[oldId]) {
+    if (!vendor) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
 
-    if (oldId !== newId && obj[newId]) {
-      return res.status(409).json({ ok: false, message: "Nouvel ID déjà existant" });
+    if (oldId !== newId) {
+      const exists = await Vendor.findOne({ id: newId });
+      if (exists) {
+        return res.status(409).json({ ok: false, message: "Nouvel ID déjà existant" });
+      }
     }
 
-    delete obj[oldId];
-    obj[newId] = data;
-    writeVendeursObject(obj);
+    await Vendor.updateOne(
+      { id: oldId },
+      {
+        $set: {
+          id: newId,
+          ...data
+        }
+      }
+    );
 
     res.json({ ok: true });
+
   } catch (err) {
-    console.error(err);
+    console.error("Erreur update vendor Mongo:", err);
     res.status(500).json({ ok: false, message: "Erreur update vendor" });
   }
-
 });
 
 

@@ -2340,20 +2340,17 @@ function buildPrintableTextFromTicket(ticket){
 
   var lines = [];
 
-  for (var i = 0; i < ticket.jeux.length; i++) {
-    var j = ticket.jeux[i] || {};
-
-    var type = String(j.type || "").trim();
-    var numero = String(j.numero || "").trim();
-    var loterie = String(j.loterie || "").trim();
-    var montant = Number(j.montant || 0);
-
+  ticket.jeux.forEach(function(j){
     lines.push(
-      type + " " + numero + " - " + loterie + " " + montant.toFixed(2)
+      String(j.type || "") + " " +
+      String(j.numero || "") + " " +
+      Number(j.montant || 0).toFixed(2) +
+      " - " +
+      String(j.loterie || "")
     );
-  }
+  });
 
-  return lines.join("\n");
+  return lines.join("\\n");
 }
 
 function resetAfterSend(){

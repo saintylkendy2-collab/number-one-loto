@@ -526,9 +526,7 @@ app.get("/logout", (req, res) => {
 // GET tickets pa vendeur
 app.get("/api/vendor/:id/tickets", async (req, res) => {
   try {
-    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    res.set("Pragma", "no-cache");
-    res.set("Expires", "0");
+    res.set("Cache-Control", "no-store");
 
     const sellerId = String(req.params.id || "").trim().toUpperCase();
 
@@ -536,20 +534,53 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    const cleanTickets = tickets.map(t => {
+    const cleanTickets = [];
+
+    for (const t of tickets) {
+      let totalGain = 0;
+
+      const jeux = [];
+
+      for (const j of t.jeux || []) {
+        const lot = String(j.loterie || "").trim().toUpperCase();
+        const date = String(t.dateLabel || "").trim();
+
+        const tirage = await Sorteo.findOne({
+          date: date,
+          loteria: {
+            $regex: "^" + lot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+            $options: "i"
+          }
+        }).lean();
+
+        let gain = 0;
+
+        if (tirage && isWinningGame(j, tirage)) {
+          gain = Number(j.montant || 0);
+          totalGain += gain;
+        }
+
+        jeux.push({
+          ...j,
+          gain: gain
+        });
+      }
+
       const realId = t.id || t.ticketId || t.serial || String(t._id || "");
 
-      return {
+      cleanTickets.push({
         ...t,
         id: realId,
         ticketId: realId,
         serial: realId,
-        status: String(t.status || "ANATAN").trim().toUpperCase(),
-        premio: Number(t.premio || 0)
-      };
-    });
+        jeux: jeux,
+        premio: totalGain,
+        status: totalGain > 0 ? "GANYE" : String(t.status || "ANATAN").trim().toUpperCase()
+      });
+    }
 
     res.json(cleanTickets);
+
   } catch (err) {
     console.error("GET TICKETS ERROR:", err);
     res.status(500).json([]);

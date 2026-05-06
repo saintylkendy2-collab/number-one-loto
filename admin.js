@@ -944,12 +944,12 @@ router.get("/master/ticket/:id", async (req, res) => {
     const ticketId = String(req.params.id || "").trim();
 
     const ticket = await Ticket.findOne({
-  $or: [
-    { id: ticketId },
-    { ticketId: ticketId },
-    { serial: ticketId }
-  ]
-}).lean();
+      $or: [
+        { id: ticketId },
+        { ticketId: ticketId },
+        { serial: ticketId }
+      ]
+    }).lean();
 
     if (!ticket) {
       return res.send("Ticket introuvable");
@@ -957,47 +957,41 @@ router.get("/master/ticket/:id", async (req, res) => {
 
     const jeux = Array.isArray(ticket.jeux) ? ticket.jeux : [];
 
-const vendor = await Vendor.findOne({ id: String(ticket.vendeur || "").trim().toUpperCase() }).lean();
-const vendorConfig = vendor || {};
+    const vendor = await Vendor.findOne({
+      id: String(ticket.vendeur || "").trim().toUpperCase()
+    }).lean();
 
-let totalGain = 0;
+    const vendorConfig = vendor || {};
+    let totalGain = 0;
+    const lignes = [];
 
-const lignes = [];
+    for (const j of jeux) {
+      const tirage = await Sorteo.findOne({
+        date: String(ticket.dateLabel || "").trim(),
+        loteria: {
+          $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+          $options: "i"
+        }
+      }).lean();
 
-for (const j of jeux) {
-  const tirage = await Sorteo.findOne({
-    date: String(ticket.dateLabel || "").trim(),
-    loteria: {
-      $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
-      $options: "i"
+      const gain = tirage ? getGainAdmin(j, tirage, vendorConfig) : 0;
+      totalGain += gain;
+
+      lignes.push(
+        "<tr>" +
+          "<td>" + (j.loterie || "") + "</td>" +
+          "<td>" + (j.type || "") + "</td>" +
+          "<td>" + (j.numero || "") +
+            (gain > 0 ? " <span style='background:#d1f7de;color:#157347;padding:2px 6px;border-radius:8px;font-weight:900'>+" + money(gain) + "</span>" : "") +
+          "</td>" +
+          "<td>" + money(j.montant || j.monto || j.amount || 0) + "</td>" +
+        "</tr>"
+      );
     }
-  }).lean();
 
-  const gain = tirage ? getGainAdmin(j, tirage, vendorConfig) : 0;
-  totalGain += gain;
-
-  lignes.push(
-    "<tr>" +
-      "<td>" + (j.loterie || "") + "</td>" +
-      "<td>" + (j.type || "") + "</td>" +
-      "<td>" + (j.numero || "") +
-        (gain > 0 ? " <span style='background:#d1f7de;color:#157347;padding:2px 6px;border-radius:8px;font-weight:900'>+" + money(gain) + "</span>" : "") +
-      "</td>" +
-      "<td>" + money(j.montant || j.monto || j.amount || 0) + "</td>" +
-    "</tr>"
-  );
-}
-
-const dateTime =
-  ticket.createdAtLabel ||
-  (
-    (ticket.dateLabel || "") +
-    (ticket.timeLabel ? " " + ticket.timeLabel : "")
-  ) ||
-  "";
-
-const lignesHtml = lignes.join("");
-
+    const dateTime =
+      ticket.createdAtLabel ||
+      ((ticket.dateLabel || "") + (ticket.timeLabel ? " " + ticket.timeLabel : ""));
 
     res.send(
       "<html>" +
@@ -1005,7 +999,6 @@ const lignesHtml = lignes.join("");
       "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
       "<style>" +
       "body{font-family:Arial;background:#1c2037;color:white;padding:14px}" +
-      "a,a:visited,a:hover,a:active{color:white!important;text-decoration:none!important}" +
       ".card{background:#2a2f4a;border-radius:14px;padding:16px}" +
       "table{width:100%;border-collapse:collapse;margin-top:12px}" +
       "th,td{padding:10px;border-bottom:1px solid #444;text-align:left}" +
@@ -1016,17 +1009,17 @@ const lignesHtml = lignes.join("");
       "</head>" +
       "<body>" +
       "<div class='card'>" +
-      "<h2>Ticket " + ticket.id + "</h2>" +
+      "<h2>Ticket " + (ticket.id || ticket.ticketId || ticket.serial || ticketId) + "</h2>" +
       "<div><b>Vendeur:</b> " + (ticket.vendeurNom || ticket.vendeur || "") + "</div>" +
-    "<div><b>Date:</b> " + dateTime + "</div>" +
-"<div><b>Total:</b> " + money(ticket.total) + "</div>" +
-"<div><b>Total jwe:</b> " + jeux.length + "</div>" +
-"<div><b>Premio:</b> " + money(totalGain) + "</div>" +
+      "<div><b>Date:</b> " + dateTime + "</div>" +
+      "<div><b>Total:</b> " + money(ticket.total) + "</div>" +
+      "<div><b>Total jwe:</b> " + jeux.length + "</div>" +
+      "<div><b>Premio:</b> " + money(totalGain) + "</div>" +
       "<table>" +
       "<thead><tr><th>Loteria</th><th>Jugada</th><th>Numero</th><th>Monto</th></tr></thead>" +
-  "<tbody>" + lignesHtml + "</tbody>" +
-"</table>" +
-      "<form method='POST' action='/master/ticket/" + encodeURIComponent(ticket.id) + "/anile'>" +
+      "<tbody>" + lignes.join("") + "</tbody>" +
+      "</table>" +
+      "<form method='POST' action='/master/ticket/" + encodeURIComponent(ticket.id || ticketId) + "/anile'>" +
       "<button class='red' type='submit'>ANILE TICKET</button>" +
       "</form>" +
       "<button class='gray' onclick='window.close()'>TOUNEN</button>" +

@@ -2837,29 +2837,29 @@ function renderBillets(){
       ? '<div class="billet-meta" style="font-weight:800;color:#157347;">Gain total: ' + fmt(premioTotal) + '</div>'
       : '';
 
-    card.innerHTML =
-      '<div class="billet-head">' +
-        '<div>' +
-          '<div class="billet-code">#' + t.id + '</div>' +
-          '<div class="billet-meta">' +
-(
-  t.createdAtLabel ||
-  (
-    new Date(t.createdAt || Date.now()).toLocaleDateString("fr-FR") +
-    " " +
-    new Date(t.createdAt || Date.now()).toLocaleTimeString("fr-FR", {
-      hour:"2-digit",
-      minute:"2-digit",
-      second:"2-digit"
-    })
-  )
-) +
-'</div>'
-          '<div class="billet-meta">Total: ' + fmt(t.total) + '</div>' +
-          premioTxt +
-        '</div>' +
-        '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
-      '</div>';
+   card.innerHTML =
+  '<div class="billet-head">' +
+    '<div>' +
+      '<div class="billet-code">#' + t.id + '</div>' +
+      '<div class="billet-meta">' +
+        (
+          t.createdAtLabel ||
+          (
+            new Date(t.createdAt || Date.now()).toLocaleDateString("fr-FR") +
+            " " +
+            new Date(t.createdAt || Date.now()).toLocaleTimeString("fr-FR", {
+              hour:"2-digit",
+              minute:"2-digit",
+              second:"2-digit"
+            })
+          )
+        ) +
+      '</div>' +
+      '<div class="billet-meta">Total: ' + fmt(t.total) + '</div>' +
+      premioTxt +
+    '</div>' +
+    '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
+  '</div>';
 
     if(Array.isArray(t.jeux)){
       t.jeux.forEach(function(j){

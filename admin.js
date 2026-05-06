@@ -370,6 +370,86 @@ router.get("/api/vendors", async (req, res) => {
   }
 });
 
+function money(v){
+  return Number(v || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function clean(v){
+  return String(v || "").trim().replace(/\s+/g, "");
+}
+
+function pad2(v){
+  const s = clean(v);
+  if (/^\d$/.test(s)) return "0" + s;
+  return s;
+}
+
+function payout(config, key, def){
+  const val = key.split(".").reduce((o, k) => o && o[k], config);
+  const n = Number(val);
+  return isNaN(n) ? def : n;
+}
+
+function getGainAdmin(j, tirage, config){
+  const type = clean(j.type).toUpperCase();
+  const num = clean(j.numero);
+  const montant = Number(j.montant || 0);
+
+  const r1 = clean(tirage.r1);
+  const r2 = pad2(tirage.r2);
+  const r3 = pad2(tirage.r3);
+  const r4 = pad2(tirage.r4);
+
+  let pay = 0;
+
+  if(type === "BOR"){
+    const played = pad2(num);
+    if(played === r2) pay = payout(config, "premios.borlette1", 55);
+    else if(played === r3) pay = payout(config, "premios.borlette2", 20);
+    else if(played === r4) pay = payout(config, "premios.borlette3", 10);
+  }
+
+  else if(type === "MAR"){
+    if([r2+"*"+r3, r2+"*"+r4, r3+"*"+r4].includes(num)){
+      pay = payout(config, "premios.mariage", 1000);
+    }
+  }
+
+  else if(type === "L3"){
+    if(num === r1 + r2) pay = payout(config, "premios.loto3", 500);
+  }
+
+  else if(type === "L41"){
+    if(num === r3 + r4) pay = payout(config, "premios.l41", 5000);
+  }
+
+  else if(type === "L42"){
+    if(num === r2 + r4) pay = payout(config, "premios.l42", 5000);
+  }
+
+  else if(type === "L43"){
+    if(num === r2 + r3) pay = payout(config, "premios.l43", 5000);
+  }
+
+  else if(type === "L51"){
+    if(num === r1 + r2 + r3) pay = payout(config, "premios.l51", 25000);
+  }
+
+  else if(type === "L52"){
+    if(num === r1 + r2 + r4) pay = payout(config, "premios.l52", 25000);
+  }
+
+  else if(type === "L53"){
+    if(num === r2.slice(-1) + r3 + r4) pay = payout(config, "premios.l53", 25000);
+  }
+
+  return montant * pay;
+}
+
+
 router.get("/api/reportes/ventas", async (req, res) => {
   try {
     const start = String(req.query.start || "").trim();
@@ -419,8 +499,27 @@ router.get("/api/reportes/ventas", async (req, res) => {
       }
 
       if (status !== "ANILE") map[id].venta += parseAmount(t.total);
-      if (status === "GANYE") map[id].premios += parseAmount(t.premio);
-    });
+  if (status === "GANYE") {
+  const vendorConfig = vendeurs[id] || {};
+  let realPremio = 0;
+
+  for (const j of t.jeux || []) {
+    const tirage = await Sorteo.findOne({
+      date: String(t.dateLabel || "").trim(),
+      loteria: {
+        $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+        $options: "i"
+      }
+    }).lean();
+
+    if (tirage) {
+      realPremio += getGainAdmin(j, tirage, vendorConfig);
+    }
+  }
+
+  map[id].premios += realPremio;
+}
+});
 
     Object.keys(map).forEach((id) => {
       const vendor = normalizeVendor(vendeurs[id] || {});
@@ -858,14 +957,47 @@ router.get("/master/ticket/:id", async (req, res) => {
 
     const jeux = Array.isArray(ticket.jeux) ? ticket.jeux : [];
 
-    const lignes = jeux.map((j) => {
-      return "<tr>" +
-        "<td>" + (j.loterie || "") + "</td>" +
-        "<td>" + (j.type || "") + "</td>" +
-        "<td>" + (j.numero || "") + "</td>" +
-        "<td>" + formatAmount(j.montant || j.monto || j.amount || 0) + "</td>" +
-      "</tr>";
-    }).join("");
+const vendor = await Vendor.findOne({ id: String(ticket.vendeur || "").trim().toUpperCase() }).lean();
+const vendorConfig = vendor || {};
+
+let totalGain = 0;
+
+const lignes = [];
+
+for (const j of jeux) {
+  const tirage = await Sorteo.findOne({
+    date: String(ticket.dateLabel || "").trim(),
+    loteria: {
+      $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+      $options: "i"
+    }
+  }).lean();
+
+  const gain = tirage ? getGainAdmin(j, tirage, vendorConfig) : 0;
+  totalGain += gain;
+
+  lignes.push(
+    "<tr>" +
+      "<td>" + (j.loterie || "") + "</td>" +
+      "<td>" + (j.type || "") + "</td>" +
+      "<td>" + (j.numero || "") +
+        (gain > 0 ? " <span style='background:#d1f7de;color:#157347;padding:2px 6px;border-radius:8px;font-weight:900'>+" + money(gain) + "</span>" : "") +
+      "</td>" +
+      "<td>" + money(j.montant || j.monto || j.amount || 0) + "</td>" +
+    "</tr>"
+  );
+}
+
+const dateTime =
+  ticket.createdAtLabel ||
+  (
+    (ticket.dateLabel || "") +
+    (ticket.timeLabel ? " " + ticket.timeLabel : "")
+  ) ||
+  "";
+
+const lignesHtml = lignes.join("");
+
 
     res.send(
       "<html>" +
@@ -886,13 +1018,14 @@ router.get("/master/ticket/:id", async (req, res) => {
       "<div class='card'>" +
       "<h2>Ticket " + ticket.id + "</h2>" +
       "<div><b>Vendeur:</b> " + (ticket.vendeurNom || ticket.vendeur || "") + "</div>" +
-      "<div><b>Date:</b> " + (ticket.createdAtLabel || ticket.dateLabel || "") + "</div>" +
-      "<div><b>Total:</b> " + formatAmount(ticket.total) + "</div>" +
-      "<div><b>Premio:</b> " + (ticket.premioLabel || formatAmount(ticket.premio)) + "</div>" +
+    "<div><b>Date:</b> " + dateTime + "</div>" +
+"<div><b>Total:</b> " + money(ticket.total) + "</div>" +
+"<div><b>Total jwe:</b> " + jeux.length + "</div>" +
+"<div><b>Premio:</b> " + money(totalGain) + "</div>" +
       "<table>" +
       "<thead><tr><th>Loteria</th><th>Jugada</th><th>Numero</th><th>Monto</th></tr></thead>" +
-      "<tbody>" + lignes + "</tbody>" +
-      "</table>" +
+     "<tbody>" + lignes + "</tbody>" +
+"</table>" +
       "<form method='POST' action='/master/ticket/" + encodeURIComponent(ticket.id) + "/anile'>" +
       "<button class='red' type='submit'>ANILE TICKET</button>" +
       "</form>" +

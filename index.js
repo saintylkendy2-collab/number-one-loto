@@ -126,7 +126,10 @@ function formatFRDateInput(iso) {
 }
 
 function money(n) {
-  return Number(n || 0).toFixed(2);
+  return Number(n || 0).toLocaleString(undefined, {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
 }
 
 function loginErrorPage(message) {

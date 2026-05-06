@@ -784,7 +784,9 @@ gainLabel: money(gain)
         jeux: jeux,
         premio: totalGain,
 premioLabel: money(totalGain),
-        status: !hasResult ? "ANATAN" : (totalGain > 0 ? "GANYE" : "PEDI")
+        status: String(t.status || "").trim().toUpperCase() === "ANILE"
+  ? "ANILE"
+  : (!hasResult ? "ANATAN" : (totalGain > 0 ? "GANYE" : "PEDI"))
       };
     });
 

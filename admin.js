@@ -1039,7 +1039,26 @@ router.post("/api/tickets/:id/anile", async (req, res) => {
   }
 });
 
+router.get("/master/ticket/:id", async (req, res) => {
+  try {
+    const ticketId = String(req.params.id || "").trim();
 
+    const ticket = await Ticket.findOne({
+      $or: [
+        { id: ticketId },
+        { ticketId: ticketId },
+        { serial: ticketId }
+      ]
+    }).lean();
+
+    if (!ticket) return res.send("Ticket introuvable");
+
+    res.send("Ticket jwenn: " + (ticket.id || ticket.ticketId || ticket.serial));
+  } catch (err) {
+    console.error("Erreur master ticket:", err);
+    res.status(500).send("Erreur serveur");
+  }
+});
 
 router.post("/master/ticket/:id/anile", async (req, res) => {
   const ticketId = String(req.params.id || "").trim();

@@ -1040,24 +1040,71 @@ router.post("/api/tickets/:id/anile", async (req, res) => {
 });
 
 router.get("/master/ticket/:id", async (req, res) => {
-  try {
-    const ticketId = String(req.params.id || "").trim();
+  try {
+    const ticketId = String(req.params.id || "").trim();
 
-    const ticket = await Ticket.findOne({
-      $or: [
-        { id: ticketId },
-        { ticketId: ticketId },
-        { serial: ticketId }
-      ]
-    }).lean();
+    const ticket = await Ticket.findOne({
+  $or: [
+    { id: ticketId },
+    { ticketId: ticketId },
+    { serial: ticketId }
+  ]
+}).lean();
 
-    if (!ticket) return res.send("Ticket introuvable");
+    if (!ticket) {
+      return res.send("Ticket introuvable");
+    }
 
-    res.send("Ticket jwenn: " + (ticket.id || ticket.ticketId || ticket.serial));
-  } catch (err) {
-    console.error("Erreur master ticket:", err);
-    res.status(500).send("Erreur serveur");
-  }
+    const jeux = Array.isArray(ticket.jeux) ? ticket.jeux : [];
+
+    const lignes = jeux.map((j) => {
+      return "<tr>" +
+        "<td>" + (j.loterie || "") + "</td>" +
+        "<td>" + (j.type || "") + "</td>" +
+        "<td>" + (j.numero || "") + "</td>" +
+        "<td>" + formatAmount(j.montant || j.monto || j.amount || 0) + "</td>" +
+      "</tr>";
+    }).join("");
+
+    res.send(
+      "<html>" +
+      "<head>" +
+      "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
+      "<style>" +
+      "body{font-family:Arial;background:#1c2037;color:white;padding:14px}" +
+      "a,a:visited,a:hover,a:active{color:white!important;text-decoration:none!important}" +
+      ".card{background:#2a2f4a;border-radius:14px;padding:16px}" +
+      "table{width:100%;border-collapse:collapse;margin-top:12px}" +
+      "th,td{padding:10px;border-bottom:1px solid #444;text-align:left}" +
+      "button{width:100%;height:48px;border:0;border-radius:10px;margin-top:14px;font-size:17px;font-weight:700}" +
+      ".red{background:#ff5555;color:white}" +
+      ".gray{background:#444b70;color:white}" +
+      "</style>" +
+      "</head>" +
+      "<body>" +
+      "<div class='card'>" +
+      "<h2>Ticket " + ticket.id + "</h2>" +
+      "<div><b>Vendeur:</b> " + (ticket.vendeurNom || ticket.vendeur || "") + "</div>" +
+      "<div><b>Date:</b> " + (ticket.createdAtLabel || ticket.dateLabel || "") + "</div>" +
+      "<div><b>Total:</b> " + formatAmount(ticket.total) + "</div>" +
+      "<div><b>Premio:</b> " + (ticket.premioLabel || formatAmount(ticket.premio)) + "</div>" +
+      "<table>" +
+      "<thead><tr><th>Loteria</th><th>Jugada</th><th>Numero</th><th>Monto</th></tr></thead>" +
+      "<tbody>" + lignes + "</tbody>" +
+      "</table>" +
+      "<form method='POST' action='/master/ticket/" + encodeURIComponent(ticket.id) + "/anile'>" +
+      "<button class='red' type='submit'>ANILE TICKET</button>" +
+      "</form>" +
+      "<button class='gray' onclick='window.close()'>TOUNEN</button>" +
+      "</div>" +
+      "</body>" +
+      "</html>"
+    );
+
+  } catch (err) {
+    console.error("Erreur master ticket:", err);
+    res.status(500).send("Erreur serveur");
+  }
 });
 
 router.post("/master/ticket/:id/anile", async (req, res) => {

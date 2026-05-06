@@ -1071,7 +1071,7 @@ router.get("/master/ticket/:id", async (req, res) => {
         "<td>" +
           (j.numero || "") +
           (gain > 0
-            ? " <span style='background:#d1f7de;color:#157347;padding:2px 6px;border-radius:8px;font-weight:900'>+" +
+            ? " <span class='gain'>+" +
               formatAmount(gain) +
               "</span>"
             : "") +
@@ -1082,21 +1082,85 @@ router.get("/master/ticket/:id", async (req, res) => {
 
     res.send(
       "<html>" +
+
       "<head>" +
       "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
+
       "<style>" +
-      "body{font-family:Arial;background:#1c2037;color:white;padding:14px}" +
-      "a,a:visited,a:hover,a:active{color:white!important;text-decoration:none!important}" +
-      ".card{background:#2a2f4a;border-radius:14px;padding:16px}" +
-      "table{width:100%;border-collapse:collapse;margin-top:12px}" +
-      "th,td{padding:10px;border-bottom:1px solid #444;text-align:left}" +
-      "button{width:100%;height:48px;border:0;border-radius:10px;margin-top:14px;font-size:17px;font-weight:700}" +
-      ".red{background:#ff5555;color:white}" +
-      ".gray{background:#444b70;color:white}" +
+
+      "body{" +
+      "font-family:Arial;" +
+      "background:#1c2037;" +
+      "color:white;" +
+      "padding:14px" +
+      "}" +
+
+      "a,a:visited,a:hover,a:active{" +
+      "color:white!important;" +
+      "text-decoration:none!important" +
+      "}" +
+
+      ".card{" +
+      "background:#2a2f4a;" +
+      "border-radius:14px;" +
+      "padding:16px" +
+      "}" +
+
+      "table{" +
+      "width:100%;" +
+      "border-collapse:collapse;" +
+      "margin-top:12px" +
+      "}" +
+
+      "th,td{" +
+      "padding:10px;" +
+      "border-bottom:1px solid #444;" +
+      "text-align:left" +
+      "}" +
+
+      ".gain{" +
+      "background:#00ff66;" +
+      "color:#003b12;" +
+      "padding:4px 10px;" +
+      "border-radius:10px;" +
+      "font-weight:900;" +
+      "font-size:15px;" +
+      "display:inline-block;" +
+      "margin-left:6px" +
+      "}" +
+
+      ".premio-total{" +
+      "color:#00ff66;" +
+      "font-weight:900;" +
+      "font-size:30px;" +
+      "text-shadow:0 0 10px rgba(0,255,102,0.7)" +
+      "}" +
+
+      "button{" +
+      "width:100%;" +
+      "height:48px;" +
+      "border:0;" +
+      "border-radius:10px;" +
+      "margin-top:14px;" +
+      "font-size:17px;" +
+      "font-weight:700" +
+      "}" +
+
+      ".red{" +
+      "background:#ff5555;" +
+      "color:white" +
+      "}" +
+
+      ".gray{" +
+      "background:#444b70;" +
+      "color:white" +
+      "}" +
+
       "</style>" +
       "</head>" +
 
       "<body>" +
+
       "<div class='card'>" +
 
       "<h2>Ticket " + ticket.id + "</h2>" +
@@ -1105,7 +1169,9 @@ router.get("/master/ticket/:id", async (req, res) => {
       (ticket.vendeurNom || ticket.vendeur || "") +
       "</div>" +
 
-      "<div><b>Date:</b> " + dateTime + "</div>" +
+      "<div><b>Date:</b> " +
+      dateTime +
+      "</div>" +
 
       "<div><b>Total:</b> " +
       formatAmount(ticket.total || 0) +
@@ -1115,11 +1181,15 @@ router.get("/master/ticket/:id", async (req, res) => {
       jeux.length +
       "</div>" +
 
-      "<div><b>Premio:</b> " +
+      "<div style='margin-top:8px'>" +
+      "<b>Premio:</b> " +
+      "<span class='premio-total'>" +
       (ticket.premioLabel || formatAmount(ticket.premio || 0)) +
+      "</span>" +
       "</div>" +
 
       "<table>" +
+
       "<thead>" +
       "<tr>" +
       "<th>Loteria</th>" +
@@ -1132,6 +1202,7 @@ router.get("/master/ticket/:id", async (req, res) => {
       "<tbody>" +
       lignes +
       "</tbody>" +
+
       "</table>" +
 
       "<form method='POST' action='/master/ticket/" +

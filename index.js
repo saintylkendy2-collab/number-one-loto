@@ -533,12 +533,10 @@ function pad2(v){
   return s;
 }
 
-function payout(config, keys){
-  for (const k of keys) {
-    const v = k.split(".").reduce((o, p) => o && o[p], config);
-    if (Number(v) > 0) return Number(v);
-  }
-  return 0;
+function payout(config, key, def = 0){
+  const val = key.split(".").reduce((o, k) => o && o[k], config);
+  const n = Number(val);
+  return isNaN(n) ? def : n;
 }
 
 function getGain(j, tirage, config){
@@ -555,28 +553,104 @@ function getGain(j, tirage, config){
 
   let pay = 0;
 
-  if (type === "BOR") {
+  // =========================
+  // BORLETTE
+  // =========================
+  if(type === "BOR"){
     const played = pad2(num);
-    if (played === r2) pay = payout(config, ["premios.borlette1","premios.borlette.0"]);
-    if (played === r3) pay = payout(config, ["premios.borlette2","premios.borlette.1"]);
-    if (played === r4) pay = payout(config, ["premios.borlette3","premios.borlette.2"]);
+
+    if(played === r2){
+      pay = payout(config, "premios.borlette1", 55);
+    }
+
+    else if(played === r3){
+      pay = payout(config, "premios.borlette2", 20);
+    }
+
+    else if(played === r4){
+      pay = payout(config, "premios.borlette3", 10);
+    }
   }
 
-  if (type === "L3" && num === (r1 + r2)) {
-    pay = payout(config, ["premios.loto3","premios.l3"]);
+  // =========================
+  // MARIAGE
+  // =========================
+  else if(type === "MAR"){
+    const combos = [
+      r2 + "*" + r3,
+      r2 + "*" + r4,
+      r3 + "*" + r4
+    ];
+
+    if(combos.includes(num)){
+      pay = payout(config, "premios.mariage", 1000);
+    }
   }
 
-  if (type === "MAR") {
-    const combos = [r2+"*"+r3, r2+"*"+r4, r3+"*"+r4];
-    if (combos.includes(num)) pay = payout(config, ["premios.mariage","premios.mar"]);
+  // =========================
+  // LOTO 3
+  // =========================
+  else if(type === "L3"){
+    const l3 = r1 + r2;
+
+    if(num === l3){
+      pay = payout(config, "premios.loto3", 500);
+    }
   }
 
-  if (type === "L41" || type === "L42" || type === "L43") {
-    if (num.length === 4) pay = payout(config, ["premios.loto4","premios.l4"]);
+  // =========================
+  // LOTO 4
+  // =========================
+  else if(type === "L41"){
+    const l41 = r3 + r4;
+
+    if(num === l41){
+      pay = payout(config, "premios.l41", 5000);
+    }
   }
 
-  if (type === "L51" || type === "L52" || type === "L53") {
-    if (num.length === 5) pay = payout(config, ["premios.loto5","premios.l5"]);
+  else if(type === "L42"){
+    const l42 = r2 + r4;
+
+    if(num === l42){
+      pay = payout(config, "premios.l42", 5000);
+    }
+  }
+
+  else if(type === "L43"){
+    const l43 = r2 + r3;
+
+    if(num === l43){
+      pay = payout(config, "premios.l43", 5000);
+    }
+  }
+
+  // =========================
+  // LOTO 5
+  // =========================
+  else if(type === "L51"){
+    const l51 = r1 + r2 + r3;
+
+    if(num === l51){
+      pay = payout(config, "premios.l51", 25000);
+    }
+  }
+
+  else if(type === "L52"){
+    const l52 = r1 + r2 + r4;
+
+    if(num === l52){
+      pay = payout(config, "premios.l52", 25000);
+    }
+  }
+
+  else if(type === "L53"){
+    const lastR2 = r2.slice(-1);
+    const l53 = lastR2 + r3 + r4;
+
+    if(num === l53){
+      pay = payout(config, "premios.l53", 25000);
+    }
   }
 
   return montant * pay;

@@ -1183,9 +1183,19 @@ async function runCheckTickets() {
     ticket.premio = isWinner ? totalPremio : 0;
     ticket.updatedAt = new Date();
 
-    ticket.markModified("jeux");
-    await ticket.save();
-    checked++;
+    await Ticket.updateOne(
+  { _id: ticket._id },
+  {
+    $set: {
+      jeux: ticket.jeux,
+      status: ticket.status,
+      premio: ticket.premio,
+      updatedAt: new Date()
+    }
+  }
+);
+
+checked++;
   }
 
   console.log("✅ Tickets vérifiés:", checked);

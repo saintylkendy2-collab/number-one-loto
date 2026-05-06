@@ -2840,7 +2840,7 @@ function renderBillets(){
 
     var premioTotal = Number(t.premio || 0);
     var premioTxt = premioTotal > 0
-      ? '<div class="billet-meta" style="font-weight:800;color:#157347;">Gain total: ' + money(premioTotal) + '</div>'
+      ? '<div class="billet-meta" style="font-weight:800;color:#157347;">Gain total: ' + premioTotal.toFixed(2) + '</div>'
       : '';
 
     card.innerHTML =

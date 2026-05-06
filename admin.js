@@ -1323,9 +1323,14 @@ async function runCheckTickets() {
   let checked = 0;
 
   for (const ticket of tickets) {
-    let hasResult = false;
-    let isWinner = false;
-    let totalPremio = 0;
+
+  if (String(ticket.status || "").trim().toUpperCase() === "ANILE") {
+    continue;
+  }
+
+  let hasResult = false;
+  let isWinner = false;
+  let totalPremio = 0;
 
     const vendor = await Vendor.findOne({
       id: String(ticket.vendeur || "").trim().toUpperCase()

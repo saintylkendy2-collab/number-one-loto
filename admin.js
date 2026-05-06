@@ -939,7 +939,7 @@ router.get("/api/reportes/tickets", async (req, res) => {
   }
 });
 
-router.get("/master/ticket/:id", async (req, res) => {
+ router.get("/master/ticket/:id", async (req, res) => {
   try {
     const ticketId = String(req.params.id || "").trim();
 
@@ -1033,6 +1033,7 @@ router.get("/master/ticket/:id", async (req, res) => {
     res.status(500).send("Erreur serveur");
   }
 });
+
 
 router.post("/api/tickets/:id/anile", async (req, res) => {
   try {

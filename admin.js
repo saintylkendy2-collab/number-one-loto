@@ -2995,7 +2995,7 @@ function renderTicketsReport(){
       '<td>' + formatAmount(t.total) + '</td>' +
       '<td>' + (t.premioLabel || formatAmount(t.premio || 0)) + '</td>' +
       '<td style="text-align:center;">' + getStatusIcon(t.status || "ANATAN") + '</td>' +
-     '<td><button class="mini-btn" onclick="alert(\'ID: \' + \'' + safe(t.id) + '\')">🔍</button></td>' +
+     '<td><a class="mini-btn" href="/master/ticket/' + encodeURIComponent(t.id) + '" target="_blank">🔍</a></td>' +
     '</tr>';
   }).join("");
 }

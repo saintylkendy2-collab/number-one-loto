@@ -449,7 +449,6 @@ function getGainAdmin(j, tirage, config){
   return montant * pay;
 }
 
-
 router.get("/api/reportes/ventas", async (req, res) => {
   try {
     const start = String(req.query.start || "").trim();
@@ -460,7 +459,8 @@ router.get("/api/reportes/ventas", async (req, res) => {
 
     const vendeurs = {};
     vendorsArr.forEach(v => {
-      vendeurs[String(v.id || "").trim().toUpperCase()] = v;
+      const id = String(v.id || "").trim().toUpperCase();
+      if (id) vendeurs[id] = v;
     });
 
     const map = {};
@@ -468,19 +468,25 @@ router.get("/api/reportes/ventas", async (req, res) => {
     function ticketDay(t) {
       if (t.dateLabel) {
         const p = String(t.dateLabel).split("/");
-        if (p.length === 3) return p[2] + "-" + p[1].padStart(2, "0") + "-" + p[0].padStart(2, "0");
+        if (p.length === 3) {
+          return p[2] + "-" + p[1].padStart(2, "0") + "-" + p[0].padStart(2, "0");
+        }
       }
+
       const d = new Date(t.createdAt || Date.now());
-      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
     }
 
-    tickets.forEach((t) => {
+    for (const t of tickets) {
       const d = ticketDay(t);
-      if (start && d < start) return;
-      if (end && d > end) return;
+
+      if (start && d < start) continue;
+      if (end && d > end) continue;
 
       const id = String(t.vendeur || "").trim().toUpperCase();
-      if (!id) return;
+      if (!id) continue;
 
       const vendor = normalizeVendor(vendeurs[id] || {});
       const status = String(t.status || "").trim().toUpperCase();
@@ -498,42 +504,48 @@ router.get("/api/reportes/ventas", async (req, res) => {
         };
       }
 
-      if (status !== "ANILE") map[id].venta += parseAmount(t.total);
-  if (status === "GANYE") {
-  const vendorConfig = vendeurs[id] || {};
-  let realPremio = 0;
-
-  for (const j of t.jeux || []) {
-    const tirage = await Sorteo.findOne({
-      date: String(t.dateLabel || "").trim(),
-      loteria: {
-        $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
-        $options: "i"
+      if (status !== "ANILE") {
+        map[id].venta += parseAmount(t.total);
       }
-    }).lean();
 
-    if (tirage) {
-      realPremio += getGainAdmin(j, tirage, vendorConfig);
+      if (status === "GANYE") {
+        const vendorConfig = vendeurs[id] || {};
+        let realPremio = 0;
+
+        for (const j of t.jeux || []) {
+          const tirage = await Sorteo.findOne({
+            date: String(t.dateLabel || "").trim(),
+            loteria: {
+              $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+              $options: "i"
+            }
+          }).lean();
+
+          if (tirage) {
+            realPremio += getGainAdmin(j, tirage, vendorConfig);
+          }
+        }
+
+        map[id].premios += realPremio;
+      }
     }
-  }
-
-  map[id].premios += realPremio;
-}
-});
 
     Object.keys(map).forEach((id) => {
       const vendor = normalizeVendor(vendeurs[id] || {});
       const rate = getCommissionRate(vendor);
+
       map[id].comision = (map[id].venta * rate) / 100;
       map[id].resultado = map[id].venta - map[id].comision - map[id].premios;
     });
 
     res.json(Object.values(map));
+
   } catch (err) {
-    console.error(err);
+    console.error("Erreur ventas:", err);
     res.status(500).json([]);
   }
 });
+
 
 router.get("/api/reportes/balance", async (req, res) => {
   try {

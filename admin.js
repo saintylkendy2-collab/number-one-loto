@@ -1138,67 +1138,52 @@ async function runCheckTickets() {
     let isWinner = false;
     let totalPremio = 0;
 
+    const vendor = await Vendor.findOne({
+      id: String(ticket.vendeur || "").trim().toUpperCase()
+    }).lean();
+
+    const vendorConfig = vendor || {};
+
     for (const jeu of ticket.jeux || []) {
-      const loteria = normalizeText(jeu.loterie);
+      jeu.gain = 0;
+
+      const loteria = String(jeu.loterie || "").trim().toUpperCase();
       const date = String(ticket.dateLabel || "").trim();
 
       const tirage = await Sorteo.findOne({
         date: date,
-        loteria: loteria
+        loteria: {
+          $regex: "^" + loteria.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+          $options: "i"
+        }
       }).lean();
 
       if (!tirage) continue;
 
-      const r1 = String(tirage.r1 || "").trim();
-      const r2 = String(tirage.r2 || "").trim();
-      const r3 = String(tirage.r3 || "").trim();
-      const r4 = String(tirage.r4 || "").trim();
+      const hasBalls =
+        String(tirage.r1 || "").trim() ||
+        String(tirage.r2 || "").trim() ||
+        String(tirage.r3 || "").trim() ||
+        String(tirage.r4 || "").trim();
 
-      console.log("CHECK:", {
-        ticket: ticket.id,
-        ticketDate: ticket.dateLabel,
-        jeuLoterie: jeu.loterie,
-        searchDate: date,
-        searchLoteria: loteria,
-        r1, r2, r3, r4,
-        tirageFound: !!tirage
-      });
-
-      if (!r1 && !r2 && !r3 && !r4) continue;
+      if (!hasBalls) continue;
 
       hasResult = true;
 
-      const numero = String(jeu.numero || "").trim();
-      const type = String(jeu.type || "").trim().toUpperCase();
+      const gain = getGainAdmin(jeu, tirage, vendorConfig);
 
-      const win = isWinningGame(jeu, tirage);
-
-      console.log("RESULT:", {
-        ticket: ticket.id,
-        type,
-        numero,
-        r1, r2, r3, r4,
-        isWinner: win
-      });
-
-      if (win) {
+      if (gain > 0) {
+        jeu.gain = gain;
         isWinner = true;
-        totalPremio += Number(jeu.montant || jeu.monto || jeu.amount || 0);
+        totalPremio += gain;
       }
     }
 
-    ticket.status = !hasResult ? "ANATAN" : isWinner ? "GANYE" : "PEDI";
+    ticket.status = !hasResult ? "ANATAN" : (isWinner ? "GANYE" : "PEDI");
     ticket.premio = isWinner ? totalPremio : 0;
     ticket.updatedAt = new Date();
 
-    console.log("FINAL STATUS:", {
-      ticket: ticket.id,
-      hasResult,
-      isWinner,
-      status: ticket.status,
-      premio: ticket.premio
-    });
-
+    ticket.markModified("jeux");
     await ticket.save();
     checked++;
   }

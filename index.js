@@ -2586,34 +2586,23 @@ function buildPayloadGames(){
 }
 
 function buildPrintableTextFromTicket(ticket){
-  if(!ticket || !Array.isArray(ticket.jeux)) return "";
+  if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
-  function money(v){
-    return Number(v || 0).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  }
+  var lines = [];
 
-  var lines = [];
+  ticket.jeux.forEach(function(j){
+    lines.push(
+      String(j.type || "") + " " +
+      String(j.numero || "") + " " +
+      Number(j.montant || 0).toFixed(2) +
+      " - " +
+      String(j.loterie || "")
+    );
+  });
 
-  ticket.jeux.forEach(function(j){
-    var gainText = Number(j.gain || 0) > 0
-      ? " +" + (j.gainLabel || money(j.gain))
-      : "";
-
-    lines.push(
-      String(j.type || "") + " " +
-      String(j.numero || "") + " " +
-      money(j.montant) +
-      " - " +
-      String(j.loterie || "") +
-      gainText
-    );
-  });
-
-  return lines.join("\n");
+  return lines.join("\\n");
 }
+
 
 function resetAfterSend(){
  jeux = [];

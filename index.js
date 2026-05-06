@@ -126,7 +126,10 @@ function formatFRDateInput(iso) {
 }
 
 function money(n) {
-  return Number(n || 0).toFixed(2);
+  return Number(n || 0).toLocaleString(undefined, {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
 }
 
 function loginErrorPage(message) {
@@ -523,130 +526,6 @@ app.get("/logout", (req, res) => {
   res.redirect("/");
 });
 
-// GET tickets pa vendeur
-app.get("/api/vendor/:id/tickets", async (req, res) => {
-  try {
-    res.set("Cache-Control", "no-store");
-
-    const sellerId = String(req.params.id || "").trim().toUpperCase();
-
-    const tickets = await Ticket.find({ vendeur: sellerId })
-      .sort({ createdAt: -1 })
-      .limit(100)
-      .lean();
-
-    const dates = [...new Set(tickets.map(t => String(t.dateLabel || "").trim()).filter(Boolean))];
-
-    const sorteos = await Sorteo.find({ date: { $in: dates } }).lean();
-
-    const sorteoMap = {};
-    sorteos.forEach(s => {
-      const key =
-        String(s.date || "").trim() + "|" +
-        String(s.loteria || "").trim().toUpperCase();
-
-      sorteoMap[key] = s;
-    });
-
-    function clean(v){
-      return String(v || "").trim().replace(/\s+/g, "");
-    }
-
-    function pad2(v){
-      const s = clean(v);
-      if (/^\d$/.test(s)) return "0" + s;
-      return s;
-    }
-
-    function gameWin(j, tirage){
-      const type = String(j.type || "").trim().toUpperCase();
-      const played = clean(j.numero);
-
-      const r1 = clean(tirage.r1);  // tèt
-      const r2 = pad2(tirage.r2);
-      const r3 = pad2(tirage.r3);
-      const r4 = pad2(tirage.r4);
-
-      if (type === "BOR") {
-        return [r2, r3, r4].includes(pad2(played));
-      }
-
-      if (type === "L3") {
-        return played === (r1 + r2); // 5 + 55 = 555
-      }
-
-      if (type === "MAR") {
-        return [
-          r2 + "*" + r3,
-          r2 + "*" + r4,
-          r3 + "*" + r4
-        ].includes(played);
-      }
-
-      return false;
-    }
-
-    const cleanTickets = tickets.map(t => {
-      const date = String(t.dateLabel || "").trim();
-      let totalGain = 0;
-      let hasResult = false;
-
-      const jeux = (t.jeux || []).map(j => {
-        const lot = String(j.loterie || "").trim().toUpperCase();
-        const tirage = sorteoMap[date + "|" + lot];
-
-        let gain = 0;
-
-        if (tirage) {
-          const hasBalls =
-            clean(tirage.r1) || clean(tirage.r2) || clean(tirage.r3) || clean(tirage.r4);
-
-          if (hasBalls) {
-            hasResult = true;
-
-            if (gameWin(j, tirage)) {
-              gain = Number(j.montant || 0);
-              totalGain += gain;
-            }
-          }
-        }
-
-        return {
-          type: j.type,
-          numero: j.numero,
-          loterie: j.loterie,
-          montant: Number(j.montant || 0),
-          gain: gain
-        };
-      });
-
-      const realId = t.id || t.ticketId || t.serial || String(t._id || "");
-
-      return {
-        id: realId,
-        ticketId: realId,
-        serial: realId,
-        vendeur: t.vendeur,
-        vendeurNom: t.vendeurNom,
-        createdAt: t.createdAt,
-        createdAtLabel: t.createdAtLabel,
-        dateLabel: t.dateLabel,
-        timeLabel: t.timeLabel,
-        total: Number(t.total || 0),
-        jeux: jeux,
-        premio: totalGain,
-        status: !hasResult ? "ANATAN" : (totalGain > 0 ? "GANYE" : "PEDI")
-      };
-    });
-
-    res.json(cleanTickets);
-
-  } catch (err) {
-    console.error("GET TICKETS ERROR:", err);
-    res.status(500).json([]);
-  }
-});
-
 function clean(v){
   return String(v || "").trim().replace(/\s+/g, "");
 }
@@ -779,6 +658,144 @@ function getGain(j, tirage, config){
 
   return montant * pay;
 }
+
+function money(v){
+  return Number(v || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+// GET tickets pa vendeur
+app.get("/api/vendor/:id/tickets", async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+
+    const sellerId = String(req.params.id || "").trim().toUpperCase();
+
+const vendor = await Vendor.findOne({ id: sellerId }).lean();
+const vendorConfig = vendor || {};
+
+    const tickets = await Ticket.find({ vendeur: sellerId })
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean();
+
+    const dates = [...new Set(tickets.map(t => String(t.dateLabel || "").trim()).filter(Boolean))];
+
+    const sorteos = await Sorteo.find({ date: { $in: dates } }).lean();
+
+    const sorteoMap = {};
+    sorteos.forEach(s => {
+      const key =
+        String(s.date || "").trim() + "|" +
+        String(s.loteria || "").trim().toUpperCase();
+
+      sorteoMap[key] = s;
+    });
+
+    function clean(v){
+      return String(v || "").trim().replace(/\s+/g, "");
+    }
+
+    function pad2(v){
+      const s = clean(v);
+      if (/^\d$/.test(s)) return "0" + s;
+      return s;
+    }
+
+    function gameWin(j, tirage){
+      const type = String(j.type || "").trim().toUpperCase();
+      const played = clean(j.numero);
+
+      const r1 = clean(tirage.r1);  // tèt
+      const r2 = pad2(tirage.r2);
+      const r3 = pad2(tirage.r3);
+      const r4 = pad2(tirage.r4);
+
+      if (type === "BOR") {
+        return [r2, r3, r4].includes(pad2(played));
+      }
+
+      if (type === "L3") {
+        return played === (r1 + r2); // 5 + 55 = 555
+      }
+
+      if (type === "MAR") {
+        return [
+          r2 + "*" + r3,
+          r2 + "*" + r4,
+          r3 + "*" + r4
+        ].includes(played);
+      }
+
+      return false;
+    }
+
+    const cleanTickets = tickets.map(t => {
+      const date = String(t.dateLabel || "").trim();
+      let totalGain = 0;
+      let hasResult = false;
+
+      const jeux = (t.jeux || []).map(j => {
+        const lot = String(j.loterie || "").trim().toUpperCase();
+        const tirage = sorteoMap[date + "|" + lot];
+
+let gain = 0;
+
+if (tirage) {
+  const hasBalls =
+    String(tirage.r1 || "").trim() ||
+    String(tirage.r2 || "").trim() ||
+    String(tirage.r3 || "").trim() ||
+    String(tirage.r4 || "").trim();
+
+  if (hasBalls) {
+    hasResult = true;
+
+    gain = getGain(j, tirage, vendorConfig);
+    totalGain += gain;
+  }
+}
+
+return {
+  type: j.type,
+  numero: j.numero,
+  loterie: j.loterie,
+  montant: Number(j.montant || 0),
+  gain: gain,
+gainLabel: money(gain)
+};
+      });
+
+      const realId = t.id || t.ticketId || t.serial || String(t._id || "");
+
+      return {
+        id: realId,
+        ticketId: realId,
+        serial: realId,
+        vendeur: t.vendeur,
+        vendeurNom: t.vendeurNom,
+        createdAt: t.createdAt,
+        createdAtLabel: t.createdAtLabel,
+        dateLabel: t.dateLabel,
+        timeLabel: t.timeLabel,
+        total: Number(t.total || 0),
+        jeux: jeux,
+        premio: totalGain,
+premioLabel: money(totalGain),
+        status: !hasResult ? "ANATAN" : (totalGain > 0 ? "GANYE" : "PEDI")
+      };
+    });
+
+    res.json(cleanTickets);
+
+  } catch (err) {
+    console.error("GET TICKETS ERROR:", err);
+    res.status(500).json([]);
+  }
+});
+
 
 app.get("/check-tickets", async (req, res) => {
   try {
@@ -2275,6 +2292,7 @@ function buildGameEntries(num){
  return null;
 }
 
+
 function mergeOrPushGame(entry){
  var found = jeux.find(function(j){
    return j.type === entry.type && j.numero === entry.numero && j.loterie === entry.loterie;
@@ -2503,7 +2521,6 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 });
 
-
 function renderJeux(){
  var area = document.getElementById("ticketsArea");
 
@@ -2571,19 +2588,31 @@ function buildPayloadGames(){
 function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
+  function money(v){
+    return Number(v || 0).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
   var lines = [];
 
   ticket.jeux.forEach(function(j){
+    var gainText = Number(j.gain || 0) > 0
+      ? " +" + (j.gainLabel || money(j.gain))
+      : "";
+
     lines.push(
       String(j.type || "") + " " +
       String(j.numero || "") + " " +
-      Number(j.montant || 0).toFixed(2) +
+      money(j.montant) +
       " - " +
-      String(j.loterie || "")
+      String(j.loterie || "") +
+      gainText
     );
   });
 
-  return lines.join("\\n");
+  return lines.join("\n");
 }
 
 function resetAfterSend(){
@@ -2635,7 +2664,6 @@ function saveCurrentTicket(channel){
    return null;
  });
 }
-
 
 function submitPrint(){
   if(jeux.length === 0){
@@ -2784,7 +2812,6 @@ function loadBillets(){
  renderRapports();
  });
 }
-
 
 var selectedTicketToCopy = null;
 var copyMode = false;
@@ -3083,10 +3110,6 @@ function handleCopyButton(){
   });
 }
 
-
-
-
-
 function renderRapports(){
   var box = document.getElementById("rapportsPage");
   if(!box) return;
@@ -3290,7 +3313,6 @@ var dBalance = d.vente - d.prime;
   });
 }
 
-
   if(startInput){
     startInput.addEventListener("change", function(){
       renderRapports();
@@ -3303,7 +3325,6 @@ var dBalance = d.vente - d.prime;
     });
   }
 }
-
 
 function updateTicketStatus(id, status, premio){
  fetch("/api/ticket-status", {
@@ -3332,7 +3353,6 @@ function updateTicketStatus(id, status, premio){
  alert("Erreur mise à jour status");
  });
 }
-
 
 function copyTicketById(){
  var id = document.getElementById("copyTicketId").value.trim();
@@ -3378,8 +3398,6 @@ function copyTicketById(){
  alert("Erreur lecture ticket");
  });
 }
-
-
 
  (function(){
   var autoBoulPeMode = false;
@@ -3858,7 +3876,6 @@ function renderTiragesPage(){
 
   loadSorteosVendor();
 }
-
 
 async function loadSorteosVendor() {
   try {
@@ -4621,7 +4638,6 @@ setTimeout(function(){
   `);
 });
 
-
 app.get("/api/reportes/tickets", async (req, res) => {
   try {
     const tickets = await Ticket.find().sort({ createdAt: -1 }).lean();
@@ -4642,7 +4658,6 @@ app.get("/tickets/:vendeur", async (req, res) => {
   }
 });
 
-
 const adminRoutes = require("./admin");
 app.use(adminRoutes);
 
@@ -4659,7 +4674,6 @@ app.get("/test-tickets", async (req, res) => {
   const tickets = await Ticket.find();
   res.json(tickets);
 });
-
 
  
 app.listen(3000, "0.0.0.0", () => {

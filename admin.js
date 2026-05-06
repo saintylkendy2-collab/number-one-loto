@@ -2979,7 +2979,7 @@ function renderTicketsReport(){
       '<td>' + safe(t.vendeurNom || t.vendeur) + '</td>' +
       '<td>' + (Array.isArray(t.jeux) ? t.jeux.length : 0) + '</td>' +
       '<td>' + formatAmount(t.total) + '</td>' +
-      '<td>' + formatAmount(t.premio) + '</td>' +
+      '<td>' + (t.premioLabel || formatAmount(t.premio || 0)) + '</td>' +
       '<td style="text-align:center;">' + getStatusIcon(t.status || "ANATAN") + '</td>' +
      '<td><a class="mini-btn" href="/master/ticket/' + encodeURIComponent(t.id) + '" target="_blank">🔍</a></td>' +
     '</tr>';

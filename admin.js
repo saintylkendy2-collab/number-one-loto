@@ -888,7 +888,7 @@ router.get("/master/ticket/:id", async (req, res) => {
       "<div><b>Vendeur:</b> " + (ticket.vendeurNom || ticket.vendeur || "") + "</div>" +
       "<div><b>Date:</b> " + (ticket.createdAtLabel || ticket.dateLabel || "") + "</div>" +
       "<div><b>Total:</b> " + formatAmount(ticket.total) + "</div>" +
-      "<div><b>Premio:</b> " + formatAmount(ticket.premio) + "</div>" +
+      "<div><b>Premio:</b> " + (ticket.premioLabel || formatAmount(ticket.premio)) + "</div>" +
       "<table>" +
       "<thead><tr><th>Loteria</th><th>Jugada</th><th>Numero</th><th>Monto</th></tr></thead>" +
       "<tbody>" + lignes + "</tbody>" +

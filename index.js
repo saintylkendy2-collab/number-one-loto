@@ -656,6 +656,13 @@ function getGain(j, tirage, config){
   return montant * pay;
 }
 
+function money(v){
+  return Number(v || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
 // GET tickets pa vendeur
 app.get("/api/vendor/:id/tickets", async (req, res) => {
   try {
@@ -753,7 +760,8 @@ return {
   numero: j.numero,
   loterie: j.loterie,
   montant: Number(j.montant || 0),
-  gain: gain
+  gain: gain,
+gainLabel: money(gain)
 };
       });
 
@@ -772,6 +780,7 @@ return {
         total: Number(t.total || 0),
         jeux: jeux,
         premio: totalGain,
+premioLabel: money(totalGain),
         status: !hasResult ? "ANATAN" : (totalGain > 0 ? "GANYE" : "PEDI")
       };
     });
@@ -2576,19 +2585,31 @@ function buildPayloadGames(){
 function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
+  function money(v){
+    return Number(v || 0).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
   var lines = [];
 
   ticket.jeux.forEach(function(j){
+    var gainText = Number(j.gain || 0) > 0
+      ? " +" + (j.gainLabel || money(j.gain))
+      : "";
+
     lines.push(
       String(j.type || "") + " " +
       String(j.numero || "") + " " +
-      Number(j.montant || 0).toFixed(2) +
+      money(j.montant) +
       " - " +
-      String(j.loterie || "")
+      String(j.loterie || "") +
+      gainText
     );
   });
 
-  return lines.join("\\n");
+  return lines.join("\n");
 }
 
 function resetAfterSend(){

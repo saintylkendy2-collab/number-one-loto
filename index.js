@@ -2812,112 +2812,119 @@ function feedbackTouch(){
 }
 
 function renderBillets(){
-  var wrap = document.getElementById("billetsWrap");
+  var wrap = document.getElementById("billetsWrap");
 
-  if(!savedTickets.length){
-    wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
-    return;
-  }
+  function fmt(v){
+    return Number(v || 0).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
 
-  wrap.innerHTML = "";
+  if(!savedTickets.length){
+    wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
+    return;
+  }
 
-  savedTickets.forEach(function(t){
-    var card = document.createElement("div");
-    card.className = "billet-card";
+  wrap.innerHTML = "";
 
-    var premioTotal = Number(t.premio || 0);
-    var premioTxt = premioTotal > 0
-      ? '<div class="billet-meta" style="font-weight:800;color:#157347;">Gain total: ' + premioTotal.toFixed(2) + '</div>'
-      : '';
+  savedTickets.forEach(function(t){
+    var card = document.createElement("div");
+    card.className = "billet-card";
 
-    card.innerHTML =
-      '<div class="billet-head">' +
-        '<div>' +
-          '<div class="billet-code">#' + t.id + '</div>' +
-          '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
-          '<div class="billet-meta">Total: ' + Number(t.total || 0).toFixed(2) + '</div>' +
-          premioTxt +
-        '</div>' +
-        '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
-      '</div>';
+    var premioTotal = Number(t.premio || 0);
+    var premioTxt = premioTotal > 0
+      ? '<div class="billet-meta" style="font-weight:800;color:#157347;">Gain total: ' + fmt(premioTotal) + '</div>'
+      : '';
 
-    if(Array.isArray(t.jeux)){
-      t.jeux.forEach(function(j){
-        var gain = Number(j.gain || 0);
+    card.innerHTML =
+      '<div class="billet-head">' +
+        '<div>' +
+          '<div class="billet-code">#' + t.id + '</div>' +
+          '<div class="billet-meta">' + (t.createdAtLabel || '') + '</div>' +
+          '<div class="billet-meta">Total: ' + fmt(t.total) + '</div>' +
+          premioTxt +
+        '</div>' +
+        '<div class="status-badge ' + statusClass(t.status) + '">' + statusLabel(t.status) + '</div>' +
+      '</div>';
 
-var row = document.createElement("div");
-row.className = "billet-game";
+    if(Array.isArray(t.jeux)){
+      t.jeux.forEach(function(j){
+        var gain = Number(j.gain || 0);
 
-row.innerHTML =
-  '<div>' + j.type + '</div>' +
-  '<div>' +
-    j.numero + ' - ' + j.loterie +
-    (gain > 0
-      ? ' <span style="background:#d1f7de;color:#157347;font-size:12px;font-weight:900;padding:2px 6px;border-radius:8px;margin-left:6px;">+' + gain.toFixed(2) + '</span>'
-      : '') +
-  '</div>' +
-  '<div style="text-align:right">' + Number(j.montant || 0).toFixed(2) + '</div>';
+        var row = document.createElement("div");
+        row.className = "billet-game";
 
-        card.appendChild(row);
-      });
-    }
+        row.innerHTML =
+          '<div>' + j.type + '</div>' +
+          '<div>' +
+            j.numero + ' - ' + j.loterie +
+            (gain > 0
+              ? ' <span style="background:#d1f7de;color:#157347;font-size:12px;font-weight:900;padding:2px 6px;border-radius:8px;margin-left:6px;">+' + fmt(gain) + '</span>'
+              : '') +
+          '</div>' +
+          '<div style="text-align:right">' + fmt(j.montant) + '</div>';
 
-    var actions = document.createElement("div");
-    actions.className = "billet-actions";
-    actions.style.gridTemplateColumns = "repeat(4,1fr)";
-    actions.innerHTML =
-      '<button class="small-btn btn-green">COPIE</button>' +
-      '<button class="small-btn btn-yellow">LOTERIE</button>' +
-      '<button class="small-btn btn-yellow">MONTANT</button>' +
-      '<button class="small-btn btn-gray">ANILE</button>';
+        card.appendChild(row);
+      });
+    }
 
-    var btns = actions.querySelectorAll("button");
+    var actions = document.createElement("div");
+    actions.className = "billet-actions";
+    actions.style.gridTemplateColumns = "repeat(4,1fr)";
+    actions.innerHTML =
+      '<button class="small-btn btn-green">COPIE</button>' +
+      '<button class="small-btn btn-yellow">LOTERIE</button>' +
+      '<button class="small-btn btn-yellow">MONTANT</button>' +
+      '<button class="small-btn btn-gray">ANILE</button>';
 
-    btns[0].onclick = function(e){
-      e.stopPropagation();
-      feedbackTouch();
-      copyFromTicket(t);
-    };
+    var btns = actions.querySelectorAll("button");
 
-    btns[1].onclick = function(e){
-      e.stopPropagation();
-      feedbackTouch();
-      selectedTicketToCopy = t;
-      copyMode = true;
-      selectedLoteries = [];
-      activeField = "loterie";
-      updateFields();
-      openLoterieModal();
-    };
+    btns[0].onclick = function(e){
+      e.stopPropagation();
+      feedbackTouch();
+      copyFromTicket(t);
+    };
 
-    btns[2].onclick = function(e){
-      e.stopPropagation();
-      feedbackTouch();
+    btns[1].onclick = function(e){
+      e.stopPropagation();
+      feedbackTouch();
+      selectedTicketToCopy = t;
+      copyMode = true;
+      selectedLoteries = [];
+      activeField = "loterie";
+      updateFields();
+      openLoterieModal();
+    };
 
-      var newMontant = prompt("Mete nouvo montant lan:");
-      if(newMontant === null) return;
+    btns[2].onclick = function(e){
+      e.stopPropagation();
+      feedbackTouch();
 
-      newMontant = Number(newMontant || 0);
-      if(newMontant <= 0){
-        alert("Montant pa valid");
-        return;
-      }
+      var newMontant = prompt("Mete nouvo montant lan:");
+      if(newMontant === null) return;
 
-      copyFromTicketWithMontant(t, newMontant);
-    };
+      newMontant = Number(newMontant || 0);
+      if(newMontant <= 0){
+        alert("Montant pa valid");
+        return;
+      }
 
-    btns[3].onclick = function(e){
-      e.stopPropagation();
-      feedbackTouch();
+      copyFromTicketWithMontant(t, newMontant);
+    };
 
-      if(confirm("Ou sèten ou vle anile ticket sa?")){
-        updateTicketStatus(t.id, "ANILE");
-      }
-    };
+    btns[3].onclick = function(e){
+      e.stopPropagation();
+      feedbackTouch();
 
-    card.appendChild(actions);
-    wrap.appendChild(card);
-  });
+      if(confirm("Ou sèten ou vle anile ticket sa?")){
+        updateTicketStatus(t.id, "ANILE");
+      }
+    };
+
+    card.appendChild(actions);
+    wrap.appendChild(card);
+  });
 }
 
 

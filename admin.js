@@ -1024,7 +1024,7 @@ const lignesHtml = lignes.join("");
 "<div><b>Premio:</b> " + money(totalGain) + "</div>" +
       "<table>" +
       "<thead><tr><th>Loteria</th><th>Jugada</th><th>Numero</th><th>Monto</th></tr></thead>" +
-     "<tbody>" + lignes + "</tbody>" +
+  "<tbody>" + lignesHtml + "</tbody>" +
 "</table>" +
       "<form method='POST' action='/master/ticket/" + encodeURIComponent(ticket.id) + "/anile'>" +
       "<button class='red' type='submit'>ANILE TICKET</button>" +

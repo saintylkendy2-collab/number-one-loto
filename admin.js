@@ -3218,19 +3218,29 @@ var sorteosLoaded = false;
 async function loadSorteos(){
   try{
     var res = await fetch("/api/sorteos?reload=" + Date.now());
-   sorteosData = await res.json();
+    sorteosData = await res.json();
 
-var dates = Object.keys(sorteosData || {});
+    var dateInput = byId("sorteosDate");
 
-if(dates.length){
-  dates.sort();
+    if(dateInput && !dateInput.value){
+      var dates = Object.keys(sorteosData || {});
+      if(dates.length){
+        dates.sort(function(a,b){
+          var pa = a.split("/");
+          var pb = b.split("/");
+          var da = pa[2] + "-" + pa[1] + "-" + pa[0];
+          var db = pb[2] + "-" + pb[1] + "-" + pb[0];
+          return da.localeCompare(db);
+        });
 
-  var lastDate = dates[dates.length - 1];
+        var lastDate = dates[dates.length - 1];
+        var p = lastDate.split("/");
+        dateInput.value = p[2] + "-" + p[1] + "-" + p[0];
+      }
+    }
 
-  setValue("sorteosDate", toISODate(lastDate));
-}
+    renderSorteosPage();
 
-renderSorteosPage(); 
   }catch(err){
     console.error(err);
     sorteosData = {};

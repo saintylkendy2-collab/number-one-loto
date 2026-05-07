@@ -3029,6 +3029,7 @@ function loginMaster() {
     loadVendorsFromServer();
     loadVentasReport();
     loadBalanceReport();
+    sorteosLoaded = false;
     goPage("ventas");
   } else {
     alert("Login incorrect");

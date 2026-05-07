@@ -1409,6 +1409,38 @@ async function runCheckTickets(date, loteries = []) {
   console.log("✅ Tickets vérifiés:", checked);
 }
 
+router.get("/api/sorteos", async (req, res) => {
+  try {
+    const rows = await Sorteo.find().lean();
+
+    const data = {};
+
+    for (const r of rows) {
+      const date = String(r.date || "").trim();
+      const loteria = String(r.loteria || "").trim().toUpperCase();
+
+      if (!date || !loteria) continue;
+
+      if (!data[date]) {
+        data[date] = {};
+      }
+
+      data[date][loteria] = {
+        r1: String(r.r1 || ""),
+        r2: String(r.r2 || ""),
+        r3: String(r.r3 || ""),
+        r4: String(r.r4 || "")
+      };
+    }
+
+    res.json(data);
+
+  } catch (err) {
+    console.error("Erreur get sorteos:", err);
+    res.status(500).json({});
+  }
+});
+
 router.post("/api/sorteos/save", async (req, res) => {
   try {
     const body = req.body || {};
@@ -3211,8 +3243,6 @@ function renderSorteosPage(){
   var dateInput = byId("sorteosDate");
   if(!box || !dateInput) return;
 
-  dateInput.onchange = renderSorteosPage;
-
   function toFRDate(value){
     if(!value) return "";
     var s = String(value).trim();
@@ -3303,7 +3333,6 @@ async function saveSorteos(){
       return;
     }
 
-    await loadSorteos();
 
     alert("Sorteos sauvegardé ✔");
 

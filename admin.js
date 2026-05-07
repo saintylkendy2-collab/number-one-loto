@@ -778,13 +778,19 @@ router.delete("/api/vendors/:id", async (req, res) => {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
 
-    // ✅ Efase tout tickets ki gen rapò ak vendor sa
-    await Ticket.deleteMany({ sellerId: id });
+    // ✅ Efase tout tickets vendor sa nèt
+    await Ticket.deleteMany({
+      $or: [
+        { vendeur: id },
+        { sellerId: id },
+        { vendorId: id }
+      ]
+    });
 
-    // ✅ Efase vendor a li menm
+    // ✅ Efase vendor a nèt
     await Vendor.deleteOne({ id });
 
-    res.json({ ok: true });
+    res.json({ ok: true, message: "Vendeur et tickets supprimés" });
 
   } catch (err) {
     console.error("Erreur delete vendor:", err);

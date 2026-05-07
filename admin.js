@@ -1409,34 +1409,6 @@ async function runCheckTickets(date, loteries = []) {
   console.log("✅ Tickets vérifiés:", checked);
 }
 
-router.get("/api/sorteos", async (req, res) => {
-  try {
-    const rows = await Sorteo.find().lean();
-
-    const obj = {};
-
-    rows.forEach(r => {
-      const date = String(r.date || "").trim();
-      const loteria = String(r.loteria || "").trim().toUpperCase();
-
-      if (!date || !loteria) return;
-
-      if (!obj[date]) obj[date] = {};
-
-      obj[date][loteria] = {
-        r1: r.r1 || "",
-        r2: r.r2 || "",
-        r3: r.r3 || "",
-        r4: r.r4 || ""
-      };
-    });
-
-    res.json(obj);
-  } catch (err) {
-    console.error("Erreur get sorteos Mongo:", err);
-    res.status(500).json({});
-  }
-});
 
 router.post("/api/sorteos/save", async (req, res) => {
   try {
@@ -3429,7 +3401,7 @@ if(sorteosPage) sorteosPage.classList.add("hidden");
     if(ticketsPage) ticketsPage.classList.remove("hidden");
     loadTicketsReport();
 
-    }else if(page === "sorteos"){
+  }else if(page === "sorteos"){
   if(sorteosPage) sorteosPage.classList.remove("hidden");
 
   if(!getValue("sorteosDate")){
@@ -4637,7 +4609,7 @@ const transactionStart = byId("transactionStart");
 const transactionEnd = byId("transactionEnd");
 
 const sorteosDate = byId("sorteosDate");
-if(sorteosDate) sorteosDate.addEventListener("change", loadSorteos);
+if(sorteosDate) sorteosDate.addEventListener("change", renderSorteosPage);
 
 if(transactionGrupoFilter) transactionGrupoFilter.addEventListener("change", renderTransactionsTable);
 if(transactionVendorFilter) transactionVendorFilter.addEventListener("change", renderTransactionsTable);

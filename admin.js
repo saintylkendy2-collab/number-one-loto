@@ -7,6 +7,8 @@ const router = express.Router();
 const Ticket = require("./models/Ticket");
 const Vendor = require("./models/vendor");
 
+const Sorteo = require("./models/Sorteo");
+
 // =============================
 // 📁 FILE PATHS
 // =============================
@@ -367,6 +369,85 @@ router.get("/api/vendors", async (req, res) => {
   }
 });
 
+function money(v){
+  return Number(v || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function clean(v){
+  return String(v || "").trim().replace(/\s+/g, "");
+}
+
+function pad2(v){
+  const s = clean(v);
+  if (/^\d$/.test(s)) return "0" + s;
+  return s;
+}
+
+function payout(config, key, def){
+  const val = key.split(".").reduce((o, k) => o && o[k], config);
+  const n = Number(val);
+  return isNaN(n) ? def : n;
+}
+
+function getGainAdmin(j, tirage, config){
+  const type = clean(j.type).toUpperCase();
+  const num = clean(j.numero);
+  const montant = Number(j.montant || 0);
+
+  const r1 = clean(tirage.r1);
+  const r2 = pad2(tirage.r2);
+  const r3 = pad2(tirage.r3);
+  const r4 = pad2(tirage.r4);
+
+  let pay = 0;
+
+  if(type === "BOR"){
+    const played = pad2(num);
+    if(played === r2) pay = payout(config, "premios.borlette1", 55);
+    else if(played === r3) pay = payout(config, "premios.borlette2", 20);
+    else if(played === r4) pay = payout(config, "premios.borlette3", 10);
+  }
+
+  else if(type === "MAR"){
+    if([r2+"*"+r3, r2+"*"+r4, r3+"*"+r4].includes(num)){
+      pay = payout(config, "premios.mariage", 1000);
+    }
+  }
+
+  else if(type === "L3"){
+    if(num === r1 + r2) pay = payout(config, "premios.loto3", 500);
+  }
+
+  else if(type === "L41"){
+    if(num === r3 + r4) pay = payout(config, "premios.l41", 5000);
+  }
+
+  else if(type === "L42"){
+    if(num === r2 + r4) pay = payout(config, "premios.l42", 5000);
+  }
+
+  else if(type === "L43"){
+    if(num === r2 + r3) pay = payout(config, "premios.l43", 5000);
+  }
+
+  else if(type === "L51"){
+    if(num === r1 + r2 + r3) pay = payout(config, "premios.l51", 25000);
+  }
+
+  else if(type === "L52"){
+    if(num === r1 + r2 + r4) pay = payout(config, "premios.l52", 25000);
+  }
+
+  else if(type === "L53"){
+    if(num === r2.slice(-1) + r3 + r4) pay = payout(config, "premios.l53", 25000);
+  }
+
+  return montant * pay;
+}
+
 router.get("/api/reportes/ventas", async (req, res) => {
   try {
     const start = String(req.query.start || "").trim();
@@ -377,7 +458,8 @@ router.get("/api/reportes/ventas", async (req, res) => {
 
     const vendeurs = {};
     vendorsArr.forEach(v => {
-      vendeurs[String(v.id || "").trim().toUpperCase()] = v;
+      const id = String(v.id || "").trim().toUpperCase();
+      if (id) vendeurs[id] = v;
     });
 
     const map = {};
@@ -385,19 +467,25 @@ router.get("/api/reportes/ventas", async (req, res) => {
     function ticketDay(t) {
       if (t.dateLabel) {
         const p = String(t.dateLabel).split("/");
-        if (p.length === 3) return p[2] + "-" + p[1].padStart(2, "0") + "-" + p[0].padStart(2, "0");
+        if (p.length === 3) {
+          return p[2] + "-" + p[1].padStart(2, "0") + "-" + p[0].padStart(2, "0");
+        }
       }
+
       const d = new Date(t.createdAt || Date.now());
-      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
     }
 
-    tickets.forEach((t) => {
+    for (const t of tickets) {
       const d = ticketDay(t);
-      if (start && d < start) return;
-      if (end && d > end) return;
+
+      if (start && d < start) continue;
+      if (end && d > end) continue;
 
       const id = String(t.vendeur || "").trim().toUpperCase();
-      if (!id) return;
+      if (!id) continue;
 
       const vendor = normalizeVendor(vendeurs[id] || {});
       const status = String(t.status || "").trim().toUpperCase();
@@ -415,23 +503,48 @@ router.get("/api/reportes/ventas", async (req, res) => {
         };
       }
 
-      if (status !== "ANILE") map[id].venta += parseAmount(t.total);
-      if (status === "GANYE") map[id].premios += parseAmount(t.premio);
-    });
+      if (status !== "ANILE") {
+        map[id].venta += parseAmount(t.total);
+      }
+
+      if (status === "GANYE") {
+        const vendorConfig = vendeurs[id] || {};
+        let realPremio = 0;
+
+        for (const j of t.jeux || []) {
+          const tirage = await Sorteo.findOne({
+            date: String(t.dateLabel || "").trim(),
+            loteria: {
+              $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+              $options: "i"
+            }
+          }).lean();
+
+          if (tirage) {
+            realPremio += getGainAdmin(j, tirage, vendorConfig);
+          }
+        }
+
+        map[id].premios += realPremio;
+      }
+    }
 
     Object.keys(map).forEach((id) => {
       const vendor = normalizeVendor(vendeurs[id] || {});
       const rate = getCommissionRate(vendor);
+
       map[id].comision = (map[id].venta * rate) / 100;
       map[id].resultado = map[id].venta - map[id].comision - map[id].premios;
     });
 
     res.json(Object.values(map));
+
   } catch (err) {
-    console.error(err);
+    console.error("Erreur ventas:", err);
     res.status(500).json([]);
   }
 });
+
 
 router.get("/api/reportes/balance", async (req, res) => {
   try {
@@ -450,6 +563,7 @@ router.get("/api/reportes/balance", async (req, res) => {
 
       const d = new Date(s);
       if (isNaN(d.getTime())) return "";
+
       return d.getFullYear() + "-" +
         String(d.getMonth() + 1).padStart(2, "0") + "-" +
         String(d.getDate()).padStart(2, "0");
@@ -471,14 +585,16 @@ router.get("/api/reportes/balance", async (req, res) => {
     }
 
     const selectedDate = date || toISODate(new Date());
-   const vendorsArr = await Vendor.find().lean();
-const tickets = await Ticket.find().lean();
 
-const vendeurs = {};
-vendorsArr.forEach(v => {
-  const id = String(v.id || "").trim().toUpperCase();
-  if (id) vendeurs[id] = v;
-});
+    const vendorsArr = await Vendor.find().lean();
+    const tickets = await Ticket.find().lean();
+
+    const vendeurs = {};
+    vendorsArr.forEach(v => {
+      const id = String(v.id || "").trim().toUpperCase();
+      if (id) vendeurs[id] = v;
+    });
+
     const map = {};
 
     Object.keys(vendeurs).forEach((id) => {
@@ -506,12 +622,12 @@ vendorsArr.forEach(v => {
       };
     });
 
-    tickets.forEach((t) => {
+    for (const t of tickets) {
       const id = String(t.vendeur || "").trim().toUpperCase();
-      if (!id) return;
+      if (!id) continue;
 
       const d = ticketDay(t);
-      if (selectedDate && d && d > selectedDate) return;
+      if (selectedDate && d && d > selectedDate) continue;
 
       if (!map[id]) {
         map[id] = {
@@ -529,15 +645,36 @@ vendorsArr.forEach(v => {
 
       if (status !== "ANILE") {
         const venta = parseAmount(t.total);
-        const premios = status === "GANYE" ? parseAmount(t.premio) : 0;
         const comision = (venta * rate) / 100;
+
+        let premios = 0;
+
+        if (status === "GANYE") {
+          const vendorConfig = vendeurs[id] || {};
+
+          for (const j of t.jeux || []) {
+            const tirage = await Sorteo.findOne({
+              date: String(t.dateLabel || "").trim(),
+              loteria: {
+                $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+                $options: "i"
+              }
+            }).lean();
+
+            if (tirage) {
+              premios += getGainAdmin(j, tirage, vendorConfig);
+            }
+          }
+        }
+
         map[id].balance += venta - comision - premios;
       }
-    });
+    }
 
     res.json(Object.values(map));
+
   } catch (err) {
-    console.error(err);
+    console.error("Erreur balance:", err);
     res.status(500).json([]);
   }
 });
@@ -579,7 +716,7 @@ router.post("/api/vendors", async (req, res) => {
   }
 });
 
-router.put("/api/vendors/:id", (req, res) => {
+router.put("/api/vendors/:id", async (req, res) => {
   try {
     const oldId = String(req.params.id || "").trim().toUpperCase();
     const body = req.body || {};
@@ -599,26 +736,35 @@ router.put("/api/vendors/:id", (req, res) => {
       return res.status(400).json({ ok: false, message: "Clave obligatoire" });
     }
 
-    const obj = readVendeursObject();
+    const vendor = await Vendor.findOne({ id: oldId });
 
-    if (!obj[oldId]) {
+    if (!vendor) {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
 
-    if (oldId !== newId && obj[newId]) {
-      return res.status(409).json({ ok: false, message: "Nouvel ID déjà existant" });
+    if (oldId !== newId) {
+      const exists = await Vendor.findOne({ id: newId });
+      if (exists) {
+        return res.status(409).json({ ok: false, message: "Nouvel ID déjà existant" });
+      }
     }
 
-    delete obj[oldId];
-    obj[newId] = data;
-    writeVendeursObject(obj);
+    await Vendor.updateOne(
+      { id: oldId },
+      {
+        $set: {
+          id: newId,
+          ...data
+        }
+      }
+    );
 
     res.json({ ok: true });
+
   } catch (err) {
-    console.error(err);
+    console.error("Erreur update vendor Mongo:", err);
     res.status(500).json({ ok: false, message: "Erreur update vendor" });
   }
-
 });
 
 
@@ -679,6 +825,46 @@ router.post("/api/vendors/:id/connections/:index/unblock", async (req, res) => {
   } catch (err) {
     console.error("Erreur déblocage connexion:", err);
     res.status(500).json({ ok: false, message: "Erreur déblocage connexion" });
+  }
+});
+
+router.delete("/api/vendors/:id/movimientos/:movId", async (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim().toUpperCase();
+    const movId = Number(req.params.movId);
+
+    const vendor = await Vendor.findOne({ id });
+    if (!vendor) {
+      return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
+    }
+
+    if (!Array.isArray(vendor.movimientos)) {
+      vendor.movimientos = [];
+    }
+
+    const index = vendor.movimientos.findIndex(m => Number(m.id) === movId);
+
+    if (index === -1) {
+      return res.status(404).json({ ok: false, message: "Transaction introuvable" });
+    }
+
+    // 🔥 retire movement
+    const removed = vendor.movimientos.splice(index, 1)[0];
+
+    // 🔥 REAJISTE BALANCE
+    if (removed.tipo === "cobro") {
+      vendor.balance -= removed.monto;
+    } else {
+      vendor.balance += removed.monto;
+    }
+
+    await vendor.save();
+
+    res.json({ ok: true, balance: vendor.balance });
+
+  } catch (err) {
+    console.error("Erreur delete transaction:", err);
+    res.status(500).json({ ok: false });
   }
 });
 
@@ -770,91 +956,62 @@ router.get("/api/reportes/tickets", async (req, res) => {
   try {
     const tickets = await Ticket.find().sort({ createdAt: -1 }).lean();
 
-    const cleanTickets = tickets.map(t => {
-      const realId = t.id || t.ticketId || t.serial || String(t._id || "");
+    const vendorsArr = await Vendor.find().lean();
+    const vendeurs = {};
 
-      return {
+    vendorsArr.forEach(v => {
+      const id = String(v.id || "").trim().toUpperCase();
+      if (id) vendeurs[id] = v;
+    });
+
+    const cleanTickets = [];
+
+    for (const t of tickets) {
+      const realId = t.id || t.ticketId || t.serial || String(t._id || "");
+      const vendorId = String(t.vendeur || "").trim().toUpperCase();
+      const vendorConfig = vendeurs[vendorId] || {};
+
+      let totalGain = 0;
+
+      const jeux = [];
+      for (const j of t.jeux || []) {
+        const tirage = await Sorteo.findOne({
+          date: String(t.dateLabel || "").trim(),
+          loteria: {
+            $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+            $options: "i"
+          }
+        }).lean();
+
+        const gain = tirage ? getGainAdmin(j, tirage, vendorConfig) : 0;
+        totalGain += gain;
+
+        jeux.push({
+          ...j,
+          gain: gain,
+          gainLabel: money(gain)
+        });
+      }
+
+      cleanTickets.push({
         ...t,
         id: realId,
         ticketId: realId,
-        serial: realId
-      };
-    });
+        serial: realId,
+        jeux: jeux,
+        premio: totalGain,
+        premioLabel: money(totalGain)
+      });
+    }
 
     res.json(cleanTickets);
+
   } catch (err) {
     console.error("Erreur report tickets Mongo:", err.message);
     res.status(500).json([]);
   }
 });
 
-router.get("/master/ticket/:id", async (req, res) => {
-  try {
-    const ticketId = String(req.params.id || "").trim();
-
-    const ticket = await Ticket.findOne({
-  $or: [
-    { id: ticketId },
-    { ticketId: ticketId },
-    { serial: ticketId }
-  ]
-}).lean();
-
-    if (!ticket) {
-      return res.send("Ticket introuvable");
-    }
-
-    const jeux = Array.isArray(ticket.jeux) ? ticket.jeux : [];
-
-    const lignes = jeux.map((j) => {
-      return "<tr>" +
-        "<td>" + (j.loterie || "") + "</td>" +
-        "<td>" + (j.type || "") + "</td>" +
-        "<td>" + (j.numero || "") + "</td>" +
-        "<td>" + formatAmount(j.montant || j.monto || j.amount || 0) + "</td>" +
-      "</tr>";
-    }).join("");
-
-    res.send(
-      "<html>" +
-      "<head>" +
-      "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
-      "<style>" +
-      "body{font-family:Arial;background:#1c2037;color:white;padding:14px}" +
-      "a,a:visited,a:hover,a:active{color:white!important;text-decoration:none!important}" +
-      ".card{background:#2a2f4a;border-radius:14px;padding:16px}" +
-      "table{width:100%;border-collapse:collapse;margin-top:12px}" +
-      "th,td{padding:10px;border-bottom:1px solid #444;text-align:left}" +
-      "button{width:100%;height:48px;border:0;border-radius:10px;margin-top:14px;font-size:17px;font-weight:700}" +
-      ".red{background:#ff5555;color:white}" +
-      ".gray{background:#444b70;color:white}" +
-      "</style>" +
-      "</head>" +
-      "<body>" +
-      "<div class='card'>" +
-      "<h2>Ticket " + ticket.id + "</h2>" +
-      "<div><b>Vendeur:</b> " + (ticket.vendeurNom || ticket.vendeur || "") + "</div>" +
-      "<div><b>Date:</b> " + (ticket.createdAtLabel || ticket.dateLabel || "") + "</div>" +
-      "<div><b>Total:</b> " + formatAmount(ticket.total) + "</div>" +
-      "<div><b>Premio:</b> " + formatAmount(ticket.premio) + "</div>" +
-      "<table>" +
-      "<thead><tr><th>Loteria</th><th>Jugada</th><th>Numero</th><th>Monto</th></tr></thead>" +
-      "<tbody>" + lignes + "</tbody>" +
-      "</table>" +
-      "<form method='POST' action='/master/ticket/" + encodeURIComponent(ticket.id) + "/anile'>" +
-      "<button class='red' type='submit'>ANILE TICKET</button>" +
-      "</form>" +
-      "<button class='gray' onclick='window.close()'>TOUNEN</button>" +
-      "</div>" +
-      "</body>" +
-      "</html>"
-    );
-
-  } catch (err) {
-    console.error("Erreur master ticket:", err);
-    res.status(500).send("Erreur serveur");
-  }
-});
 
 router.post("/api/tickets/:id/anile", async (req, res) => {
   try {
@@ -881,7 +1038,196 @@ router.post("/api/tickets/:id/anile", async (req, res) => {
   }
 });
 
+router.get("/master/ticket/:id", async (req, res) => {
+  try {
+    const ticketId = String(req.params.id || "").trim();
 
+    const ticket = await Ticket.findOne({
+      $or: [
+        { id: ticketId },
+        { ticketId: ticketId },
+        { serial: ticketId }
+      ]
+    }).lean();
+
+    if (!ticket) {
+      return res.send("Ticket introuvable");
+    }
+
+    const jeux = Array.isArray(ticket.jeux) ? ticket.jeux : [];
+
+    const dateTime =
+      ticket.createdAtLabel ||
+      ((ticket.dateLabel || "") +
+      (ticket.timeLabel ? " " + ticket.timeLabel : ""));
+
+    const lignes = jeux.map((j) => {
+      const gain = Number(j.gain || 0);
+
+      return "<tr>" +
+        "<td>" + (j.loterie || "") + "</td>" +
+        "<td>" + (j.type || "") + "</td>" +
+        "<td>" +
+          (j.numero || "") +
+          (gain > 0
+            ? " <span class='gain'>+" +
+              formatAmount(gain) +
+              "</span>"
+            : "") +
+        "</td>" +
+        "<td>" + formatAmount(j.montant || j.monto || j.amount || 0) + "</td>" +
+      "</tr>";
+    }).join("");
+
+    res.send(
+      "<html>" +
+
+      "<head>" +
+      "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
+
+      "<style>" +
+
+      "body{" +
+      "font-family:Arial;" +
+      "background:#1c2037;" +
+      "color:white;" +
+      "padding:14px" +
+      "}" +
+
+      "a,a:visited,a:hover,a:active{" +
+      "color:white!important;" +
+      "text-decoration:none!important" +
+      "}" +
+
+      ".card{" +
+      "background:#2a2f4a;" +
+      "border-radius:14px;" +
+      "padding:16px" +
+      "}" +
+
+      "table{" +
+      "width:100%;" +
+      "border-collapse:collapse;" +
+      "margin-top:12px" +
+      "}" +
+
+      "th,td{" +
+      "padding:10px;" +
+      "border-bottom:1px solid #444;" +
+      "text-align:left" +
+      "}" +
+
+      ".gain{" +
+      "background:#00ff66;" +
+      "color:#003b12;" +
+      "padding:4px 10px;" +
+      "border-radius:10px;" +
+      "font-weight:900;" +
+      "font-size:15px;" +
+      "display:inline-block;" +
+      "margin-left:6px" +
+      "}" +
+
+      ".premio-total{" +
+      "color:#00ff66;" +
+      "font-weight:900;" +
+      "font-size:30px;" +
+      "text-shadow:0 0 10px rgba(0,255,102,0.7)" +
+      "}" +
+
+      "button{" +
+      "width:100%;" +
+      "height:48px;" +
+      "border:0;" +
+      "border-radius:10px;" +
+      "margin-top:14px;" +
+      "font-size:17px;" +
+      "font-weight:700" +
+      "}" +
+
+      ".red{" +
+      "background:#ff5555;" +
+      "color:white" +
+      "}" +
+
+      ".gray{" +
+      "background:#444b70;" +
+      "color:white" +
+      "}" +
+
+      "</style>" +
+      "</head>" +
+
+      "<body>" +
+
+      "<div class='card'>" +
+
+      "<h2>Ticket " + ticket.id + "</h2>" +
+
+      "<div><b>Vendeur:</b> " +
+      (ticket.vendeurNom || ticket.vendeur || "") +
+      "</div>" +
+
+      "<div><b>Date:</b> " +
+      dateTime +
+      "</div>" +
+
+      "<div><b>Total:</b> " +
+      formatAmount(ticket.total || 0) +
+      "</div>" +
+
+      "<div><b>Total jwe:</b> " +
+      jeux.length +
+      "</div>" +
+
+      "<div style='margin-top:8px'>" +
+      "<b>Premio:</b> " +
+      "<span class='premio-total'>" +
+      (ticket.premioLabel || formatAmount(ticket.premio || 0)) +
+      "</span>" +
+      "</div>" +
+
+      "<table>" +
+
+      "<thead>" +
+      "<tr>" +
+      "<th>Loteria</th>" +
+      "<th>Jugada</th>" +
+      "<th>Numero</th>" +
+      "<th>Monto</th>" +
+      "</tr>" +
+      "</thead>" +
+
+      "<tbody>" +
+      lignes +
+      "</tbody>" +
+
+      "</table>" +
+
+      "<form method='POST' action='/master/ticket/" +
+      encodeURIComponent(ticket.id) +
+      "/anile'>" +
+
+      "<button class='red' type='submit'>" +
+      "ANILE TICKET" +
+      "</button>" +
+
+      "</form>" +
+
+      "<button class='gray' onclick='window.close()'>" +
+      "TOUNEN" +
+      "</button>" +
+
+      "</div>" +
+      "</body>" +
+      "</html>"
+    );
+
+  } catch (err) {
+    console.error("Erreur master ticket:", err);
+    res.send("Erreur serveur");
+  }
+});
 
 router.post("/master/ticket/:id/anile", async (req, res) => {
   const ticketId = String(req.params.id || "").trim();
@@ -927,71 +1273,259 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
   `);
 });
 
+function normalizeText(v) {
+  return String(v || "").trim().toUpperCase();
+}
 
-router.get("/api/sorteos", (req, res) => {
+function isWinningGame(j, result) {
+  const type = normalizeText(j.type);
+  const played = normalizeText(j.numero).replace(/\s+/g, "");
+
+  const tet = normalizeText(result.r1);
+  const lo1 = normalizeText(result.r2);
+  const lo2 = normalizeText(result.r3);
+  const lo3 = normalizeText(result.r4);
+
+  if (!played) return false;
+
+  if (type === "BOR" || type === "BORLETTE") {
+    return [tet, lo1, lo2, lo3].includes(played);
+  }
+
+  if (type === "L3" || type === "LOTO3") {
+    return (tet + lo1) === played;
+  }
+
+  if (type === "MAR" || type === "MARIAGE") {
+    const playedParts = played.split("*").map(normalizeText).sort().join("*");
+
+    const combos = [
+      [tet, lo1],
+      [tet, lo2],
+      [tet, lo3],
+      [lo1, lo2],
+      [lo1, lo3],
+      [lo2, lo3]
+    ].map(x => x.sort().join("*"));
+
+    return combos.includes(playedParts);
+  }
+
+  return false;
+}
+
+async function runCheckTickets(date, loteries = []) {
+
+  const tickets = await Ticket.find({
+    status: { $ne: "ANILE" },
+    dateLabel: String(date || "").trim(),
+    tirages: {
+      $in: loteries.map(l =>
+        String(l || "").trim().toUpperCase()
+      )
+    }
+  });
+
+  let checked = 0;
+
+  for (const ticket of tickets) {
+
+    if (String(ticket.status || "").trim().toUpperCase() === "ANILE") {
+      continue;
+    }
+
+    let hasResult = false;
+    let isWinner = false;
+    let totalPremio = 0;
+
+    const vendor = await Vendor.findOne({
+      id: String(ticket.vendeur || "").trim().toUpperCase()
+    }).lean();
+
+    const vendorConfig = vendor || {};
+
+    for (const jeu of ticket.jeux || []) {
+
+      jeu.gain = 0;
+
+      const loteria = String(jeu.loterie || "").trim().toUpperCase();
+
+      const tirage = await Sorteo.findOne({
+        date: String(date || "").trim(),
+        loteria: {
+          $regex:
+            "^" +
+            loteria.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") +
+            "$",
+          $options: "i"
+        }
+      }).lean();
+
+      if (!tirage) continue;
+
+      const hasBalls =
+        String(tirage.r1 || "").trim() ||
+        String(tirage.r2 || "").trim() ||
+        String(tirage.r3 || "").trim() ||
+        String(tirage.r4 || "").trim();
+
+      if (!hasBalls) continue;
+
+      hasResult = true;
+
+      const gain = getGainAdmin(jeu, tirage, vendorConfig);
+
+      if (gain > 0) {
+        jeu.gain = gain;
+        isWinner = true;
+        totalPremio += gain;
+      }
+    }
+
+    ticket.status =
+      !hasResult
+        ? "ANATAN"
+        : (isWinner ? "GANYE" : "PEDI");
+
+    ticket.premio = isWinner ? totalPremio : 0;
+
+    ticket.updatedAt = new Date();
+
+    await Ticket.updateOne(
+      { _id: ticket._id },
+      {
+        $set: {
+          jeux: ticket.jeux,
+          status: ticket.status,
+          premio: ticket.premio,
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    checked++;
+  }
+
+  console.log("✅ Tickets vérifiés:", checked);
+}
+
+router.get("/api/sorteos", async (req, res) => {
   try {
-    res.json(readSorteosObject());
+    const rows = await Sorteo.find().lean();
+
+    const obj = {};
+
+    rows.forEach(r => {
+      const date = String(r.date || "").trim();
+      const loteria = String(r.loteria || "").trim().toUpperCase();
+
+      if (!date || !loteria) return;
+
+      if (!obj[date]) obj[date] = {};
+
+      obj[date][loteria] = {
+        r1: r.r1 || "",
+        r2: r.r2 || "",
+        r3: r.r3 || "",
+        r4: r.r4 || "",
+        updatedAt: r.updatedAt || ""
+      };
+    });
+
+    res.json(obj);
   } catch (err) {
-    console.error("Erreur get sorteos :", err);
+    console.error("Erreur get sorteos Mongo:", err);
     res.status(500).json({});
   }
 });
 
-router.post("/api/sorteos/save", (req, res) => {
+router.post("/api/sorteos/save", async (req, res) => {
   try {
     const body = req.body || {};
-    const date = String(body.date || "").trim();
+    const rawDate = String(body.date || "").trim();
     const rows = Array.isArray(body.rows) ? body.rows : [];
+
+    function toFRDate(value) {
+      if (!value) return "";
+
+      const s = String(value).trim();
+
+      // 2026-05-02 -> 02/05/2026
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const p = s.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
+
+      // si li deja 02/05/2026
+      return s;
+    }
+
+    const date = toFRDate(rawDate);
 
     if (!date) {
       return res.status(400).json({ ok: false, message: "Date obligatoire" });
     }
 
-    const sorteos = readSorteosObject();
+    for (const r of rows) {
+      const loteria = String(r.loteria || "").trim().toUpperCase();
+      if (!loteria) continue;
 
-    if (!sorteos[date]) {
-      sorteos[date] = {};
+      await Sorteo.findOneAndUpdate(
+        { date: date, loteria: loteria },
+        {
+          $set: {
+            date: date,
+            loteria: loteria,
+            r1: String(r.r1 || "").trim(),
+            r2: String(r.r2 || "").trim(),
+            r3: String(r.r3 || "").trim(),
+            r4: String(r.r4 || "").trim()
+          }
+        },
+        { upsert: true, new: true }
+      );
     }
 
-    rows.forEach((r) => {
-      const loteria = String(r.loteria || "").trim();
-      const r1 = String(r.r1 || "").trim();
-      const r2 = String(r.r2 || "").trim();
+await runCheckTickets(
+  date,
+  rows.map(r => String(r.loteria || "").trim().toUpperCase())
+);
 
-      if (!loteria) return;
+    res.json({ ok: true, date: date });
 
-      sorteos[date][loteria] = {
-        r1,
-        r2,
-        updatedAt: new Date().toISOString()
-      };
-    });
-
-    writeSorteosObject(sorteos);
-
-    res.json({ ok: true, sorteos: sorteos[date] });
   } catch (err) {
-    console.error("Erreur save sorteos :", err);
-    res.status(500).json({ ok: false, message: "Erreur save sorteos" });
+    console.error("Erreur save sorteos Mongo:", err);
+    res.status(500).json({ ok: false, message: err.message });
   }
 });
 
-router.delete("/api/sorteos/:date/:loteria", (req, res) => {
+
+
+router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
   try {
-    const date = String(req.params.date || "").trim();
-    const loteria = String(req.params.loteria || "").trim();
+    function toFRDate(value) {
+      if (!value) return "";
 
-    const sorteos = readSorteosObject();
+      const s = String(value).trim();
 
-    if (sorteos[date] && sorteos[date][loteria]) {
-      delete sorteos[date][loteria];
+      // 2026-05-02 → 02/05/2026
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const p = s.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
+
+      return s;
     }
 
-    writeSorteosObject(sorteos);
+    const date = toFRDate(req.params.date);
+    const loteria = String(req.params.loteria || "").trim().toUpperCase();
+
+    await Sorteo.deleteOne({ date, loteria });
 
     res.json({ ok: true });
+
   } catch (err) {
-    console.error("Erreur delete sorteos :", err);
+    console.error("Erreur delete sorteos Mongo:", err);
     res.status(500).json({ ok: false, message: "Erreur delete sorteos" });
   }
 });
@@ -2317,15 +2851,21 @@ const gruposList = [
 
 const loteriasList = [
   "TODAS",
+
   "TENNESSE MORNING",
   "TEXAS MORNING",
+
   "GEORGIA MIDDAY",
-  "TENNESSE MIDDAY",
   "FLORIDA MIDDAY",
   "NEW YORK MIDDAY",
+
+  "TEXAS EVENING",
+  "GEORGIA EVENING",
+  "TENNESSE EVENING",
   "FLORIDA EVENING",
   "NEW YORK EVENING",
-  "GEORGIA EVENING"
+
+  "GEORGIA NIGHT"
 ];
 
 function safe(v){
@@ -2675,7 +3215,7 @@ function renderTicketsReport(){
       '<td>' + safe(t.vendeurNom || t.vendeur) + '</td>' +
       '<td>' + (Array.isArray(t.jeux) ? t.jeux.length : 0) + '</td>' +
       '<td>' + formatAmount(t.total) + '</td>' +
-      '<td>' + formatAmount(t.premio) + '</td>' +
+      '<td>' + (t.premioLabel || formatAmount(t.premio || 0)) + '</td>' +
       '<td style="text-align:center;">' + getStatusIcon(t.status || "ANATAN") + '</td>' +
      '<td><a class="mini-btn" href="/master/ticket/' + encodeURIComponent(t.id) + '" target="_blank">🔍</a></td>' +
     '</tr>';
@@ -2701,24 +3241,52 @@ function renderSorteosPage(){
   var dateInput = byId("sorteosDate");
   if(!box || !dateInput) return;
 
+  function toFRDate(value){
+    if(!value) return "";
+    var s = String(value).trim();
+
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+      var p = s.split("-");
+      return p[2] + "/" + p[1] + "/" + p[0];
+    }
+
+    return s;
+  }
+
   var date = dateInput.value || todayISO();
   dateInput.value = date;
 
-  var saved = sorteosData[date] || {};
+  var dateKey = toFRDate(date);
+  var saved = sorteosData[dateKey] || {};
+
+  var list = [
+    "TENNESSE MORNING",
+    "TEXAS MORNING",
+    "GEORGIA MIDDAY",
+    "FLORIDA MIDDAY",
+    "NEW YORK MIDDAY",
+    "TEXAS EVENING",
+    "GEORGIA EVENING",
+    "TENNESSE EVENING",
+    "FLORIDA EVENING",
+    "NEW YORK EVENING",
+    "GEORGIA NIGHT"
+  ];
 
   var html = "";
 
-  loteriasList.forEach(function(l){
-    if(l === "TODAS") return;
-
-    var r = saved[l] || {};
+  list.forEach(function(l){
+    var key = String(l).trim().toUpperCase();
+    var r = saved[key] || {};
 
     html += ''
-      + '<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr 52px;gap:10px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
-      + '<div style="font-size:16px;color:#d7dcef;">' + safe(l) + '</div>'
-      + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:20px;">'
-      + '<input class="field-input sorteos-input" data-loteria="' + safe(l) + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:20px;">'
-      + '<button class="sorteos-delete-btn" data-loteria="' + safe(l) + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#d7dcef;font-size:24px;">🗑</button>'
+      + '<div style="display:grid;grid-template-columns:1.2fr .7fr .7fr .7fr .7fr 52px;gap:8px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
+      + '<div style="font-size:16px;color:#d7dcef;">' + key + '</div>'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r3" value="' + safe(r.r3 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r4" value="' + safe(r.r4 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<button class="sorteos-delete-btn" data-loteria="' + key + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#d7dcef;font-size:24px;">🗑</button>'
       + '</div>';
   });
 
@@ -2726,40 +3294,45 @@ function renderSorteosPage(){
 }
 
 async function saveSorteos(){
-  var date = getValue("sorteosDate") || todayISO();
-  var rowsMap = {};
-
-  document.querySelectorAll(".sorteos-input").forEach(function(input){
-    var loteria = input.getAttribute("data-loteria");
-    var field = input.getAttribute("data-field");
-
-    if(!rowsMap[loteria]){
-      rowsMap[loteria] = { loteria:loteria, r1:"", r2:"" };
+  try{
+    var dateInput = byId("sorteosDate");
+    if(!dateInput){
+      alert("Date pa jwenn");
+      return;
     }
 
-    rowsMap[loteria][field] = input.value.trim();
-  });
+    var date = dateInput.value;
+    var rows = [];
 
-  var rows = Object.keys(rowsMap).map(function(k){
-    return rowsMap[k];
-  });
+    document.querySelectorAll(".sorteos-input").forEach(function(input){
+      var loteria = input.getAttribute("data-loteria");
+      var field = input.getAttribute("data-field");
+      var value = String(input.value || "").trim();
 
-  try{
+      var row = rows.find(r => r.loteria === loteria);
+      if(!row){
+        row = { loteria: loteria, r1:"", r2:"", r3:"", r4:"" };
+        rows.push(row);
+      }
+
+      row[field] = value;
+    });
+
     var res = await fetch("/api/sorteos/save", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ date:date, rows:rows })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: date, rows: rows })
     });
 
     var data = await res.json();
 
     if(!res.ok){
-      alert(data.message || "Erreur save sorteos");
+      alert(data.message || "Erreur save");
       return;
     }
 
-    alert("Sorteos guardado ✔");
-    await loadSorteos();
+
+    alert("Sorteos sauvegardé ✔");
 
   }catch(err){
     console.error(err);
@@ -4146,6 +4719,7 @@ async function deleteMovimiento(vendorId, movimientoId){
     await loadVendorsFromServer();
     await loadVentasReport();
     await loadBalanceReport();
+    renderTransactionsTable();
 
     alert("Transaction supprimée ✔");
   }catch(err){

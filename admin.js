@@ -3443,10 +3443,8 @@ function goPage(page){
 
   setValue("fechaInicio", today);
   setValue("fechaFin", today);
-
   setValue("transactionStart", today);
   setValue("transactionEnd", today);
-
   setValue("balanceFecha", today);
 
   const ventasPage = byId("ventasPage");
@@ -3455,7 +3453,7 @@ function goPage(page){
   const editorPage = byId("vendorEditorPage");
   const balancePage = byId("balanceVendorPage");
   const transactionsPage = byId("transactionsPage");
-const sorteosPage = byId("sorteosPage");
+  const sorteosPage = byId("sorteosPage");
 
   if(ventasPage) ventasPage.classList.add("hidden");
   if(ticketsPage) ticketsPage.classList.add("hidden");
@@ -3463,7 +3461,7 @@ const sorteosPage = byId("sorteosPage");
   if(editorPage) editorPage.classList.add("hidden");
   if(balancePage) balancePage.classList.add("hidden");
   if(transactionsPage) transactionsPage.classList.add("hidden");
-if(sorteosPage) sorteosPage.classList.add("hidden");
+  if(sorteosPage) sorteosPage.classList.add("hidden");
 
   if(page === "ventas"){
     if(ventasPage) ventasPage.classList.remove("hidden");
@@ -3490,11 +3488,9 @@ if(sorteosPage) sorteosPage.classList.add("hidden");
     loadTicketsReport();
 
   }else if(page === "sorteos"){
-  if(sorteosPage) sorteosPage.classList.remove("hidden");
-  loadSorteos();
-}
+    if(sorteosPage) sorteosPage.classList.remove("hidden");
+    loadSorteos();
 
-  
   }else if(page === "vendors"){
     if(vendorsPage) vendorsPage.classList.remove("hidden");
     renderVendorTable();

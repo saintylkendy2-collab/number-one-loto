@@ -1413,30 +1413,27 @@ router.get("/api/sorteos", async (req, res) => {
   try {
     const rows = await Sorteo.find().lean();
 
-    const data = {};
+    const obj = {};
 
-    for (const r of rows) {
+    rows.forEach(r => {
       const date = String(r.date || "").trim();
       const loteria = String(r.loteria || "").trim().toUpperCase();
 
-      if (!date || !loteria) continue;
+      if (!date || !loteria) return;
 
-      if (!data[date]) {
-        data[date] = {};
-      }
+      if (!obj[date]) obj[date] = {};
 
-      data[date][loteria] = {
-        r1: String(r.r1 || ""),
-        r2: String(r.r2 || ""),
-        r3: String(r.r3 || ""),
-        r4: String(r.r4 || "")
+      obj[date][loteria] = {
+        r1: r.r1 || "",
+        r2: r.r2 || "",
+        r3: r.r3 || "",
+        r4: r.r4 || ""
       };
-    }
+    });
 
-    res.json(data);
-
+    res.json(obj);
   } catch (err) {
-    console.error("Erreur get sorteos:", err);
+    console.error("Erreur get sorteos Mongo:", err);
     res.status(500).json({});
   }
 });
@@ -3434,7 +3431,11 @@ if(sorteosPage) sorteosPage.classList.add("hidden");
 
     }else if(page === "sorteos"){
   if(sorteosPage) sorteosPage.classList.remove("hidden");
-  setValue("sorteosDate", todayISO());
+
+  if(!getValue("sorteosDate")){
+    setValue("sorteosDate", todayISO());
+  }
+
   loadSorteos();
 
   }else if(page === "vendors"){

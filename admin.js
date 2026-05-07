@@ -3212,6 +3212,7 @@ function renderTicketsReport(){
 }
 
 var sorteosData = {};
+var sorteosLoaded = false;
 
 async function loadSorteos(){
   try{
@@ -3466,10 +3467,13 @@ if(sorteosPage) sorteosPage.classList.add("hidden");
     if(ticketsPage) ticketsPage.classList.remove("hidden");
     loadTicketsReport();
 
-    }else if(page === "sorteos"){
+   }else if(page === "sorteos"){
   if(sorteosPage) sorteosPage.classList.remove("hidden");
-  setValue("sorteosDate", todayISO());
-  loadSorteos();
+
+  if(!sorteosLoaded){
+    loadSorteos();
+    sorteosLoaded = true;
+  }
 
   }else if(page === "vendors"){
     if(vendorsPage) vendorsPage.classList.remove("hidden");

@@ -3244,10 +3244,10 @@ function renderSorteosPage(){
   }
 
   var date = dateInput.value || todayISO();
-  dateInput.value = date;
+dateInput.value = date;
 
-  var dateKey = toFRDate(date);
-  var saved = sorteosData[dateKey] || {};
+var dateKey = toFRDate(date);
+var saved = sorteosData[dateKey] || {};
 
   var list = [
     "TENNESSE MORNING",
@@ -4682,7 +4682,7 @@ const transactionEnd = byId("transactionEnd");
 const sorteosDate = byId("sorteosDate");
 if(sorteosDate){
   sorteosDate.addEventListener("change", function(){
-    loadSorteos();
+    renderSorteosPage();
   });
 }
 

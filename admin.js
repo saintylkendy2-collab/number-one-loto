@@ -3029,7 +3029,6 @@ function loginMaster() {
     loadVendorsFromServer();
     loadVentasReport();
     loadBalanceReport();
-    sorteosLoaded = false;
     goPage("ventas");
   } else {
     alert("Login incorrect");
@@ -3213,34 +3212,12 @@ function renderTicketsReport(){
 }
 
 var sorteosData = {};
-var sorteosLoaded = false;
 
 async function loadSorteos(){
   try{
     var res = await fetch("/api/sorteos?reload=" + Date.now());
     sorteosData = await res.json();
-
-    var dateInput = byId("sorteosDate");
-
-    if(dateInput && !dateInput.value){
-      var dates = Object.keys(sorteosData || {});
-      if(dates.length){
-        dates.sort(function(a,b){
-          var pa = a.split("/");
-          var pb = b.split("/");
-          var da = pa[2] + "-" + pa[1] + "-" + pa[0];
-          var db = pb[2] + "-" + pb[1] + "-" + pb[0];
-          return da.localeCompare(db);
-        });
-
-        var lastDate = dates[dates.length - 1];
-        var p = lastDate.split("/");
-        dateInput.value = p[2] + "-" + p[1] + "-" + p[0];
-      }
-    }
-
     renderSorteosPage();
-
   }catch(err){
     console.error(err);
     sorteosData = {};
@@ -3266,10 +3243,10 @@ function renderSorteosPage(){
   }
 
   var date = dateInput.value || todayISO();
-dateInput.value = date;
+  dateInput.value = date;
 
-var dateKey = toFRDate(date);
-var saved = sorteosData[dateKey] || {};
+  var dateKey = toFRDate(date);
+  var saved = sorteosData[dateKey] || {};
 
   var list = [
     "TENNESSE MORNING",
@@ -3354,31 +3331,31 @@ async function saveSorteoLine(loteria){
   }
 
   function toFRDate(value){
-    if(!value) return "";
-    var s = String(value).trim();
+  if(!value) return "";
+  var s = String(value).trim();
 
-    if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
-      var p = s.split("-");
-      return p[2] + "/" + p[1] + "/" + p[0];
-    }
-
-    return s;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+    var p = s.split("-");
+    return p[2] + "/" + p[1] + "/" + p[0];
   }
 
-  var dateKey = toFRDate(date);
+  return s;
+}
 
-  if(!sorteosData[dateKey]){
-    sorteosData[dateKey] = {};
-  }
+var dateKey = toFRDate(date);
 
-  sorteosData[dateKey][loteria] = {
-    r1: row.r1,
-    r2: row.r2,
-    r3: row.r3,
-    r4: row.r4
-  };
+if(!sorteosData[dateKey]){
+  sorteosData[dateKey] = {};
+}
 
-  renderSorteosPage();
+sorteosData[dateKey][loteria] = {
+  r1: row.r1,
+  r2: row.r2,
+  r3: row.r3,
+  r4: row.r4
+};
+
+renderSorteosPage();
 }
 
 document.addEventListener("click", function(e){
@@ -3443,8 +3420,10 @@ function goPage(page){
 
   setValue("fechaInicio", today);
   setValue("fechaFin", today);
+
   setValue("transactionStart", today);
   setValue("transactionEnd", today);
+
   setValue("balanceFecha", today);
 
   const ventasPage = byId("ventasPage");
@@ -3453,7 +3432,7 @@ function goPage(page){
   const editorPage = byId("vendorEditorPage");
   const balancePage = byId("balanceVendorPage");
   const transactionsPage = byId("transactionsPage");
-  const sorteosPage = byId("sorteosPage");
+const sorteosPage = byId("sorteosPage");
 
   if(ventasPage) ventasPage.classList.add("hidden");
   if(ticketsPage) ticketsPage.classList.add("hidden");
@@ -3461,7 +3440,7 @@ function goPage(page){
   if(editorPage) editorPage.classList.add("hidden");
   if(balancePage) balancePage.classList.add("hidden");
   if(transactionsPage) transactionsPage.classList.add("hidden");
-  if(sorteosPage) sorteosPage.classList.add("hidden");
+if(sorteosPage) sorteosPage.classList.add("hidden");
 
   if(page === "ventas"){
     if(ventasPage) ventasPage.classList.remove("hidden");
@@ -3487,9 +3466,10 @@ function goPage(page){
     if(ticketsPage) ticketsPage.classList.remove("hidden");
     loadTicketsReport();
 
-  }else if(page === "sorteos"){
-    if(sorteosPage) sorteosPage.classList.remove("hidden");
-    loadSorteos();
+    }else if(page === "sorteos"){
+  if(sorteosPage) sorteosPage.classList.remove("hidden");
+  setValue("sorteosDate", todayISO());
+  loadSorteos();
 
   }else if(page === "vendors"){
     if(vendorsPage) vendorsPage.classList.remove("hidden");
@@ -4690,11 +4670,7 @@ const transactionStart = byId("transactionStart");
 const transactionEnd = byId("transactionEnd");
 
 const sorteosDate = byId("sorteosDate");
-if(sorteosDate){
-  sorteosDate.addEventListener("change", function(){
-    renderSorteosPage();
-  });
-}
+if(sorteosDate) sorteosDate.addEventListener("change", loadSorteos);
 
 if(transactionGrupoFilter) transactionGrupoFilter.addEventListener("change", renderTransactionsTable);
 if(transactionVendorFilter) transactionVendorFilter.addEventListener("change", renderTransactionsTable);

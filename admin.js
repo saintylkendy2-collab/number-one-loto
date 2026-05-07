@@ -3212,7 +3212,7 @@ function renderTicketsReport(){
 }
 
 var sorteosData = {};
-var sorteosLoaded = false;
+
 
 async function loadSorteos(){
   try{

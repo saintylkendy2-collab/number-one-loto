@@ -3470,9 +3470,15 @@ if(sorteosPage) sorteosPage.classList.add("hidden");
   }else if(page === "sorteos"){
   if(sorteosPage) sorteosPage.classList.remove("hidden");
 
+  if(!getValue("sorteosDate")){
+    setValue("sorteosDate", todayISO());
+  }
+
   if(!sorteosLoaded){
     loadSorteos();
     sorteosLoaded = true;
+  }else{
+    renderSorteosPage();
   }
 
   }else if(page === "vendors"){

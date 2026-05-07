@@ -3494,13 +3494,7 @@ if(sorteosPage) sorteosPage.classList.add("hidden");
   loadSorteos();
 }
 
-  if(!sorteosLoaded){
-    loadSorteos();
-    sorteosLoaded = true;
-  }else{
-    renderSorteosPage();
-  }
-
+  
   }else if(page === "vendors"){
     if(vendorsPage) vendorsPage.classList.remove("hidden");
     renderVendorTable();

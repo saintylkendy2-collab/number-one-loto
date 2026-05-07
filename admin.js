@@ -1412,24 +1412,28 @@ async function runCheckTickets(date, loteries = []) {
 router.get("/api/sorteos", async (req, res) => {
   try {
     const rows = await Sorteo.find().lean();
-
     const obj = {};
 
     rows.forEach(r => {
-      const date = String(r.date || "").trim();
+      const frDate = toFRDate(r.date);
+      const isoDate = toISODate(r.date);
       const loteria = String(r.loteria || "").trim().toUpperCase();
 
-      if (!date || !loteria) return;
+      if (!frDate || !loteria) return;
 
-      if (!obj[date]) obj[date] = {};
+      if (!obj[frDate]) obj[frDate] = {};
+      if (!obj[isoDate]) obj[isoDate] = {};
 
-      obj[date][loteria] = {
+      const data = {
         r1: r.r1 || "",
         r2: r.r2 || "",
         r3: r.r3 || "",
         r4: r.r4 || "",
         updatedAt: r.updatedAt || ""
       };
+
+      obj[frDate][loteria] = data;
+      obj[isoDate][loteria] = data;
     });
 
     res.json(obj);
@@ -1438,6 +1442,34 @@ router.get("/api/sorteos", async (req, res) => {
     res.status(500).json({});
   }
 });
+
+function toFRDate(value) {
+  if (!value) return "";
+
+  const s = String(value).trim();
+
+  // 2026-05-07 -> 07/05/2026
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const p = s.split("-");
+    return p[2] + "/" + p[1] + "/" + p[0];
+  }
+
+  return s;
+}
+
+function toISODate(value) {
+  if (!value) return "";
+
+  const s = String(value).trim();
+
+  // 07/05/2026 -> 2026-05-07
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+    const p = s.split("/");
+    return p[2] + "-" + p[1] + "-" + p[0];
+  }
+
+  return s;
+}
 
 router.post("/api/sorteos/save", async (req, res) => {
   try {
@@ -3246,7 +3278,7 @@ function renderSorteosPage(){
   dateInput.value = date;
 
   var dateKey = toFRDate(date);
-  var saved = sorteosData[dateKey] || {};
+  var saved = sorteosData[dateKey] || sorteosData[date] || {};
 
   var list = [
     "TENNESSE MORNING",

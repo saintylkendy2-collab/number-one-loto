@@ -3211,6 +3211,8 @@ function renderSorteosPage(){
   var dateInput = byId("sorteosDate");
   if(!box || !dateInput) return;
 
+  dateInput.onchange = renderSorteosPage;
+
   function toFRDate(value){
     if(!value) return "";
     var s = String(value).trim();
@@ -3301,6 +3303,7 @@ async function saveSorteos(){
       return;
     }
 
+    await loadSorteos();
 
     alert("Sorteos sauvegardé ✔");
 

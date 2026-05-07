@@ -3218,8 +3218,19 @@ var sorteosLoaded = false;
 async function loadSorteos(){
   try{
     var res = await fetch("/api/sorteos?reload=" + Date.now());
-    sorteosData = await res.json();
-    renderSorteosPage();
+   sorteosData = await res.json();
+
+var dates = Object.keys(sorteosData || {});
+
+if(dates.length){
+  dates.sort();
+
+  var lastDate = dates[dates.length - 1];
+
+  setValue("sorteosDate", toISODate(lastDate));
+}
+
+renderSorteosPage(); 
   }catch(err){
     console.error(err);
     sorteosData = {};

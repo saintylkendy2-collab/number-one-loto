@@ -2407,18 +2407,7 @@ tbody tr:nth-child(even){background:#313652;}
 
     <div id="sorteosRows"></div>
 
-    <button onclick="saveSorteos()" style="
-      width:100%;
-      height:56px;
-      margin-top:18px;
-      border:0;
-      border-radius:12px;
-      background:linear-gradient(90deg,#6c6cff,#7a5cff);
-      color:white;
-      font-size:20px;
-      font-weight:800;">
-      SAVE
-    </button>
+
   </div>
 </div>
 
@@ -3279,6 +3268,15 @@ function renderSorteosPage(){
     var key = String(l).trim().toUpperCase();
     var r = saved[key] || {};
 
+    var hasBalls =
+      String(r.r1 || "").trim() ||
+      String(r.r2 || "").trim() ||
+      String(r.r3 || "").trim() ||
+      String(r.r4 || "").trim();
+
+    var btnIcon = hasBalls ? "🗑" : "💾";
+    var btnClass = hasBalls ? "sorteos-delete-btn" : "sorteos-save-btn";
+
     html += ''
       + '<div style="display:grid;grid-template-columns:1.2fr .7fr .7fr .7fr .7fr 52px;gap:8px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
       + '<div style="font-size:16px;color:#d7dcef;">' + key + '</div>'
@@ -3286,59 +3284,72 @@ function renderSorteosPage(){
       + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:18px;">'
       + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r3" value="' + safe(r.r3 || "") + '" style="text-align:center;font-size:18px;">'
       + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r4" value="' + safe(r.r4 || "") + '" style="text-align:center;font-size:18px;">'
-      + '<button class="sorteos-delete-btn" data-loteria="' + key + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#d7dcef;font-size:24px;">🗑</button>'
+      + '<button class="' + btnClass + '" data-loteria="' + key + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#7b72ff;font-size:24px;">' + btnIcon + '</button>'
       + '</div>';
   });
 
   box.innerHTML = html;
 }
 
-async function saveSorteos(){
-  try{
-    var dateInput = byId("sorteosDate");
-    if(!dateInput){
-      alert("Date pa jwenn");
-      return;
-    }
+async function saveSorteoLine(loteria){
+  var date = getValue("sorteosDate") || todayISO();
 
-    var date = dateInput.value;
-    var rows = [];
+  var row = {
+    loteria: loteria,
+    r1: "",
+    r2: "",
+    r3: "",
+    r4: ""
+  };
 
-    document.querySelectorAll(".sorteos-input").forEach(function(input){
-      var loteria = input.getAttribute("data-loteria");
-      var field = input.getAttribute("data-field");
-      var value = String(input.value || "").trim();
+  document.querySelectorAll('.sorteos-input[data-loteria="' + loteria + '"]').forEach(function(input){
+    var field = input.getAttribute("data-field");
+    row[field] = String(input.value || "").trim();
+  });
 
-      var row = rows.find(r => r.loteria === loteria);
-      if(!row){
-        row = { loteria: loteria, r1:"", r2:"", r3:"", r4:"" };
-        rows.push(row);
-      }
+  var hasBalls = row.r1 || row.r2 || row.r3 || row.r4;
 
-      row[field] = value;
-    });
-
-    var res = await fetch("/api/sorteos/save", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date: date, rows: rows })
-    });
-
-    var data = await res.json();
-
-    if(!res.ok){
-      alert(data.message || "Erreur save");
-      return;
-    }
-
-
-    alert("Sorteos sauvegardé ✔");
-
-  }catch(err){
-    console.error(err);
-    alert("Erreur save sorteos");
+  if(!hasBalls){
+    alert("Mete boul avan ou save");
+    return;
   }
+
+  var res = await fetch("/api/sorteos/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      date: date,
+      rows: [row]
+    })
+  });
+
+  var data = await res.json();
+
+  if(!res.ok){
+    alert(data.message || "Erreur save");
+    return;
+  }
+
+  await loadSorteos();
 }
+
+document.addEventListener("click", function(e){
+  var saveBtn = e.target.closest(".sorteos-save-btn");
+  if(saveBtn){
+    e.preventDefault();
+    e.stopPropagation();
+    saveSorteoLine(saveBtn.getAttribute("data-loteria"));
+    return;
+  }
+
+  var deleteBtn = e.target.closest(".sorteos-delete-btn");
+  if(deleteBtn){
+    e.preventDefault();
+    e.stopPropagation();
+    deleteSorteo(deleteBtn.getAttribute("data-loteria"));
+    return;
+  }
+});
 
 async function deleteSorteo(loteria){
   var date = getValue("sorteosDate") || todayISO();

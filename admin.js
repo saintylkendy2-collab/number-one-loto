@@ -3491,10 +3491,8 @@ if(sorteosPage) sorteosPage.classList.add("hidden");
 
   }else if(page === "sorteos"){
   if(sorteosPage) sorteosPage.classList.remove("hidden");
-
-  if(!getValue("sorteosDate")){
-    setValue("sorteosDate", todayISO());
-  }
+  loadSorteos();
+}
 
   if(!sorteosLoaded){
     loadSorteos();

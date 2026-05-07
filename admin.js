@@ -1317,8 +1317,10 @@ function isWinningGame(j, result) {
 
 async function runCheckTickets() {
   const tickets = await Ticket.find({
-    status: { $ne: "ANILE" }
-  });
+  status: { $ne: "ANILE" },
+  dateLabel: date,
+  tirages: { $in: loteries }
+});
 
   let checked = 0;
 
@@ -1442,7 +1444,7 @@ router.post("/api/sorteos/save", async (req, res) => {
       );
     }
 
-await runCheckTickets();
+await runCheckTickets(date, rows.map(r => String(r.loteria || "").trim().toUpperCase()));
 
     res.json({ ok: true, date: date });
 

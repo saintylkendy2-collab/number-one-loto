@@ -3435,16 +3435,6 @@ async function deleteSorteo(loteria){
   }
 }
 
-document.addEventListener("click", function(e){
-  var btn = e.target.closest(".sorteos-delete-btn");
-  if(!btn) return;
-
-  e.preventDefault();
-  e.stopPropagation();
-
-  deleteSorteo(btn.getAttribute("data-loteria"));
-});
-
 function goPage(page){
   currentPage = page;
 

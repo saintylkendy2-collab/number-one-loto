@@ -3332,31 +3332,31 @@ async function saveSorteoLine(loteria){
   }
 
   function toFRDate(value){
-  if(!value) return "";
-  var s = String(value).trim();
+    if(!value) return "";
+    var s = String(value).trim();
 
-  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
-    var p = s.split("-");
-    return p[2] + "/" + p[1] + "/" + p[0];
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+      var p = s.split("-");
+      return p[2] + "/" + p[1] + "/" + p[0];
+    }
+
+    return s;
   }
 
-  return s;
-}
+  var dateKey = toFRDate(date);
 
-var dateKey = toFRDate(date);
+  if(!sorteosData[dateKey]){
+    sorteosData[dateKey] = {};
+  }
 
-if(!sorteosData[dateKey]){
-  sorteosData[dateKey] = {};
-}
+  sorteosData[dateKey][loteria] = {
+    r1: row.r1,
+    r2: row.r2,
+    r3: row.r3,
+    r4: row.r4
+  };
 
-sorteosData[dateKey][loteria] = {
-  r1: row.r1,
-  r2: row.r2,
-  r3: row.r3,
-  r4: row.r4
-};
-
-renderSorteosPage();
+  renderSorteosPage();
 }
 
 document.addEventListener("click", function(e){

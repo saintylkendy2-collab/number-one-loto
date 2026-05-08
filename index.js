@@ -4639,12 +4639,12 @@ app.get("/print-report", async (req, res) => {
       }
     });
 
-    const rate = parseAmount(
-      vendeur?.comision?.general ??
-      vendeur?.comisionGeneral ??
-      vendeur?.com_general ??
-      0
-    );
+    const rate = money(
+  vendeur?.comision?.general ??
+  vendeur?.comisionGeneral ??
+  vendeur?.com_general ??
+  0
+);
 
     const commission = (vente * rate) / 100;
     const resultat = vente - prix - commission;

@@ -536,7 +536,20 @@ router.get("/api/reportes/ventas", async (req, res) => {
   const rate = getCommissionRate(vendor);
 
   // KOMISYON GROUP
-  const rateGrupo = parseAmount(vendor.comision?.zona || 0);
+  const rateGrupo = parseAmount(
+  vendor.comision?.zona ??
+  vendor.comisionZona ??
+  vendor.com_zona ??
+  0
+);
+
+console.log("COMISION GROUP TEST:", {
+  id,
+  nombre: map[id].nombre,
+  venta: map[id].venta,
+  rateGrupo,
+  comisionZona: vendor.comision?.zona
+});
 
   map[id].comision = (map[id].venta * rate) / 100;
 

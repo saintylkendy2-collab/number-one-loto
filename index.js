@@ -4584,67 +4584,73 @@ setTimeout(function(){
   }
 });
 
-app.get("/print-report", (req, res) => {
-  const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
-  const start = String(req.query.start || "").trim();
-  const end = String(req.query.end || "").trim();
+app.get("/print-report", async (req, res) => {
+  try{
+    const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
+    const start = String(req.query.start || "").trim();
+    const end = String(req.query.end || "").trim();
 
-  const printDate = String(req.query.date || "").trim();
-  const printTime = String(req.query.time || "").trim();
+    const printDate = String(req.query.date || "").trim();
+    const printTime = String(req.query.time || "").trim();
 
-  function formatFRDateInput(iso){
-    if(!iso) return "";
-    const p = String(iso).split("-");
-    if(p.length !== 3) return iso;
-    return p[2] + "/" + p[1] + "/" + p[0];
-  }
+    function formatFRDateInput(iso){
+      if(!iso) return "";
+      const p = String(iso).split("-");
+      if(p.length !== 3) return iso;
+      return p[2] + "/" + p[1] + "/" + p[0];
+    }
 
-  const vendeurs = loadVendeursForLogin();
-  const vendeur = vendeurs[sellerId] || {};
-  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
-
-  const tickets = loadTickets().filter(t =>
-    String(t.vendeur || "").trim().toUpperCase() === sellerId
-  );
-
-  function ticketDay(t){
-    if(t.dateLabel){
-      const p = String(t.dateLabel).split("/");
-      if(p.length === 3){
-        return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+    function ticketDay(t){
+      if(t.dateLabel){
+        const p = String(t.dateLabel).split("/");
+        if(p.length === 3){
+          return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+        }
       }
+
+      const d = new Date(t.createdAt || Date.now());
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2,"0") + "-" +
+        String(d.getDate()).padStart(2,"0");
     }
 
-    const d = new Date(t.createdAt || Date.now());
-    return d.getFullYear() + "-" +
-      String(d.getMonth() + 1).padStart(2,"0") + "-" +
-      String(d.getDate()).padStart(2,"0");
-  }
+    const vendeur = await Vendor.findOne({ id: sellerId }).lean();
+    const sellerName = String(
+      vendeur?.nom || vendeur?.nombre || sellerId || "SELLER"
+    );
 
-  let vente = 0;
-  let prix = 0;
+    const tickets = await Ticket.find({ vendeur: sellerId }).lean();
 
-  tickets.forEach(t => {
-    const d = ticketDay(t);
-    if(start && d < start) return;
-    if(end && d > end) return;
+    let vente = 0;
+    let prix = 0;
 
-    const st = normalizeStatus(t.status);
-    if(st === "ANILE") return;
+    tickets.forEach(t => {
+      const d = ticketDay(t);
+      if(start && d < start) return;
+      if(end && d > end) return;
 
-    vente += Number(t.total || 0);
+      const st = normalizeStatus(t.status);
+      if(st === "ANILE") return;
 
-    if(st === "GANYE"){
-      prix += Number(t.premio || 0);
-    }
-  });
+      vente += parseAmount(t.total);
 
-  const rate = Number(vendeur?.comision?.general || 0);
-  const commission = vente * (rate / 100);
-  const resultat = vente - prix - commission;
+      if(st === "GANYE"){
+        prix += parseAmount(t.premio);
+      }
+    });
 
-  res.set("Content-Type", "text/html; charset=utf-8");
-  res.send(`
+    const rate = parseAmount(
+      vendeur?.comision?.general ??
+      vendeur?.comisionGeneral ??
+      vendeur?.com_general ??
+      0
+    );
+
+    const commission = (vente * rate) / 100;
+    const resultat = vente - prix - commission;
+
+    res.set("Content-Type", "text/html; charset=utf-8");
+    res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -4662,28 +4668,11 @@ body{
   color:#000;
   line-height:1.2;
 }
-.title{
-  text-align:center;
-  font-size:10px;
-  font-weight:700;
-  margin-bottom:3px;
-}
+.title{ text-align:center; font-size:10px; font-weight:700; margin-bottom:3px; }
 .center{text-align:center;}
-.line{
-  border-top:1px dashed #000;
-  margin:4px 0;
-}
-.row{
-  display:grid;
-  grid-template-columns:1fr auto;
-  gap:4px;
-  margin:3px 0;
-}
-.boxline{
-  border-top:1px dashed #000;
-  border-bottom:1px dashed #000;
-  padding:4px 0;
-}
+.line{ border-top:1px dashed #000; margin:4px 0; }
+.row{ display:grid; grid-template-columns:1fr auto; gap:4px; margin:3px 0; }
+.boxline{ border-top:1px dashed #000; border-bottom:1px dashed #000; padding:4px 0; }
 </style>
 </head>
 <body>
@@ -4709,7 +4698,12 @@ setTimeout(function(){
 </script>
 </body>
 </html>
-  `);
+    `);
+
+  }catch(err){
+    console.error("Erreur print-report:", err);
+    res.status(500).send("Erreur rapport");
+  }
 });
 
 app.get("/api/reportes/tickets", async (req, res) => {

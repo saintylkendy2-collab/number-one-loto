@@ -530,37 +530,32 @@ router.get("/api/reportes/ventas", async (req, res) => {
       }
     }
 
-   Object.keys(map).forEach((id) => {
-  const vendor = normalizeVendor(vendeurs[id] || {});
-  
-  const rate = getCommissionRate(vendor);
+    Object.keys(map).forEach(id => {
+      const vendor = normalizeVendor(vendeurs[id] || {});
 
-  // KOMISYON GROUP
-  const rateGrupo = parseAmount(
-  vendor.comision?.zona ??
-  vendor.comisionZona ??
-  vendor.com_zona ??
-  0
-);
+      const rate = parseAmount(
+        vendor.comision?.general ??
+        vendor.comisionGeneral ??
+        vendor.com_general ??
+        0
+      );
 
-console.log("COMISION GROUP TEST:", {
-  id,
-  nombre: map[id].nombre,
-  venta: map[id].venta,
-  rateGrupo,
-  comisionZona: vendor.comision?.zona
-});
+      const rateGrupo = parseAmount(
+        vendor.comision?.zona ??
+        vendor.comisionZona ??
+        vendor.com_zona ??
+        0
+      );
 
-  map[id].comision = (map[id].venta * rate) / 100;
+      map[id].comision = (parseAmount(map[id].venta) * rate) / 100;
+      map[id].comisionGrupo = (parseAmount(map[id].venta) * rateGrupo) / 100;
 
-  map[id].comisionGrupo =
-    (map[id].venta * rateGrupo) / 100;
-
-  map[id].resultado =
-    map[id].venta -
-    map[id].comision -
-    map[id].premios;
-});
+      // RESULTADO PA RETIRE COMISION GRUPO
+      map[id].resultado =
+        parseAmount(map[id].venta) -
+        parseAmount(map[id].comision) -
+        parseAmount(map[id].premios);
+    });
 
     res.json(Object.values(map));
 
@@ -569,7 +564,6 @@ console.log("COMISION GROUP TEST:", {
     res.status(500).json([]);
   }
 });
-
 
 router.get("/api/reportes/balance", async (req, res) => {
   try {

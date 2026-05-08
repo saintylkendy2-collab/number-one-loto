@@ -4800,14 +4800,10 @@ app.put("/api/grupos/:id", async (req, res) => {
       });
     }
 
-    const grupo = await Grupo.findByIdAndUpdate(
-      req.params.id,
-      {
-        nombre
-      },
-      {
-        new: true
-      }
+    const grupo = await Grupo.findOneAndUpdate(
+      { nombre: req.params.id },
+      { nombre },
+      { new: true }
     );
 
     if (!grupo) {

@@ -4854,19 +4854,6 @@ async function cancelTicket(ticketId){
   }
 }
 
-let grupos = [];
-
-function openNewGrupo(){
-
-  const nombre = prompt("Nombre grupo");
-  if(!nombre) return;
-
-  const porcentaje = prompt("Comisión grupo");
-  if(porcentaje === null) return;
-
-  saveGrupo(nombre, porcentaje);
-}
-
 function renderGruposTable(){
   const tbody = byId("gruposTableBody");
   if(!tbody) return;

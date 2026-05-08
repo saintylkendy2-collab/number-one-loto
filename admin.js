@@ -497,6 +497,7 @@ router.get("/api/reportes/ventas", async (req, res) => {
           zona: vendor.zona || vendor.groupe || "",
           venta: 0,
           comision: 0,
+          comisionGrupo: 0,
           premios: 0,
           resultado: 0,
           estatus: vendor.estatus || "Activo"
@@ -529,13 +530,25 @@ router.get("/api/reportes/ventas", async (req, res) => {
       }
     }
 
-    Object.keys(map).forEach((id) => {
-      const vendor = normalizeVendor(vendeurs[id] || {});
-      const rate = getCommissionRate(vendor);
+   Object.keys(map).forEach((id) => {
+  const vendor = normalizeVendor(vendeurs[id] || {});
+  
+  const rate = getCommissionRate(vendor);
 
-      map[id].comision = (map[id].venta * rate) / 100;
-      map[id].resultado = map[id].venta - map[id].comision - map[id].premios;
-    });
+  // KOMISYON GROUP
+  const rateGrupo = parseAmount(vendor.comision?.zona || 0);
+
+  map[id].comision = (map[id].venta * rate) / 100;
+
+  map[id].comisionGrupo =
+    (map[id].venta * rateGrupo) / 100;
+
+  map[id].resultado =
+    map[id].venta -
+    map[id].comision -
+    map[id].comisionGrupo -
+    map[id].premios;
+});
 
     res.json(Object.values(map));
 

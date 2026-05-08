@@ -4857,7 +4857,9 @@ function renderGruposTable(){
   const tbody = byId("gruposTableBody");
   if(!tbody) return;
 
-  if(!grupos.length){
+  tbody.innerHTML = "";
+
+  if(!grupos || !grupos.length){
     tbody.innerHTML =
       '<tr>' +
       '<td colspan="3" class="empty-state">Pa gen grupo</td>' +
@@ -4865,24 +4867,14 @@ function renderGruposTable(){
     return;
   }
 
-  tbody.innerHTML = "";
-
-  grupos.forEach(g => {
+  grupos.forEach(function(g){
     const activo = g.estatus === "Activo";
 
     tbody.innerHTML +=
       '<tr>' +
-        '<td class="vendor-name">' + safe(g.nombre) + '</td>' +
-        '<td>' + (activo ? "✔" : "✖") + '</td>' +
-        '<td style="display:flex;gap:6px;">' +
-          '<button class="mini-btn" onclick="editGrupo(\'' + safe(g.nombre) + '\')">✏️</button>' +
-          (
-            activo
-            ? '<button class="mini-btn danger" onclick="blockGrupo(\'' + safe(g.nombre) + '\')">🚫</button>'
-            : '<button class="mini-btn success" onclick="unblockGrupo(\'' + safe(g.nombre) + '\')">✅</button>'
-          ) +
-          '<button class="mini-btn danger" onclick="deleteGrupo(\'' + safe(g.nombre) + '\')">🗑</button>' +
-        '</td>' +
+      '<td class="vendor-name">' + safe(g.nombre) + '</td>' +
+      '<td>' + (activo ? "✔" : "✖") + '</td>' +
+      '<td></td>' +
       '</tr>';
   });
 }

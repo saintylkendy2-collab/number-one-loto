@@ -4873,33 +4873,32 @@ function renderGruposTable(){
 
   tbody.innerHTML = "";
 
-  grupos.forEach(function(g){
-    const nombre = safe(g.nombre);
+  grupos.forEach(function(g, index){
     const activo = g.estatus !== "Bloqueado";
 
     tbody.innerHTML +=
       '<tr>' +
-      '<td>' + nombre + '</td>' +
+      '<td>' + safe(g.nombre) + '</td>' +
       '<td>' + (activo ? "Activo" : "Bloqueado") + '</td>' +
       '<td style="display:flex;gap:8px;">' +
-      '<button class="mini-btn" onclick="editGrupo(\'' + nombre + '\')">✏️</button>' +
-      (activo
-        ? '<button class="mini-btn danger" onclick="blockGrupo(\'' + nombre + '\')">🚫</button>'
-        : '<button class="mini-btn success" onclick="unblockGrupo(\'' + nombre + '\')">✅</button>'
+      '<button class="mini-btn" onclick="editGrupoByIndex(' + index + ')">✏️</button>' +
+      (
+        activo
+        ? '<button class="mini-btn danger" onclick="blockGrupoByIndex(' + index + ')">🚫</button>'
+        : '<button class="mini-btn success" onclick="unblockGrupoByIndex(' + index + ')">✅</button>'
       ) +
-      '<button class="mini-btn danger" onclick="deleteGrupo(\'' + nombre + '\')">🗑</button>' +
+      '<button class="mini-btn danger" onclick="deleteGrupoByIndex(' + index + ')">🗑</button>' +
       '</td>' +
       '</tr>';
   });
 }
 
-
-
-async function editGrupo(nombre){
-  const nouveau = prompt("Nouveau nom grupo", nombre);
+async function editGrupoByIndex(index){
+  const oldName = grupos[index].nombre;
+  const nouveau = prompt("Nouveau nom grupo", oldName);
   if(!nouveau) return;
 
-  await fetch("/api/grupos/" + encodeURIComponent(nombre), {
+  await fetch("/api/grupos/" + encodeURIComponent(oldName), {
     method:"PUT",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({ nombre:nouveau })
@@ -4908,7 +4907,9 @@ async function editGrupo(nombre){
   await loadGruposFromServer();
 }
 
-async function blockGrupo(nombre){
+async function blockGrupoByIndex(index){
+  const nombre = grupos[index].nombre;
+
   await fetch("/api/grupos/block/" + encodeURIComponent(nombre), {
     method:"PUT"
   });
@@ -4916,7 +4917,9 @@ async function blockGrupo(nombre){
   await loadGruposFromServer();
 }
 
-async function unblockGrupo(nombre){
+async function unblockGrupoByIndex(index){
+  const nombre = grupos[index].nombre;
+
   await fetch("/api/grupos/unblock/" + encodeURIComponent(nombre), {
     method:"PUT"
   });
@@ -4924,7 +4927,9 @@ async function unblockGrupo(nombre){
   await loadGruposFromServer();
 }
 
-async function deleteGrupo(nombre){
+async function deleteGrupoByIndex(index){
+  const nombre = grupos[index].nombre;
+
   if(!confirm("Ou vle siprime grupo sa?")) return;
 
   await fetch("/api/grupos/" + encodeURIComponent(nombre), {
@@ -4933,7 +4938,6 @@ async function deleteGrupo(nombre){
 
   await loadGruposFromServer();
 }
-
 
 async function openNewGrupo(){
   const nombre = prompt("Nombre grupo");

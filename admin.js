@@ -3499,7 +3499,8 @@ function goPage(page){
     loadVentasReport();
 
   }else if(page === "grupos"){
-    if(gruposPage) gruposPage.classList.remove("hidden");
+  if(gruposPage) gruposPage.classList.remove("hidden");
+  loadGruposFromServer();
 
   }else if(page === "ventas_loteria"){
     if(ventasPage) ventasPage.classList.remove("hidden");

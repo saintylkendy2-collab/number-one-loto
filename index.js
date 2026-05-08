@@ -1001,6 +1001,23 @@ app.post("/api/tickets", async (req, res) => {
       return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
     }
 
+    const vendor = await Vendor.findOne({ id: sellerId }).lean();
+
+if (!vendor) {
+  return res.status(404).json({ ok:false, message:"Vandè pa jwenn" });
+}
+
+const grupo = await Grupo.findOne({
+  nombre: vendor.zona || vendor.groupe
+}).lean();
+
+if (grupo && grupo.estatus === "Bloqueado") {
+  return res.status(403).json({
+    ok:false,
+    message:"Grupo sa bloke. Ou pa ka fè tikè."
+  });
+}
+
     const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
 
     const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
@@ -1066,17 +1083,6 @@ app.post("/api/tickets", async (req, res) => {
     });
   }
 });
-
-const grupo = await Grupo.findOne({
-  nombre: vendor.zona || vendor.groupe
-}).lean();
-
-if(grupo && grupo.estatus === "Bloqueado"){
-  return res.status(403).json({
-    ok:false,
-    message:"Grupo sa bloke. Ou pa ka fè tikè."
-  });
-}
 
 app.get("/api/vendor/sorteos", async (req, res) => {
   try {

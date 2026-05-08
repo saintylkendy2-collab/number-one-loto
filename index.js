@@ -3249,7 +3249,8 @@ function renderRapports(){
     });
   });
 
-  var commission = vente * getVendorCommissionRate(currentVendor || {});
+  var rate = Number(currentVendor?.comision?.general || currentVendor?.comisionGeneral || currentVendor?.com_general || 0);
+var commission = vente * (rate / 100);
 var resultat = vente - prime;
 
   var daysHtml = "";

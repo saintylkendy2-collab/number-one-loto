@@ -4879,10 +4879,6 @@ function renderGruposTable(){
       safe(g.nombre) +
       '</td>' +
 
-      '<td class="money">' +
-      formatAmount(g.comisionGrupo || 0) + '%' +
-      '</td>' +
-
       '<td>' +
       (activo ? "✔" : "✖") +
       '</td>' +

@@ -4853,48 +4853,46 @@ async function cancelTicket(ticketId){
   }
 }
 
-function renderGruposTable(){
+let grupos = [];
 
+async function loadGruposFromServer(){
+  try{
+    const res = await fetch("/api/grupos");
+    grupos = await res.json();
+    renderGruposTable();
+  }catch(err){
+    grupos = [];
+    renderGruposTable();
+  }
+}
+
+function renderGruposTable(){
   const tbody = byId("gruposTableBody");
   if(!tbody) return;
 
   tbody.innerHTML = "";
 
   grupos.forEach(function(g){
-
     tbody.innerHTML +=
       '<tr>' +
-      '<td>' + g.nombre + '</td>' +
-      '<td>' + g.estatus + '</td>' +
+      '<td>' + safe(g.nombre) + '</td>' +
+      '<td>' + safe(g.estatus || "Activo") + '</td>' +
       '<td></td>' +
       '</tr>';
-
   });
-
 }
 
 async function openNewGrupo(){
-
   const nombre = prompt("Nombre grupo");
   if(!nombre) return;
 
-  grupos.push({
-    nombre,
-    estatus:"Activo"
-  });
-
-  renderGruposTable();
-
   await fetch("/api/grupos", {
     method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify({
-      nombre
-    })
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ nombre:nombre })
   });
 
+  await loadGruposFromServer();
 }
 
 </script>

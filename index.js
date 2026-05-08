@@ -4632,10 +4632,10 @@ app.get("/print-report", async (req, res) => {
       const st = normalizeStatus(t.status);
       if(st === "ANILE") return;
 
-      vente += parseAmount(t.total);
+      vente += money(t.total);
 
       if(st === "GANYE"){
-        prix += parseAmount(t.premio);
+        prix += money(t.premio);
       }
     });
 

@@ -4585,7 +4585,7 @@ setTimeout(function(){
 });
 
 app.get("/print-report", async (req, res) => {
-  try{
+  try {
     const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
     const start = String(req.query.start || "").trim();
     const end = String(req.query.end || "").trim();
@@ -4593,28 +4593,35 @@ app.get("/print-report", async (req, res) => {
     const printDate = String(req.query.date || "").trim();
     const printTime = String(req.query.time || "").trim();
 
-    function formatFRDateInput(iso){
-      if(!iso) return "";
+    function money(v) {
+      if (v === null || v === undefined) return 0;
+      const n = Number(String(v).replace(/,/g, "").trim());
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function formatFRDateInput(iso) {
+      if (!iso) return "";
       const p = String(iso).split("-");
-      if(p.length !== 3) return iso;
+      if (p.length !== 3) return iso;
       return p[2] + "/" + p[1] + "/" + p[0];
     }
 
-    function ticketDay(t){
-      if(t.dateLabel){
+    function ticketDay(t) {
+      if (t.dateLabel) {
         const p = String(t.dateLabel).split("/");
-        if(p.length === 3){
-          return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+        if (p.length === 3) {
+          return p[2] + "-" + p[1].padStart(2, "0") + "-" + p[0].padStart(2, "0");
         }
       }
 
       const d = new Date(t.createdAt || Date.now());
       return d.getFullYear() + "-" +
-        String(d.getMonth() + 1).padStart(2,"0") + "-" +
-        String(d.getDate()).padStart(2,"0");
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
     }
 
     const vendeur = await Vendor.findOne({ id: sellerId }).lean();
+
     const sellerName = String(
       vendeur?.nom || vendeur?.nombre || sellerId || "SELLER"
     );
@@ -4626,25 +4633,25 @@ app.get("/print-report", async (req, res) => {
 
     tickets.forEach(t => {
       const d = ticketDay(t);
-      if(start && d < start) return;
-      if(end && d > end) return;
+      if (start && d < start) return;
+      if (end && d > end) return;
 
       const st = normalizeStatus(t.status);
-      if(st === "ANILE") return;
+      if (st === "ANILE") return;
 
       vente += money(t.total);
 
-      if(st === "GANYE"){
+      if (st === "GANYE") {
         prix += money(t.premio);
       }
     });
 
     const rate = money(
-  vendeur?.comision?.general ??
-  vendeur?.comisionGeneral ??
-  vendeur?.com_general ??
-  0
-);
+      vendeur?.comision?.general ??
+      vendeur?.comisionGeneral ??
+      vendeur?.com_general ??
+      0
+    );
 
     const commission = (vente * rate) / 100;
     const resultat = vente - prix - commission;
@@ -4685,13 +4692,10 @@ body{
   <div class="line"></div>
 
   <div class="boxline">
-<div class="row"><span>| Ventes</span><b>${Number(vente || 0).toFixed(2)} |</b></div>
-
-<div class="row"><span>| Prix</span><b>${Number(prix || 0).toFixed(2)} |</b></div>
-
-<div class="row"><span>| Commission</span><b>${Number(commission || 0).toFixed(2)} |</b></div>
-
-<div class="row"><span>| Balance</span><b>${Number(resultat || 0).toFixed(2)} |</b></div>
+    <div class="row"><span>| Ventes</span><b>${vente.toFixed(2)} |</b></div>
+    <div class="row"><span>| Prix</span><b>${prix.toFixed(2)} |</b></div>
+    <div class="row"><span>| Commission</span><b>${commission.toFixed(2)} |</b></div>
+    <div class="row"><span>| Balance</span><b>${resultat.toFixed(2)} |</b></div>
   </div>
 
 <script>
@@ -4703,7 +4707,7 @@ setTimeout(function(){
 </html>
     `);
 
-  }catch(err){
+  } catch (err) {
     console.error("Erreur print-report:", err);
     res.status(500).send("Erreur rapport");
   }

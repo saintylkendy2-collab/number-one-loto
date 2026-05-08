@@ -2386,7 +2386,6 @@ tbody tr:nth-child(even){background:#313652;}
         <thead>
           <tr>
             <th>GRUPO</th>
-            <th>COMISIÓN</th>
             <th>ESTADO</th>
             <th></th>
           </tr>
@@ -4861,7 +4860,7 @@ function renderGruposTable(){
   if(!grupos.length){
     tbody.innerHTML =
       '<tr>' +
-      '<td colspan="4" class="empty-state">Pa gen grupo</td>' +
+      '<td colspan="3" class="empty-state">Pa gen grupo</td>'
       '</tr>';
     return;
   }

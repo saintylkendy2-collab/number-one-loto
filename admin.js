@@ -4960,13 +4960,20 @@ async function openNewGrupo(){
   const nombre = prompt("Nombre grupo");
   if(!nombre) return;
 
+  const comisionGrupo = prompt("Comisión grupo");
+  if(comisionGrupo === null) return;
+
   await fetch("/api/grupos", {
     method:"POST",
     headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ nombre:nombre })
+    body: JSON.stringify({
+      nombre:nombre,
+      comisionGrupo:Number(comisionGrupo || 0)
+    })
   });
 
   await loadGruposFromServer();
+  await loadGrupoSelects();
 }
 
 </script>

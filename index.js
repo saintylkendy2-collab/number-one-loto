@@ -4759,9 +4759,10 @@ app.post("/api/grupos", async (req, res) => {
   }
 
   const grupo = await Grupo.create({
-    nombre,
-    estatus:"Activo"
-  });
+  nombre,
+  estatus:"Activo",
+  comisionGrupo: Number(req.body.comisionGrupo || 0)
+});
 
   res.json({
     ok:true,

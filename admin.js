@@ -4873,17 +4873,28 @@ function renderGruposTable(){
 
 }
 
-function openNewGrupo(){
+async function openNewGrupo(){
 
   const nombre = prompt("Nombre grupo");
   if(!nombre) return;
 
   grupos.push({
-    nombre: nombre,
-    estatus: "Activo"
+    nombre,
+    estatus:"Activo"
   });
 
   renderGruposTable();
+
+  await fetch("/api/grupos", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      nombre
+    })
+  });
+
 }
 
 </script>

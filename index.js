@@ -9,6 +9,8 @@ const Vendor = require("./models/vendor");
 
 const Sorteo = require("./models/Sorteo");
 
+const Grupo = require("./models/Grupo");
+
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
@@ -4730,6 +4732,43 @@ app.get("/test-tickets", async (req, res) => {
   res.json(tickets);
 });
 
+app.get("/api/grupos", async (req, res) => {
+
+  const grupos = await Grupo.find().sort({ nombre: 1 });
+
+  res.json(grupos);
+
+});
+
+app.post("/api/grupos", async (req, res) => {
+
+  const nombre = String(req.body.nombre || "").trim();
+
+  if(!nombre){
+    return res.status(400).json({
+      ok:false
+    });
+  }
+
+  const existe = await Grupo.findOne({ nombre });
+
+  if(existe){
+    return res.json({
+      ok:true
+    });
+  }
+
+  const grupo = await Grupo.create({
+    nombre,
+    estatus:"Activo"
+  });
+
+  res.json({
+    ok:true,
+    grupo
+  });
+
+});
  
 app.listen(3000, "0.0.0.0", () => {
   console.log("Server ap mache sou rezo a");

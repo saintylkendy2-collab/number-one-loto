@@ -3813,12 +3813,12 @@ function renderVentasTable(){
     const cls = resultado >= 0 ? "result-ok" : "result-bad";
 
     tbody.innerHTML +=
-  '<tr>' +
+    '<tr>' +
     '<td class="vendor-name">' + (i + 1) + ') ' + safe(r.nombre) + '</td>' +
     '<td class="money">' + formatAmount(r.venta) + '</td>' +
-    '<td class="money">' + formatAmount(r.premios) + '</td>' +
-    '<td class="money">' + formatAmount(r.comision) + '</td>' +
     '<td class="money">' + formatAmount(r.comisionGrupo || 0) + '</td>' +
+    '<td class="money">' + formatAmount(r.comision) + '</td>' +
+    '<td class="money">' + formatAmount(r.premios) + '</td>' +
     '<td class="' + cls + '">' +
       (resultado < 0 ? '-' : '') + formatAmount(Math.abs(resultado)) +
     '</td>' +
@@ -3826,16 +3826,16 @@ function renderVentasTable(){
   });
 
   tfoot.innerHTML =
-    '<tr>' +
-      '<td class="vendor-name"></td>' +
-      '<td class="money">' + formatAmount(totalVenta) + '</td>' +
-      '<td class="money">' + formatAmount(totalPremios) + '</td>' +
-      '<td class="money">' + formatAmount(totalComision) + '</td>' +
-      '<td class="money">' + formatAmount(totalComisionGrupo) + '</td>' +
-      '<td class="' + (totalResultado >= 0 ? 'result-ok' : 'result-bad') + '">' +
-        (totalResultado < 0 ? "-" : "") + formatAmount(Math.abs(totalResultado)) +
-      '</td>' +
-    '</tr>';
+     '<tr>' +
+    '<td class="vendor-name"></td>' +
+    '<td class="money">' + formatAmount(totalVenta) + '</td>' +
+    '<td class="money">' + formatAmount(totalComisionGrupo) + '</td>' +
+    '<td class="money">' + formatAmount(totalComision) + '</td>' +
+    '<td class="money">' + formatAmount(totalPremios) + '</td>' +
+    '<td class="' + (totalResultado >= 0 ? 'result-ok' : 'result-bad') + '">' +
+      (totalResultado < 0 ? '-' : '') + formatAmount(Math.abs(totalResultado)) +
+    '</td>' +
+  '</tr>';
 }
 
 function toggleBalanceMenu(id, e){

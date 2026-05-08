@@ -557,7 +557,11 @@ router.get("/api/reportes/ventas", async (req, res) => {
         parseAmount(map[id].premios);
     });
 
-    res.json(Object.values(map));
+    const finalRows = Object.values(map).filter(r =>
+  parseAmount(r.venta) > 0
+);
+
+res.json(finalRows);
 
   } catch (err) {
     console.error("Erreur ventas:", err);

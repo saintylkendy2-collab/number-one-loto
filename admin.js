@@ -4853,61 +4853,7 @@ async function cancelTicket(ticketId){
   }
 }
 
-function renderGruposTable(){
-  const tbody = byId("gruposTableBody");
-  if(!tbody) return;
 
-  if(!grupos.length){
-    tbody.innerHTML =
-      '<tr>' +
-      '<td colspan="3" class="empty-state">Pa gen grupo</td>'
-      '</tr>';
-    return;
-  }
-
-  tbody.innerHTML = "";
-
-  grupos.forEach(g => {
-
-    const activo = g.estatus === "Activo";
-
-    tbody.innerHTML +=
-      '<tr>' +
-
-      '<td class="vendor-name">' +
-      safe(g.nombre) +
-      '</td>' +
-
-      '<td>' +
-      (activo ? "✔" : "✖") +
-      '</td>' +
-
-      '<td style="display:flex;gap:6px;">' +
-
-      '<button class="mini-btn" onclick="editGrupo(\'' + safe(g.nombre) + '\')">' +
-      '✏️' +
-      '</button>' +
-
-      (
-        activo
-        ?
-        '<button class="mini-btn danger" onclick="blockGrupo(\'' + safe(g.nombre) + '\')">🚫</button>'
-        :
-        '<button class="mini-btn success" onclick="unblockGrupo(\'' + safe(g.nombre) + '\')">✅</button>'
-      )
-
-      +
-
-      '<button class="mini-btn danger" onclick="deleteGrupo(\'' + safe(g.nombre) + '\')">' +
-      '🗑' +
-      '</button>' +
-
-      '</td>' +
-
-      '</tr>';
-  });
-
-}
 
 </script>
 

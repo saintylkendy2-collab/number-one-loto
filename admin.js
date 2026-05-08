@@ -4879,6 +4879,19 @@ function renderGruposTable(){
   });
 }
 
+function openNewGrupo(){
+
+  const nombre = prompt("Nombre grupo");
+  if(!nombre) return;
+
+  grupos.push({
+    nombre: nombre,
+    estatus: "Activo"
+  });
+
+  renderGruposTable();
+}
+
 </script>
 
 </body>

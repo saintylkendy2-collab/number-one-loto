@@ -4854,29 +4854,23 @@ async function cancelTicket(ticketId){
 }
 
 function renderGruposTable(){
+
   const tbody = byId("gruposTableBody");
   if(!tbody) return;
 
   tbody.innerHTML = "";
 
-  if(!grupos || !grupos.length){
-    tbody.innerHTML =
-      '<tr>' +
-      '<td colspan="3" class="empty-state">Pa gen grupo</td>' +
-      '</tr>';
-    return;
-  }
-
   grupos.forEach(function(g){
-    const activo = g.estatus === "Activo";
 
     tbody.innerHTML +=
       '<tr>' +
-      '<td class="vendor-name">' + safe(g.nombre) + '</td>' +
-      '<td>' + (activo ? "✔" : "✖") + '</td>' +
+      '<td>' + g.nombre + '</td>' +
+      '<td>' + g.estatus + '</td>' +
       '<td></td>' +
       '</tr>';
+
   });
+
 }
 
 function openNewGrupo(){

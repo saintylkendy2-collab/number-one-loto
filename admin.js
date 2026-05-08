@@ -3457,6 +3457,7 @@ function goPage(page){
 
   const ventasPage = byId("ventasPage");
   const ticketsPage = byId("ticketsPage");
+  const gruposPage = byId("gruposPage");
   const vendorsPage = byId("vendorsPage");
   const editorPage = byId("vendorEditorPage");
   const balancePage = byId("balanceVendorPage");
@@ -3465,6 +3466,7 @@ const sorteosPage = byId("sorteosPage");
 
   if(ventasPage) ventasPage.classList.add("hidden");
   if(ticketsPage) ticketsPage.classList.add("hidden");
+  if(gruposPage) gruposPage.classList.add("hidden");
   if(vendorsPage) vendorsPage.classList.add("hidden");
   if(editorPage) editorPage.classList.add("hidden");
   if(balancePage) balancePage.classList.add("hidden");
@@ -3474,6 +3476,10 @@ if(sorteosPage) sorteosPage.classList.add("hidden");
   if(page === "ventas"){
     if(ventasPage) ventasPage.classList.remove("hidden");
     loadVentasReport();
+
+else if(page === "grupos"){
+  if(gruposPage) gruposPage.classList.remove("hidden");
+}
 
   }else if(page === "ventas_loteria"){
     if(ventasPage) ventasPage.classList.remove("hidden");

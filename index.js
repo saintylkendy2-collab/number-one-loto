@@ -4788,6 +4788,51 @@ app.post("/api/grupos", async (req, res) => {
 
 });
 
+app.put("/api/grupos/:id", async (req, res) => {
+  try {
+
+    const nombre = String(req.body.nombre || "").trim();
+
+    if (!nombre) {
+      return res.status(400).json({
+        ok: false,
+        message: "Nom groupe obligatoire"
+      });
+    }
+
+    const grupo = await Grupo.findByIdAndUpdate(
+      req.params.id,
+      {
+        nombre
+      },
+      {
+        new: true
+      }
+    );
+
+    if (!grupo) {
+      return res.status(404).json({
+        ok: false,
+        message: "Grupo pa jwenn"
+      });
+    }
+
+    res.json({
+      ok: true,
+      grupo
+    });
+
+  } catch (err) {
+
+    console.error("Erreur modification grupo:", err);
+
+    res.status(500).json({
+      ok: false
+    });
+
+  }
+});
+
 app.put("/api/grupos/block/:nombre", async (req, res) => {
   try{
     const nombre = decodeURIComponent(req.params.nombre || "").trim();

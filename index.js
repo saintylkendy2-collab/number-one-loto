@@ -1067,6 +1067,17 @@ app.post("/api/tickets", async (req, res) => {
   }
 });
 
+const grupo = await Grupo.findOne({
+  nombre: vendor.zona || vendor.groupe
+}).lean();
+
+if(grupo && grupo.estatus === "Bloqueado"){
+  return res.status(403).json({
+    ok:false,
+    message:"Grupo sa bloke. Ou pa ka fè tikè."
+  });
+}
+
 app.get("/api/vendor/sorteos", async (req, res) => {
   try {
     function toFRDate(value) {

@@ -4770,6 +4770,66 @@ app.post("/api/grupos", async (req, res) => {
   });
 
 });
+
+app.put("/api/grupos/block/:nombre", async (req, res) => {
+  try{
+    const nombre = decodeURIComponent(req.params.nombre || "").trim();
+
+    await Grupo.updateOne(
+      { nombre },
+      { $set:{ estatus:"Bloqueado" } }
+    );
+
+    await Vendor.updateMany(
+      { $or:[ { zona:nombre }, { groupe:nombre } ] },
+      { $set:{ grupoBloqueado:true } }
+    );
+
+    res.json({ ok:true });
+  }catch(err){
+    console.error(err);
+    res.status(500).json({ ok:false });
+  }
+});
+
+app.put("/api/grupos/unblock/:nombre", async (req, res) => {
+  try{
+    const nombre = decodeURIComponent(req.params.nombre || "").trim();
+
+    await Grupo.updateOne(
+      { nombre },
+      { $set:{ estatus:"Activo" } }
+    );
+
+    await Vendor.updateMany(
+      { $or:[ { zona:nombre }, { groupe:nombre } ] },
+      { $set:{ grupoBloqueado:false } }
+    );
+
+    res.json({ ok:true });
+  }catch(err){
+    console.error(err);
+    res.status(500).json({ ok:false });
+  }
+});
+
+app.delete("/api/grupos/:nombre", async (req, res) => {
+  try{
+    const nombre = decodeURIComponent(req.params.nombre || "").trim();
+
+    await Grupo.deleteOne({ nombre });
+
+    await Vendor.updateMany(
+      { $or:[ { zona:nombre }, { groupe:nombre } ] },
+      { $set:{ zona:"", groupe:"", grupoBloqueado:false } }
+    );
+
+    res.json({ ok:true });
+  }catch(err){
+    console.error(err);
+    res.status(500).json({ ok:false });
+  }
+});
  
 app.listen(3000, "0.0.0.0", () => {
   console.log("Server ap mache sou rezo a");

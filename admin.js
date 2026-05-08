@@ -4874,14 +4874,66 @@ function renderGruposTable(){
   tbody.innerHTML = "";
 
   grupos.forEach(function(g){
+    const nombre = safe(g.nombre);
+    const activo = g.estatus !== "Bloqueado";
+
     tbody.innerHTML +=
       '<tr>' +
-      '<td>' + safe(g.nombre) + '</td>' +
-      '<td>' + safe(g.estatus || "Activo") + '</td>' +
-      '<td></td>' +
+      '<td>' + nombre + '</td>' +
+      '<td>' + (activo ? "Activo" : "Bloqueado") + '</td>' +
+      '<td style="display:flex;gap:8px;">' +
+      '<button class="mini-btn" onclick="editGrupo(\'' + nombre + '\')">✏️</button>' +
+      (activo
+        ? '<button class="mini-btn danger" onclick="blockGrupo(\'' + nombre + '\')">🚫</button>'
+        : '<button class="mini-btn success" onclick="unblockGrupo(\'' + nombre + '\')">✅</button>'
+      ) +
+      '<button class="mini-btn danger" onclick="deleteGrupo(\'' + nombre + '\')">🗑</button>' +
+      '</td>' +
       '</tr>';
   });
 }
+
+
+
+async function editGrupo(nombre){
+  const nouveau = prompt("Nouveau nom grupo", nombre);
+  if(!nouveau) return;
+
+  await fetch("/api/grupos/" + encodeURIComponent(nombre), {
+    method:"PUT",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ nombre:nouveau })
+  });
+
+  await loadGruposFromServer();
+}
+
+async function blockGrupo(nombre){
+  await fetch("/api/grupos/block/" + encodeURIComponent(nombre), {
+    method:"PUT"
+  });
+
+  await loadGruposFromServer();
+}
+
+async function unblockGrupo(nombre){
+  await fetch("/api/grupos/unblock/" + encodeURIComponent(nombre), {
+    method:"PUT"
+  });
+
+  await loadGruposFromServer();
+}
+
+async function deleteGrupo(nombre){
+  if(!confirm("Ou vle siprime grupo sa?")) return;
+
+  await fetch("/api/grupos/" + encodeURIComponent(nombre), {
+    method:"DELETE"
+  });
+
+  await loadGruposFromServer();
+}
+
 
 async function openNewGrupo(){
   const nombre = prompt("Nombre grupo");

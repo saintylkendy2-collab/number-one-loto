@@ -2898,12 +2898,24 @@ async function loadGrupoSelects(){
     const res = await fetch("/api/grupos");
     const data = await res.json();
 
-    gruposList = data
-      .filter(g => g.estatus !== "Bloqueado")
-      .map(g => g.nombre);
+    const html =
+      '<option value="">- GRUPO -</option>' +
+      data
+        .filter(function(g){
+          return g.estatus !== "Bloqueado";
+        })
+        .map(function(g){
+          return '<option value="' + safe(g.nombre) + '">' + safe(g.nombre) + '</option>';
+        })
+        .join("");
+
+    ["ventasZonaFilter", "vd_zona", "balanceGrupoFilter", "transactionGrupoFilter", "vendorFilterGrupo"].forEach(function(id){
+      const select = byId(id);
+      if(select) select.innerHTML = html;
+    });
 
   }catch(err){
-    gruposList = [];
+    console.error(err);
   }
 }
 

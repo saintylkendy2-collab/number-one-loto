@@ -3249,7 +3249,7 @@ function renderRapports(){
     });
   });
 
-  var commission = 0; // kite master panel jere sa
+  var commission = vente * getVendorCommissionRate(currentVendor || {});
 var resultat = vente - prime;
 
   var daysHtml = "";

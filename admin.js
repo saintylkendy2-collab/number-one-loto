@@ -2373,6 +2373,30 @@ tbody tr:nth-child(even){background:#313652;}
     </div>
   </div>
 
+<div id="gruposPage" class="page-block hidden">
+  <div class="page-title">Grupos</div>
+
+  <div class="action-row">
+    <button class="login-btn" onclick="openNewGrupo()">+ Nuevo Grupo</button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>GRUPO</th>
+            <th>COMISIÓN</th>
+            <th>ESTADO</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="gruposTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
   <div id="balanceVendorPage" class="page-block hidden">
     <div class="page-title">Balance Vendedores</div>
 <div id="balanceTotalTop" style="font-size:26px;font-weight:800;color:#79d98d;margin:6px 4px 14px;">

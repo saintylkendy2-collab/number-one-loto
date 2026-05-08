@@ -4857,19 +4857,14 @@ async function cancelTicket(ticketId){
 let grupos = [];
 
 function openNewGrupo(){
+
   const nombre = prompt("Nombre grupo");
   if(!nombre) return;
 
   const porcentaje = prompt("Comisión grupo");
   if(porcentaje === null) return;
 
-  grupos.push({
-    nombre,
-    comisionGrupo: parseFloat(porcentaje) || 0,
-    estatus: "Activo"
-  });
-
-  renderGruposTable();
+  saveGrupo(nombre, porcentaje);
 }
 
 function renderGruposTable(){

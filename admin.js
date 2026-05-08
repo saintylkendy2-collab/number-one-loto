@@ -3472,12 +3472,12 @@ async function deleteSorteo(loteria){
   }
 }
 
-function goPage(page){
+async function goPage(page){
   currentPage = page;
 
   const today = todayISO();
 
-  loadGrupoSelects();
+  await loadGrupoSelects();
 
   setValue("fechaInicio", today);
   setValue("fechaFin", today);

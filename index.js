@@ -4685,10 +4685,13 @@ body{
   <div class="line"></div>
 
   <div class="boxline">
-    <div class="row"><span>| Ventes</span><b>${vente.toFixed(2)} |</b></div>
-    <div class="row"><span>| Prix</span><b>${prix.toFixed(2)} |</b></div>
-    <div class="row"><span>| Commission</span><b>${commission.toFixed(2)} |</b></div>
-    <div class="row"><span>| Balance</span><b>${resultat.toFixed(2)} |</b></div>
+<div class="row"><span>| Ventes</span><b>${Number(vente || 0).toFixed(2)} |</b></div>
+
+<div class="row"><span>| Prix</span><b>${Number(prix || 0).toFixed(2)} |</b></div>
+
+<div class="row"><span>| Commission</span><b>${Number(commission || 0).toFixed(2)} |</b></div>
+
+<div class="row"><span>| Balance</span><b>${Number(resultat || 0).toFixed(2)} |</b></div>
   </div>
 
 <script>

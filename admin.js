@@ -2358,12 +2358,11 @@ tbody tr:nth-child(even){background:#313652;}
        <table id="ventasTable">
           <thead>
             <tr>
-  <th>VENDEDOR</th>
-  <th>VENTA</th>
-  <th>PREMIOS</th>
-  <th>COMISIÓN</th>
-  <th>COMISIÓN GRUPO</th>
-  <th>RESULTADO</th>
+ <th>VENTA</th>
+<th>COMISIÓN GRUPO</th>
+<th>COMISIÓN</th>
+<th>PREMIOS</th>
+<th>RESULTADO</th>
 </tr>
           </thead>
           <tbody id="ventasTableBody"></tbody>

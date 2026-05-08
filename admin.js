@@ -2891,15 +2891,6 @@ let balanceRows = [];
 let currentBalanceAction = "";
 let currentBalanceVendorId = "";
 
-const gruposList = [
-  "Anderson",
-  "Brasser Dollar",
-  "Joslin",
-  "Judler",
-  "Junior",
-  "Michel"
-];
-
 const loteriasList = [
   "TODAS",
 

@@ -3792,63 +3792,50 @@ function renderVentasTable(){
   tfoot.innerHTML = "";
 
   if(!rows.length){
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Pa gen vant pou moman an</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Pa gen vant pou moman an</td></tr>';
     return;
   }
 
   let totalVenta = 0;
-  let totalComision = 0;
   let totalPremios = 0;
+  let totalComision = 0;
+  let totalComisionGrupo = 0;
   let totalResultado = 0;
 
-  let totalComisionGrupo = 0;
-
-  rows.forEach((r, i)=>{
+  rows.forEach((r, i) => {
     totalVenta += parseAmount(r.venta);
-    totalComision += parseAmount(r.comision);
     totalPremios += parseAmount(r.premios);
+    totalComision += parseAmount(r.comision);
+    totalComisionGrupo += parseAmount(r.comisionGrupo || 0);
     totalResultado += parseAmount(r.resultado);
 
-    totalComisionGrupo += parseAmount(r.comisionGrupo || 0);
+    const resultado = parseAmount(r.resultado);
+    const cls = resultado >= 0 ? "result-ok" : "result-bad";
 
-    const cls = parseAmount(r.resultado) >= 0 ? "result-ok" : "result-bad";
-
-    tbody.innerHTML += \`
-      <tr>
-          <td class="vendor-name">${i + 1}) ${safe(r.nombre)}</td>
-
-  <td class="money">${formatAmount(r.venta)}</td>
-
-  <td class="money">${formatAmount(r.premios)}</td>
-
-  <td class="money">${formatAmount(r.comision)}</td>
-
-  <td class="money">${formatAmount(r.comisionGrupo || 0)}</td>
-
-  <td class="${cls}">
-    ${parseAmount(r.resultado) < 0 ? "-" : ""}
-    ${formatAmount(Math.abs(parseAmount(r.resultado)))}
-  </td>
-      </tr>
-    \`;
+    tbody.innerHTML +=
+  '<tr>' +
+    '<td class="vendor-name">' + (i + 1) + ') ' + safe(r.nombre) + '</td>' +
+    '<td class="money">' + formatAmount(r.venta) + '</td>' +
+    '<td class="money">' + formatAmount(r.premios) + '</td>' +
+    '<td class="money">' + formatAmount(r.comision) + '</td>' +
+    '<td class="money">' + formatAmount(r.comisionGrupo || 0) + '</td>' +
+    '<td class="' + cls + '">' +
+      (resultado < 0 ? '-' : '') + formatAmount(Math.abs(resultado)) +
+    '</td>' +
+  '</tr>';
   });
 
-tfoot.innerHTML =
-  '<tr>' +
-    '<td class="vendor-name"></td>' +
-
-'<td class="money">' + formatAmount(totalVenta) + '</td>' +
-
-'<td class="money">' + formatAmount(totalPremios) + '</td>' +
-
-'<td class="money">' + formatAmount(totalComision) + '</td>' +
-
-'<td class="money">' + formatAmount(totalComisionGrupo || 0) + '</td>' +
-
-'<td class="' + (totalResultado >= 0 ? 'result-ok' : 'result-bad') + '">' +
-formatAmount(totalResultado) +
-'</td>' +
-  '</tr>';
+  tfoot.innerHTML =
+    '<tr>' +
+      '<td class="vendor-name"></td>' +
+      '<td class="money">' + formatAmount(totalVenta) + '</td>' +
+      '<td class="money">' + formatAmount(totalPremios) + '</td>' +
+      '<td class="money">' + formatAmount(totalComision) + '</td>' +
+      '<td class="money">' + formatAmount(totalComisionGrupo) + '</td>' +
+      '<td class="' + (totalResultado >= 0 ? 'result-ok' : 'result-bad') + '">' +
+        (totalResultado < 0 ? "-" : "") + formatAmount(Math.abs(totalResultado)) +
+      '</td>' +
+    '</tr>';
 }
 
 function toggleBalanceMenu(id, e){

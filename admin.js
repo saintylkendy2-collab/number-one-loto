@@ -546,7 +546,6 @@ router.get("/api/reportes/ventas", async (req, res) => {
   map[id].resultado =
     map[id].venta -
     map[id].comision -
-    map[id].comisionGrupo -
     map[id].premios;
 });
 
@@ -3863,7 +3862,7 @@ function renderVentasTable(){
     totalVenta += parseAmount(r.venta);
     totalPremios += parseAmount(r.premios);
     totalComision += parseAmount(r.comision);
-    totalComisionGrupo += parseAmount(r.comisionGrupo || 0);
+    totalComisionGrupo += zonaFilter ? parseAmount(r.comisionGrupo || 0) : 0;
     totalResultado += parseAmount(r.resultado);
 
     const resultado = parseAmount(r.resultado);
@@ -3873,7 +3872,7 @@ function renderVentasTable(){
     '<tr>' +
     '<td class="vendor-name">' + (i + 1) + ') ' + safe(r.nombre) + '</td>' +
     '<td class="money">' + formatAmount(r.venta) + '</td>' +
-    '<td class="money">' + formatAmount(r.comisionGrupo || 0) + '</td>' +
+    '<td class="money">' + formatAmount(zonaFilter ? (r.comisionGrupo || 0) : 0) + '</td>' +
     '<td class="money">' + formatAmount(r.comision) + '</td>' +
     '<td class="money">' + formatAmount(r.premios) + '</td>' +
     '<td class="' + cls + '">' +

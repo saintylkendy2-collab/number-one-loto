@@ -2894,29 +2894,43 @@ let currentBalanceVendorId = "";
 let gruposList = [];
 
 async function loadGrupoSelects(){
+
   try{
+
     const res = await fetch("/api/grupos");
-    const data = await res.json();
+    const grupos = await res.json();
 
     const html =
       '<option value="">- GRUPO -</option>' +
-      data
-        .filter(function(g){
-          return g.estatus !== "Bloqueado";
-        })
-        .map(function(g){
-          return '<option value="' + safe(g.nombre) + '">' + safe(g.nombre) + '</option>';
-        })
-        .join("");
 
-    ["ventasZonaFilter", "vd_zona", "balanceGrupoFilter", "transactionGrupoFilter", "vendorFilterGrupo"].forEach(function(id){
+      grupos
+      .filter(g => g.estatus !== "Bloqueado")
+      .map(g =>
+        '<option value="' + safe(g.nombre) + '">' +
+        safe(g.nombre) +
+        '</option>'
+      )
+      .join("");
+
+    [
+      "ventasZonaFilter",
+      "vd_zona",
+      "balanceGrupoFilter",
+      "transactionGrupoFilter"
+    ].forEach(id => {
+
       const select = byId(id);
-      if(select) select.innerHTML = html;
+
+      if(select){
+        select.innerHTML = html;
+      }
+
     });
 
   }catch(err){
     console.error(err);
   }
+
 }
 
 const loteriasList = [
@@ -3722,24 +3736,6 @@ function fillBalanceVendorSelect(){
   if(current) el.value = current;
 }
 
-function loadGrupoSelects(){
-  const ids = ["vendorFilterGrupo","vd_zona","ventasZonaFilter","balanceGrupoFilter","transactionGrupoFilter"];
-
-  ids.forEach(id=>{
-    const el = byId(id);
-    if(!el) return;
-
-    const old = el.value;
-    el.innerHTML = "";
-    el.appendChild(makeOption("", "- GRUPO -"));
-
-    gruposList.forEach(g=>{
-      el.appendChild(makeOption(g, g));
-    });
-
-    el.value = old;
-  });
-}
 
 function fillTransactionFilters(){
   const vendor = byId("transactionVendorFilter");

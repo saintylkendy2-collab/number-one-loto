@@ -2358,12 +2358,13 @@ tbody tr:nth-child(even){background:#313652;}
        <table id="ventasTable">
           <thead>
             <tr>
-              <th>VENDEDOR</th>
-              <th>VENTA</th>
-              <th>COMISIÓN</th>
-              <th>PREMIOS</th>
-              <th>RESULTADO</th>
-            </tr>
+  <th>VENDEDOR</th>
+  <th>VENTA</th>
+  <th>PREMIOS</th>
+  <th>COMISIÓN</th>
+  <th>COMISIÓN GRUPO</th>
+  <th>RESULTADO</th>
+</tr>
           </thead>
           <tbody id="ventasTableBody"></tbody>
           <tfoot id="ventasTableFoot"></tfoot>
@@ -3800,21 +3801,34 @@ function renderVentasTable(){
   let totalPremios = 0;
   let totalResultado = 0;
 
+  let totalComisionGrupo = 0;
+
   rows.forEach((r, i)=>{
     totalVenta += parseAmount(r.venta);
     totalComision += parseAmount(r.comision);
     totalPremios += parseAmount(r.premios);
     totalResultado += parseAmount(r.resultado);
 
+    totalComisionGrupo += parseAmount(r.comisionGrupo || 0);
+
     const cls = parseAmount(r.resultado) >= 0 ? "result-ok" : "result-bad";
 
     tbody.innerHTML += \`
       <tr>
-        <td class="vendor-name">\${i + 1}) \${safe(r.nombre)}</td>
-        <td class="money">\${formatAmount(r.venta)}</td>
-        <td class="money">\${formatAmount(r.comision)}</td>
-        <td class="money">\${formatAmount(r.premios)}</td>
-        <td class="\${cls}">\${parseAmount(r.resultado) < 0 ? "-" : ""}\${formatAmount(Math.abs(r.resultado))}</td>
+          <td class="vendor-name">${i + 1}) ${safe(r.nombre)}</td>
+
+  <td class="money">${formatAmount(r.venta)}</td>
+
+  <td class="money">${formatAmount(r.premios)}</td>
+
+  <td class="money">${formatAmount(r.comision)}</td>
+
+  <td class="money">${formatAmount(r.comisionGrupo || 0)}</td>
+
+  <td class="${cls}">
+    ${parseAmount(r.resultado) < 0 ? "-" : ""}
+    ${formatAmount(Math.abs(parseAmount(r.resultado)))}
+  </td>
       </tr>
     \`;
   });
@@ -3822,12 +3836,18 @@ function renderVentasTable(){
 tfoot.innerHTML =
   '<tr>' +
     '<td class="vendor-name"></td>' +
-    '<td class="money">' + formatAmount(totalVenta) + '</td>' +
-    '<td class="money">' + formatAmount(totalComision) + '</td>' +
-    '<td class="money">' + formatAmount(totalPremios) + '</td>' +
-    '<td class="' + (totalResultado >= 0 ? 'result-ok' : 'result-bad') + '">' +
-      formatAmount(totalResultado) +
-    '</td>' +
+
+'<td class="money">' + formatAmount(totalVenta) + '</td>' +
+
+'<td class="money">' + formatAmount(totalPremios) + '</td>' +
+
+'<td class="money">' + formatAmount(totalComision) + '</td>' +
+
+'<td class="money">' + formatAmount(totalComisionGrupo || 0) + '</td>' +
+
+'<td class="' + (totalResultado >= 0 ? 'result-ok' : 'result-bad') + '">' +
+formatAmount(totalResultado) +
+'</td>' +
   '</tr>';
 }
 

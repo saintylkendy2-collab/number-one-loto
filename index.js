@@ -311,17 +311,31 @@ function computeSummaries() {
     if (!map[vendeurId]) {
       const vendeurObj = vendeurs[vendeurId] || {};
       map[vendeurId] = {
-        vendeur: vendeurId,
-        nombre: String(vendeurObj.nom || vendeurObj.nombre || vendeurId),
-        zona: String(vendeurObj.zona || vendeurObj.groupe || ""),
-        venta: 0,
-        premios: 0,
-        comision: 0,
-        resultado: 0,
-        tickets: 0,
-        balanceAnterior: Number(vendeurObj.config?.credito || 0),
-        balanceFinal: 0
-      };
+  vendeur: vendeurId,
+  nombre: String(vendeurObj.nom || vendeurObj.nombre || vendeurId),
+
+  zona: String(
+    vendeurObj.zona ||
+    vendeurObj.groupe ||
+    vendeurObj.grupo ||
+    ""
+  ),
+
+  venta: 0,
+  premios: 0,
+
+  // KOMISYON VENDEUR
+  comision: 0,
+
+  // KOMISYON GROUP
+  comisionGrupo: 0,
+
+  resultado: 0,
+
+  tickets: 0,
+  balanceAnterior: Number(vendeurObj.config?.credito || 0),
+  balanceFinal: 0
+};
     }
 
     const status = normalizeStatus(ticket.status);
@@ -340,10 +354,39 @@ function computeSummaries() {
 
   Object.keys(map).forEach((id) => {
     const vendeurObj = vendeurs[id] || {};
-    const rate = getVendorCommissionRate(vendeurObj);
-    map[id].comision = map[id].venta * rate;
-    map[id].resultado = map[id].venta - map[id].comision - map[id].premios;
-    map[id].balanceFinal = map[id].balanceAnterior + map[id].resultado;
+   const rate = getVendorCommissionRate(vendeurObj);
+
+// =========================
+// KOMISYON VENDEUR
+// =========================
+map[id].comision = map[id].venta * rate;
+
+// =========================
+// KOMISYON GROUP
+// =========================
+let grupoRate = Number(
+  vendeurObj?.grupoComision ||
+  vendeurObj?.groupCommission ||
+  vendeurObj?.zonaComision ||
+  vendeurObj?.comisionGrupo ||
+  0
+);
+
+if (grupoRate > 1) {
+  grupoRate = grupoRate / 100;
+}
+
+map[id].comisionGrupo =
+  map[id].venta * grupoRate;
+
+// =========================
+// RESULTADO FINAL
+// =========================
+map[id].resultado =
+  map[id].venta -
+  map[id].comision -
+  map[id].premios;
+
   });
 
   return Object.values(map);

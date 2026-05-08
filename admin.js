@@ -2891,6 +2891,22 @@ let balanceRows = [];
 let currentBalanceAction = "";
 let currentBalanceVendorId = "";
 
+let gruposList = [];
+
+async function loadGrupoSelects(){
+  try{
+    const res = await fetch("/api/grupos");
+    const data = await res.json();
+
+    gruposList = data
+      .filter(g => g.estatus !== "Bloqueado")
+      .map(g => g.nombre);
+
+  }catch(err){
+    gruposList = [];
+  }
+}
+
 const loteriasList = [
   "TODAS",
 
@@ -3460,6 +3476,8 @@ function goPage(page){
   currentPage = page;
 
   const today = todayISO();
+
+  loadGrupoSelects();
 
   setValue("fechaInicio", today);
   setValue("fechaFin", today);

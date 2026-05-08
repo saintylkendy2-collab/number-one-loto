@@ -330,7 +330,7 @@ function computeSummaries() {
   comision: 0,
 
   // KOMISYON GROUP
-  comisionGrupo: 0,
+  comisionGrupo: venta * (parseAmount(vendeurObj.comision?.zona || 0) / 100),
 
   resultado: 0,
 

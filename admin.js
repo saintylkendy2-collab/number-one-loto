@@ -4827,6 +4827,107 @@ async function cancelTicket(ticketId){
   }
 }
 
+let grupos = [];
+
+async function loadGruposFromServer(){
+  try{
+    const res = await fetch("/api/grupos");
+    const data = await res.json();
+    grupos = Array.isArray(data) ? data : [];
+    renderGruposTable();
+    loadGrupoSelects();
+  }catch(err){
+    console.error(err);
+    grupos = [];
+    renderGruposTable();
+  }
+}
+
+function renderGruposTable(){
+  const tbody = byId("gruposTableBody");
+  if(!tbody) return;
+
+  if(!grupos.length){
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Pa gen grupo</td></tr>';
+    return;
+  }
+
+tbody.innerHTML = grupos.map(function(g){
+  return '' +
+    '<tr>' +
+      '<td class="vendor-name">' + safe(g.nombre) + '</td>' +
+      '<td class="money">' + formatAmount(g.comisionGrupo || 0) + '%</td>' +
+      '<td>' + (g.estatus === "Activo" ? "✓" : "⊘") + '</td>' +
+      '<td>' +
+        '<button class="mini-btn" onclick="editGrupo(\'' + safe(g.nombre) + '\')">✎</button>' +
+        '<button class="mini-btn" onclick="deleteGrupo(\'' + safe(g.nombre) + '\')">🗑</button>' +
+      '</td>' +
+    '</tr>';
+}).join("");
+
+async function openNewGrupo(){
+  const nombre = prompt("Non grupo a:");
+  if(!nombre) return;
+
+  const comisionGrupo = prompt("Pousantaj grupo a:");
+  if(comisionGrupo === null) return;
+
+  await saveGrupo(nombre, comisionGrupo, "Activo");
+}
+
+async function editGrupo(nombre){
+  const old = grupos.find(g => g.nombre === nombre);
+  if(!old) return;
+
+  const newName = prompt("Non grupo a:", old.nombre);
+  if(!newName) return;
+
+  const comisionGrupo = prompt("Pousantaj grupo a:", old.comisionGrupo || 0);
+  if(comisionGrupo === null) return;
+
+  await saveGrupo(newName, comisionGrupo, old.estatus || "Activo", old.nombre);
+}
+
+async function saveGrupo(nombre, comisionGrupo, estatus, oldName){
+  const res = await fetch("/api/grupos", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({
+      oldName: oldName || "",
+      nombre,
+      comisionGrupo,
+      estatus
+    })
+  });
+
+  const data = await res.json();
+  if(!res.ok){
+    alert(data.message || "Erreur save grupo");
+    return;
+  }
+
+  alert("Grupo guardado ✔");
+  await loadGruposFromServer();
+  await loadVentasReport();
+}
+
+async function deleteGrupo(nombre){
+  if(!confirm("Ou vle efase grupo sa?")) return;
+
+  const res = await fetch("/api/grupos/" + encodeURIComponent(nombre), {
+    method:"DELETE"
+  });
+
+  const data = await res.json();
+  if(!res.ok){
+    alert(data.message || "Erreur delete grupo");
+    return;
+  }
+
+  alert("Grupo supprimé ✔");
+  await loadGruposFromServer();
+}
+
 </script>
 
 </body>

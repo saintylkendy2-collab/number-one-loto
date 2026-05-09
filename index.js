@@ -3009,14 +3009,20 @@ actions.innerHTML =
       copyFromTicketWithMontant(t, newMontant);
     };
 
-    btns[3].onclick = function(e){
-      e.stopPropagation();
-      feedbackTouch();
+   btns[3].onclick = function(e){
+  e.stopPropagation();
+  feedbackTouch();
+  rePrintTicket(t.id);
+};
 
-      if(confirm("Ou sèten ou vle anile ticket sa?")){
-        updateTicketStatus(t.id, "ANILE");
-      }
-    };
+btns[4].onclick = function(e){
+  e.stopPropagation();
+  feedbackTouch();
+
+  if(confirm("Ou sèten ou vle anile ticket sa?")){
+    updateTicketStatus(t.id, "ANILE");
+  }
+}; 
 
     card.appendChild(actions);
     wrap.appendChild(card);

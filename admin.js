@@ -490,61 +490,19 @@ router.get("/api/reportes/ventas", async (req, res) => {
       const vendor = normalizeVendor(vendeurs[id] || {});
       const status = String(t.status || "").trim().toUpperCase();
 
- const movimientos = Array.isArray(vendor.movimientos)
-  ? vendor.movimientos
-  : [];
-
-if (!map[id]) {
-  map[id] = {
-    id,
-
-    nombre: vendor.nombre || vendor.nom || id,
-
-    zona: vendor.zona || vendor.groupe || "",
-
-    venta: 0,
-
-    comision: 0,
-
-    comisionGrupo: 0,
-
-    premios: 0,
-
-    resultado: 0,
-
-    estatus: vendor.estatus || "Activo",
-
-    collectionsLivrees: movimientos
-      .filter(m => {
-        const d = toISODate(m.fecha);
-
-        if (start && d && d < start) return false;
-if (end && d && d > end) return false;
-
-        return String(m.tipo || "").toLowerCase() !== "cobro";
-      })
-      .map(m => ({
-        fecha: toISODate(m.fecha),
-        monto: parseAmount(m.monto),
-        tipo: String(m.tipo || "")
-      })),
-
-    paiementsRecus: movimientos
-      .filter(m => {
-        const d = toISODate(m.fecha);
-
-        if (start && d && d < start) return false;
-if (end && d && d > end) return false;
-
-        return String(m.tipo || "").toLowerCase() === "cobro";
-      })
-      .map(m => ({
-        fecha: toISODate(m.fecha),
-        monto: parseAmount(m.monto),
-        tipo: String(m.tipo || "")
-      }))
-  };
-}
+      if (!map[id]) {
+        map[id] = {
+          id,
+          nombre: vendor.nombre || vendor.nom || id,
+          zona: vendor.zona || vendor.groupe || "",
+          venta: 0,
+          comision: 0,
+          comisionGrupo: 0,
+          premios: 0,
+          resultado: 0,
+          estatus: vendor.estatus || "Activo"
+        };
+      }
 
       if (status !== "ANILE") {
         map[id].venta += parseAmount(t.total);
@@ -678,12 +636,34 @@ router.get("/api/reportes/balance", async (req, res) => {
         return s + movementEffect(m);
       }, 0);
 
+      const filteredMovements = movimientos.filter(m => {
+        const d = toISODate(m.fecha);
+        if (selectedDate && d && d > selectedDate) return false;
+        return true;
+      });
+
       map[id] = {
         id,
         nombre: vendor.nombre || vendor.nom || id,
         zona: vendor.zona || vendor.groupe || "",
         balance: baseBalance + movementsUntilDate,
-        estatus: vendor.estatus || "Activo"
+        estatus: vendor.estatus || "Activo",
+
+        collectionsLivrees: filteredMovements
+          .filter(m => String(m.tipo || "").toLowerCase() !== "cobro")
+          .map(m => ({
+            fecha: toISODate(m.fecha),
+            monto: parseAmount(m.monto),
+            tipo: String(m.tipo || "")
+          })),
+
+        paiementsRecus: filteredMovements
+          .filter(m => String(m.tipo || "").toLowerCase() === "cobro")
+          .map(m => ({
+            fecha: toISODate(m.fecha),
+            monto: parseAmount(m.monto),
+            tipo: String(m.tipo || "")
+          }))
       };
     });
 
@@ -700,7 +680,9 @@ router.get("/api/reportes/balance", async (req, res) => {
           nombre: id,
           zona: "",
           balance: 0,
-          estatus: "Activo"
+          estatus: "Activo",
+          collectionsLivrees: [],
+          paiementsRecus: []
         };
       }
 

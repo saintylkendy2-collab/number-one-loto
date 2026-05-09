@@ -3287,22 +3287,22 @@ if(!daysHtml){
     var lCommission = 0;
     var lBalance = l.vente - l.prime - lCommission;
 
-    loterieHtml +=
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-        '<div>' + l.vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + lCommission.toFixed(2) + '</div></div>' +
-        '<div>' + l.prime.toFixed(2) + '</div>' +
-        '<div>' + lBalance.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + lot + '</div></div>' +
-      '</div>';
-  });
+      loterieHtml +=
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+      '<div>' + Number(l.vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + Number(lCommission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div></div>' +
+      '<div>' + Number(l.prime || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
+      '<div>' + Number(lBalance || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + lot + '</div></div>' +
+    '</div>';
+});
 
-  if(!loterieHtml){
-    loterieHtml =
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-        '<div>' + vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + commission.toFixed(2) + '</div></div>' +
-        '<div>' + prime.toFixed(2) + '</div>' +
-        '<div>' + resultat.toFixed(2) + '</div>' +
-      '</div>';
-  }
+if(!loterieHtml){
+  loterieHtml =
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+      '<div>' + Number(vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + Number(commission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div></div>' +
+      '<div>' + Number(prime || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
+      '<div>' + Number(resultat || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
+    '</div>';
+}
 
   box.innerHTML =
   '<div style="height:100%;display:flex;flex-direction:column;background:#f5f5f5;">' +

@@ -2878,6 +2878,20 @@ function feedbackTouch(){
   }
 }
 
+function rePrintTicket(ticketId){
+  if(!ticketId){
+    alert("Ticket ID pa valid");
+    return;
+  }
+
+  window.open(
+    "/print?ticketId=" + encodeURIComponent(ticketId) +
+    "&sellerId=" + encodeURIComponent(sellerId),
+    "_blank"
+  );
+}
+
+
 function renderBillets(){
   var wrap = document.getElementById("billetsWrap");
 

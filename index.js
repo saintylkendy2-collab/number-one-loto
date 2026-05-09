@@ -4341,10 +4341,13 @@ function renderImprimantePage(){
 })();
 
 function renderBalancePage(){
-  fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets?reload=" + Date.now())
-  .then(function(res){ return res.json(); })
-  .then(function(rows){
-    savedTickets = Array.isArray(rows) ? rows : [];
+  Promise.all([
+    fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets?reload=" + Date.now()).then(function(res){ return res.json(); }),
+    fetch("/api/reportes/balance?date=" + encodeURIComponent(currentBalanceDate)).then(function(res){ return res.json(); })
+  ])
+  .then(function(data){
+    savedTickets = Array.isArray(data[0]) ? data[0] : [];
+    var balanceRows = Array.isArray(data[1]) ? data[1] : [];
 
     var box = document.getElementById("balanceWrap");
     if(!box) return;
@@ -4371,8 +4374,6 @@ function renderBalancePage(){
       if(st === "ANILE") return;
 
       var ticketDay = ticketDateKey(t);
-
-      // pran tout fich ki fèt avan dat la + menm dat la
       if(currentBalanceDate && ticketDay > currentBalanceDate) return;
 
       vente += Number(t.total || 0);
@@ -4388,29 +4389,17 @@ function renderBalancePage(){
 
     var initial = 0;
     var paiementRecu = 0;
-    var sousTotal = initial + paiementRecu + resultat;
     var collectionsLivrees = 0;
-    var balance = sousTotal - collectionsLivrees;
 
-    fetch("/api/reportes/balance?date=" + encodeURIComponent(currentBalanceDate))
-.then(function(res){ return res.json(); })
-.then(function(rows){
-  var row = rows.find(function(r){
-    return String(r.id || "").toUpperCase() === String(sellerId || "").toUpperCase();
-  });
+    var rowBalance = balanceRows.find(function(r){
+      return String(r.id || "").toUpperCase() === String(sellerId || "").toUpperCase();
+    });
 
- if(row && row.balance !== undefined){
+    var balance = rowBalance && rowBalance.balance !== undefined
+      ? Number(rowBalance.balance || 0)
+      : resultat;
 
-  balance = Number(row.balance || 0);
-  sousTotal = balance + collectionsLivrees;
-  disponible = credit - balance;
-
-  var top = document.querySelector("#balanceWrap > div");
-  if(top){
-    top.textContent = "USD " + moneyFmt(balance);
-  }
-}
-});
+    var sousTotal = balance + collectionsLivrees;
 
     var credit = Number(sellerCredit || 0);
     var disponible = credit - balance;

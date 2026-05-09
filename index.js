@@ -4390,16 +4390,25 @@ function renderBalancePage(){
     var initial = 0;
     var paiementRecu = 0;
     var collectionsLivrees = 0;
+    var collectionsDetailsHtml = "";
 
     var rowBalance = balanceRows.find(function(r){
       return String(r.id || "").toUpperCase() === String(sellerId || "").toUpperCase();
     });
 
     if(rowBalance && Array.isArray(rowBalance.collectionsLivrees)){
-  collectionsLivrees = rowBalance.collectionsLivrees.reduce(function(s, m){
-    return s + Number(m.monto || 0);
-  }, 0);
-}
+      collectionsLivrees = rowBalance.collectionsLivrees.reduce(function(s, m){
+        return s + Number(m.monto || 0);
+      }, 0);
+
+      rowBalance.collectionsLivrees.forEach(function(m){
+        collectionsDetailsHtml +=
+          '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:6px 16px;font-size:16px;color:#666;">' +
+            '<div>' + (m.fecha || "") + '</div>' +
+            '<div>' + moneyFmt(m.monto) + '</div>' +
+          '</div>';
+      });
+    }
 
     var balance = rowBalance && rowBalance.balance !== undefined
       ? Number(rowBalance.balance || 0)
@@ -4416,6 +4425,18 @@ function renderBalancePage(){
         '<div style="' + (bold ? 'font-weight:800;' : '') + (green ? 'color:#22a447;' : '') + '">' + moneyFmt(value) + '</div>' +
       '</div>';
     }
+
+    var collectionsBlock =
+      '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+        '<div onclick="var d=this.parentNode.querySelector(\'.detailsCollections\'); d.style.display=d.style.display===\'none\'?\'block\':\'none\';" style="display:grid;grid-template-columns:1fr auto auto;align-items:center;padding:13px 16px;border-bottom:1px solid #eee;font-size:20px;cursor:pointer;">' +
+          '<div>Collections livrées</div>' +
+          '<div>' + moneyFmt(collectionsLivrees) + '</div>' +
+          '<div style="padding-left:10px;">⌄</div>' +
+        '</div>' +
+        '<div class="detailsCollections" style="display:none;">' +
+          collectionsDetailsHtml +
+        '</div>' +
+      '</div>';
 
     box.innerHTML =
       '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">USD ' + moneyFmt(balance) + '</div>' +
@@ -4438,9 +4459,7 @@ function renderBalancePage(){
           row("SOUS-TOTAL", sousTotal, true, false) +
         '</div>' +
 
-        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
-          row("Collections livrées", collectionsLivrees, false, false) +
-        '</div>' +
+        collectionsBlock +
 
         '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
           row("BALANCE", balance, true, false) +

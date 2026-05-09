@@ -518,7 +518,7 @@ if (!map[id]) {
       .filter(m => {
         const d = toISODate(m.fecha);
 
-        if (selectedDate && d && d > selectedDate) return false;
+        if (date && d && d > date) return false;
 
         return String(m.tipo || "").toLowerCase() !== "cobro";
       })
@@ -532,7 +532,7 @@ if (!map[id]) {
       .filter(m => {
         const d = toISODate(m.fecha);
 
-        if (selectedDate && d && d > selectedDate) return false;
+        if (date && d && d > date) return false;
 
         return String(m.tipo || "").toLowerCase() === "cobro";
       })

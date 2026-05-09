@@ -1194,11 +1194,14 @@ app.get("/api/master/balance-summary", (req, res) => {
   res.json(summaries);
 });
 
-app.get("/dashboard", (req, res) => {
+app.get("/dashboard", async (req, res) => {
   const sellerId = String(req.query.id || "").trim().toUpperCase();
-  const vendeurs = loadVendeursForLogin();
-  const vendeur = vendeurs[sellerId] || {};
-  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "VENDEUR");
+
+  const vendeur = await Vendor.findOne({ id: sellerId }).lean() || {};
+
+  const sellerName = String(
+    vendeur.nom || vendeur.nombre || sellerId || "VENDEUR"
+  );
 
   res.send(`
 <!DOCTYPE html>
@@ -3249,9 +3252,7 @@ function renderRapports(){
     });
   });
 
-  var vendorCfg = (typeof currentVendor !== "undefined") ? currentVendor : {};
-var rate = Number(vendorCfg.comision?.general || vendorCfg.comisionGeneral || vendorCfg.com_general || 0);
-var commission = vente * (rate / 100);
+var commission = 0; // kite master panel jere sa
 var resultat = vente - prime;
 
   var daysHtml = "";

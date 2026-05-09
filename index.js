@@ -4399,7 +4399,7 @@ function renderBalancePage(){
     return String(r.id || "").toUpperCase() === String(sellerId || "").toUpperCase();
   });
 
-  if(row && row.balance !== undefined){
+ if(row && row.balance !== undefined){
 
   balance = Number(row.balance || 0);
   sousTotal = balance + collectionsLivrees;
@@ -4409,10 +4409,6 @@ function renderBalancePage(){
   if(top){
     top.textContent = "USD " + moneyFmt(balance);
   }
-
-  document.querySelectorAll("#balanceWrap .rowValue")[0].textContent = moneyFmt(balance);
-  document.querySelectorAll("#balanceWrap .rowValue")[1].textContent = moneyFmt(disponible);
-}
 }
 });
 

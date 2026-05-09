@@ -4695,6 +4695,13 @@ body{
 
   <div class="line"></div>
 
+function fmt(n){
+  return Number(n || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
   <div class="boxline">
   <div class="row"><span>| Ventes</span><b>${fmt(vente)} |</b></div>
   <div class="row"><span>| Prix</span><b>${fmt(prix)} |</b></div>

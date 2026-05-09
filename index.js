@@ -4341,14 +4341,9 @@ function renderImprimantePage(){
 })();
 
 function renderBalancePage(){
-  Promise.all([
-    fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets?reload=" + Date.now()).then(function(res){ return res.json(); }),
-    fetch("/api/vendors/" + encodeURIComponent(sellerId) + "?reload=" + Date.now()).then(function(res){ return res.json(); }).catch(function(){ return {}; })
-  ])
-  .then(function(all){
-    var rows = all[0];
-    var vendorData = all[1] || {};
-
+  fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets?reload=" + Date.now())
+  .then(function(res){ return res.json(); })
+  .then(function(rows){
     savedTickets = Array.isArray(rows) ? rows : [];
 
     var box = document.getElementById("balanceWrap");
@@ -4376,6 +4371,8 @@ function renderBalancePage(){
       if(st === "ANILE") return;
 
       var ticketDay = ticketDateKey(t);
+
+      // pran tout fich ki fèt avan dat la + menm dat la
       if(currentBalanceDate && ticketDay > currentBalanceDate) return;
 
       vente += Number(t.total || 0);
@@ -4389,44 +4386,28 @@ function renderBalancePage(){
     var commission = vente * (rate / 100);
     var resultat = vente - commission - prix;
 
-    var mouvements = Array.isArray(vendorData.movimientos) ? vendorData.movimientos : [];
-
-    var paiementRecu = 0;
-    var collectionsLivrees = 0;
-    var paiementDetails = "";
-    var collectionDetails = "";
-
-    mouvements.forEach(function(m){
-      var mDate = String(m.fecha || "").slice(0,10);
-      if(currentBalanceDate && mDate > currentBalanceDate) return;
-
-      var tipo = String(m.tipo || m.transaccion || "").toUpperCase();
-      var monto = Number(m.monto || m.montant || 0);
-
-      if(tipo === "PAGO" || tipo === "PAIEMENT" || tipo === "PAYMENT"){
-        paiementRecu += monto;
-        paiementDetails += '<div style="display:grid;grid-template-columns:1fr auto;padding:4px 16px;color:#777;font-size:18px;"><div>' + mDate + '</div><div>' + moneyFmt(monto) + '</div></div>';
-      }else{
-        collectionsLivrees += monto;
-        collectionDetails += '<div style="display:grid;grid-template-columns:1fr auto;padding:4px 16px;color:#777;font-size:18px;"><div>' + mDate + '</div><div>' + moneyFmt(monto) + '</div></div>';
-      }
-    });
-
     var initial = 0;
+    var paiementRecu = 0;
     var sousTotal = initial + paiementRecu + resultat;
+    var collectionsLivrees = 0;
     var balance = sousTotal - collectionsLivrees;
 
-    if(vendorData.balance !== undefined){
-      balance = Number(vendorData.balance || 0);
+    fetch("/api/reportes/balance?date=" + encodeURIComponent(currentBalanceDate))
+.then(function(res){ return res.json(); })
+.then(function(rows){
+  var row = rows.find(function(r){
+    return String(r.id || "").toUpperCase() === String(sellerId || "").toUpperCase();
+  });
+
+  if(row && row.balance !== undefined){
+    var top = document.querySelector("#balanceWrap > div");
+    if(top){
+      top.textContent = "USD " + moneyFmt(row.balance);
     }
+  }
+});
 
-    var credit = Number(
-      vendorData?.config?.credito ||
-      vendorData?.credito ||
-      sellerCredit ||
-      0
-    );
-
+    var credit = Number(sellerCredit || 0);
     var disponible = credit - balance;
 
     function row(label, value, bold, green){
@@ -4434,15 +4415,6 @@ function renderBalancePage(){
         '<div style="' + (bold ? 'font-weight:800;' : '') + '">' + label + '</div>' +
         '<div style="' + (bold ? 'font-weight:800;' : '') + (green ? 'color:#22a447;' : '') + '">' + moneyFmt(value) + '</div>' +
       '</div>';
-    }
-
-    function rowToggle(id, label, value, details){
-      return '<div onclick="var x=document.getElementById(\'' + id + '\'); if(x){x.style.display=x.style.display===\'none\'?\'block\':\'none\';}" style="display:grid;grid-template-columns:1fr auto auto;align-items:center;padding:13px 16px;border-bottom:1px solid #eee;font-size:20px;cursor:pointer;">' +
-        '<div>' + label + '</div>' +
-        '<div>' + moneyFmt(value) + '</div>' +
-        '<div style="padding-left:12px;color:#777;">⌄</div>' +
-      '</div>' +
-      '<div id="' + id + '" style="display:none;">' + (details || '<div style="padding:6px 16px;color:#777;font-size:18px;">0.00</div>') + '</div>';
     }
 
     box.innerHTML =
@@ -4462,12 +4434,12 @@ function renderBalancePage(){
 
         '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
           row("Initial", initial, false, false) +
-          rowToggle("paiementDetailsBox", "Paiement reçu", paiementRecu, paiementDetails) +
+          row("Paiement reçu", paiementRecu, false, false) +
           row("SOUS-TOTAL", sousTotal, true, false) +
         '</div>' +
 
         '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
-          rowToggle("collectionDetailsBox", "Collections livrées", collectionsLivrees, collectionDetails) +
+          row("Collections livrées", collectionsLivrees, false, false) +
         '</div>' +
 
         '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
@@ -4481,6 +4453,7 @@ function renderBalancePage(){
       '</div>';
   });
 }
+
 
 </script>
 </body>

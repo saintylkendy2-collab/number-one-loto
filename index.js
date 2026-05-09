@@ -4400,11 +4400,14 @@ function renderBalancePage(){
   });
 
   if(row && row.balance !== undefined){
-    var top = document.querySelector("#balanceWrap > div");
-    if(top){
-      top.textContent = "USD " + moneyFmt(row.balance);
-    }
-  }
+
+  balance = Number(row.balance || 0);
+  sousTotal = balance + collectionsLivrees;
+  disponible = credit - balance;
+
+  renderBalancePage();
+  return;
+}
 });
 
     var credit = Number(sellerCredit || 0);

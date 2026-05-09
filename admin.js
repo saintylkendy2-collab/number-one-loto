@@ -490,7 +490,11 @@ router.get("/api/reportes/ventas", async (req, res) => {
       const vendor = normalizeVendor(vendeurs[id] || {});
       const status = String(t.status || "").trim().toUpperCase();
 
-      if (!map[id]) {
+ const movimientos = Array.isArray(vendor.movimientos)
+  ? vendor.movimientos
+  : [];
+
+if (!map[id]) {
   map[id] = {
     id,
 

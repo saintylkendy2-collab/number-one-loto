@@ -4405,8 +4405,10 @@ function renderBalancePage(){
   sousTotal = balance + collectionsLivrees;
   disponible = credit - balance;
 
-  renderBalancePage();
-  return;
+  var top = document.querySelector("#balanceWrap > div");
+  if(top){
+    top.textContent = "USD " + moneyFmt(balance);
+  }
 }
 });
 

@@ -2888,6 +2888,45 @@ function renderBillets(){
   });
 }
 
+var daysHtml = "";
+var sortedDays = Object.keys(byDay).sort();
+
+sortedDays.forEach(function(day){
+
+  var d = byDay[day];
+
+  var dCommission =
+    d.vente * (Number(sellerCommission || 0) / 100);
+
+  var dBalance =
+    d.vente - d.prime - dCommission;
+
+  daysHtml +=
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;padding:12px 0;border-bottom:1px solid #ddd;">' +
+
+      '<div>' +
+        fmt(d.vente) +
+        '<div style="font-size:15px;color:#666;">' +
+          fmt(dCommission) +
+        '</div>' +
+      '</div>' +
+
+      '<div>' +
+        fmt(d.prime) +
+      '</div>' +
+
+      '<div>' +
+        fmt(dBalance) +
+        '<div style="font-size:15px;color:#666;">' +
+          day +
+        '</div>' +
+      '</div>' +
+
+    '</div>';
+
+});
+}
+
   if(!savedTickets.length){
     wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
     return;

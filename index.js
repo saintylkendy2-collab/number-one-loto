@@ -4409,6 +4409,10 @@ function renderBalancePage(){
   if(top){
     top.textContent = "USD " + moneyFmt(balance);
   }
+
+  document.querySelectorAll("#balanceWrap .rowValue")[0].textContent = moneyFmt(balance);
+  document.querySelectorAll("#balanceWrap .rowValue")[1].textContent = moneyFmt(disponible);
+}
 }
 });
 

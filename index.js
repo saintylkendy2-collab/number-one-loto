@@ -2925,7 +2925,6 @@ sortedDays.forEach(function(day){
     '</div>';
 
 });
-}
 
   if(!savedTickets.length){
     wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
@@ -3303,8 +3302,8 @@ var dBalance = d.vente - d.prime - dCommission;
 
     daysHtml +=
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-        '<div>' + d.fmt(vente)+ '<div style="font-size:15px;color:#666;margin-top:4px;">' + dCommission.toFixed(2) + '</div></div>' +
-        '<div>' + d.fmt(prime) + '</div>' +
+        '<div>' + d.vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + dCommission.toFixed(2) + '</div></div>' +
+        '<div>' + d.prime.toFixed(2) + '</div>' +
         '<div>' + dBalance.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(day) + '</div></div>' +
       '</div>';
   });
@@ -3365,8 +3364,8 @@ var dBalance = d.vente - d.prime - dCommission;
         '<div style="display:grid;grid-template-columns:1fr 1fr;row-gap:8px;font-size:18px;line-height:1.5;">' +
           '<div style="text-align:center;font-weight:700;">Ventes</div><div style="text-align:center;font-weight:700;">' + vente.toFixed(2) + '</div>' +
           '<div style="text-align:center;font-weight:700;">Prix</div><div style="text-align:center;font-weight:700;">' + prime.toFixed(2) + '</div>' +
-          '<div style="text-align:center;font-weight:700;">Commission</div><div style="text-align:center;font-weight:700;">' + fmt(commission) + '</div>' +
-          '<div style="text-align:center;font-weight:700;">Résultat</div><div style="text-align:center;font-weight:700;">' + fmt(resultat) + '</div>' +
+          '<div style="text-align:center;font-weight:700;">Commission</div><div style="text-align:center;font-weight:700;">' + commission.toFixed(2) + '</div>' +
+          '<div style="text-align:center;font-weight:700;">Résultat</div><div style="text-align:center;font-weight:700;">' + resultat.toFixed(2) + '</div>' +
         '</div>' +
       '</div>' +
 

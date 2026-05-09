@@ -4403,10 +4403,10 @@ function renderBalancePage(){
 
       rowBalance.collectionsLivrees.forEach(function(m){
         collectionsDetailsHtml +=
-  '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:5px 14px;font-size:14px;color:#666;border-bottom:1px solid #f2f2f2;">' +
-    '<div>' + (m.fecha || "") + '</div>' +
-    '<div>' + moneyFmt(m.monto) + '</div>' +
-  '</div>';
+          '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:5px 14px;font-size:14px;color:#666;border-bottom:1px solid #f2f2f2;">' +
+            '<div>' + (m.fecha || "") + '</div>' +
+            '<div>' + moneyFmt(m.monto) + '</div>' +
+          '</div>';
       });
     }
 
@@ -4426,28 +4426,17 @@ function renderBalancePage(){
       '</div>';
     }
 
-   var collectionsBlock =
-  '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;border-radius:8px;overflow:hidden;">' +
-
-    '<div onclick="var d=this.parentNode.querySelector(\'.detailsCollections\'); d.style.display=d.style.display===\'none\'?\'block\':\'none\';" style="display:grid;grid-template-columns:1fr auto auto;align-items:center;padding:10px 14px;font-size:18px;cursor:pointer;">' +
-
-      '<div>Collections livrées</div>' +
-
-      '<div style="font-weight:600;">' +
-        moneyFmt(collectionsLivrees) +
-      '</div>' +
-
-      '<div style="padding-left:8px;font-size:14px;">⌄</div>' +
-
-    '</div>' +
-
-    '<div class="detailsCollections" style="display:none;border-top:1px solid #f0f0f0;background:#fafafa;">' +
-
-      collectionsDetailsHtml +
-
-    '</div>' +
-
-  '</div>'; 
+    var collectionsBlock =
+      '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;border-radius:8px;overflow:hidden;">' +
+        '<div onclick="var d=this.parentNode.querySelector(\'.detailsCollections\'); d.style.display=d.style.display===\'none\'?\'block\':\'none\';" style="display:grid;grid-template-columns:1fr auto auto;align-items:center;padding:10px 14px;font-size:18px;cursor:pointer;">' +
+          '<div>Collections livrées</div>' +
+          '<div style="font-weight:600;">' + moneyFmt(collectionsLivrees) + '</div>' +
+          '<div style="padding-left:8px;font-size:14px;">⌄</div>' +
+        '</div>' +
+        '<div class="detailsCollections" style="display:none;border-top:1px solid #f0f0f0;background:#fafafa;">' +
+          collectionsDetailsHtml +
+        '</div>' +
+      '</div>';
 
     box.innerHTML =
       '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">USD ' + moneyFmt(balance) + '</div>' +

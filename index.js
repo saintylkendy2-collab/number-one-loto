@@ -2882,50 +2882,12 @@ function renderBillets(){
   var wrap = document.getElementById("billetsWrap");
 
   function fmt(v){
-      return Number(v || 0).toLocaleString("en-US", {
+  return Number(v || 0).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
 }
 
-var daysHtml = "";
-var sortedDays = Object.keys(byDay).sort();
-
-sortedDays.forEach(function(day){
-
-  var d = byDay[day];
-
-  var dCommission =
-    d.vente * (Number(sellerCommission || 0) / 100);
-
-  var dBalance =
-    d.vente - d.prime - dCommission;
-
-  daysHtml +=
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;padding:12px 0;border-bottom:1px solid #ddd;">' +
-
-      '<div>' +
-        fmt(d.vente) +
-        '<div style="font-size:15px;color:#666;">' +
-          fmt(dCommission) +
-        '</div>' +
-      '</div>' +
-
-      '<div>' +
-        fmt(d.prime) +
-      '</div>' +
-
-      '<div>' +
-        fmt(dBalance) +
-        '<div style="font-size:15px;color:#666;">' +
-          day +
-        '</div>' +
-      '</div>' +
-
-    '</div>';
-
-});
-  }
 
   if(!savedTickets.length){
     wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
@@ -3301,22 +3263,22 @@ var resultat = vente - prime - commission;
   var dCommission = d.vente * (Number(sellerCommissionRate || 0) / 100);
 var dBalance = d.vente - d.prime - dCommission;
 
-    daysHtml +=
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-        '<div>' + d.vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + dCommission.toFixed(2) + '</div></div>' +
-        '<div>' + d.prime.toFixed(2) + '</div>' +
-        '<div>' + dBalance.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(day) + '</div></div>' +
-      '</div>';
-  });
+  daysHtml +=
+  '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+    '<div>' + fmt(d.vente) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + fmt(dCommission) + '</div></div>' +
+    '<div>' + fmt(d.prime) + '</div>' +
+    '<div>' + fmt(dBalance) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(day) + '</div></div>' +
+  '</div>';
+});
 
-  if(!daysHtml){
-    daysHtml =
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-        '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">0.00</div></div>' +
-        '<div>0.00</div>' +
-        '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(endValue) + '</div></div>' +
-      '</div>';
-  }
+if(!daysHtml){
+  daysHtml =
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+      '<div>' + fmt(0) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + fmt(0) + '</div></div>' +
+      '<div>' + fmt(0) + '</div>' +
+      '<div>' + fmt(0) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(endValue) + '</div></div>' +
+    '</div>';
+}
 
   var loterieHtml = "";
   var lotKeys = Object.keys(byLoterie).sort();

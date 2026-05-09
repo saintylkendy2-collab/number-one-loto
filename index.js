@@ -3263,20 +3263,20 @@ var resultat = vente - prime - commission;
   var dCommission = d.vente * (Number(sellerCommissionRate || 0) / 100);
 var dBalance = d.vente - d.prime - dCommission;
 
-  daysHtml +=
+daysHtml +=
   '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-    '<div>' + fmt(d.vente) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + fmt(dCommission) + '</div></div>' +
-    '<div>' + fmt(d.prime) + '</div>' +
-    '<div>' + fmt(dBalance) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(day) + '</div></div>' +
+    '<div>' + Number(d.vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + Number(dCommission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div></div>' +
+    '<div>' + Number(d.prime || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
+    '<div>' + Number(dBalance || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(day) + '</div></div>' +
   '</div>';
 });
 
 if(!daysHtml){
   daysHtml =
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-      '<div>' + fmt(0) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + fmt(0) + '</div></div>' +
-      '<div>' + fmt(0) + '</div>' +
-      '<div>' + fmt(0) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(endValue) + '</div></div>' +
+      '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">0.00</div></div>' +
+      '<div>0.00</div>' +
+      '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(endValue) + '</div></div>' +
     '</div>';
 }
 

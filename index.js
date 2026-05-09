@@ -4395,6 +4395,12 @@ function renderBalancePage(){
       return String(r.id || "").toUpperCase() === String(sellerId || "").toUpperCase();
     });
 
+    if(rowBalance && Array.isArray(rowBalance.collectionsLivrees)){
+  collectionsLivrees = rowBalance.collectionsLivrees.reduce(function(s, m){
+    return s + Number(m.monto || 0);
+  }, 0);
+}
+
     var balance = rowBalance && rowBalance.balance !== undefined
       ? Number(rowBalance.balance || 0)
       : resultat;

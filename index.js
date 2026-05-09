@@ -4695,18 +4695,14 @@ body{
 
   <div class="line"></div>
 
-function fmt(n){
-  return Number(n || 0).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
+ <div class="boxline">
+  <div class="row"><span>| Ventes</span><b>${Number(vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
 
-  <div class="boxline">
-  <div class="row"><span>| Ventes</span><b>${fmt(vente)} |</b></div>
-  <div class="row"><span>| Prix</span><b>${fmt(prix)} |</b></div>
-  <div class="row"><span>| Commission</span><b>${fmt(commission)} |</b></div>
-  <div class="row"><span>| Balance</span><b>${fmt(resultat)} |</b></div>
+  <div class="row"><span>| Prix</span><b>${Number(prix || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Commission</span><b>${Number(commission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Balance</span><b>${Number(resultat || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
 </div>
 
 <script>

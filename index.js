@@ -2966,12 +2966,13 @@ function renderBillets(){
 
     var actions = document.createElement("div");
     actions.className = "billet-actions";
-    actions.style.gridTemplateColumns = "repeat(4,1fr)";
-    actions.innerHTML =
-      '<button class="small-btn btn-green">COPIE</button>' +
-      '<button class="small-btn btn-yellow">LOTERIE</button>' +
-      '<button class="small-btn btn-yellow">MONTANT</button>' +
-      '<button class="small-btn btn-gray">ANILE</button>';
+    actions.style.gridTemplateColumns = "repeat(5,1fr)";
+actions.innerHTML =
+  '<button class="small-btn btn-green">COPIE</button>' +
+  '<button class="small-btn btn-yellow">LOTERIE</button>' +
+  '<button class="small-btn btn-yellow">MONTANT</button>' +
+  '<button class="small-btn btn-gray">RE-PRINT</button>' +
+  '<button class="small-btn btn-gray">ANILE</button>';
 
     var btns = actions.querySelectorAll("button");
 

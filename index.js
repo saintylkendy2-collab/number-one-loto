@@ -3324,13 +3324,13 @@ if(!loterieHtml){
       '</div>' +
 
       '<div style="background:#fff;padding:18px 16px;margin-bottom:18px;">' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;row-gap:8px;font-size:18px;line-height:1.5;">' +
-          '<div style="text-align:center;font-weight:700;">Ventes</div><div style="text-align:center;font-weight:700;">' + vente.toFixed(2) + '</div>' +
-          '<div style="text-align:center;font-weight:700;">Prix</div><div style="text-align:center;font-weight:700;">' + prime.toFixed(2) + '</div>' +
-          '<div style="text-align:center;font-weight:700;">Commission</div><div style="text-align:center;font-weight:700;">' + commission.toFixed(2) + '</div>' +
-          '<div style="text-align:center;font-weight:700;">Résultat</div><div style="text-align:center;font-weight:700;">' + resultat.toFixed(2) + '</div>' +
-        '</div>' +
-      '</div>' +
+  '<div style="display:grid;grid-template-columns:1fr 1fr;row-gap:8px;font-size:18px;line-height:1.5;">' +
+    '<div style="text-align:center;font-weight:700;">Ventes</div><div style="text-align:center;font-weight:700;">' + Number(vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
+    '<div style="text-align:center;font-weight:700;">Prix</div><div style="text-align:center;font-weight:700;">' + Number(prime || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
+    '<div style="text-align:center;font-weight:700;">Commission</div><div style="text-align:center;font-weight:700;">' + Number(commission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
+    '<div style="text-align:center;font-weight:700;">Résultat</div><div style="text-align:center;font-weight:700;">' + Number(resultat || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
+  '</div>' +
+'</div>' +
 
       '<div style="background:#fff;padding:18px 16px;margin-bottom:18px;text-align:center;">' +
         '<div style="font-size:22px;font-weight:700;margin-bottom:18px;">RESUMEN POR DÍA</div>' +

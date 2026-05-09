@@ -3252,15 +3252,15 @@ function renderRapports(){
     });
   });
 
-var commission = 0; // kite master panel jere sa
-var resultat = vente - prime;
+var commission = vente * (Number(sellerCommissionRate || 0) / 100);
+var resultat = vente - prime - commission;
 
   var daysHtml = "";
   var sortedDays = Object.keys(byDay).sort();
   sortedDays.forEach(function(day){
     var d = byDay[day];
-    var dCommission = 0;
-var dBalance = d.vente - d.prime;
+  var dCommission = d.vente * (Number(sellerCommissionRate || 0) / 100);
+var dBalance = d.vente - d.prime - dCommission;
 
     daysHtml +=
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +

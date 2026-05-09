@@ -2882,7 +2882,7 @@ function renderBillets(){
   var wrap = document.getElementById("billetsWrap");
 
   function fmt(v){
-  return Number(v || 0).toLocaleString("en-US", {
+      return Number(v || 0).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
@@ -2925,6 +2925,7 @@ sortedDays.forEach(function(day){
     '</div>';
 
 });
+  }
 
   if(!savedTickets.length){
     wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';

@@ -491,18 +491,54 @@ router.get("/api/reportes/ventas", async (req, res) => {
       const status = String(t.status || "").trim().toUpperCase();
 
       if (!map[id]) {
-        map[id] = {
-          id,
-          nombre: vendor.nombre || vendor.nom || id,
-          zona: vendor.zona || vendor.groupe || "",
-          venta: 0,
-          comision: 0,
-          comisionGrupo: 0,
-          premios: 0,
-          resultado: 0,
-          estatus: vendor.estatus || "Activo"
-        };
-      }
+  map[id] = {
+    id,
+
+    nombre: vendor.nombre || vendor.nom || id,
+
+    zona: vendor.zona || vendor.groupe || "",
+
+    venta: 0,
+
+    comision: 0,
+
+    comisionGrupo: 0,
+
+    premios: 0,
+
+    resultado: 0,
+
+    estatus: vendor.estatus || "Activo",
+
+    collectionsLivrees: movimientos
+      .filter(m => {
+        const d = toISODate(m.fecha);
+
+        if (selectedDate && d && d > selectedDate) return false;
+
+        return String(m.tipo || "").toLowerCase() !== "cobro";
+      })
+      .map(m => ({
+        fecha: toISODate(m.fecha),
+        monto: parseAmount(m.monto),
+        tipo: String(m.tipo || "")
+      })),
+
+    paiementsRecus: movimientos
+      .filter(m => {
+        const d = toISODate(m.fecha);
+
+        if (selectedDate && d && d > selectedDate) return false;
+
+        return String(m.tipo || "").toLowerCase() === "cobro";
+      })
+      .map(m => ({
+        fecha: toISODate(m.fecha),
+        monto: parseAmount(m.monto),
+        tipo: String(m.tipo || "")
+      }))
+  };
+}
 
       if (status !== "ANILE") {
         map[id].venta += parseAmount(t.total);

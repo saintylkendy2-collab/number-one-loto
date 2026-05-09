@@ -4696,11 +4696,11 @@ body{
   <div class="line"></div>
 
   <div class="boxline">
-    <div class="row"><span>| Ventes</span><b>${vente.toFixed(2)} |</b></div>
-    <div class="row"><span>| Prix</span><b>${prix.toFixed(2)} |</b></div>
-    <div class="row"><span>| Commission</span><b>${commission.toFixed(2)} |</b></div>
-    <div class="row"><span>| Balance</span><b>${resultat.toFixed(2)} |</b></div>
-  </div>
+  <div class="row"><span>| Ventes</span><b>${fmt(vente)} |</b></div>
+  <div class="row"><span>| Prix</span><b>${fmt(prix)} |</b></div>
+  <div class="row"><span>| Commission</span><b>${fmt(commission)} |</b></div>
+  <div class="row"><span>| Balance</span><b>${fmt(resultat)} |</b></div>
+</div>
 
 <script>
 setTimeout(function(){

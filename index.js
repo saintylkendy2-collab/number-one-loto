@@ -4390,22 +4390,20 @@ function renderBalancePage(){
     var initial = 0;
     var paiementRecu = 0;
     var collectionsLivrees = 0;
-    var collectionsDetailsHtml = "";
+    var details = "";
 
     var rowBalance = balanceRows.find(function(r){
       return String(r.id || "").toUpperCase() === String(sellerId || "").toUpperCase();
     });
 
     if(rowBalance && Array.isArray(rowBalance.collectionsLivrees)){
-      collectionsLivrees = rowBalance.collectionsLivrees.reduce(function(s, m){
-        return s + Number(m.monto || 0);
-      }, 0);
-
       rowBalance.collectionsLivrees.forEach(function(m){
-        collectionsDetailsHtml +=
-          '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:5px 14px;font-size:14px;color:#666;border-bottom:1px solid #f2f2f2;">' +
-            '<div>' + (m.fecha || "") + '</div>' +
-            '<div>' + moneyFmt(m.monto) + '</div>' +
+        collectionsLivrees += Number(m.monto || 0);
+
+        details +=
+          '<div style="display:flex;justify-content:space-between;padding:6px 12px;font-size:14px;color:#666;border-top:1px solid #eee;">' +
+            '<span>' + (m.fecha || "") + '</span>' +
+            '<span>' + moneyFmt(m.monto) + '</span>' +
           '</div>';
       });
     }
@@ -4427,16 +4425,13 @@ function renderBalancePage(){
     }
 
     var collectionsBlock =
-      '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;border-radius:8px;overflow:hidden;">' +
-        '<div onclick="var d=this.parentNode.querySelector(\'.detailsCollections\'); d.style.display=d.style.display===\'none\'?\'block\':\'none\';" style="display:grid;grid-template-columns:1fr auto auto;align-items:center;padding:10px 14px;font-size:18px;cursor:pointer;">' +
-          '<div>Collections livrées</div>' +
-          '<div style="font-weight:600;">' + moneyFmt(collectionsLivrees) + '</div>' +
-          '<div style="padding-left:8px;font-size:14px;">⌄</div>' +
-        '</div>' +
-        '<div class="detailsCollections" style="display:none;border-top:1px solid #f0f0f0;background:#fafafa;">' +
-          collectionsDetailsHtml +
-        '</div>' +
-      '</div>';
+      '<details style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+        '<summary style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:13px 16px;font-size:20px;cursor:pointer;">' +
+          '<span>Collections livrées</span>' +
+          '<span>' + moneyFmt(collectionsLivrees) + '</span>' +
+        '</summary>' +
+        details +
+      '</details>';
 
     box.innerHTML =
       '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">USD ' + moneyFmt(balance) + '</div>' +

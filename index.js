@@ -2966,13 +2966,13 @@ function renderBillets(){
 
     var actions = document.createElement("div");
     actions.className = "billet-actions";
-    actions.style.gridTemplateColumns = "repeat(5,1fr)";
+actions.style.gridTemplateColumns = "1fr 1fr 1fr 1.25fr 1fr";
 actions.innerHTML =
   '<button class="small-btn btn-green">COPIE</button>' +
   '<button class="small-btn btn-yellow">LOTERIE</button>' +
   '<button class="small-btn btn-yellow">MONTANT</button>' +
-  '<button class="small-btn btn-gray">RE-PRINT</button>' +
-  '<button class="small-btn btn-gray">ANILE</button>';
+  '<button class="small-btn btn-gray">PRINT</button>' +
+  '<button class="small-btn btn-gray">ANILE</button>'; 
 
     var btns = actions.querySelectorAll("button");
 
@@ -3009,10 +3009,14 @@ actions.innerHTML =
       copyFromTicketWithMontant(t, newMontant);
     };
 
-   btns[3].onclick = function(e){
+  btns[3].onclick = function(e){
+  e.preventDefault();
   e.stopPropagation();
   feedbackTouch();
-  rePrintTicket(t.id);
+
+  setTimeout(function(){
+    rePrintTicket(t.id || t.ticketId || t.serial);
+  }, 80);
 };
 
 btns[4].onclick = function(e){

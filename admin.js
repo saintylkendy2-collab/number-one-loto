@@ -921,7 +921,7 @@ router.get("/ventas-document", async (req, res) => {
     }
 
     const rows = Object.values(map).map(r => {
-      r.comisionGrupo = (r.venta * r.rateGrupo) / 100;
+      r.comisionGrupo = zonaFilter ? (r.venta * r.rateGrupo) / 100 : 0;
       r.comision = (r.venta * r.rate) / 100;
       r.resultado = r.venta - r.comision - r.premios;
       return r;

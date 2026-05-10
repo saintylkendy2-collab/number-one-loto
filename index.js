@@ -10,6 +10,7 @@ const Vendor = require("./models/vendor");
 const Sorteo = require("./models/Sorteo");
 
 const Grupo = require("./models/Grupo");
+const Grupo = require("./models/Grupo");
 
 const app = express();
 

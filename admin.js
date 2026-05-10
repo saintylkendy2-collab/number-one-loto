@@ -2788,8 +2788,8 @@ tbody tr:nth-child(even){background:#313652;}
           <thead>
             <tr>
    <th>VENDEDOR</th>
-  <th>
-  VENTA<span style="font-size:10px; display:inline-block; line-height:9px; margin-left:2px;">↑<br>↓</span>
+  <th onclick="sortVentasByVenta()" style="cursor:pointer;">
+  VENTA<span id="ventaArrow" style="font-size:10px; display:inline-block; line-height:9px; margin-left:2px;">↑<br>↓</span>
 </th>
   <th>COMISIÓN GRUPO</th>
   <th>COMISIÓN</th>
@@ -3515,6 +3515,20 @@ async function loadVentasReport(){
     ventasRows = [];
     renderVentasTable();
   }
+}
+
+let ventaSortAsc = false;
+
+function sortVentasByVenta(){
+  ventaSortAsc = !ventaSortAsc;
+
+  ventasRows.sort(function(a,b){
+    return ventaSortAsc
+      ? parseAmount(a.venta) - parseAmount(b.venta)
+      : parseAmount(b.venta) - parseAmount(a.venta);
+  });
+
+  renderVentasTable();
 }
 
 async function loadBalanceReport(){

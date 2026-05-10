@@ -815,126 +815,186 @@ router.put("/api/vendors/:id", async (req, res) => {
 });
 
 router.get("/ventas-document", async (req, res) => {
+  try {
+    const start = String(req.query.start || "").trim();
+    const end = String(req.query.end || "").trim();
+    const zonaFilter = String(req.query.zona || "").trim();
+    const vendorFilter = String(req.query.vendor || "").trim().toUpperCase();
+    const comisionFilter = String(req.query.comision || "").trim();
 
-  const start = req.query.start || "";
-  const end = req.query.end || "";
-  const type = req.query.type || "print";
+    const vendorsArr = await Vendor.find().lean();
+    const tickets = await Ticket.find().lean();
 
-  const tickets = await Ticket.find({
-    status: { $ne: "ANILE" }
-  }).lean();
+    const vendorsMap = {};
+    vendorsArr.forEach(v => {
+      const id = String(v.id || "").trim().toUpperCase();
+      if(id) vendorsMap[id] = v;
+    });
 
-  let rows = "";
-
-  tickets.forEach((t, i) => {
-
-    rows += `
-      <tr>
-        <td>${i + 1}</td>
-        <td>${t.vendeurNom || ""}</td>
-        <td>${(t.total || 0).toFixed(2)}</td>
-        <td>${t.dateLabel || ""}</td>
-      </tr>
-    `;
-  });
-
-  res.send(`
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <title>Reporte Ventas</title>
-
-    <style>
-
-      body{
-        font-family:Arial;
-        padding:20px;
-        background:#fff;
-        color:#000;
+    function toISODate(t){
+      if(t.dateLabel){
+        const p = String(t.dateLabel).split("/");
+        if(p.length === 3){
+          return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+        }
       }
 
-      h1{
-        text-align:center;
-        margin-bottom:5px;
+      const d = new Date(t.createdAt || Date.now());
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2,"0") + "-" +
+        String(d.getDate()).padStart(2,"0");
+    }
+
+    function money(v){
+      return Number(v || 0).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function rateOf(v){
+      return Number(
+        v?.comision?.general ||
+        v?.comisionGeneral ||
+        v?.com_general ||
+        0
+      );
+    }
+
+    const map = {};
+
+    tickets.forEach(t => {
+      const day = toISODate(t);
+      if(start && day < start) return;
+      if(end && day > end) return;
+
+      const id = String(t.vendeur || "").trim().toUpperCase();
+      if(!id) return;
+
+      const vendor = vendorsMap[id] || {};
+      const zona = String(vendor.zona || vendor.groupe || "").trim();
+      const rate = rateOf(vendor);
+
+      if(zonaFilter && zona !== zonaFilter) return;
+      if(vendorFilter && id !== vendorFilter) return;
+      if(comisionFilter && Number(comisionFilter) !== Number(rate)) return;
+
+      const status = String(t.status || "").trim().toUpperCase();
+      if(status === "ANILE") return;
+
+      if(!map[id]){
+        map[id] = {
+          id,
+          nombre: vendor.nombre || vendor.nom || t.vendeurNom || id,
+          zona,
+          venta: 0,
+          comision: 0,
+          premios: 0,
+          resultado: 0,
+          rate
+        };
       }
 
-      .date{
-        text-align:center;
-        margin-bottom:20px;
+      map[id].venta += Number(t.total || 0);
+
+      if(status === "GANYE"){
+        map[id].premios += Number(t.premio || 0);
       }
+    });
 
-      table{
-        width:100%;
-        border-collapse:collapse;
-      }
+    const rows = Object.values(map).map(r => {
+      r.comision = r.venta * (r.rate / 100);
+      r.resultado = r.venta - r.comision - r.premios;
+      return r;
+    }).sort((a,b) => b.resultado - a.resultado);
 
-      th,td{
-        border:1px solid #ccc;
-        padding:10px;
-        text-align:left;
-      }
+    let totalVenta = 0;
+    let totalComision = 0;
+    let totalPremios = 0;
+    let totalResultado = 0;
 
-      th{
-        background:#eee;
-      }
+    const rowsHtml = rows.map((r, i) => {
+      totalVenta += r.venta;
+      totalComision += r.comision;
+      totalPremios += r.premios;
+      totalResultado += r.resultado;
 
-      .top-actions{
-        margin-bottom:20px;
-        display:flex;
-        gap:10px;
-      }
-
-      button{
-        height:45px;
-        padding:0 20px;
-        border:none;
-        background:#222;
-        color:#fff;
-        border-radius:10px;
-        cursor:pointer;
-      }
-
-    </style>
-
-  </head>
-
-  <body>
-
-    <div class="top-actions">
-
-      <button onclick="window.print()">
-        Imprimer / PDF
-      </button>
-
-    </div>
-
-    <h1>REPORTE DE VENTAS</h1>
-
-    <div class="date">
-      ${start} - ${end}
-    </div>
-
-    <table>
-
-      <thead>
+      return `
         <tr>
-          <th>#</th>
-          <th>Vendeur</th>
-          <th>Venta</th>
-          <th>Date</th>
+          <td>${i + 1}) ${r.nombre}</td>
+          <td>${money(r.venta)}</td>
+          <td>${money(r.comision)}</td>
+          <td>${money(r.premios)}</td>
+          <td>${money(r.resultado)}</td>
         </tr>
-      </thead>
+      `;
+    }).join("");
 
-      <tbody>
-        ${rows}
-      </tbody>
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Reporte Ventas</title>
+<style>
+body{font-family:Arial;padding:20px;background:white;color:#000;}
+.top-actions{display:flex;justify-content:flex-end;margin-bottom:20px;}
+button{height:42px;padding:0 18px;border:0;border-radius:8px;background:#222;color:#fff;}
+h1{text-align:center;font-size:22px;margin-bottom:4px;}
+.date{text-align:center;font-weight:700;margin-bottom:20px;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th{border-bottom:2px solid #000;padding:8px;text-align:left;}
+td{border-bottom:1px solid #ccc;padding:8px;}
+tfoot td{font-weight:800;border-top:2px solid #000;}
+@media print{
+  .top-actions{display:none;}
+  body{padding:10px;}
+}
+</style>
+</head>
+<body>
 
-    </table>
+<div class="top-actions">
+  <button onclick="window.print()">Imprimer / PDF</button>
+</div>
 
-  </body>
-  </html>
-  `);
+<h1>REPORTE DE VENTAS</h1>
+<div class="date">${start} - ${end}</div>
 
+<table>
+<thead>
+<tr>
+  <th>Vendedor</th>
+  <th>Venta</th>
+  <th>Comisión</th>
+  <th>Premios</th>
+  <th>Resultado</th>
+</tr>
+</thead>
+
+<tbody>
+${rowsHtml || `<tr><td colspan="5">Pa gen done pou filtè sa yo</td></tr>`}
+</tbody>
+
+<tfoot>
+<tr>
+  <td>TOTAL</td>
+  <td>${money(totalVenta)}</td>
+  <td>${money(totalComision)}</td>
+  <td>${money(totalPremios)}</td>
+  <td>${money(totalResultado)}</td>
+</tr>
+</tfoot>
+</table>
+
+</body>
+</html>
+    `);
+
+  } catch (err) {
+    console.error("VENTAS DOCUMENT ERROR:", err);
+    res.status(500).send("Erreur rapport ventas");
+  }
 });
 
 router.delete("/api/vendors/:id", async (req, res) => {

@@ -1189,6 +1189,14 @@ for (const j of safeJeux) {
     });
 
     const reste = limit - dejaVendu;
+    console.log("TICKET LIMIT CHECK:", {
+  type,
+  numero: j.numero,
+  loterie: j.loterie,
+  montant: j.montant,
+  limit,
+  dejaVendu
+});
 
     if (reste <= 0) {
       return res.status(403).json({

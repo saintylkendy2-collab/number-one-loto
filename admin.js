@@ -952,6 +952,13 @@ router.get("/ventas-document", async (req, res) => {
       `;
     }).join("");
 
+    if(type === "pdf"){
+  res.setHeader(
+    "Content-Disposition",
+    'attachment; filename="Rapport_Ventas.pdf"'
+  );
+}
+
     res.send(`
 <!DOCTYPE html>
 <html>

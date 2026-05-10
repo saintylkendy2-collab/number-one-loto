@@ -1136,55 +1136,71 @@ app.post("/api/tickets", async (req, res) => {
       return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
     }
 
-    for (const j of safeJeux) {
+for (const j of safeJeux) {
+  const limites = limitesAjustes || {};
 
-  const vendor = await Vendor.findOne({ id: sellerId }).lean();
-
-  if (!vendor) {
-    return res.status(404).json({
-      ok:false,
-      message:"Vandè pa jwenn"
-    });
-  }
-
-  const limites = vendor.limites || {};
-
-  const bloqueos = Array.isArray(limites.bloqueoNumeros)
+  const bloques = Array.isArray(limites.bloqueoNumeros)
     ? limites.bloqueoNumeros
     : [];
 
-  const bloqueado = bloqueos.some(function(b){
+  const blocked = bloques.some(b => {
+    if (typeof b === "string") return b.trim() === j.numero;
 
-    if(typeof b === "string"){
-      return b.trim() === j.numero;
-    }
-
-    return (
-      String(b.numero || "").trim() === j.numero &&
-      (
-        !b.type ||
-        String(b.type || "").toUpperCase() === String(j.type || "").toUpperCase()
-      )
-    );
-
+    return String(b.numero || "").trim() === j.numero &&
+      (!b.type || String(b.type || "").toUpperCase() === String(j.type || "").toUpperCase());
   });
 
-  if (bloqueado) {
+  if (blocked) {
     return res.status(403).json({
       ok:false,
       message:"Nimewo " + j.numero + " bloke"
     });
   }
 
-  let limite = 0;
+  let limit = 0;
+  const type = String(j.type || "").toUpperCase();
 
-  if (j.type === "BOR") limite = Number(limites.borlette || 0);
-  else if (j.type === "MAR") limite = Number(limites.mariage || 0);
-  else if (j.type === "L3") limite = Number(limites.loto3 || 0);
-  else if (j.type === "L41" || j.type === "L42" || j.type === "L43") limite = Number(limites.loto4 || 0);
-  else if (j.type === "L51" || j.type === "L52" || j.type === "L53") limite = Number(limites.loto5 || 0);
+  if (type === "BOR") limit = Number(limites.borlette || 0);
+  else if (type === "MAR") limit = Number(limites.mariage || 0);
+  else if (type === "L3") limit = Number(limites.loto3 || 0);
+  else if (type === "L41" || type === "L42" || type === "L43") limit = Number(limites.loto4 || 0);
+  else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0);
 
+  if (limit > 0) {
+    const tickets = await Ticket.find({
+      status: { $ne: "ANILE" }
+    }).lean();
 
+    let dejaVendu = 0;
+
+    tickets.forEach(t => {
+      (t.jeux || []).forEach(old => {
+        if (
+          String(old.type || "").toUpperCase() === type &&
+          String(old.numero || "").trim() === String(j.numero || "").trim() &&
+          String(old.loterie || "").trim().toUpperCase() === String(j.loterie || "").trim().toUpperCase()
+        ) {
+          dejaVendu += Number(old.montant || 0);
+        }
+      });
+    });
+
+    const reste = limit - dejaVendu;
+
+    if (reste <= 0) {
+      return res.status(403).json({
+        ok:false,
+        message:"Limit nimewo sa fini"
+      });
+    }
+
+    if (Number(j.montant || 0) > reste) {
+      return res.status(403).json({
+        ok:false,
+        message:"Ou ka vann sèlman " + reste.toFixed(2)
+      });
+    }
+  }
 }
 
     const vendor = await Vendor.findOne({ id: sellerId }).lean();

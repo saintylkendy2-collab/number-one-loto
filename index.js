@@ -750,11 +750,10 @@ app.post("/api/check-limit-game", async (req, res) => {
 
     const today = new Date().toLocaleDateString("fr-FR");
 
-    const tickets = await Ticket.find({
-      vendeur: sellerId,
-      dateLabel: today,
-      status: { $ne: "ANILE" }
-    }).lean();
+   const tickets = await Ticket.find({
+  dateLabel: today,
+  status: { $ne:"ANILE" }
+}).lean();
 
     let dejaVendu = 0;
 

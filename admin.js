@@ -2811,7 +2811,23 @@ tbody tr:nth-child(even){background:#313652;}
     <button class="login-btn" onclick="openNewGrupo()">+ Nuevo Grupo</button>
   </div>
 
-  <div id="limitesAjustesPage" class="page-block hidden">
+  <div class="table-card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>GRUPO</th>
+            <th>ESTADO</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="gruposTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+ <div id="limitesAjustesPage" class="page-block hidden">
   <div class="page-title">Configurar Límites</div>
 
   <div class="action-row">
@@ -2855,22 +2871,6 @@ tbody tr:nth-child(even){background:#313652;}
       <input id="blockNumNumero" class="field-input" placeholder="Número ex: 00">
       <button class="login-btn" onclick="addBloqueoNumero()">+ Bloquer numéro</button>
       <div id="bloqueoNumerosList"></div>
-    </div>
-  </div>
-</div>
-
-  <div class="table-card">
-    <div class="table-scroll">
-      <table>
-        <thead>
-          <tr>
-            <th>GRUPO</th>
-            <th>ESTADO</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="gruposTableBody"></tbody>
-      </table>
     </div>
   </div>
 </div>

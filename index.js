@@ -1184,14 +1184,6 @@ app.post("/api/tickets", async (req, res) => {
   else if (j.type === "L41" || j.type === "L42" || j.type === "L43") limite = Number(limites.loto4 || 0);
   else if (j.type === "L51" || j.type === "L52" || j.type === "L53") limite = Number(limites.loto5 || 0);
 
-  if (limite > 0 && Number(j.montant) > limite) {
-
-    return res.status(403).json({
-      ok:false,
-      message:"Limit " + j.type + " se " + limite
-    });
-
-  }
 
 }
 

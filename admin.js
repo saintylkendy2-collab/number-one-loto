@@ -4261,6 +4261,17 @@ function renderVentasTable(){
     return okZona && okVendor && okCom;
   });
 
+  const positivos = rows
+  .filter(r => parseAmount(r.resultado) >= 0)
+  .sort((a, b) => parseAmount(b.venta) - parseAmount(a.venta));
+
+const negativos = rows
+  .filter(r => parseAmount(r.resultado) < 0)
+  .sort((a, b) => parseAmount(b.resultado) - parseAmount(a.resultado));
+
+rows.length = 0;
+rows.push(...positivos, ...negativos);
+
   tbody.innerHTML = "";
   tfoot.innerHTML = "";
 

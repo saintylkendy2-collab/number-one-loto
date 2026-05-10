@@ -863,21 +863,30 @@ async function loadLimites(){
 app.post("/api/limites-ajustes", async (req,res)=>{
   try{
 
-    limitesAjustes = {
-      borlette: Number(req.body.borlette || 0),
-      mariage: Number(req.body.mariage || 0),
-      loto3: Number(req.body.loto3 || 0),
-      loto4: Number(req.body.loto4 || 0),
-      loto5: Number(req.body.loto5 || 0),
+  limitesAjustes = {
+  borlette: Number(req.body.borlette || 0),
+  mariage: Number(req.body.mariage || 0),
+  loto3: Number(req.body.loto3 || 0),
+  loto4: Number(req.body.loto4 || 0),
+  loto5: Number(req.body.loto5 || 0),
 
-      limiteNumeros: Array.isArray(req.body.limiteNumeros)
-        ? req.body.limiteNumeros
-        : [],
+  limiteNumeros: Array.isArray(req.body.limiteNumeros)
+    ? req.body.limiteNumeros
+    : [],
 
-      bloqueoNumeros: Array.isArray(req.body.bloqueoNumeros)
-        ? req.body.bloqueoNumeros
-        : []
-    };
+  bloqueoNumeros: Array.isArray(req.body.bloqueoNumeros)
+    ? req.body.bloqueoNumeros
+    : []
+};
+
+await Limites.findOneAndUpdate(
+  {},
+  limitesAjustes,
+  {
+    upsert:true,
+    new:true
+  }
+);
 
     await Limites.deleteMany({});
 

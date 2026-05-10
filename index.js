@@ -714,7 +714,7 @@ function money(v){
 app.post("/api/check-limit-game", async (req, res) => {
   try {
     const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
-    const type = String(req.body.type || "").trim().toUpperCase();
+    const type = normGameType(req.body.type);
     const numero = String(req.body.numero || "").trim();
     const loterie = String(req.body.loterie || "").trim().toUpperCase();
     const montant = Number(req.body.montant || 0);
@@ -1104,6 +1104,18 @@ function isWinningGame(j, result){
   return false;
 }
 
+function normGameType(v){
+  const s = String(v || "").trim().toUpperCase();
+
+  if (s === "BORLETTE" || s === "BOR") return "BOR";
+  if (s === "MARIAGE" || s === "MAR") return "MAR";
+  if (s === "LOTO 3" || s === "L3") return "L3";
+  if (s === "LOTO 4" || s === "L4" || s === "L41" || s === "L42" || s === "L43") return "L41";
+  if (s === "LOTO 5" || s === "L5" || s === "L51" || s === "L52" || s === "L53") return "L51";
+
+  return s;
+}
+
 
 app.post("/api/tickets", async (req, res) => {
   try {
@@ -1125,12 +1137,12 @@ app.post("/api/tickets", async (req, res) => {
       return res.status(400).json({ ok: false, message: "Pa gen jwèt" });
     }
 
-    const safeJeux = jeux.map(j => ({
-      type: String(j.type || "").trim(),
-      numero: String(j.numero || "").trim(),
-      loterie: String(j.loterie || "").trim(),
-      montant: Number(j.montant || 0)
-    })).filter(j => j.type && j.numero && j.loterie && j.montant > 0);
+  const safeJeux = jeux.map(j => ({
+  type: normGameType(j.type),
+  numero: String(j.numero || "").trim(),
+  loterie: String(j.loterie || "").trim().toUpperCase(),
+  montant: Number(j.montant || 0)
+})).filter(j => j.type && j.numero && j.loterie && j.montant > 0);
 
     if (!safeJeux.length) {
       return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
@@ -1138,6 +1150,7 @@ app.post("/api/tickets", async (req, res) => {
 
 for (const j of safeJeux) {
   const limites = limitesAjustes || {};
+  const type = normGameType(j.type);
 
   const bloques = Array.isArray(limites.bloqueoNumeros)
     ? limites.bloqueoNumeros
@@ -1147,7 +1160,7 @@ for (const j of safeJeux) {
     if (typeof b === "string") return b.trim() === j.numero;
 
     return String(b.numero || "").trim() === j.numero &&
-      (!b.type || String(b.type || "").toUpperCase() === String(j.type || "").toUpperCase());
+      (!b.type || normGameType(b.type) === type);
   });
 
   if (blocked) {
@@ -1158,7 +1171,6 @@ for (const j of safeJeux) {
   }
 
   let limit = 0;
-  const type = String(j.type || "").toUpperCase();
 
   if (type === "BOR") limit = Number(limites.borlette || 0);
   else if (type === "MAR") limit = Number(limites.mariage || 0);
@@ -1167,19 +1179,18 @@ for (const j of safeJeux) {
   else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0);
 
   if (limit > 0) {
-   const tickets = await Ticket.find({
-  status: { $ne: "ANILE" },
-  "jeux.numero": String(j.numero || "").trim(),
-  "jeux.type": type,
-  "jeux.loterie": String(j.loterie || "").trim().toUpperCase()
-}).lean();
+    const tickets = await Ticket.find({
+      status: { $ne: "ANILE" },
+      "jeux.numero": String(j.numero || "").trim(),
+      "jeux.loterie": String(j.loterie || "").trim().toUpperCase()
+    }).lean();
 
     let dejaVendu = 0;
 
     tickets.forEach(t => {
       (t.jeux || []).forEach(old => {
         if (
-          String(old.type || "").toUpperCase() === type &&
+          normGameType(old.type) === type &&
           String(old.numero || "").trim() === String(j.numero || "").trim() &&
           String(old.loterie || "").trim().toUpperCase() === String(j.loterie || "").trim().toUpperCase()
         ) {
@@ -1189,14 +1200,6 @@ for (const j of safeJeux) {
     });
 
     const reste = limit - dejaVendu;
-    console.log("TICKET LIMIT CHECK:", {
-  type,
-  numero: j.numero,
-  loterie: j.loterie,
-  montant: j.montant,
-  limit,
-  dejaVendu
-});
 
     if (reste <= 0) {
       return res.status(403).json({

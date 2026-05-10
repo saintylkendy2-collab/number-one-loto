@@ -2657,7 +2657,7 @@ tbody tr:nth-child(even){background:#313652;}
     <span>Límites</span><span>></span>
   </div>
   <div id="limitesMenu" class="submenu-box">
-    <div class="submenu-item">Ajustes</div>
+    <div class="submenu-item" onclick="goPage('limites_ajustes')">Ajustes</div>
     <div class="submenu-item">Estadísticas</div>
   </div>
 
@@ -2810,6 +2810,54 @@ tbody tr:nth-child(even){background:#313652;}
   <div class="action-row">
     <button class="login-btn" onclick="openNewGrupo()">+ Nuevo Grupo</button>
   </div>
+
+  <div id="limitesAjustesPage" class="page-block hidden">
+  <div class="page-title">Configurar Límites</div>
+
+  <div class="action-row">
+    <button class="editor-top-btn save" onclick="saveLimitesAjustes()">💾 Guardar</button>
+  </div>
+
+  <div class="table-card" style="padding:14px;">
+    <div class="field-group">
+      <div class="field-label">Límites por Loterías</div>
+      <input id="limite_borlette" class="field-input" placeholder="Borlette">
+      <input id="limite_mariage" class="field-input" placeholder="Mariage">
+      <input id="limite_loto3" class="field-input" placeholder="Loto 3">
+      <input id="limite_loto4" class="field-input" placeholder="Loto 4">
+      <input id="limite_loto5" class="field-input" placeholder="Loto 5">
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Límite por números</div>
+      <select id="limNumType" class="field-select">
+        <option value="BOR">Borlette</option>
+        <option value="MAR">Mariage</option>
+        <option value="L3">Loto 3</option>
+        <option value="L41">Loto 4</option>
+        <option value="L51">Loto 5</option>
+      </select>
+      <input id="limNumNumero" class="field-input" placeholder="Número ex: 00">
+      <input id="limNumMonto" class="field-input" placeholder="Limit ex: 100">
+      <button class="login-btn" onclick="addLimiteNumero()">+ Ajouter limite numéro</button>
+      <div id="limiteNumerosList"></div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Bloqueo de números</div>
+      <select id="blockNumType" class="field-select">
+        <option value="BOR">Borlette</option>
+        <option value="MAR">Mariage</option>
+        <option value="L3">Loto 3</option>
+        <option value="L41">Loto 4</option>
+        <option value="L51">Loto 5</option>
+      </select>
+      <input id="blockNumNumero" class="field-input" placeholder="Número ex: 00">
+      <button class="login-btn" onclick="addBloqueoNumero()">+ Bloquer numéro</button>
+      <div id="bloqueoNumerosList"></div>
+    </div>
+  </div>
+</div>
 
   <div class="table-card">
     <div class="table-scroll">
@@ -3959,6 +4007,7 @@ async function goPage(page){
   const balancePage = byId("balanceVendorPage");
   const transactionsPage = byId("transactionsPage");
   const sorteosPage = byId("sorteosPage");
+  const limitesAjustesPage = byId("limitesAjustesPage");
 
   if(ventasPage) ventasPage.classList.add("hidden");
   if(ticketsPage) ticketsPage.classList.add("hidden");
@@ -3968,6 +4017,7 @@ async function goPage(page){
   if(balancePage) balancePage.classList.add("hidden");
   if(transactionsPage) transactionsPage.classList.add("hidden");
   if(sorteosPage) sorteosPage.classList.add("hidden");
+  if(limitesAjustesPage) limitesAjustesPage.classList.add("hidden");
 
   if(page === "ventas"){
     if(ventasPage) ventasPage.classList.remove("hidden");
@@ -3976,6 +4026,9 @@ async function goPage(page){
   }else if(page === "grupos"){
   if(gruposPage) gruposPage.classList.remove("hidden");
   loadGruposFromServer();
+
+  }else if(page === "limites_ajustes"){
+  if(limitesAjustesPage) limitesAjustesPage.classList.remove("hidden");
 
   }else if(page === "ventas_loteria"){
     if(ventasPage) ventasPage.classList.remove("hidden");

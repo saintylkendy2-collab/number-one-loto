@@ -711,6 +711,86 @@ function money(v){
   });
 }
 
+app.post("/api/check-limit-game", async (req, res) => {
+  try {
+    const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
+    const type = String(req.body.type || "").trim().toUpperCase();
+    const numero = String(req.body.numero || "").trim();
+    const loterie = String(req.body.loterie || "").trim().toUpperCase();
+    const montant = Number(req.body.montant || 0);
+
+    const vendor = await Vendor.findOne({ id: sellerId }).lean();
+    if (!vendor) return res.json({ ok:false, message:"Vandè pa jwenn" });
+
+    const limites = vendor.limites || {};
+
+    const bloques = Array.isArray(limites.bloqueoNumeros) ? limites.bloqueoNumeros : [];
+
+    const blocked = bloques.some(b => {
+      if (typeof b === "string") return b.trim() === numero;
+      return String(b.numero || "").trim() === numero &&
+        (!b.type || String(b.type).toUpperCase() === type);
+    });
+
+    if (blocked) {
+      return res.json({ ok:false, message:"Nimewo sa bloke" });
+    }
+
+    let limit = 0;
+
+    if (type === "BOR") limit = Number(limites.borlette || 0);
+    else if (type === "MAR") limit = Number(limites.mariage || 0);
+    else if (type === "L3") limit = Number(limites.loto3 || 0);
+    else if (type === "L41" || type === "L42" || type === "L43") limit = Number(limites.loto4_l1 || 0);
+    else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5_l1 || 0);
+
+    if (limit <= 0) {
+      return res.json({ ok:true });
+    }
+
+    const today = new Date().toLocaleDateString("fr-FR");
+
+    const tickets = await Ticket.find({
+      vendeur: sellerId,
+      dateLabel: today,
+      status: { $ne: "ANILE" }
+    }).lean();
+
+    let dejaVendu = 0;
+
+    tickets.forEach(t => {
+      (t.jeux || []).forEach(j => {
+        if (
+          String(j.type || "").toUpperCase() === type &&
+          String(j.numero || "").trim() === numero &&
+          String(j.loterie || "").trim().toUpperCase() === loterie
+        ) {
+          dejaVendu += Number(j.montant || 0);
+        }
+      });
+    });
+
+    const reste = limit - dejaVendu;
+
+    if (reste <= 0) {
+      return res.json({ ok:false, message:"Limit nimewo sa fini" });
+    }
+
+    if (montant > reste) {
+      return res.json({
+        ok:false,
+        message:"Ou ka vann sèlman " + reste.toFixed(2)
+      });
+    }
+
+    res.json({ ok:true });
+
+  } catch (err) {
+    console.error("CHECK LIMIT ERROR:", err);
+    res.json({ ok:false, message:"Erreur limit" });
+  }
+});
+
 // GET tickets pa vendeur
 app.get("/api/vendor/:id/tickets", async (req, res) => {
   try {
@@ -2512,35 +2592,56 @@ function autoLoto4(){
  updateFields();
 }
 
-function addGame(){
- if(!numero.trim()) return;
- if(!montant.trim()) return;
- if(selectedLoteries.length === 0) return;
+async function addGame(){
+  if(!numero.trim()) return;
+  if(!montant.trim()) return;
+  if(selectedLoteries.length === 0) return;
 
- var entries = buildGameEntries(numero);
+  var entries = buildGameEntries(numero);
 
- if(!entries){
-   alert("Jeu pa valid");
-   return;
- }
+  if(!entries){
+    alert("Jeu pa valid");
+    return;
+  }
 
- selectedLoteries.forEach(function(lot){
-   entries.forEach(function(entry){
-     mergeOrPushGame({
-       type: entry.type,
-       numero: entry.numero,
-       loterie: lot,
-       montant: parseFloat(montant) || 0
-     });
-   });
- });
+  for (const lot of selectedLoteries) {
+    for (const entry of entries) {
+      const check = await fetch("/api/check-limit-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sellerId: sellerId,
+          type: entry.type,
+          numero: entry.numero,
+          loterie: lot,
+          montant: parseFloat(montant) || 0
+        })
+      }).then(r => r.json());
 
- numero = "";
- cursorNumero = 0;
- activeField = "numero";
+      if(!check.ok){
+        alert(check.message || "Limit pa valid");
+        return;
+      }
+    }
+  }
 
- renderJeux();
- updateFields();
+  selectedLoteries.forEach(function(lot){
+    entries.forEach(function(entry){
+      mergeOrPushGame({
+        type: entry.type,
+        numero: entry.numero,
+        loterie: lot,
+        montant: parseFloat(montant) || 0
+      });
+    });
+  });
+
+  numero = "";
+  cursorNumero = 0;
+  activeField = "numero";
+
+  renderJeux();
+  updateFields();
 }
 
 function goBackToJeuxFromMenu(){

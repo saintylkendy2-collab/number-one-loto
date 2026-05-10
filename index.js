@@ -1167,9 +1167,12 @@ for (const j of safeJeux) {
   else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0);
 
   if (limit > 0) {
-    const tickets = await Ticket.find({
-      status: { $ne: "ANILE" }
-    }).lean();
+   const tickets = await Ticket.find({
+  status: { $ne: "ANILE" },
+  "jeux.numero": String(j.numero || "").trim(),
+  "jeux.type": type,
+  "jeux.loterie": String(j.loterie || "").trim().toUpperCase()
+}).lean();
 
     let dejaVendu = 0;
 

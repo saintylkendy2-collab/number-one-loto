@@ -4283,7 +4283,7 @@ const negativos = rows
 rows.length = 0;
 rows.push(...positivos, ...negativos);
 
-if(window.manualVentaSort){
+if(manualVentaSort){
   rows.sort(function(a,b){
     return ventaSortAsc
       ? parseAmount(a.venta) - parseAmount(b.venta)

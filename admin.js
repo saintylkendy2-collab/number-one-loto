@@ -816,137 +816,138 @@ router.put("/api/vendors/:id", async (req, res) => {
 
 router.get("/ventas-document", async (req, res) => {
   try {
-
     const start = String(req.query.start || "").trim();
     const end = String(req.query.end || "").trim();
     const zonaFilter = String(req.query.zona || "").trim();
+    const vendorFilter = String(req.query.vendor || "").trim();
+    const comisionFilter = String(req.query.comision || "").trim();
 
-    const vendors = await Vendor.find().lean();
+    const query =
+      "/api/reportes/ventas?start=" + encodeURIComponent(start) +
+      "&end=" + encodeURIComponent(end);
+
+    const vendorsArr = await Vendor.find().lean();
     const tickets = await Ticket.find().lean();
 
-    const vendorMap = {};
-
-    vendors.forEach(v => {
+    const vendeurs = {};
+    vendorsArr.forEach(v => {
       const id = String(v.id || "").trim().toUpperCase();
-
-      vendorMap[id] = {
-        nombre: v.nombre || v.nom || id,
-        zona: v.zona || v.groupe || "",
-        porcentaje:
-          Number(
-            v.comisionGrupo ||
-            v.comision_grupo ||
-            v.porcentaje ||
-            v.santaj ||
-            0
-          )
-      };
+      if(id) vendeurs[id] = v;
     });
 
-    function toISODate(ticket){
-
-      if(ticket.dateLabel){
-
-        const p = String(ticket.dateLabel).split("/");
-
-        if(p.length === 3){
-
-          return (
-            p[2] + "-" +
-            p[1].padStart(2, "0") + "-" +
-            p[0].padStart(2, "0")
-          );
-        }
-      }
-
-      const d = new Date(ticket.createdAt || Date.now());
-
-      return (
-        d.getFullYear() + "-" +
-        String(d.getMonth() + 1).padStart(2, "0") + "-" +
-        String(d.getDate()).padStart(2, "0")
-      );
-    }
-
-    function formatDate(date){
-
-      if(!date) return "";
-
-      const p = String(date).split("-");
-
-      if(p.length !== 3) return date;
-
-      return `${p[2]}/${p[1]}/${p[0]}`;
-    }
-
     function money(v){
-
       return Number(v || 0).toLocaleString("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
     }
 
-    const resume = {};
+    function toFRDate(iso){
+      if(!iso) return "";
+      const p = String(iso).split("-");
+      if(p.length !== 3) return iso;
+      return p[2] + "/" + p[1] + "/" + p[0];
+    }
 
-    tickets.forEach(t => {
+    function ticketDay(t){
+      if(t.dateLabel){
+        const p = String(t.dateLabel).split("/");
+        if(p.length === 3){
+          return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+        }
+      }
 
-      const status = String(t.status || "").toUpperCase();
+      const d = new Date(t.createdAt || Date.now());
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2,"0") + "-" +
+        String(d.getDate()).padStart(2,"0");
+    }
 
-      if(status === "ANILE") return;
+    const map = {};
 
-      const day = toISODate(t);
-
-      if(start && day < start) return;
-      if(end && day > end) return;
+    for(const t of tickets){
+      const d = ticketDay(t);
+      if(start && d < start) continue;
+      if(end && d > end) continue;
 
       const id = String(t.vendeur || "").trim().toUpperCase();
+      if(!id) continue;
 
-      if(!id) return;
+      const vendor = vendeurs[id] || {};
+      const zona = String(vendor.zona || vendor.groupe || "").trim();
 
-      const vendor = vendorMap[id] || {};
+      if(zonaFilter && zona !== zonaFilter) continue;
+      if(vendorFilter && id !== vendorFilter) continue;
 
-      const zona = String(vendor.zona || "").trim();
+      const status = String(t.status || "").trim().toUpperCase();
+      if(status === "ANILE") continue;
 
-      if(zonaFilter && zona !== zonaFilter) return;
+      const rate = parseAmount(
+        vendor?.comision?.general ??
+        vendor?.comisionGeneral ??
+        vendor?.com_general ??
+        0
+      );
 
-      if(!resume[id]){
+      const rateGrupo = parseAmount(
+        vendor?.comision?.zona ??
+        vendor?.comisionZona ??
+        vendor?.com_zona ??
+        0
+      );
 
-        resume[id] = {
-          nombre: vendor.nombre || id,
+      if(comisionFilter && Number(comisionFilter) !== Number(rate)) continue;
+
+      if(!map[id]){
+        map[id] = {
+          id,
+          nombre: vendor.nombre || vendor.nom || t.vendeurNom || id,
+          zona,
           venta: 0,
-          porcentaje: Number(vendor.porcentaje || 0),
-          monto: 0
+          comisionGrupo: 0,
+          comision: 0,
+          premios: 0,
+          resultado: 0,
+          rate,
+          rateGrupo
         };
       }
 
-      resume[id].venta += Number(t.total || 0);
-    });
+      map[id].venta += parseAmount(t.total);
 
-    const rows = Object.values(resume)
-      .map(r => {
+      if(status === "GANYE"){
+        map[id].premios += parseAmount(t.premio);
+      }
+    }
 
-        r.monto = r.venta * (r.porcentaje / 100);
-
-        return r;
-
-      })
-      .sort((a,b) => b.venta - a.venta);
+    const rows = Object.values(map).map(r => {
+      r.comisionGrupo = (r.venta * r.rateGrupo) / 100;
+      r.comision = (r.venta * r.rate) / 100;
+      r.resultado = r.venta - r.comision - r.premios;
+      return r;
+    }).sort((a,b) => b.resultado - a.resultado);
 
     let totalVenta = 0;
-    let totalMonto = 0;
+    let totalComisionGrupo = 0;
+    let totalComision = 0;
+    let totalPremios = 0;
+    let totalResultado = 0;
 
-    const rowsHtml = rows.map(r => {
-
+    const rowsHtml = rows.map((r, i) => {
       totalVenta += r.venta;
-      totalMonto += r.monto;
+      totalComisionGrupo += r.comisionGrupo;
+      totalComision += r.comision;
+      totalPremios += r.premios;
+      totalResultado += r.resultado;
 
       return `
         <tr>
-          <td>${r.nombre}</td>
+          <td>${i + 1}) ${r.nombre}</td>
           <td>${money(r.venta)}</td>
-          <td>${r.porcentaje}%</td>
-          <td>${money(r.monto)}</td>
+          <td>${money(r.comisionGrupo)}</td>
+          <td>${money(r.comision)}</td>
+          <td>${money(r.premios)}</td>
+          <td>${money(r.resultado)}</td>
         </tr>
       `;
     }).join("");
@@ -955,92 +956,81 @@ router.get("/ventas-document", async (req, res) => {
 <!DOCTYPE html>
 <html>
 <head>
-
 <meta charset="UTF-8">
-<title>Rapport Santaj</title>
+<title>Rapport Ventas</title>
 
 <style>
-
 body{
-  font-family:Arial, Helvetica, sans-serif;
-  background:#f2f2f2;
+  font-family: Arial, Helvetica, sans-serif;
   margin:0;
-  padding:20px;
+  background:#f2f2f2;
+  color:#000;
 }
 
 .paper{
-
-  background:white;
-  width:100%;
-  max-width:1100px;
-  margin:auto;
-  padding:40px;
+  background:#fff;
+  max-width:1200px;
+  margin:0 auto;
+  padding:45px;
+  min-height:100vh;
   box-sizing:border-box;
-  min-height:90vh;
 }
 
 .top-actions{
-
   display:flex;
   justify-content:flex-end;
   margin-bottom:25px;
 }
 
 .top-actions button{
-
   background:#111;
-  color:white;
+  color:#fff;
   border:none;
   border-radius:10px;
   padding:14px 22px;
   font-size:16px;
-  cursor:pointer;
 }
 
 h1{
-
-  margin:0 0 14px 0;
   font-size:38px;
-  font-weight:700;
+  margin:0 0 18px 0;
 }
 
 .info{
-
   font-size:24px;
-  margin-bottom:30px;
+  margin-bottom:35px;
+  line-height:1.35;
 }
 
 table{
-
   width:100%;
   border-collapse:collapse;
-  font-size:24px;
+  font-size:22px;
+}
+
+th, td{
+  border:2px solid #333;
+  padding:14px 12px;
 }
 
 th{
-
   background:#dcdcdc;
-  border:2px solid #444;
-  padding:16px;
   text-align:left;
 }
 
-td{
-
-  border:2px solid #444;
-  padding:16px;
+td:nth-child(n+2),
+th:nth-child(n+2){
+  text-align:right;
 }
 
 tfoot td{
-
-  font-weight:bold;
-  background:#efefef;
+  font-weight:900;
+  background:#eee;
 }
 
-@media(max-width:768px){
-
+@media(max-width:800px){
   .paper{
-    padding:20px;
+    padding:22px;
   }
 
   h1{
@@ -1052,100 +1042,81 @@ tfoot td{
   }
 
   table{
-    font-size:18px;
+    font-size:14px;
   }
 
   th, td{
-    padding:10px;
+    padding:9px 7px;
   }
 }
 
 @media print{
-
   body{
-    background:white;
-    padding:0;
+    background:#fff;
   }
 
   .paper{
     max-width:100%;
-    min-height:auto;
-    padding:10px;
+    padding:20px;
   }
 
   .top-actions{
     display:none;
   }
 }
-
 </style>
 </head>
 
 <body>
-
 <div class="paper">
 
   <div class="top-actions">
-    <button onclick="window.print()">
-      Imprimer / PDF
-    </button>
+    <button onclick="window.print()">Imprimer / PDF</button>
   </div>
 
-  <h1>NUMBER ONE - Rapport Santaj</h1>
+  <h1>NUMBER ONE - Rapport Ventas</h1>
 
   <div class="info">
     <div><strong>Zone :</strong> ${zonaFilter || "TOUTES"}</div>
-    <div>
-      <strong>Periode :</strong>
-      ${formatDate(start)} - ${formatDate(end)}
-    </div>
+    <div><strong>Periode :</strong> ${toFRDate(start)} - ${toFRDate(end)}</div>
   </div>
 
   <table>
-
     <thead>
       <tr>
         <th>Vendeur</th>
         <th>Vente</th>
-        <th>%</th>
-        <th>Montant</th>
+        <th>Comisión Grupo</th>
+        <th>Comisión</th>
+        <th>Premios</th>
+        <th>Resultado</th>
       </tr>
     </thead>
 
     <tbody>
-
-      ${rowsHtml || `
-        <tr>
-          <td colspan="4">
-            Pa gen done
-          </td>
-        </tr>
-      `}
-
+      ${rowsHtml || `<tr><td colspan="6">Pa gen done pou filtè sa yo</td></tr>`}
     </tbody>
 
     <tfoot>
       <tr>
         <td>TOTAL</td>
         <td>${money(totalVenta)}</td>
-        <td></td>
-        <td>${money(totalMonto)}</td>
+        <td>${money(totalComisionGrupo)}</td>
+        <td>${money(totalComision)}</td>
+        <td>${money(totalPremios)}</td>
+        <td>${money(totalResultado)}</td>
       </tr>
     </tfoot>
-
   </table>
 
 </div>
-
 </body>
 </html>
     `);
 
   } catch(err){
-
     console.error("VENTAS DOCUMENT ERROR:", err);
-
-    res.status(500).send("Erreur rapport");
+    res.status(500).send("Erreur rapport ventas");
   }
 });
 

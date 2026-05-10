@@ -4288,6 +4288,12 @@ const negativos = rows
 rows.length = 0;
 rows.push(...positivos, ...negativos);
 
+rows.sort(function(a,b){
+  return ventaSortAsc
+    ? parseAmount(a.venta) - parseAmount(b.venta)
+    : parseAmount(b.venta) - parseAmount(a.venta);
+});
+
   tbody.innerHTML = "";
   tfoot.innerHTML = "";
 

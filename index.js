@@ -1235,6 +1235,41 @@ if (grupo && grupo.estatus === "Bloqueado") {
 }
 
 
+function getLimit(limites, type){
+  if (type === "BOR") return Number(limites.borlette || limites.bor || limites.BOR || 0);
+
+  if (type === "MAR") return Number(limites.mariage || limites.mar || limites.MAR || 0);
+
+  if (type === "L3") return Number(limites.loto3 || limites.l3 || limites.L3 || 0);
+
+  if (type === "L41" || type === "L42" || type === "L43") {
+    return Number(limites.loto4 || limites.l4 || limites.L4 || 0);
+  }
+
+  if (type === "L51" || type === "L52" || type === "L53") {
+    return Number(limites.loto5 || limites.l5 || limites.L5 || 0);
+  }
+
+  return 0;
+}
+
+const vendorLimites = vendor.limites || vendor.limits || {};
+
+for (const j of safeJeux) {
+
+  const type = String(j.type || "").trim().toUpperCase();
+
+  const vendorLimit = getLimit(vendorLimites, type);
+
+  if (vendorLimit > 0 && Number(j.montant || 0) > vendorLimit) {
+
+    return res.status(403).json({
+      ok:false,
+      message:"Limit vandè a se " + vendorLimit.toFixed(2)
+    });
+
+  }
+}
 
     const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
 

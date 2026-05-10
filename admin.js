@@ -5538,6 +5538,134 @@ function downloadExcel(){
   openVentasDocument("excel");
 }
 
+let limiteNumeros = [];
+let bloqueoNumeros = [];
+
+function addLimiteNumero(){
+  const type = byId("limNumType").value;
+  const numero = byId("limNumNumero").value.trim();
+  const monto = parseFloat(byId("limNumMonto").value || 0);
+
+  if(!numero || monto <= 0){
+    alert("Antre numéro ak limit");
+    return;
+  }
+
+  limiteNumeros.push({
+    type,
+    numero,
+    monto
+  });
+
+  renderLimiteNumeros();
+
+  byId("limNumNumero").value = "";
+  byId("limNumMonto").value = "";
+}
+
+function renderLimiteNumeros(){
+  const box = byId("limiteNumerosList");
+  if(!box) return;
+
+ let html = "";
+
+limiteNumeros.forEach(function(x,i){
+
+  html += '<div class="ticket-line">' +
+    '<span>' + x.type + '</span>' +
+    '<span>' + x.numero + '</span>' +
+    '<span>' + x.monto.toFixed(2) + '</span>' +
+    '<button onclick="removeLimiteNumero(' + i + ')">X</button>' +
+  '</div>';
+
+});
+
+box.innerHTML = ht
+}
+
+function removeLimiteNumero(i){
+  limiteNumeros.splice(i,1);
+  renderLimiteNumeros();
+}
+
+function addBloqueoNumero(){
+  const type = byId("blockNumType").value;
+  const numero = byId("blockNumNumero").value.trim();
+
+  if(!numero){
+    alert("Antre numéro");
+    return;
+  }
+
+  bloqueoNumeros.push({
+    type,
+    numero
+  });
+
+  renderBloqueoNumeros();
+
+  byId("blockNumNumero").value = "";
+}
+
+function renderBloqueoNumeros(){
+  const box = byId("bloqueoNumerosList");
+  if(!box) return;
+
+ let html = "";
+
+bloqueoNumeros.forEach(function(x,i){
+
+  html += '<div class="ticket-line">' +
+    '<span>' + x.type + '</span>' +
+    '<span>' + x.numero + '</span>' +
+    '<button onclick="removeBloqueoNumero(' + i + ')">X</button>' +
+  '</div>';
+
+});
+
+box.innerHTML = html;
+}
+
+function removeBloqueoNumero(i){
+  bloqueoNumeros.splice(i,1);
+  renderBloqueoNumeros();
+}
+
+async function saveLimitesAjustes(){
+  try{
+
+    const payload = {
+      borlette: Number(byId("limite_borlette").value || 0),
+      mariage: Number(byId("limite_mariage").value || 0),
+      loto3: Number(byId("limite_loto3").value || 0),
+      loto4: Number(byId("limite_loto4").value || 0),
+      loto5: Number(byId("limite_loto5").value || 0),
+
+      limiteNumeros,
+      bloqueoNumeros
+    };
+
+    const res = await fetch("/api/limites-ajustes", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if(data.ok){
+      alert("Limites sauvegardés");
+    }else{
+      alert(data.message || "Erreur");
+    }
+
+  }catch(err){
+    console.error(err);
+    alert("Erreur serveur");
+  }
+}
 
 </script>
 

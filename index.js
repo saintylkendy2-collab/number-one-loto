@@ -791,6 +791,53 @@ app.post("/api/check-limit-game", async (req, res) => {
   }
 });
 
+let limitesAjustes = {
+  borlette: 0,
+  mariage: 0,
+  loto3: 0,
+  loto4: 0,
+  loto5: 0,
+  limiteNumeros: [],
+  bloqueoNumeros: []
+};
+
+app.post("/api/limites-ajustes", async (req,res)=>{
+  try{
+
+    limitesAjustes = {
+      borlette: Number(req.body.borlette || 0),
+      mariage: Number(req.body.mariage || 0),
+      loto3: Number(req.body.loto3 || 0),
+      loto4: Number(req.body.loto4 || 0),
+      loto5: Number(req.body.loto5 || 0),
+
+      limiteNumeros: Array.isArray(req.body.limiteNumeros)
+        ? req.body.limiteNumeros
+        : [],
+
+      bloqueoNumeros: Array.isArray(req.body.bloqueoNumeros)
+        ? req.body.bloqueoNumeros
+        : []
+    };
+
+    console.log("✅ LIMITES SAUVEGARDÉS");
+
+    res.json({
+      ok:true
+    });
+
+  }catch(err){
+
+    console.error("LIMITES ERROR:", err);
+
+    res.json({
+      ok:false,
+      message:"Erreur serveur"
+    });
+
+  }
+});
+
 // GET tickets pa vendeur
 app.get("/api/vendor/:id/tickets", async (req, res) => {
   try {

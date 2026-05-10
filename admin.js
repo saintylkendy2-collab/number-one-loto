@@ -3518,16 +3518,11 @@ async function loadVentasReport(){
 }
 
 let ventaSortAsc = false;
+let manualVentaSort = false;
 
 function sortVentasByVenta(){
+  manualVentaSort = true;
   ventaSortAsc = !ventaSortAsc;
-
-  ventasRows.sort(function(a,b){
-    return ventaSortAsc
-      ? parseAmount(a.venta) - parseAmount(b.venta)
-      : parseAmount(b.venta) - parseAmount(a.venta);
-  });
-
   renderVentasTable();
 }
 
@@ -4288,11 +4283,13 @@ const negativos = rows
 rows.length = 0;
 rows.push(...positivos, ...negativos);
 
-rows.sort(function(a,b){
-  return ventaSortAsc
-    ? parseAmount(a.venta) - parseAmount(b.venta)
-    : parseAmount(b.venta) - parseAmount(a.venta);
-});
+if(window.manualVentaSort){
+  rows.sort(function(a,b){
+    return ventaSortAsc
+      ? parseAmount(a.venta) - parseAmount(b.venta)
+      : parseAmount(b.venta) - parseAmount(a.venta);
+  });
+}
 
   tbody.innerHTML = "";
   tfoot.innerHTML = "";

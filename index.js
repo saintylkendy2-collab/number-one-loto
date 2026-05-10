@@ -722,7 +722,7 @@ app.post("/api/check-limit-game", async (req, res) => {
     const vendor = await Vendor.findOne({ id: sellerId }).lean();
     if (!vendor) return res.json({ ok:false, message:"Vandè pa jwenn" });
 
-    const limites = vendor.limites || {};
+    const limites = limitesAjustes || {};
 
     const bloques = Array.isArray(limites.bloqueoNumeros) ? limites.bloqueoNumeros : [];
 
@@ -741,8 +741,8 @@ app.post("/api/check-limit-game", async (req, res) => {
     if (type === "BOR") limit = Number(limites.borlette || 0);
     else if (type === "MAR") limit = Number(limites.mariage || 0);
     else if (type === "L3") limit = Number(limites.loto3 || 0);
-    else if (type === "L41" || type === "L42" || type === "L43") limit = Number(limites.loto4_l1 || 0);
-    else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5_l1 || 0);
+   else if (type === "L41" || type === "L42" || type === "L43") limit = Number(limites.loto4 || 0);
+else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0); 
 
     if (limit <= 0) {
       return res.json({ ok:true });

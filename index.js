@@ -771,6 +771,16 @@ app.post("/api/check-limit-game", async (req, res) => {
 
     const reste = limit - dejaVendu;
 
+    console.log("LIMIT DEBUG:", {
+  sellerId,
+  type,
+  numero,
+  loterie,
+  limit,
+  dejaVendu,
+  reste
+});
+
     if (reste <= 0) {
       return res.json({ ok:false, message:"Limit nimewo sa fini" });
     }

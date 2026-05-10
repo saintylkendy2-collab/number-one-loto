@@ -2788,7 +2788,9 @@ tbody tr:nth-child(even){background:#313652;}
           <thead>
             <tr>
    <th>VENDEDOR</th>
-  <th>VENTA</th>
+  <th>
+  VENTA<span style="font-size:10px; display:inline-block; line-height:9px; margin-left:2px;">↑<br>↓</span>
+</th>
   <th>COMISIÓN GRUPO</th>
   <th>COMISIÓN</th>
   <th>PREMIOS</th>
@@ -4271,10 +4273,6 @@ const negativos = rows
 
 rows.length = 0;
 rows.push(...positivos, ...negativos);
-
-rows.sort(function(a,b){
-  return parseAmount(b.venta) - parseAmount(a.venta);
-});
 
   tbody.innerHTML = "";
   tfoot.innerHTML = "";

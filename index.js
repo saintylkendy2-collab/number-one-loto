@@ -22,6 +22,8 @@ mongoose.connect("mongodb+srv://adminn:Kendy2026@cluster0.yzqmfuc.mongodb.net/lo
 .then(() => console.log("Mongo connecté"))
 .catch(err => console.error("Mongo erreur:", err.message));
 
+loadLimites();
+
 mongoose.connection.once("open", async () => {
 
   try {
@@ -828,6 +830,36 @@ let limitesAjustes = {
   bloqueoNumeros: []
 };
 
+async function loadLimites(){
+  try{
+
+    const saved = await Limites.findOne().lean();
+
+    if(saved){
+      limitesAjustes = {
+        borlette: Number(saved.borlette || 0),
+        mariage: Number(saved.mariage || 0),
+        loto3: Number(saved.loto3 || 0),
+        loto4: Number(saved.loto4 || 0),
+        loto5: Number(saved.loto5 || 0),
+
+        limiteNumeros: Array.isArray(saved.limiteNumeros)
+          ? saved.limiteNumeros
+          : [],
+
+        bloqueoNumeros: Array.isArray(saved.bloqueoNumeros)
+          ? saved.bloqueoNumeros
+          : []
+      };
+
+      console.log("✅ LIMITES CHARGÉS");
+    }
+
+  }catch(err){
+    console.error("LOAD LIMITES ERROR:", err);
+  }
+}
+
 app.post("/api/limites-ajustes", async (req,res)=>{
   try{
 
@@ -847,7 +879,11 @@ app.post("/api/limites-ajustes", async (req,res)=>{
         : []
     };
 
-    console.log("✅ LIMITES SAUVEGARDÉS");
+    await Limites.deleteMany({});
+
+    await Limites.create(limitesAjustes);
+
+    console.log("✅ LIMITES SAUVEGARDÉS MONGO");
 
     res.json({
       ok:true

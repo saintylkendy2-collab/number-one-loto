@@ -1098,6 +1098,29 @@ if (grupo && grupo.estatus === "Bloqueado") {
   });
 }
 
+for (const j of safeJeux) {
+  const check = await fetch("http://localhost:" + PORT + "/api/check-limit-game", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sellerId,
+      type: j.type,
+      numero: j.numero,
+      loterie: j.loterie,
+      montant: j.montant
+    })
+  });
+
+  const result = await check.json();
+
+  if (!result.ok) {
+    return res.status(403).json({
+      ok: false,
+      message: result.message || "Limit pa pèmèt jwèt sa"
+    });
+  }
+}
+
     const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
 
     const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);

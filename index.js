@@ -735,7 +735,11 @@ app.post("/api/check-limit-game", async (req, res) => {
     });
 
     if (blocked) {
-      return res.json({ ok:false, message:"Nimewo sa bloke" });
+      return res.json({ ok:false, message:
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
+  "Nimewo sa bloke.\n" +
+  "Ou pa ka vann jwèt sa."});
     }
 
     let limit = 0;
@@ -783,13 +787,26 @@ else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limi
 });
 
     if (reste <= 0) {
-      return res.json({ ok:false, message:"Limit nimewo sa fini" });
+      return res.json({ ok:false, message:
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
+  "Limit: " + limit.toFixed(2) + "\n" +
+  "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
+  "Rès disponib: 0.00\n\n" +
+  "Limit nimewo sa fini."});
     }
 
     if (montant > reste) {
       return res.json({
         ok:false,
-        message:"Ou ka vann sèlman " + reste.toFixed(2)
+        message:
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
+  "Limit: " + limit.toFixed(2) + "\n" +
+  "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
+  "Rès disponib: " + reste.toFixed(2) + "\n\n" +
+  "Ou te mande: " + montant.toFixed(2) + "\n" +
+  "Ou ka vann sèlman: " + reste.toFixed(2)
       });
     }
 
@@ -1168,7 +1185,11 @@ for (const j of safeJeux) {
   if (blocked) {
     return res.status(403).json({
       ok:false,
-      message:"Nimewo " + j.numero + " bloke"
+      message:
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
+  "Nimewo sa bloke.\n" +
+  "Ou pa ka vann jwèt sa."
     });
   }
 
@@ -1206,14 +1227,27 @@ for (const j of safeJeux) {
     if (reste <= 0) {
       return res.status(403).json({
         ok:false,
-        message:"Limit nimewo sa fini"
+        message:
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
+  "Limit: " + limit.toFixed(2) + "\n" +
+  "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
+  "Rès disponib: 0.00\n\n" +
+  "Limit nimewo sa fini."
       });
     }
 
     if (Number(j.montant || 0) > reste) {
       return res.status(403).json({
         ok:false,
-        message:"Ou ka vann sèlman " + reste.toFixed(2)
+        message:
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
+  "Limit: " + limit.toFixed(2) + "\n" +
+  "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
+  "Rès disponib: " + reste.toFixed(2) + "\n\n" +
+  "Ou te mande: " + montant.toFixed(2) + "\n" +
+  "Ou ka vann sèlman: " + reste.toFixed(2)
       });
     }
   }

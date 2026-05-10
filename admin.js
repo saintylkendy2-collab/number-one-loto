@@ -4027,6 +4027,8 @@ async function goPage(page){
   if(gruposPage) gruposPage.classList.remove("hidden");
   loadGruposFromServer();
 
+  loadLimitesAjustes();
+
   }else if(page === "limites_ajustes"){
   if(limitesAjustesPage) limitesAjustesPage.classList.remove("hidden");
 

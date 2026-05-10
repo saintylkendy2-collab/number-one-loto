@@ -901,6 +901,51 @@ app.post("/api/limites-ajustes", async (req,res)=>{
   }
 });
 
+app.get("/api/limites-ajustes", async (req,res)=>{
+  try{
+    let data = await Limites.findOne().lean();
+
+    if(!data){
+      data = {
+        borlette:0,
+        mariage:0,
+        loto3:0,
+        loto4:0,
+        loto5:0,
+        limiteNumeros:[],
+        bloqueoNumeros:[]
+      };
+    }
+
+    limitesAjustes = data;
+    res.json({ ok:true, limites:data });
+
+  }catch(err){
+    res.json({ ok:false, message:"Erreur load limites" });
+  }
+});
+
+async function loadLimitesAjustes(){
+  const res = await fetch("/api/limites-ajustes");
+  const data = await res.json();
+
+  if(!data.ok) return;
+
+  const l = data.limites || {};
+
+  byId("limite_borlette").value = l.borlette || "";
+  byId("limite_mariage").value = l.mariage || "";
+  byId("limite_loto3").value = l.loto3 || "";
+  byId("limite_loto4").value = l.loto4 || "";
+  byId("limite_loto5").value = l.loto5 || "";
+
+  limiteNumeros = Array.isArray(l.limiteNumeros) ? l.limiteNumeros : [];
+  bloqueoNumeros = Array.isArray(l.bloqueoNumeros) ? l.bloqueoNumeros : [];
+
+  renderLimiteNumeros();
+  renderBloqueoNumeros();
+}
+
 // GET tickets pa vendeur
 app.get("/api/vendor/:id/tickets", async (req, res) => {
   try {

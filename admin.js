@@ -815,7 +815,126 @@ router.put("/api/vendors/:id", async (req, res) => {
 });
 
 router.get("/ventas-document", async (req, res) => {
-  res.send("Paj rapport la ap vini la");
+
+  const start = req.query.start || "";
+  const end = req.query.end || "";
+  const type = req.query.type || "print";
+
+  const tickets = await Ticket.find({
+    status: { $ne: "ANILE" }
+  }).lean();
+
+  let rows = "";
+
+  tickets.forEach((t, i) => {
+
+    rows += `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${t.vendeurNom || ""}</td>
+        <td>${(t.total || 0).toFixed(2)}</td>
+        <td>${t.dateLabel || ""}</td>
+      </tr>
+    `;
+  });
+
+  res.send(`
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <title>Reporte Ventas</title>
+
+    <style>
+
+      body{
+        font-family:Arial;
+        padding:20px;
+        background:#fff;
+        color:#000;
+      }
+
+      h1{
+        text-align:center;
+        margin-bottom:5px;
+      }
+
+      .date{
+        text-align:center;
+        margin-bottom:20px;
+      }
+
+      table{
+        width:100%;
+        border-collapse:collapse;
+      }
+
+      th,td{
+        border:1px solid #ccc;
+        padding:10px;
+        text-align:left;
+      }
+
+      th{
+        background:#eee;
+      }
+
+      .top-actions{
+        margin-bottom:20px;
+        display:flex;
+        gap:10px;
+      }
+
+      button{
+        height:45px;
+        padding:0 20px;
+        border:none;
+        background:#222;
+        color:#fff;
+        border-radius:10px;
+        cursor:pointer;
+      }
+
+    </style>
+
+  </head>
+
+  <body>
+
+    <div class="top-actions">
+
+      <button onclick="window.print()">
+        Imprimer / PDF
+      </button>
+
+    </div>
+
+    <h1>REPORTE DE VENTAS</h1>
+
+    <div class="date">
+      ${start} - ${end}
+    </div>
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Vendeur</th>
+          <th>Venta</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        ${rows}
+      </tbody>
+
+    </table>
+
+  </body>
+  </html>
+  `);
+
 });
 
 router.delete("/api/vendors/:id", async (req, res) => {

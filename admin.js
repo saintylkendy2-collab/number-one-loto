@@ -814,6 +814,9 @@ router.put("/api/vendors/:id", async (req, res) => {
   }
 });
 
+router.get("/ventas-document", async (req, res) => {
+  res.send("Paj rapport la ap vini la");
+});
 
 router.delete("/api/vendors/:id", async (req, res) => {
   try {
@@ -2256,6 +2259,62 @@ tbody tr:nth-child(even){background:#313652;}
  .triple-grid{grid-template-columns:1fr;}
  .tab{padding:16px 22px;font-size:17px;}
 }
+
+.ventas-tools{
+  display:flex;
+  justify-content:flex-end;
+  margin-bottom:14px;
+}
+
+.export-dropdown{
+  position:relative;
+}
+
+.export-btn{
+  height:48px;
+  min-width:80px;
+  border:none;
+  border-radius:12px;
+  background:#1f2340;
+  color:#8f7cff;
+  font-size:18px;
+  padding:0 16px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  border:2px solid #6d5dfc;
+}
+
+.export-menu{
+  position:absolute;
+  top:58px;
+  right:0;
+  width:180px;
+  background:#262846;
+  border-radius:14px;
+  overflow:hidden;
+  display:none;
+  z-index:9999;
+  box-shadow:0 8px 30px rgba(0,0,0,.35);
+}
+
+.export-menu button{
+  width:100%;
+  height:56px;
+  border:none;
+  background:transparent;
+  color:#fff;
+  font-size:18px;
+  text-align:left;
+  padding:0 20px;
+}
+
+.export-menu.show{
+  display:block;
+}
+
 </style>
 </head>
 <body>
@@ -2353,6 +2412,25 @@ tbody tr:nth-child(even){background:#313652;}
 
   <div id="ventasPage" class="page-block">
     <div class="page-title">Ventas</div>
+
+      <div class="ventas-tools">
+
+    <div class="export-dropdown">
+
+      <button class="export-btn" onclick="toggleExportMenu(event)">
+        <span>📄</span>
+        <span>▼</span>
+      </button>
+
+      <div class="export-menu" id="exportMenu">
+        <button onclick="printVentas()">Imprimer</button>
+        <button onclick="downloadPDF()">PDF</button>
+        <button onclick="downloadExcel()">Excel</button>
+      </div>
+
+    </div>
+
+  </div>
 
     <div class="filters">
       <div class="filter-group">
@@ -5022,6 +5100,27 @@ async function openNewGrupo(){
   await loadGruposFromServer();
   await loadGrupoSelects();
 }
+
+function toggleExportMenu(e){
+  e.stopPropagation();
+
+  var menu = document.getElementById("exportMenu");
+
+  if(menu.classList.contains("show")){
+    menu.classList.remove("show");
+  }else{
+    menu.classList.add("show");
+  }
+}
+
+document.addEventListener("click", function(){
+  var menu = document.getElementById("exportMenu");
+
+  if(menu){
+    menu.classList.remove("show");
+  }
+});
+
 
 </script>
 

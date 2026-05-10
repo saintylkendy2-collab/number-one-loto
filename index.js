@@ -1128,6 +1128,65 @@ app.post("/api/tickets", async (req, res) => {
       return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
     }
 
+    for (const j of safeJeux) {
+
+  const vendor = await Vendor.findOne({ id: sellerId }).lean();
+
+  if (!vendor) {
+    return res.status(404).json({
+      ok:false,
+      message:"Vandè pa jwenn"
+    });
+  }
+
+  const limites = vendor.limites || {};
+
+  const bloqueos = Array.isArray(limites.bloqueoNumeros)
+    ? limites.bloqueoNumeros
+    : [];
+
+  const bloqueado = bloqueos.some(function(b){
+
+    if(typeof b === "string"){
+      return b.trim() === j.numero;
+    }
+
+    return (
+      String(b.numero || "").trim() === j.numero &&
+      (
+        !b.type ||
+        String(b.type || "").toUpperCase() === String(j.type || "").toUpperCase()
+      )
+    );
+
+  });
+
+  if (bloqueado) {
+    return res.status(403).json({
+      ok:false,
+      message:"Nimewo " + j.numero + " bloke"
+    });
+  }
+
+  let limite = 0;
+
+  if (j.type === "BOR") limite = Number(limites.borlette || 0);
+  else if (j.type === "MAR") limite = Number(limites.mariage || 0);
+  else if (j.type === "L3") limite = Number(limites.loto3 || 0);
+  else if (j.type === "L41" || j.type === "L42" || j.type === "L43") limite = Number(limites.loto4 || 0);
+  else if (j.type === "L51" || j.type === "L52" || j.type === "L53") limite = Number(limites.loto5 || 0);
+
+  if (limite > 0 && Number(j.montant) > limite) {
+
+    return res.status(403).json({
+      ok:false,
+      message:"Limit " + j.type + " se " + limite
+    });
+
+  }
+
+}
+
     const vendor = await Vendor.findOne({ id: sellerId }).lean();
 
 if (!vendor) {

@@ -822,6 +822,8 @@ router.get("/ventas-document", async (req, res) => {
     const vendorFilter = String(req.query.vendor || "").trim();
     const comisionFilter = String(req.query.comision || "").trim();
 
+    const type = String(req.query.type || "").trim();
+
     const query =
       "/api/reportes/ventas?start=" + encodeURIComponent(start) +
       "&end=" + encodeURIComponent(end);

@@ -5546,7 +5546,7 @@ let bloqueoNumeros = [];
 function addLimiteNumero(){
   const type = byId("limNumType").value;
   const numero = byId("limNumNumero").value.trim();
-  const monto = parseFloat(byId("limNumMonto").value || 0);
+  const monto = Number(String(byId("limNumMonto").value || "").trim());
 
   if(!numero || monto <= 0){
     alert("Antre numéro ak limit");

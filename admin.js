@@ -2679,9 +2679,9 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
   <div id="ventaMenu" class="submenu-box">
   <div class="submenu-item" onclick="goPage('ventas')">General</div>
-  <div class="submenu-item" onclick="goPage('ventas_loteria')">Lotería</div>
-<div class="submenu-item" onclick="goPage('ventas_jugada')">Jugada</div>
-<div class="submenu-item" onclick="goPage('ventas_numero')">Número</div>
+  <div class="submenu-item" onclick="goPage('loteria')">Lotería</div>
+  <div class="submenu-item" onclick="goPage('jugada')">Jugada</div>
+  <div class="submenu-item" onclick="goPage('numero')">Número</div>
   <div class="submenu-item" onclick="goPage('grupo')">Grupo</div>
 </div>
 
@@ -3987,6 +3987,11 @@ async function deleteSorteo(loteria){
 }
 
 async function goPage(page){
+  if(page === "loteria") page = "ventas_loteria";
+  if(page === "jugada") page = "ventas_jugada";
+  if(page === "numero") page = "ventas_numero";
+  if(page === "grupo") page = "ventas_grupo";
+
   currentPage = page;
 
   const today = todayISO();

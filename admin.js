@@ -5694,7 +5694,7 @@ async function saveLimitesAjustes(){
 
 let currentVentasMode = "numero";
 
-function openVentasDetalle(mode){
+async function openVentasDetalle(mode){
   currentVentasMode = mode || "numero";
 
   const page = byId("ventasDetallePage");
@@ -5705,6 +5705,11 @@ function openVentasDetalle(mode){
   });
 
   page.classList.remove("hidden");
+
+  // ✅ SA A ENPÒTAN: chaje tickets yo pou page detay la
+  const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
+  const data = await res.json();
+  ticketsRows = Array.isArray(data) ? data : [];
 
   let title = "Ventas por Número";
   if(currentVentasMode === "loteria") title = "Ventas por Lotería";
@@ -5834,22 +5839,16 @@ function fillVentasDetalleSelects(){
   }
 
   if(loteria){
-    const lots = {};
+  loteria.innerHTML = '<option value="">-</option>';
 
-    ticketsRows.forEach(function(t){
-      (t.jeux || []).forEach(function(j){
-        const l = safe(j.loterie).toUpperCase();
-        if(l) lots[l] = true;
-      });
-    });
+  loteriasList.forEach(function(l){
+    if(l === "TODAS") return;
 
-    loteria.innerHTML = '<option value="">-</option>';
-
-    Object.keys(lots).sort().forEach(function(l){
-      loteria.innerHTML +=
-        '<option value="' + l + '">' + l + '</option>';
-    });
-  }
+    loteria.innerHTML +=
+      '<option value="' + safe(l).toUpperCase() + '">' +
+        safe(l).toUpperCase() +
+      '</option>';
+  });
 }
 
 function renderVentasDetalle(){

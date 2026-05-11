@@ -727,6 +727,15 @@ app.post("/api/check-limit-game", async (req, res) => {
     const vendor = await Vendor.findOne({ id: sellerId }).lean();
     if (!vendor) return res.json({ ok:false, message:"Vandè pa jwenn" });
 
+    const credit = Number(vendor?.config?.credito || vendor?.credito || 0);
+
+if (credit <= 0) {
+  return res.json({
+    ok:false,
+    message:"OU BLOKE POU BALANS TANPRI RANPLI KONSISYON OU!"
+  });
+}
+
     const limites = limitesAjustes || {};
 
     const bloques = Array.isArray(limites.bloqueoNumeros) ? limites.bloqueoNumeros : [];
@@ -1343,6 +1352,16 @@ if (special) {
 if (!vendor) {
   return res.status(404).json({ ok:false, message:"Vandè pa jwenn" });
 }
+
+const credit = Number(vendor?.config?.credito || vendor?.credito || 0);
+
+if (credit <= 0) {
+  return res.status(403).json({
+    ok:false,
+    message:"OU BLOKE POU BALANS TANPRI RANPLI KONSISYON OU!"
+  });
+}
+
 
 const grupo = await Grupo.findOne({
   nombre: vendor.zona || vendor.groupe

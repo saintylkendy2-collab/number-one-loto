@@ -3574,21 +3574,6 @@ function sortVentasByVenta(){
   renderVentasTable();
 }
 
-function loadVentasLoteria(){
-  goPage("ventas");
-}
-
-function loadVentasJugada(){
-  goPage("ventas");
-}
-
-function loadVentasNumero(){
-  goPage("ventas");
-}
-
-function loadVentasGrupo(){
-  goPage("ventas");
-}
 
 async function loadBalanceReport(){
   try{
@@ -4000,6 +3985,114 @@ async function deleteSorteo(loteria){
     console.error(err);
     alert("Erreur delete sorteo");
   }
+}
+
+async function loadVentasLoteria(){
+  const start = getValue("fechaInicio") || todayISO();
+  const end = getValue("fechaFin") || start;
+
+  const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
+  const tickets = await res.json();
+
+  const map = {};
+
+  tickets.forEach(t => {
+    const st = String(t.status || "").toUpperCase();
+    if(st === "ANILE") return;
+
+    const d = new Date(t.createdAt || Date.now());
+    const day = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+
+    if(start && day < start) return;
+    if(end && day > end) return;
+
+    (t.jeux || []).forEach(j => {
+      const lot = String(j.loterie || "SANS LOTERIE").trim();
+
+      if(!map[lot]){
+        map[lot] = { loteria: lot, tickets: 0, numeros: 0, ventas: 0, premios: 0 };
+      }
+
+      map[lot].numeros += 1;
+      map[lot].ventas += Number(j.montant || 0);
+      map[lot].premios += Number(j.gain || 0);
+    });
+
+    const lots = [...new Set((t.jeux || []).map(j => String(j.loterie || "").trim()))];
+    lots.forEach(lot => {
+      if(map[lot]) map[lot].tickets += 1;
+    });
+  });
+
+  const rows = Object.values(map).sort((a,b)=> b.ventas - a.ventas);
+
+  byId("ventasPage").classList.remove("hidden");
+  document.querySelector("#ventasPage .page-title").textContent = "Loterías";
+
+  byId("ventasTable").querySelector("thead").innerHTML =
+    "<tr><th>LOTERÍA</th><th>TICKETS</th><th>NUMEROS</th><th>VENTAS</th><th>PREMIOS</th><th>RESULTADO</th></tr>";
+
+  byId("ventasTableBody").innerHTML = rows.map(r =>
+    "<tr>" +
+    "<td>" + safe(r.loteria) + "</td>" +
+    "<td>" + r.tickets + "</td>" +
+    "<td>" + r.numeros + "</td>" +
+    "<td>" + formatAmount(r.ventas) + "</td>" +
+    "<td>" + formatAmount(r.premios) + "</td>" +
+    "<td class='result-ok'>" + formatAmount(r.ventas - r.premios) + "</td>" +
+    "</tr>"
+  ).join("");
+
+  byId("ventasTableFoot").innerHTML = "";
+}
+
+async function loadVentasNumero(){
+  const start = getValue("fechaInicio") || todayISO();
+  const end = getValue("fechaFin") || start;
+
+  const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
+  const tickets = await res.json();
+
+  const map = {};
+
+  tickets.forEach(t => {
+    const st = String(t.status || "").toUpperCase();
+    if(st === "ANILE") return;
+
+    const d = new Date(t.createdAt || Date.now());
+    const day = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+
+    if(start && day < start) return;
+    if(end && day > end) return;
+
+    (t.jeux || []).forEach(j => {
+      const key = String(j.type || "") + "|" + String(j.numero || "");
+
+      if(!map[key]){
+        map[key] = { type: j.type, numero: j.numero, venta: 0 };
+      }
+
+      map[key].venta += Number(j.montant || 0);
+    });
+  });
+
+  const rows = Object.values(map).sort((a,b)=> b.venta - a.venta);
+
+  byId("ventasPage").classList.remove("hidden");
+  document.querySelector("#ventasPage .page-title").textContent = "Números";
+
+  byId("ventasTable").querySelector("thead").innerHTML =
+    "<tr><th>TIPO</th><th>#</th><th>VENTA</th></tr>";
+
+  byId("ventasTableBody").innerHTML = rows.map(r =>
+    "<tr>" +
+    "<td>" + safe(r.type) + "</td>" +
+    "<td>" + safe(r.numero) + "</td>" +
+    "<td>" + formatAmount(r.venta) + "</td>" +
+    "</tr>"
+  ).join("");
+
+  byId("ventasTableFoot").innerHTML = "";
 }
 
 async function goPage(page){

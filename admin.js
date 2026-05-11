@@ -4096,6 +4096,11 @@ async function loadVentasNumero(){
 }
 
 async function goPage(page){
+  if(page === "loteria") page = "ventas_loteria";
+  if(page === "jugada") page = "ventas_jugada";
+  if(page === "numero") page = "ventas_numero";
+  if(page === "grupo") page = "ventas_grupo";
+
   currentPage = page;
 
   const today = todayISO();

@@ -845,6 +845,9 @@ else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limi
   }
 });
 
+let limiteNumeros = [];
+let bloqueoNumeros = [];
+
 let limitesAjustes = {
   borlette: 0,
   mariage: 0,
@@ -876,6 +879,9 @@ async function loadLimites(){
           ? saved.bloqueoNumeros
           : []
       };
+
+      limiteNumeros = limitesAjustes.limiteNumeros || [];
+bloqueoNumeros = limitesAjustes.bloqueoNumeros || [];
 
       console.log("✅ LIMITES CHARGÉS");
     }

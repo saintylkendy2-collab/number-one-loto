@@ -5628,6 +5628,27 @@ bloqueoNumeros.forEach(function(x,i){
 box.innerHTML = html;
 }
 
+async function loadLimitesAjustes(){
+  const res = await fetch("/api/limites-ajustes");
+  const data = await res.json();
+
+  if(!data.ok) return;
+
+  const l = data.limites || {};
+
+  byId("limite_borlette").value = l.borlette || "";
+  byId("limite_mariage").value = l.mariage || "";
+  byId("limite_loto3").value = l.loto3 || "";
+  byId("limite_loto4").value = l.loto4 || "";
+  byId("limite_loto5").value = l.loto5 || "";
+
+  limiteNumeros = Array.isArray(l.limiteNumeros) ? l.limiteNumeros : [];
+  bloqueoNumeros = Array.isArray(l.bloqueoNumeros) ? l.bloqueoNumeros : [];
+
+  renderLimiteNumeros();
+  renderBloqueoNumeros();
+}
+
 function removeBloqueoNumero(i){
   bloqueoNumeros.splice(i,1);
   renderBloqueoNumeros();

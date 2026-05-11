@@ -19,10 +19,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 mongoose.connect("mongodb+srv://adminn:Kendy2026@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority&appName=Cluster0")
-.then(() => console.log("Mongo connecté"))
+.then(async () => {
+  console.log("Mongo connecté");
+  await loadLimites();
+})
 .catch(err => console.error("Mongo erreur:", err.message));
-
-loadLimites();
 
 mongoose.connection.once("open", async () => {
 
@@ -888,9 +889,6 @@ await Limites.findOneAndUpdate(
   }
 );
 
-    await Limites.deleteMany({});
-
-    await Limites.create(limitesAjustes);
 
     console.log("✅ LIMITES SAUVEGARDÉS MONGO");
 
@@ -933,27 +931,6 @@ app.get("/api/limites-ajustes", async (req,res)=>{
     res.json({ ok:false, message:"Erreur load limites" });
   }
 });
-
-async function loadLimitesAjustes(){
-  const res = await fetch("/api/limites-ajustes");
-  const data = await res.json();
-
-  if(!data.ok) return;
-
-  const l = data.limites || {};
-
-  byId("limite_borlette").value = l.borlette || "";
-  byId("limite_mariage").value = l.mariage || "";
-  byId("limite_loto3").value = l.loto3 || "";
-  byId("limite_loto4").value = l.loto4 || "";
-  byId("limite_loto5").value = l.loto5 || "";
-
-  limiteNumeros = Array.isArray(l.limiteNumeros) ? l.limiteNumeros : [];
-  bloqueoNumeros = Array.isArray(l.bloqueoNumeros) ? l.bloqueoNumeros : [];
-
-  renderLimiteNumeros();
-  renderBloqueoNumeros();
-}
 
 // GET tickets pa vendeur
 app.get("/api/vendor/:id/tickets", async (req, res) => {

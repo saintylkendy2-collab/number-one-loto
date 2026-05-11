@@ -2855,7 +2855,7 @@ tbody tr:nth-child(even){background:#313652;}
       </select>
       <input id="limNumNumero" class="field-input" placeholder="Número ex: 00">
       <input id="limNumMonto" class="field-input" placeholder="Limit ex: 100">
-     <button class="btn-purple" style="width:100%;margin-top:12px;" onclick="addLimiteNumero()">+ Ajouter limite numéro</button>
+      <button class="login-btn" onclick="addLimiteNumero()">+ Ajouter limite numéro</button>
       <div id="limiteNumerosList"></div>
     </div>
 

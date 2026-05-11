@@ -5716,17 +5716,8 @@ async function openVentasDetalle(mode){
   }
 
   let title = "Ventas por Número";
-  let firstCol = "NÚMERO";
-
-  if(currentVentasMode === "loteria"){
-    title = "Ventas por Lotería";
-    firstCol = "LOTERÍA";
-  }
-
-  if(currentVentasMode === "jugada"){
-    title = "Ventas por Jugada";
-    firstCol = "JUGADA";
-  }
+  if(currentVentasMode === "loteria") title = "Ventas por Lotería";
+  if(currentVentasMode === "jugada") title = "Ventas por Jugada";
 
   page.innerHTML =
     '<div class="page-title">' + title + '</div>' +
@@ -5786,25 +5777,16 @@ async function openVentasDetalle(mode){
 
     '<div class="table-card">' +
       '<div class="table-scroll">' +
-        '<table style="width:100%;min-width:100%;table-layout:fixed;">' +
-
-          '<colgroup>' +
-            '<col style="width:45%;">' +
-            '<col style="width:22%;">' +
-            '<col style="width:33%;">' +
-          '</colgroup>' +
-
+        '<table style="width:100%;min-width:100%;border-collapse:collapse;">' +
           '<thead>' +
-  '<tr>' +
-    '<th style="text-align:left;">TIPO</th>' +
-    '<th style="text-align:center;">#</th>' +
-    '<th style="text-align:right;">VENTA</th>' +
-  '</tr>' +
-'</thead>' +
-
+            '<tr>' +
+              '<th style="text-align:left;">TIPO</th>' +
+              '<th style="text-align:center;">#</th>' +
+              '<th style="text-align:right;">VENTA</th>' +
+            '</tr>' +
+          '</thead>' +
           '<tbody id="detBody"></tbody>' +
           '<tfoot id="detFoot"></tfoot>' +
-
         '</table>' +
       '</div>' +
     '</div>';
@@ -5863,11 +5845,26 @@ function fillVentasDetalleSelects(){
 
     loteriasList.forEach(function(l){
       if(l === "TODAS") return;
-
       const name = safe(l).toUpperCase();
       loteria.innerHTML += '<option value="' + name + '">' + name + '</option>';
     });
   }
+}
+
+function labelType(type){
+  type = safe(type).toUpperCase();
+
+  if(type === "BOR") return "Borlette";
+  if(type === "MAR") return "Mariage";
+  if(type === "L3") return "Loto 3";
+  if(type === "L41") return "Loto 4";
+  if(type === "L42") return "Loto 4";
+  if(type === "L43") return "Loto 4";
+  if(type === "L51") return "Loto 5";
+  if(type === "L52") return "Loto 5";
+  if(type === "L53") return "Loto 5";
+
+  return type;
 }
 
 function renderVentasDetalle(){
@@ -5929,25 +5926,27 @@ function renderVentasDetalle(){
       if(jugadaFilter && type !== jugadaFilter) return;
       if(numeroFilter && numero !== numeroFilter) return;
 
-      let key = numero;
+      let key = "";
 
-      if(currentVentasMode === "loteria"){
-        key = lot;
+      if(currentVentasMode === "numero"){
+        key = type + "|" + numero;
       }
 
       if(currentVentasMode === "jugada"){
         key = type;
       }
 
-      if(currentVentasMode === "numero"){
-        key = numero;
+      if(currentVentasMode === "loteria"){
+        key = lot;
       }
 
       if(!key) return;
 
       if(!map[key]){
         map[key] = {
-          key: key,
+          type: type,
+          numero: numero,
+          loteria: lot,
           count: 0,
           venta: 0
         };
@@ -5980,12 +5979,30 @@ function renderVentasDetalle(){
     totalCount += r.count;
     totalVenta += r.venta;
 
+    let col1 = "";
+    let col2 = "";
+
+    if(currentVentasMode === "numero"){
+      col1 = labelType(r.type);
+      col2 = r.numero;
+    }
+
+    if(currentVentasMode === "jugada"){
+      col1 = labelType(r.type);
+      col2 = r.count;
+    }
+
+    if(currentVentasMode === "loteria"){
+      col1 = r.loteria;
+      col2 = r.count;
+    }
+
     body.innerHTML +=
-  '<tr>' +
-    '<td style="text-align:left;padding:12px 14px;">' + type + '</td>' +
-    '<td style="text-align:center;padding:12px 14px;">' + numero + '</td>' +
-    '<td style="text-align:right;padding:12px 14px;">' + formatAmount(r.venta) + '</td>' +
-  '</tr>';
+      '<tr>' +
+        '<td style="text-align:left;padding:12px 14px;">' + safe(col1) + '</td>' +
+        '<td style="text-align:center;padding:12px 14px;">' + safe(col2) + '</td>' +
+        '<td style="text-align:right;padding:12px 14px;">' + formatAmount(r.venta) + '</td>' +
+      '</tr>';
   });
 
   foot.innerHTML =

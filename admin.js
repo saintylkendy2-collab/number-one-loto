@@ -5716,8 +5716,17 @@ async function openVentasDetalle(mode){
   }
 
   let title = "Ventas por Número";
-  if(currentVentasMode === "loteria") title = "Ventas por Lotería";
-  if(currentVentasMode === "jugada") title = "Ventas por Jugada";
+  let firstCol = "NÚMERO";
+
+  if(currentVentasMode === "loteria"){
+    title = "Ventas por Lotería";
+    firstCol = "LOTERÍA";
+  }
+
+  if(currentVentasMode === "jugada"){
+    title = "Ventas por Jugada";
+    firstCol = "JUGADA";
+  }
 
   page.innerHTML =
     '<div class="page-title">' + title + '</div>' +
@@ -5779,19 +5788,11 @@ async function openVentasDetalle(mode){
       '<div class="table-scroll">' +
         '<table>' +
           '<thead>' +
-'<th>' +
-
-(
-  currentVentasMode === "loteria"
-    ? "LOTERÍA"
-    : currentVentasMode === "jugada"
-    ? "JUGADA"
-    : "NÚMERO"
-)
-
-+
-
-'</th>' +
+            '<tr>' +
+              '<th>' + firstCol + '</th>' +
+              '<th style="text-align:center;">#</th>' +
+              '<th style="text-align:right;">VENTA</th>' +
+            '</tr>' +
           '</thead>' +
           '<tbody id="detBody"></tbody>' +
           '<tfoot id="detFoot"></tfoot>' +
@@ -5924,17 +5925,13 @@ function renderVentasDetalle(){
       if(jugadaFilter && type !== jugadaFilter) return;
       if(numeroFilter && numero !== numeroFilter) return;
 
-      let key = numero;
+      let key = "";
 
       if(currentVentasMode === "loteria"){
         key = lot;
-      }
-
-      if(currentVentasMode === "jugada"){
+      }else if(currentVentasMode === "jugada"){
         key = type;
-      }
-
-      if(currentVentasMode === "numero"){
+      }else{
         key = numero;
       }
 
@@ -5978,17 +5975,17 @@ function renderVentasDetalle(){
     body.innerHTML +=
       '<tr>' +
         '<td>' + safe(r.key) + '</td>' +
-        '<td>' + r.count + '</td>' +
-        '<td>' + formatAmount(r.venta) + '</td>' +
+        '<td style="text-align:center;">' + r.count + '</td>' +
+        '<td style="text-align:right;">' + formatAmount(r.venta) + '</td>' +
       '</tr>';
   });
 
   foot.innerHTML =
-  '<tr>' +
-    '<td style="font-weight:900;">TOTAL</td>' +
-    '<td style="font-weight:900;text-align:center;">' + totalCount + '</td>' +
-    '<td style="font-weight:900;text-align:right;">' + formatAmount(totalVenta) + '</td>' +
-  '</tr>';
+    '<tr>' +
+      '<td style="font-weight:900;">TOTAL</td>' +
+      '<td style="font-weight:900;text-align:center;">' + totalCount + '</td>' +
+      '<td style="font-weight:900;text-align:right;">' + formatAmount(totalVenta) + '</td>' +
+    '</tr>';
 }
 
 </script>

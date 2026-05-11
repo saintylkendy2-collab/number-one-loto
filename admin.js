@@ -4045,9 +4045,7 @@ loadLimitesAjustes();
     if(ventasPage) ventasPage.classList.remove("hidden");
     loadVentasJugada();
 
-  }else if(page === "ventas_numero"){
-    if(ventasPage) ventasPage.classList.remove("hidden");
-    loadVentasNumero();
+  
 
   }else if(page === "ventas_grupo"){
     if(ventasPage) ventasPage.classList.remove("hidden");

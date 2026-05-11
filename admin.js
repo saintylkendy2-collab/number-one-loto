@@ -4034,33 +4034,22 @@ async function goPage(page){
 
 loadLimitesAjustes();
 
-  }else if(page === "ventas_loteria"){
-  if(ventasPage){
-    ventasPage.classList.remove("hidden");
-    ventasPage.style.display = "block";
-  }
+ }else if(page === "ventas_loteria"){
+  if(ventasPage) ventasPage.classList.remove("hidden");
   loadVentasLoteria();
 
 }else if(page === "ventas_jugada"){
-  if(ventasPage){
-    ventasPage.classList.remove("hidden");
-    ventasPage.style.display = "block";
-  }
+  if(ventasPage) ventasPage.classList.remove("hidden");
   loadVentasJugada();
 
 }else if(page === "ventas_numero"){
-  if(ventasPage){
-    ventasPage.classList.remove("hidden");
-    ventasPage.style.display = "block";
-  }
+  if(ventasPage) ventasPage.classList.remove("hidden");
   loadVentasNumero();
 
 }else if(page === "ventas_grupo"){
-  if(ventasPage){
-    ventasPage.classList.remove("hidden");
-    ventasPage.style.display = "block";
-  }
+  if(ventasPage) ventasPage.classList.remove("hidden");
   loadVentasGrupo();
+}
 }
 
   }else if(page === "tickets"){

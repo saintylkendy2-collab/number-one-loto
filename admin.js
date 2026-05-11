@@ -1559,10 +1559,10 @@ router.get("/master/ticket/:id", async (req, res) => {
       "</thead>" +
 
       "<tbody>" +
-      lignes +
-      "</tbody>" +
-
-      "</table>" +
+lignes +
+"</tbody>" +
+"</table>" +
+"</div>" +
 
       "<form method='POST' action='/master/ticket/" +
       encodeURIComponent(ticket.id) +

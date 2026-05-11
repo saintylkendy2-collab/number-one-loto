@@ -5544,21 +5544,18 @@ let limiteNumeros = [];
 let bloqueoNumeros = [];
 
 function addLimiteNumero(){
+  alert("CLICK LIMITE");
+
   const type = byId("limNumType").value;
-  const numero = String(byId("limNumNumero").value || "").trim();
-  const monto = Number(String(byId("limNumMonto").value || "").trim());
+  const numero = byId("limNumNumero").value.trim();
+  const monto = Number(byId("limNumMonto").value || 0);
 
   if(!numero || monto <= 0){
     alert("Antre numéro ak limit");
     return;
   }
 
-  limiteNumeros.push({
-    type: type,
-    numero: numero,
-    monto: monto
-  });
-
+  limiteNumeros.push({ type, numero, monto });
   renderLimiteNumeros();
 
   byId("limNumNumero").value = "";

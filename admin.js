@@ -5706,10 +5706,14 @@ async function openVentasDetalle(mode){
 
   page.classList.remove("hidden");
 
-  // ✅ SA A ENPÒTAN: chaje tickets yo pou page detay la
-  const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
-  const data = await res.json();
-  ticketsRows = Array.isArray(data) ? data : [];
+  try{
+    const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
+    const data = await res.json();
+    ticketsRows = Array.isArray(data) ? data : [];
+  }catch(err){
+    console.error(err);
+    ticketsRows = [];
+  }
 
   let title = "Ventas por Número";
   if(currentVentasMode === "loteria") title = "Ventas por Lotería";
@@ -5755,10 +5759,10 @@ async function openVentasDetalle(mode){
           '<option value="BOR">Borlette</option>' +
           '<option value="MAR">Mariage</option>' +
           '<option value="L3">Loto 3</option>' +
-          '<option value="L41">Loto 4</option>' +
+          '<option value="L41">Loto 4 L1</option>' +
           '<option value="L42">Loto 4 L2</option>' +
           '<option value="L43">Loto 4 L3</option>' +
-          '<option value="L51">Loto 5</option>' +
+          '<option value="L51">Loto 5 L1</option>' +
           '<option value="L52">Loto 5 L2</option>' +
           '<option value="L53">Loto 5 L3</option>' +
         '</select>' +
@@ -5788,7 +5792,6 @@ async function openVentasDetalle(mode){
     '</div>';
 
   fillVentasDetalleSelects();
-
   renderVentasDetalle();
 
   [
@@ -5797,16 +5800,18 @@ async function openVentasDetalle(mode){
     "detZona",
     "detVendor",
     "detLoteria",
-    "detJugada",
-    "detNumero"
+    "detJugada"
   ].forEach(function(id){
     const el = byId(id);
     if(el){
-      el.addEventListener(id === "detNumero" ? "input" : "change", function(){
-        renderVentasDetalle();
-      });
+      el.addEventListener("change", renderVentasDetalle);
     }
   });
+
+  const numInput = byId("detNumero");
+  if(numInput){
+    numInput.addEventListener("input", renderVentasDetalle);
+  }
 
   closeSideMenu();
 }
@@ -5820,10 +5825,9 @@ function fillVentasDetalleSelects(){
     zona.innerHTML = '<option value="">- GRUPO -</option>';
 
     gruposList.forEach(function(g){
+      const name = safe(g.nombre || g);
       zona.innerHTML +=
-        '<option value="' + safe(g.nombre || g) + '">' +
-          safe(g.nombre || g) +
-        '</option>';
+        '<option value="' + name + '">' + name + '</option>';
     });
   }
 
@@ -5831,24 +5835,26 @@ function fillVentasDetalleSelects(){
     vendor.innerHTML = '<option value="">- VENDEDOR -</option>';
 
     vendors.forEach(function(v){
+      const id = safe(v.id).toUpperCase();
+      const name = safe(v.nombre || v.nom || v.id);
+
       vendor.innerHTML +=
-        '<option value="' + safe(v.id).toUpperCase() + '">' +
-          safe(v.nombre || v.nom || v.id) +
-        '</option>';
+        '<option value="' + id + '">' + name + '</option>';
     });
   }
 
   if(loteria){
-  loteria.innerHTML = '<option value="">-</option>';
+    loteria.innerHTML = '<option value="">-</option>';
 
-  loteriasList.forEach(function(l){
-    if(l === "TODAS") return;
+    loteriasList.forEach(function(l){
+      if(l === "TODAS") return;
 
-    loteria.innerHTML +=
-      '<option value="' + safe(l).toUpperCase() + '">' +
-        safe(l).toUpperCase() +
-      '</option>';
-  });
+      const name = safe(l).toUpperCase();
+
+      loteria.innerHTML +=
+        '<option value="' + name + '">' + name + '</option>';
+    });
+  }
 }
 
 function renderVentasDetalle(){
@@ -5902,18 +5908,26 @@ function renderVentasDetalle(){
     if(String(t.status || "").toUpperCase() === "ANILE") return;
 
     (t.jeux || []).forEach(function(j){
-      if(loteriaFilter && safe(j.loterie).toUpperCase() !== loteriaFilter) return;
-      if(jugadaFilter && safe(j.type).toUpperCase() !== jugadaFilter) return;
-      if(numeroFilter && safe(j.numero).trim() !== numeroFilter) return;
+      const lot = safe(j.loterie).toUpperCase();
+      const type = safe(j.type).toUpperCase();
+      const numero = safe(j.numero).trim();
 
-      let key = "";
+      if(loteriaFilter && lot !== loteriaFilter) return;
+      if(jugadaFilter && type !== jugadaFilter) return;
+      if(numeroFilter && numero !== numeroFilter) return;
+
+      let key = numero;
 
       if(currentVentasMode === "loteria"){
-        key = safe(j.loterie).toUpperCase();
-      }else if(currentVentasMode === "jugada"){
-        key = safe(j.type).toUpperCase();
-      }else{
-        key = safe(j.numero).trim();
+        key = lot;
+      }
+
+      if(currentVentasMode === "jugada"){
+        key = type;
+      }
+
+      if(currentVentasMode === "numero"){
+        key = numero;
       }
 
       if(!key) return;
@@ -5921,12 +5935,12 @@ function renderVentasDetalle(){
       if(!map[key]){
         map[key] = {
           key: key,
-          cantidad: 0,
+          count: 0,
           venta: 0
         };
       }
 
-      map[key].cantidad += 1;
+      map[key].count += 1;
       map[key].venta += parseAmount(j.montant);
     });
   });
@@ -5946,17 +5960,17 @@ function renderVentasDetalle(){
     return;
   }
 
-  let totalCantidad = 0;
+  let totalCount = 0;
   let totalVenta = 0;
 
   rows.forEach(function(r){
-    totalCantidad += r.cantidad;
+    totalCount += r.count;
     totalVenta += r.venta;
 
     body.innerHTML +=
       '<tr>' +
         '<td>' + safe(r.key) + '</td>' +
-        '<td>' + r.cantidad + '</td>' +
+        '<td>' + r.count + '</td>' +
         '<td>' + formatAmount(r.venta) + '</td>' +
       '</tr>';
   });
@@ -5964,7 +5978,7 @@ function renderVentasDetalle(){
   foot.innerHTML =
     '<tr>' +
       '<td>TOTAL</td>' +
-      '<td>' + totalCantidad + '</td>' +
+      '<td>' + totalCount + '</td>' +
       '<td>' + formatAmount(totalVenta) + '</td>' +
     '</tr>';
 }

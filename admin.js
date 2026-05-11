@@ -4045,15 +4045,31 @@ async function goPage(page){
 loadLimitesAjustes();
 
 }else if(page === "ventas_loteria"){
-  openVentasDetalle("loteria");
+  if(ventasPage){
+    ventasPage.classList.remove("hidden");
+    ventasPage.style.display = "block";
+  }
+  loadVentasLoteria();
 
 }else if(page === "ventas_jugada"){
-  openVentasDetalle("jugada");
+  if(ventasPage){
+    ventasPage.classList.remove("hidden");
+    ventasPage.style.display = "block";
+  }
+  loadVentasJugada();
 
 }else if(page === "ventas_numero"){
-  openVentasDetalle("numero");
+  if(ventasPage){
+    ventasPage.classList.remove("hidden");
+    ventasPage.style.display = "block";
+  }
+  loadVentasNumero();
 
 }else if(page === "ventas_grupo"){
+  if(ventasPage){
+    ventasPage.classList.remove("hidden");
+    ventasPage.style.display = "block";
+  }
   loadVentasGrupo();
 
 

@@ -4044,21 +4044,18 @@ async function goPage(page){
 
 loadLimitesAjustes();
 
-  }else if(page === "ventas_loteria"){
-    if(ventasPage) ventasPage.classList.remove("hidden");
-    loadVentasLoteria();
+}else if(page === "ventas_loteria"){
+  openVentasDetalle("loteria");
 
-  }else if(page === "ventas_jugada"){
-    if(ventasPage) ventasPage.classList.remove("hidden");
-    loadVentasJugada();
+}else if(page === "ventas_jugada"){
+  openVentasDetalle("jugada");
 
-  }else if(page === "ventas_numero"){
-    if(ventasPage) ventasPage.classList.remove("hidden");
-    loadVentasNumero();
+}else if(page === "ventas_numero"){
+  openVentasDetalle("numero");
 
-  }else if(page === "ventas_grupo"){
-    if(ventasPage) ventasPage.classList.remove("hidden");
-    loadVentasGrupo();
+}else if(page === "ventas_grupo"){
+  loadVentasGrupo();
+}
 
   }else if(page === "tickets"){
     if(ticketsPage) ticketsPage.classList.remove("hidden");

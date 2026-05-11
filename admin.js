@@ -4059,7 +4059,7 @@ loadLimitesAjustes();
 }else if(page === "ventas_grupo"){
   if(ventasPage) ventasPage.classList.remove("hidden");
   loadVentasGrupo();
-}
+
 
   }else if(page === "tickets"){
     if(ticketsPage) ticketsPage.classList.remove("hidden");

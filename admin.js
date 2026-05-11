@@ -4021,6 +4021,16 @@ async function goPage(page){
   if(sorteosPage) sorteosPage.classList.add("hidden");
   if(limitesAjustesPage) limitesAjustesPage.classList.add("hidden");
 
+ if(ventasPage) ventasPage.classList.add("hidden");
+  if(ticketsPage) ticketsPage.classList.add("hidden");
+  if(gruposPage) gruposPage.classList.add("hidden");
+  if(vendorsPage) vendorsPage.classList.add("hidden");
+  if(editorPage) editorPage.classList.add("hidden");
+  if(balancePage) balancePage.classList.add("hidden");
+  if(transactionsPage) transactionsPage.classList.add("hidden");
+  if(sorteosPage) sorteosPage.classList.add("hidden");
+  if(limitesAjustesPage) limitesAjustesPage.classList.add("hidden");
+
   if(page === "ventas"){
     if(ventasPage) ventasPage.classList.remove("hidden");
     loadVentasReport();
@@ -4034,23 +4044,21 @@ async function goPage(page){
 
 loadLimitesAjustes();
 
- }else if(page === "ventas_loteria"){
-  if(ventasPage) ventasPage.classList.remove("hidden");
-  loadVentasLoteria();
+  }else if(page === "ventas_loteria"){
+    if(ventasPage) ventasPage.classList.remove("hidden");
+    loadVentasLoteria();
 
-}else if(page === "ventas_jugada"){
-  if(ventasPage) ventasPage.classList.remove("hidden");
-  loadVentasJugada();
+  }else if(page === "ventas_jugada"){
+    if(ventasPage) ventasPage.classList.remove("hidden");
+    loadVentasJugada();
 
-}else if(page === "ventas_numero"){
-  if(ventasPage) ventasPage.classList.remove("hidden");
-  loadVentasNumero();
+  }else if(page === "ventas_numero"){
+    if(ventasPage) ventasPage.classList.remove("hidden");
+    loadVentasNumero();
 
-}else if(page === "ventas_grupo"){
-  if(ventasPage) ventasPage.classList.remove("hidden");
-  loadVentasGrupo();
-}
-}
+  }else if(page === "ventas_grupo"){
+    if(ventasPage) ventasPage.classList.remove("hidden");
+    loadVentasGrupo();
 
   }else if(page === "tickets"){
     if(ticketsPage) ticketsPage.classList.remove("hidden");

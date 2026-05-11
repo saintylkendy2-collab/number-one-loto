@@ -5723,7 +5723,7 @@ function hideAllMasterPages(){
     const el = byId(id);
     if(el){
       el.classList.add("hidden");
-      el.style.display = "none";
+
     }
   });
 }
@@ -5737,7 +5737,7 @@ async function openVentasDetalle(mode){
   hideAllMasterPages();
 
   page.classList.remove("hidden");
-  page.style.display = "block";
+  
 
   try{
     const res = await fetch("/api/reportes/tickets?reload=" + Date.now());

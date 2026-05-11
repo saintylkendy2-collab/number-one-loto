@@ -19,10 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 mongoose.connect("mongodb+srv://adminn:Kendy2026@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority&appName=Cluster0")
-.then(async () => {
-  console.log("Mongo connecté");
-  await loadLimites();
-})
+.then(() => console.log("Mongo connecté"))
 .catch(err => console.error("Mongo erreur:", err.message));
 
 mongoose.connection.once("open", async () => {
@@ -747,22 +744,6 @@ app.post("/api/check-limit-game", async (req, res) => {
 
     let limit = 0;
 
-    const special = (limitesAjustes.limiteNumeros || []).find(function(x){
-  return (
-    normGameType(x.type) === type &&
-    String(x.numero || "").trim() === numero
-  );
-});
-
-if(special){
-  limit = Number(
-    special.monto ||
-    special.limit ||
-    special.limite ||
-    0
-  );
-}
-
     if (type === "BOR") limit = Number(limites.borlette || 0);
     else if (type === "MAR") limit = Number(limites.mariage || 0);
     else if (type === "L3") limit = Number(limites.loto3 || 0);
@@ -837,9 +818,6 @@ else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limi
   }
 });
 
-let limiteNumeros = [];
-let bloqueoNumeros = [];
-
 let limitesAjustes = {
   borlette: 0,
   mariage: 0,
@@ -850,69 +828,26 @@ let limitesAjustes = {
   bloqueoNumeros: []
 };
 
-async function loadLimites(){
-  try{
-
-    const saved = await Limites.findOne().lean();
-
-    if(saved){
-      limitesAjustes = {
-        borlette: Number(saved.borlette || 0),
-        mariage: Number(saved.mariage || 0),
-        loto3: Number(saved.loto3 || 0),
-        loto4: Number(saved.loto4 || 0),
-        loto5: Number(saved.loto5 || 0),
-
-        limiteNumeros: Array.isArray(saved.limiteNumeros)
-          ? saved.limiteNumeros
-          : [],
-
-        bloqueoNumeros: Array.isArray(saved.bloqueoNumeros)
-          ? saved.bloqueoNumeros
-          : []
-      };
-
-      limiteNumeros = limitesAjustes.limiteNumeros || [];
-bloqueoNumeros = limitesAjustes.bloqueoNumeros || [];
-
-      console.log("✅ LIMITES CHARGÉS");
-    }
-
-  }catch(err){
-    console.error("LOAD LIMITES ERROR:", err);
-  }
-}
-
 app.post("/api/limites-ajustes", async (req,res)=>{
   try{
 
-  limitesAjustes = {
-  borlette: Number(req.body.borlette || 0),
-  mariage: Number(req.body.mariage || 0),
-  loto3: Number(req.body.loto3 || 0),
-  loto4: Number(req.body.loto4 || 0),
-  loto5: Number(req.body.loto5 || 0),
+    limitesAjustes = {
+      borlette: Number(req.body.borlette || 0),
+      mariage: Number(req.body.mariage || 0),
+      loto3: Number(req.body.loto3 || 0),
+      loto4: Number(req.body.loto4 || 0),
+      loto5: Number(req.body.loto5 || 0),
 
-  limiteNumeros: Array.isArray(req.body.limiteNumeros)
-    ? req.body.limiteNumeros
-    : [],
+      limiteNumeros: Array.isArray(req.body.limiteNumeros)
+        ? req.body.limiteNumeros
+        : [],
 
-  bloqueoNumeros: Array.isArray(req.body.bloqueoNumeros)
-    ? req.body.bloqueoNumeros
-    : []
-};
+      bloqueoNumeros: Array.isArray(req.body.bloqueoNumeros)
+        ? req.body.bloqueoNumeros
+        : []
+    };
 
-await Limites.findOneAndUpdate(
-  {},
-  limitesAjustes,
-  {
-    upsert:true,
-    new:true
-  }
-);
-
-
-    console.log("✅ LIMITES SAUVEGARDÉS MONGO");
+    console.log("✅ LIMITES SAUVEGARDÉS");
 
     res.json({
       ok:true
@@ -927,30 +862,6 @@ await Limites.findOneAndUpdate(
       message:"Erreur serveur"
     });
 
-  }
-});
-
-app.get("/api/limites-ajustes", async (req,res)=>{
-  try{
-    let data = await Limites.findOne().lean();
-
-    if(!data){
-      data = {
-        borlette:0,
-        mariage:0,
-        loto3:0,
-        loto4:0,
-        loto5:0,
-        limiteNumeros:[],
-        bloqueoNumeros:[]
-      };
-    }
-
-    limitesAjustes = data;
-    res.json({ ok:true, limites:data });
-
-  }catch(err){
-    res.json({ ok:false, message:"Erreur load limites" });
   }
 });
 
@@ -1283,22 +1194,6 @@ for (const j of safeJeux) {
   }
 
   let limit = 0;
-
-  const special = (limitesAjustes.limiteNumeros || []).find(function(x){
-  return (
-    normGameType(x.type) === type &&
-    String(x.numero || "").trim() === String(j.numero || "").trim()
-  );
-});
-
-if(special){
-  limit = Number(
-    special.monto ||
-    special.limit ||
-    special.limite ||
-    0
-  );
-}
 
   if (type === "BOR") limit = Number(limites.borlette || 0);
   else if (type === "MAR") limit = Number(limites.mariage || 0);

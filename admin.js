@@ -5575,11 +5575,11 @@ function renderLimiteNumeros(){
 
   limiteNumeros.forEach(function(x,i){
     html += '<div class="ticket-line">' +
-      '<span>' + x.type + '</span>' +
-      '<span>' + x.numero + '</span>' +
-      '<span>' + Number(x.monto || 0).toFixed(2) + ' G</span>' +
-      '<button onclick="removeLimiteNumero(' + i + ')">X</button>' +
-    '</div>';
+  '<span style="display:inline-block;width:70px;">' + x.type + '</span>' +
+  '<span style="display:inline-block;width:70px;">' + x.numero + '</span>' +
+  '<span style="display:inline-block;width:100px;">' + Number(x.monto || 0).toFixed(2) + ' G</span>' +
+  '<button onclick="removeLimiteNumero(' + i + ')">X</button>' +
+'</div>';
   });
 
   box.innerHTML = html;

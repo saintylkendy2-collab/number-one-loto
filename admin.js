@@ -1559,10 +1559,10 @@ router.get("/master/ticket/:id", async (req, res) => {
       "</thead>" +
 
       "<tbody>" +
-lignes +
-"</tbody>" +
-"</table>" +
-"</div>" +
+      lignes +
+      "</tbody>" +
+
+      "</table>" +
 
       "<form method='POST' action='/master/ticket/" +
       encodeURIComponent(ticket.id) +
@@ -2679,9 +2679,9 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
   <div id="ventaMenu" class="submenu-box">
   <div class="submenu-item" onclick="goPage('ventas')">General</div>
-  <div class="submenu-item" onclick="goPage('loteria')">Lotería</div>
-  <div class="submenu-item" onclick="goPage('jugada')">Jugada</div>
-  <div class="submenu-item" onclick="goPage('numero')">Número</div>
+  <div class="submenu-item" onclick="goPage('ventas_loteria')">Lotería</div>
+<div class="submenu-item" onclick="goPage('ventas_jugada')">Jugada</div>
+<div class="submenu-item" onclick="goPage('ventas_numero')">Número</div>
   <div class="submenu-item" onclick="goPage('grupo')">Grupo</div>
 </div>
 

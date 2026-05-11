@@ -753,6 +753,15 @@ app.post("/api/check-limit-game", async (req, res) => {
    else if (type === "L41" || type === "L42" || type === "L43") limit = Number(limites.loto4 || 0);
 else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0); 
 
+const special = (limites.limiteNumeros || []).find(x =>
+  normGameType(x.type) === type &&
+  String(x.numero || "").trim() === numero
+);
+
+if (special) {
+  limit = Number(special.monto || special.montant || special.limit || special.limite || 0);
+}
+
     if (limit <= 0) {
       return res.json({ ok:true });
     }
@@ -1267,6 +1276,15 @@ for (const j of safeJeux) {
   else if (type === "L3") limit = Number(limites.loto3 || 0);
   else if (type === "L41" || type === "L42" || type === "L43") limit = Number(limites.loto4 || 0);
   else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0);
+
+const special = (limites.limiteNumeros || []).find(x =>
+  normGameType(x.type) === type &&
+  String(x.numero || "").trim() === String(j.numero || "").trim()
+);
+
+if (special) {
+  limit = Number(special.monto || special.montant || special.limit || special.limite || 0);
+}
 
   if (limit > 0) {
     const tickets = await Ticket.find({

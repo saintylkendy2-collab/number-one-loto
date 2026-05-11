@@ -5569,20 +5569,20 @@ function renderLimiteNumeros(){
   const box = byId("limiteNumerosList");
   if(!box) return;
 
- let html = "";
+  let html = "";
 
-limiteNumeros.forEach(function(x,i){
+  limiteNumeros.forEach(function(x,i){
 
-  html += '<div class="ticket-line">' +
-    '<span>' + x.type + '</span>' +
-    '<span>' + x.numero + '</span>' +
-    '<span>' + x.monto.toFixed(2) + '</span>' +
-    '<button onclick="removeLimiteNumero(' + i + ')">X</button>' +
-  '</div>';
+   html += '<div class="ticket-line">' +
+  '<span style="display:inline-block;width:70px;">' + x.type + '</span>' +
+  '<span style="display:inline-block;width:70px;">' + x.numero + '</span>' +
+  '<span style="display:inline-block;width:100px;">' + Number(x.monto || 0).toFixed(2) + ' G</span>' +
+  '<button onclick="removeLimiteNumero(' + i + ')">X</button>' +
+'</div>';
 
-});
+  });
 
-box.innerHTML = ht
+  box.innerHTML = html;
 }
 
 function removeLimiteNumero(i){

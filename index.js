@@ -745,6 +745,30 @@ app.post("/api/check-limit-game", async (req, res) => {
   "Ou pa ka vann jwèt sa."});
     }
 
+const limite = limiteNumeros.find(function(x){
+  return x.type === type && x.numero === numero;
+});
+
+if(limite){
+
+  const totalNumero = juegos
+    .filter(function(j){
+      return j.type === type && j.numero === numero;
+    })
+    .reduce(function(sum,j){
+      return sum + Number(j.monto || 0);
+    },0);
+
+  if(totalNumero > limite.monto){
+    alert(
+      "Limite nimewo sa se " +
+      limite.monto +
+      " G"
+    );
+    return;
+  }
+}
+
     let limit = 0;
 
     if (type === "BOR") limit = Number(limites.borlette || 0);

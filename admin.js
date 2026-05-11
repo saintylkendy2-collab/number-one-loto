@@ -5546,7 +5546,7 @@ let bloqueoNumeros = [];
 function addLimiteNumero(){
   const type = byId("limNumType").value;
   const numero = byId("limNumNumero").value.trim();
-  const monto = Number(byId("limNumMonto").value || 0);
+  const monto = parseFloat(byId("limNumMonto").value || 0);
 
   if(!numero || monto <= 0){
     alert("Antre numéro ak limit");
@@ -5554,12 +5554,10 @@ function addLimiteNumero(){
   }
 
   limiteNumeros.push({
-    type: type,
-    numero: numero,
-    monto: monto
+    type,
+    numero,
+    monto
   });
-
-  console.log("LIMITES:", limiteNumeros);
 
   renderLimiteNumeros();
 
@@ -5571,18 +5569,20 @@ function renderLimiteNumeros(){
   const box = byId("limiteNumerosList");
   if(!box) return;
 
-  let html = "";
+ let html = "";
 
-  limiteNumeros.forEach(function(x,i){
-    html += '<div class="ticket-line">' +
-  '<span style="display:inline-block;width:70px;">' + x.type + '</span>' +
-  '<span style="display:inline-block;width:70px;">' + x.numero + '</span>' +
-  '<span style="display:inline-block;width:100px;">' + Number(x.monto || 0).toFixed(2) + ' G</span>' +
-  '<button onclick="removeLimiteNumero(' + i + ')">X</button>' +
-'</div>';
-  });
+limiteNumeros.forEach(function(x,i){
 
-  box.innerHTML = html;
+  html += '<div class="ticket-line">' +
+    '<span>' + x.type + '</span>' +
+    '<span>' + x.numero + '</span>' +
+    '<span>' + x.monto.toFixed(2) + '</span>' +
+    '<button onclick="removeLimiteNumero(' + i + ')">X</button>' +
+  '</div>';
+
+});
+
+box.innerHTML = ht
 }
 
 function removeLimiteNumero(i){

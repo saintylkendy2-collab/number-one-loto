@@ -19,7 +19,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 mongoose.connect("mongodb+srv://adminn:Kendy2026@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority&appName=Cluster0")
-.then(() => console.log("Mongo connecté"))
+.then(async () => {
+  console.log("Mongo connecté");
+  await loadLimites();
+})
 .catch(err => console.error("Mongo erreur:", err.message));
 
 mongoose.connection.once("open", async () => {
@@ -742,6 +745,30 @@ app.post("/api/check-limit-game", async (req, res) => {
   "Ou pa ka vann jwèt sa."});
     }
 
+const limite = limiteNumeros.find(function(x){
+  return x.type === type && x.numero === numero;
+});
+
+if(limite){
+
+  const totalNumero = juegos
+    .filter(function(j){
+      return j.type === type && j.numero === numero;
+    })
+    .reduce(function(sum,j){
+      return sum + Number(j.monto || 0);
+    },0);
+
+  if(totalNumero > limite.monto){
+    alert(
+      "Limite nimewo sa se " +
+      limite.monto +
+      " G"
+    );
+    return;
+  }
+}
+
     let limit = 0;
 
     if (type === "BOR") limit = Number(limites.borlette || 0);
@@ -828,26 +855,66 @@ let limitesAjustes = {
   bloqueoNumeros: []
 };
 
+async function loadLimites(){
+  try{
+
+    const saved = await Limites.findOne().lean();
+
+    if(saved){
+      limitesAjustes = {
+        borlette: Number(saved.borlette || 0),
+        mariage: Number(saved.mariage || 0),
+        loto3: Number(saved.loto3 || 0),
+        loto4: Number(saved.loto4 || 0),
+        loto5: Number(saved.loto5 || 0),
+
+        limiteNumeros: Array.isArray(saved.limiteNumeros)
+          ? saved.limiteNumeros
+          : [],
+
+        bloqueoNumeros: Array.isArray(saved.bloqueoNumeros)
+          ? saved.bloqueoNumeros
+          : []
+      };
+
+      console.log("✅ LIMITES CHARGÉS");
+    }
+
+  }catch(err){
+    console.error("LOAD LIMITES ERROR:", err);
+  }
+}
+
 app.post("/api/limites-ajustes", async (req,res)=>{
   try{
 
-    limitesAjustes = {
-      borlette: Number(req.body.borlette || 0),
-      mariage: Number(req.body.mariage || 0),
-      loto3: Number(req.body.loto3 || 0),
-      loto4: Number(req.body.loto4 || 0),
-      loto5: Number(req.body.loto5 || 0),
+  limitesAjustes = {
+  borlette: Number(req.body.borlette || 0),
+  mariage: Number(req.body.mariage || 0),
+  loto3: Number(req.body.loto3 || 0),
+  loto4: Number(req.body.loto4 || 0),
+  loto5: Number(req.body.loto5 || 0),
 
-      limiteNumeros: Array.isArray(req.body.limiteNumeros)
-        ? req.body.limiteNumeros
-        : [],
+  limiteNumeros: Array.isArray(req.body.limiteNumeros)
+    ? req.body.limiteNumeros
+    : [],
 
-      bloqueoNumeros: Array.isArray(req.body.bloqueoNumeros)
-        ? req.body.bloqueoNumeros
-        : []
-    };
+  bloqueoNumeros: Array.isArray(req.body.bloqueoNumeros)
+    ? req.body.bloqueoNumeros
+    : []
+};
 
-    console.log("✅ LIMITES SAUVEGARDÉS");
+await Limites.findOneAndUpdate(
+  {},
+  limitesAjustes,
+  {
+    upsert:true,
+    new:true
+  }
+);
+
+
+    console.log("✅ LIMITES SAUVEGARDÉS MONGO");
 
     res.json({
       ok:true
@@ -862,6 +929,30 @@ app.post("/api/limites-ajustes", async (req,res)=>{
       message:"Erreur serveur"
     });
 
+  }
+});
+
+app.get("/api/limites-ajustes", async (req,res)=>{
+  try{
+    let data = await Limites.findOne().lean();
+
+    if(!data){
+      data = {
+        borlette:0,
+        mariage:0,
+        loto3:0,
+        loto4:0,
+        loto5:0,
+        limiteNumeros:[],
+        bloqueoNumeros:[]
+      };
+    }
+
+    limitesAjustes = data;
+    res.json({ ok:true, limites:data });
+
+  }catch(err){
+    res.json({ ok:false, message:"Erreur load limites" });
   }
 });
 

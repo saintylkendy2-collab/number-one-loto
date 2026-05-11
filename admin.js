@@ -5574,14 +5574,12 @@ function renderLimiteNumeros(){
   let html = "";
 
   limiteNumeros.forEach(function(x,i){
-
     html += '<div class="ticket-line">' +
       '<span>' + x.type + '</span>' +
       '<span>' + x.numero + '</span>' +
-      '<span>' + x.monto.toFixed(2) + '</span>' +
+      '<span>' + Number(x.monto || 0).toFixed(2) + ' G</span>' +
       '<button onclick="removeLimiteNumero(' + i + ')">X</button>' +
     '</div>';
-
   });
 
   box.innerHTML = html;

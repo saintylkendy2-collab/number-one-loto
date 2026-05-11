@@ -2679,9 +2679,9 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
   <div id="ventaMenu" class="submenu-box">
   <div class="submenu-item" onclick="goPage('ventas')">General</div>
-  <div class="submenu-item" onclick="goPage('loteria')">Lotería</div>
-  <div class="submenu-item" onclick="goPage('jugada')">Jugada</div>
-  <div class="submenu-item" onclick="goPage('numero')">Número</div>
+ <div class="submenu-item" onclick="openVentasDetalle('loteria')">Lotería</div>
+<div class="submenu-item" onclick="openVentasDetalle('jugada')">Jugada</div>
+<div class="submenu-item" onclick="openVentasDetalle('numero')">Número</div>
   <div class="submenu-item" onclick="goPage('grupo')">Grupo</div>
 </div>
 
@@ -2803,6 +2803,8 @@ tbody tr:nth-child(even){background:#313652;}
       </div>
     </div>
   </div>
+
+  <div id="ventasDetallePage" class="page-block hidden"></div>
 
 <div id="gruposPage" class="page-block hidden">
   <div class="page-title">Grupos</div>
@@ -5688,6 +5690,378 @@ async function saveLimitesAjustes(){
     console.error(err);
     alert("Erreur serveur");
   }
+}
+
+function openVentasDetalle(mode){
+
+  const page = byId("ventasDetallePage");
+  if(!page) return;
+
+  document.querySelectorAll(".page-block").forEach(function(p){
+    p.classList.add("hidden");
+  });
+
+  page.classList.remove("hidden");
+
+  let title = "Ventas por Número";
+
+  if(mode === "loteria"){
+    title = "Ventas por Lotería";
+  }
+
+  if(mode === "jugada"){
+    title = "Ventas por Jugada";
+  }
+
+  page.innerHTML =
+
+    '<div class="page-title">' + title + '</div>' +
+
+    '<div class="filters">' +
+
+      '<div class="filter-group">' +
+
+        '<div class="date-range">' +
+
+          '<div>' +
+            '<label>Desde</label>' +
+            '<input type="date" id="detFechaInicio" class="filter-input" value="' + todayISO() + '">' +
+          '</div>' +
+
+          '<div>' +
+            '<label>Hasta</label>' +
+            '<input type="date" id="detFechaFin" class="filter-input" value="' + todayISO() + '">' +
+          '</div>' +
+
+        '</div>' +
+
+      '</div>' +
+
+      '<div class="filter-group">' +
+        '<label class="filter-label">Zona</label>' +
+        '<select id="detZona" class="filter-select"></select>' +
+      '</div>' +
+
+      '<div class="filter-group">' +
+        '<label class="filter-label">Vendedor</label>' +
+        '<select id="detVendor" class="filter-select"></select>' +
+      '</div>' +
+
+      '<div class="filter-group">' +
+        '<label class="filter-label">Filtro</label>' +
+        '<select id="detFiltro" class="filter-select">' +
+          '<option value="">-</option>' +
+        '</select>' +
+      '</div>' +
+
+    '</div>' +
+
+    '<div class="table-card">' +
+
+      '<div class="table-scroll">' +
+
+        '<table>' +
+
+          '<thead>' +
+
+            '<tr>' +
+
+              '<th>' +
+
+                (
+                  mode === "loteria"
+                  ? "LOTERÍA"
+                  : mode === "jugada"
+                  ? "JUGADA"
+                  : "NÚMERO"
+                )
+
+              +
+
+              '</th>' +
+
+              '<th>TICKETS</th>' +
+              '<th>NÚMEROS</th>' +
+              '<th>VENTA</th>' +
+
+            '</tr>' +
+
+          '</thead>' +
+
+          '<tbody id="detBody"></tbody>' +
+          '<tfoot id="detFoot"></tfoot>' +
+
+        '</table>' +
+
+      '</div>' +
+
+    '</div>';
+
+  fillVentasDetalleSelects(mode);
+  renderVentasDetalle(mode);
+
+  [
+    "detFechaInicio",
+    "detFechaFin",
+    "detZona",
+    "detVendor",
+    "detFiltro"
+  ].forEach(function(id){
+
+    const el = byId(id);
+
+    if(el){
+
+      el.addEventListener("change", function(){
+        renderVentasDetalle(mode);
+      });
+
+    }
+
+  });
+
+  closeSideMenu();
+}
+
+
+
+function fillVentasDetalleSelects(mode){
+
+  const zona = byId("detZona");
+  const vendor = byId("detVendor");
+  const filtro = byId("detFiltro");
+
+  if(zona){
+
+    zona.innerHTML =
+      '<option value="">- GRUPO -</option>';
+
+    gruposList.forEach(function(g){
+
+      zona.innerHTML +=
+        '<option value="' + safe(g.nombre || g) + '">' +
+          safe(g.nombre || g) +
+        '</option>';
+
+    });
+
+  }
+
+  if(vendor){
+
+    vendor.innerHTML =
+      '<option value="">- VENDEDOR -</option>';
+
+    vendors.forEach(function(v){
+
+      vendor.innerHTML +=
+        '<option value="' + safe(v.id) + '">' +
+          safe(v.nombre || v.nom || v.id) +
+        '</option>';
+
+    });
+
+  }
+
+  if(filtro){
+
+    filtro.innerHTML =
+      '<option value="">-</option>';
+
+    if(mode === "jugada"){
+
+      filtro.innerHTML +=
+        '<option value="BOR">Borlette</option>' +
+        '<option value="MAR">Mariage</option>' +
+        '<option value="L3">Loto 3</option>' +
+        '<option value="L41">Loto 4</option>' +
+        '<option value="L51">Loto 5</option>';
+
+    }
+
+  }
+
+}
+
+
+
+function renderVentasDetalle(mode){
+
+  const body = byId("detBody");
+  const foot = byId("detFoot");
+
+  if(!body || !foot) return;
+
+  const start = getValue("detFechaInicio");
+  const end = getValue("detFechaFin");
+  const zonaFilter = getValue("detZona");
+  const vendorFilter = getValue("detVendor");
+  const detFiltro = getValue("detFiltro");
+
+  const map = {};
+
+  ticketsRows.forEach(function(t){
+
+    const vendorId =
+      safe(t.vendeur).toUpperCase();
+
+    const vendor =
+      vendors.find(function(v){
+
+        return safe(v.id).toUpperCase() === vendorId;
+
+      }) || {};
+
+    const zona =
+      safe(vendor.zona || vendor.groupe);
+
+    if(zonaFilter && zona !== zonaFilter) return;
+    if(vendorFilter && vendorId !== vendorFilter) return;
+
+    let d = "";
+
+    if(t.dateLabel){
+
+      const p =
+        String(t.dateLabel).split("/");
+
+      if(p.length === 3){
+
+        d =
+          p[2] + "-" +
+          p[1].padStart(2,"0") + "-" +
+          p[0].padStart(2,"0");
+
+      }
+
+    }
+
+    if(!d && t.createdAt){
+
+      const dt = new Date(t.createdAt);
+
+      d =
+        dt.getFullYear() + "-" +
+        String(dt.getMonth()+1).padStart(2,"0") + "-" +
+        String(dt.getDate()).padStart(2,"0");
+
+    }
+
+    if(start && d < start) return;
+    if(end && d > end) return;
+
+    if(
+      String(t.status || "").toUpperCase() === "ANILE"
+    ) return;
+
+    (t.jeux || []).forEach(function(j){
+
+      let key = "";
+
+      if(mode === "loteria"){
+        key = safe(j.loterie);
+      }
+
+      if(mode === "jugada"){
+        key = safe(j.type);
+      }
+
+      if(mode === "numero"){
+        key = safe(j.numero);
+      }
+
+      if(!key) return;
+
+      if(detFiltro && key !== detFiltro) return;
+
+      if(!map[key]){
+
+        map[key] = {
+          key:key,
+          tickets:{},
+          numeros:0,
+          venta:0
+        };
+
+      }
+
+      map[key].tickets[t.id] = true;
+
+      map[key].numeros += 1;
+
+      map[key].venta +=
+        parseAmount(j.montant);
+
+    });
+
+  });
+
+  const rows =
+    Object.values(map).sort(function(a,b){
+
+      return b.venta - a.venta;
+
+    });
+
+  let totalTickets = 0;
+  let totalNumeros = 0;
+  let totalVenta = 0;
+
+  body.innerHTML = "";
+
+  if(!rows.length){
+
+    body.innerHTML =
+      '<tr>' +
+        '<td colspan="4" class="empty-state">' +
+          'Pa gen done' +
+        '</td>' +
+      '</tr>';
+
+    foot.innerHTML = "";
+
+    return;
+  }
+
+  rows.forEach(function(r){
+
+    const ticketCount =
+      Object.keys(r.tickets).length;
+
+    totalTickets += ticketCount;
+    totalNumeros += r.numeros;
+    totalVenta += r.venta;
+
+    body.innerHTML +=
+
+      '<tr>' +
+
+        '<td>' + safe(r.key) + '</td>' +
+
+        '<td>' + ticketCount + '</td>' +
+
+        '<td>' + r.numeros + '</td>' +
+
+        '<td>' + formatAmount(r.venta) + '</td>' +
+
+      '</tr>';
+
+  });
+
+  foot.innerHTML =
+
+    '<tr>' +
+
+      '<td>TOTAL</td>' +
+
+      '<td>' + totalTickets + '</td>' +
+
+      '<td>' + totalNumeros + '</td>' +
+
+      '<td>' + formatAmount(totalVenta) + '</td>' +
+
+    '</tr>';
+
 }
 
 </script>

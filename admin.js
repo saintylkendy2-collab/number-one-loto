@@ -5795,12 +5795,12 @@ async function openVentasDetalle(mode){
           '</colgroup>' +
 
           '<thead>' +
-            '<tr>' +
-              '<th style="text-align:left;">' + firstCol + '</th>' +
-              '<th style="text-align:center;">#</th>' +
-              '<th style="text-align:right;">VENTA</th>' +
-            '</tr>' +
-          '</thead>' +
+  '<tr>' +
+    '<th style="text-align:left;">TIPO</th>' +
+    '<th style="text-align:center;">#</th>' +
+    '<th style="text-align:right;">VENTA</th>' +
+  '</tr>' +
+'</thead>' +
 
           '<tbody id="detBody"></tbody>' +
           '<tfoot id="detFoot"></tfoot>' +
@@ -5981,11 +5981,11 @@ function renderVentasDetalle(){
     totalVenta += r.venta;
 
     body.innerHTML +=
-      '<tr>' +
-        '<td style="text-align:left;padding:12px 14px;">' + safe(r.key) + '</td>' +
-        '<td style="text-align:center;padding:12px 14px;">' + r.count + '</td>' +
-        '<td style="text-align:right;padding:12px 14px;">' + formatAmount(r.venta) + '</td>' +
-      '</tr>';
+  '<tr>' +
+    '<td style="text-align:left;padding:12px 14px;">' + type + '</td>' +
+    '<td style="text-align:center;padding:12px 14px;">' + numero + '</td>' +
+    '<td style="text-align:right;padding:12px 14px;">' + formatAmount(r.venta) + '</td>' +
+  '</tr>';
   });
 
   foot.innerHTML =

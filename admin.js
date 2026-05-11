@@ -5697,16 +5697,28 @@ let currentVentasMode = "numero";
 async function openVentasDetalle(mode){
   currentVentasMode = mode || "numero";
 
-  ["ventasPage","gruposPage","limitesAjustesPage","balanceVendorPage","ticketsPage","sorteosPage","transactionsPage","vendorsPage","vendorEditorPage","ventasDetallePage"].forEach(function(id){
-  const el = byId(id);
-  if(el){
-    el.classList.add("hidden");
-  }
-});
+  const page = byId("ventasDetallePage");
+  if(!page) return;
 
-page.classList.remove("hidden");
+  [
+    "ventasPage",
+    "gruposPage",
+    "limitesAjustesPage",
+    "balanceVendorPage",
+    "ticketsPage",
+    "sorteosPage",
+    "transactionsPage",
+    "vendorsPage",
+    "vendorEditorPage",
+    "ventasDetallePage"
+  ].forEach(function(id){
+    const el = byId(id);
+    if(el){
+      el.classList.add("hidden");
+    }
+  });
 
-
+  page.classList.remove("hidden");
   try{
     const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
     const data = await res.json();

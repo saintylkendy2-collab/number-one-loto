@@ -745,31 +745,23 @@ app.post("/api/check-limit-game", async (req, res) => {
   "Ou pa ka vann jwèt sa."});
     }
 
-const limite = limiteNumeros.find(function(x){
-  return x.type === type && x.numero === numero;
+    let limit = 0;
+
+    const special = (limitesAjustes.limiteNumeros || []).find(function(x){
+  return (
+    normGameType(x.type) === type &&
+    String(x.numero || "").trim() === numero
+  );
 });
 
-if(limite){
-
-  const totalNumero = juegos
-    .filter(function(j){
-      return j.type === type && j.numero === numero;
-    })
-    .reduce(function(sum,j){
-      return sum + Number(j.monto || 0);
-    },0);
-
-  if(totalNumero > limite.monto){
-    alert(
-      "Limite nimewo sa se " +
-      limite.monto +
-      " G"
-    );
-    return;
-  }
+if(special){
+  limit = Number(
+    special.monto ||
+    special.limit ||
+    special.limite ||
+    0
+  );
 }
-
-    let limit = 0;
 
     if (type === "BOR") limit = Number(limites.borlette || 0);
     else if (type === "MAR") limit = Number(limites.mariage || 0);
@@ -1291,6 +1283,22 @@ for (const j of safeJeux) {
   }
 
   let limit = 0;
+
+  const special = (limitesAjustes.limiteNumeros || []).find(function(x){
+  return (
+    normGameType(x.type) === type &&
+    String(x.numero || "").trim() === String(j.numero || "").trim()
+  );
+});
+
+if(special){
+  limit = Number(
+    special.monto ||
+    special.limit ||
+    special.limite ||
+    0
+  );
+}
 
   if (type === "BOR") limit = Number(limites.borlette || 0);
   else if (type === "MAR") limit = Number(limites.mariage || 0);

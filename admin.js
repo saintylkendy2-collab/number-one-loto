@@ -5786,16 +5786,25 @@ async function openVentasDetalle(mode){
 
     '<div class="table-card">' +
       '<div class="table-scroll">' +
-        '<table>' +
+        '<table style="width:100%;min-width:100%;table-layout:fixed;">' +
+
+          '<colgroup>' +
+            '<col style="width:45%;">' +
+            '<col style="width:22%;">' +
+            '<col style="width:33%;">' +
+          '</colgroup>' +
+
           '<thead>' +
             '<tr>' +
-              '<th>' + firstCol + '</th>' +
+              '<th style="text-align:left;">' + firstCol + '</th>' +
               '<th style="text-align:center;">#</th>' +
               '<th style="text-align:right;">VENTA</th>' +
             '</tr>' +
           '</thead>' +
+
           '<tbody id="detBody"></tbody>' +
           '<tfoot id="detFoot"></tfoot>' +
+
         '</table>' +
       '</div>' +
     '</div>';
@@ -5835,8 +5844,7 @@ function fillVentasDetalleSelects(){
 
     gruposList.forEach(function(g){
       const name = safe(g.nombre || g);
-      zona.innerHTML +=
-        '<option value="' + name + '">' + name + '</option>';
+      zona.innerHTML += '<option value="' + name + '">' + name + '</option>';
     });
   }
 
@@ -5846,9 +5854,7 @@ function fillVentasDetalleSelects(){
     vendors.forEach(function(v){
       const id = safe(v.id).toUpperCase();
       const name = safe(v.nombre || v.nom || v.id);
-
-      vendor.innerHTML +=
-        '<option value="' + id + '">' + name + '</option>';
+      vendor.innerHTML += '<option value="' + id + '">' + name + '</option>';
     });
   }
 
@@ -5859,9 +5865,7 @@ function fillVentasDetalleSelects(){
       if(l === "TODAS") return;
 
       const name = safe(l).toUpperCase();
-
-      loteria.innerHTML +=
-        '<option value="' + name + '">' + name + '</option>';
+      loteria.innerHTML += '<option value="' + name + '">' + name + '</option>';
     });
   }
 }
@@ -5925,13 +5929,17 @@ function renderVentasDetalle(){
       if(jugadaFilter && type !== jugadaFilter) return;
       if(numeroFilter && numero !== numeroFilter) return;
 
-      let key = "";
+      let key = numero;
 
       if(currentVentasMode === "loteria"){
         key = lot;
-      }else if(currentVentasMode === "jugada"){
+      }
+
+      if(currentVentasMode === "jugada"){
         key = type;
-      }else{
+      }
+
+      if(currentVentasMode === "numero"){
         key = numero;
       }
 
@@ -5974,17 +5982,17 @@ function renderVentasDetalle(){
 
     body.innerHTML +=
       '<tr>' +
-        '<td>' + safe(r.key) + '</td>' +
-        '<td style="text-align:center;">' + r.count + '</td>' +
-        '<td style="text-align:right;">' + formatAmount(r.venta) + '</td>' +
+        '<td style="text-align:left;padding:12px 14px;">' + safe(r.key) + '</td>' +
+        '<td style="text-align:center;padding:12px 14px;">' + r.count + '</td>' +
+        '<td style="text-align:right;padding:12px 14px;">' + formatAmount(r.venta) + '</td>' +
       '</tr>';
   });
 
   foot.innerHTML =
-    '<tr>' +
-      '<td style="font-weight:900;">TOTAL</td>' +
-      '<td style="font-weight:900;text-align:center;">' + totalCount + '</td>' +
-      '<td style="font-weight:900;text-align:right;">' + formatAmount(totalVenta) + '</td>' +
+    '<tr style="background:#3b405c;font-weight:900;">' +
+      '<td style="text-align:left;padding:14px;">TOTAL</td>' +
+      '<td style="text-align:center;padding:14px;">' + totalCount + '</td>' +
+      '<td style="text-align:right;padding:14px;">' + formatAmount(totalVenta) + '</td>' +
     '</tr>';
 }
 

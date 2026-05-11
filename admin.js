@@ -3575,19 +3575,19 @@ function sortVentasByVenta(){
 }
 
 function loadVentasLoteria(){
-  loadVentasReport();
+  goPage("ventas");
 }
 
 function loadVentasJugada(){
-  loadVentasReport();
+  goPage("ventas");
 }
 
 function loadVentasNumero(){
-  loadVentasReport();
+  goPage("ventas");
 }
 
 function loadVentasGrupo(){
-  loadVentasReport();
+  goPage("ventas");
 }
 
 async function loadBalanceReport(){

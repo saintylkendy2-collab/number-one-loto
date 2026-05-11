@@ -5779,11 +5779,15 @@ async function openVentasDetalle(mode){
       '<div class="table-scroll">' +
         '<table>' +
           '<thead>' +
-            '<tr>' +
-              '<th>TIPO</th>' +
-              '<th>#</th>' +
-              '<th>VENTA</th>' +
-            '</tr>' +
+           <th>' +
+(
+  currentVentasMode === "loteria"
+    ? "LOTERÍA"
+    : currentVentasMode === "jugada"
+    ? "JUGADA"
+    : "NÚMERO"
+) +
+'</th>
           '</thead>' +
           '<tbody id="detBody"></tbody>' +
           '<tfoot id="detFoot"></tfoot>' +
@@ -5976,11 +5980,11 @@ function renderVentasDetalle(){
   });
 
   foot.innerHTML =
-    '<tr>' +
-      '<td>TOTAL</td>' +
-      '<td>' + totalCount + '</td>' +
-      '<td>' + formatAmount(totalVenta) + '</td>' +
-    '</tr>';
+  '<tr>' +
+    '<td style="font-weight:900;">TOTAL</td>' +
+    '<td style="font-weight:900;text-align:center;">' + totalCount + '</td>' +
+    '<td style="font-weight:900;text-align:right;">' + formatAmount(totalVenta) + '</td>' +
+  '</tr>';
 }
 
 </script>

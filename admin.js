@@ -5779,15 +5779,19 @@ async function openVentasDetalle(mode){
       '<div class="table-scroll">' +
         '<table>' +
           '<thead>' +
-           <th>' +
+'<th>' +
+
 (
   currentVentasMode === "loteria"
     ? "LOTERÍA"
     : currentVentasMode === "jugada"
     ? "JUGADA"
     : "NÚMERO"
-) +
-'</th>
+)
+
++
+
+'</th>' +
           '</thead>' +
           '<tbody id="detBody"></tbody>' +
           '<tfoot id="detFoot"></tfoot>' +

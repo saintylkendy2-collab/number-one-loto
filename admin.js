@@ -5711,25 +5711,12 @@ async function openVentasDetalle(mode){
   const page = byId("ventasDetallePage");
   if(!page) return;
 
-  [
-    "ventasPage",
-    "gruposPage",
-    "limitesAjustesPage",
-    "balanceVendorPage",
-    "ticketsPage",
-    "sorteosPage",
-    "transactionsPage",
-    "vendorsPage",
-    "vendorEditorPage",
-    "ventasDetallePage"
-  ].forEach(function(id){
-    const el = byId(id);
-    if(el){
-      el.classList.add("hidden");
-    }
-  });
+  document.querySelectorAll(".page-block").forEach(function(p){
+  p.classList.add("hidden");
+});
 
-  page.classList.remove("hidden");
+page.classList.remove("hidden");
+
   try{
     const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
     const data = await res.json();

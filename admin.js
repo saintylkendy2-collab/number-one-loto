@@ -3574,6 +3574,22 @@ function sortVentasByVenta(){
   renderVentasTable();
 }
 
+function loadVentasLoteria(){
+  loadVentasReport();
+}
+
+function loadVentasJugada(){
+  loadVentasReport();
+}
+
+function loadVentasNumero(){
+  loadVentasReport();
+}
+
+function loadVentasGrupo(){
+  loadVentasReport();
+}
+
 async function loadBalanceReport(){
   try{
     const fecha = getValue("balanceFecha") || todayISO();
@@ -3987,11 +4003,6 @@ async function deleteSorteo(loteria){
 }
 
 async function goPage(page){
-  if(page === "loteria") page = "ventas_loteria";
-  if(page === "jugada") page = "ventas_jugada";
-  if(page === "numero") page = "ventas_numero";
-  if(page === "grupo") page = "ventas_grupo";
-
   currentPage = page;
 
   const today = todayISO();
@@ -4045,7 +4056,9 @@ loadLimitesAjustes();
     if(ventasPage) ventasPage.classList.remove("hidden");
     loadVentasJugada();
 
-  
+  }else if(page === "ventas_numero"){
+    if(ventasPage) ventasPage.classList.remove("hidden");
+    loadVentasNumero();
 
   }else if(page === "ventas_grupo"){
     if(ventasPage) ventasPage.classList.remove("hidden");

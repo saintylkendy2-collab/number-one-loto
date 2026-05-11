@@ -4045,20 +4045,17 @@ async function goPage(page){
 loadLimitesAjustes();
 
 }else if(page === "ventas_loteria"){
-  if(ventasPage) ventasPage.classList.remove("hidden");
-  loadVentasLoteria();
+  openVentasDetalle("loteria");
 
 }else if(page === "ventas_jugada"){
-  if(ventasPage) ventasPage.classList.remove("hidden");
-  loadVentasJugada();
+  openVentasDetalle("jugada");
 
 }else if(page === "ventas_numero"){
-  if(ventasPage) ventasPage.classList.remove("hidden");
-  loadVentasNumero();
+  openVentasDetalle("numero");
 
 }else if(page === "ventas_grupo"){
-  if(ventasPage) ventasPage.classList.remove("hidden");
   loadVentasGrupo();
+
 
 
   }else if(page === "tickets"){

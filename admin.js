@@ -5545,7 +5545,7 @@ let bloqueoNumeros = [];
 
 function addLimiteNumero(){
   const type = byId("limNumType").value;
-  const numero = byId("limNumNumero").value.trim();
+  const numero = String(byId("limNumNumero").value || "").trim();
   const monto = Number(String(byId("limNumMonto").value || "").trim());
 
   if(!numero || monto <= 0){
@@ -5554,9 +5554,9 @@ function addLimiteNumero(){
   }
 
   limiteNumeros.push({
-    type,
-    numero,
-    monto
+    type: type,
+    numero: numero,
+    monto: monto
   });
 
   renderLimiteNumeros();

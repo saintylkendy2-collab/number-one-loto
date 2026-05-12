@@ -5250,6 +5250,15 @@ body{
 </head>
 <body>
 
+${APP_CONFIG.ticketLogo ? `
+<div style="text-align:center;margin-bottom:6px;">
+  <img 
+    src="${APP_CONFIG.ticketLogo}" 
+    style="width:120px;max-height:120px;object-fit:contain;"
+  >
+</div>
+` : ""}
+
 <div class="title">NUMBER ONE LOTO</div>
 
 <div class="meta">
@@ -5269,6 +5278,24 @@ ${gamesHtml}
 <div class="line"></div>
 
 <div class="total">TOTAL: ${total.toFixed(2)} G</div>
+
+${
+  APP_CONFIG.ticketMessage
+  ?
+  `
+  <div
+    style="
+      margin-top:14px;
+      text-align:center;
+      font-size:12px;
+    "
+  >
+    ${APP_CONFIG.ticketMessage}
+  </div>
+  `
+  :
+  ""
+}
 
 <script>
 setTimeout(function(){

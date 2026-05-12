@@ -5250,10 +5250,10 @@ body{
 </head>
 <body>
 
-${appConfig.ticketLogo? `
+${APP_CONFIG.ticketLogo ? `
 <div style="text-align:center;margin-bottom:6px;">
-  <img 
-    src="${appConfig.ticketLogo}" 
+  <img
+    src="${APP_CONFIG.ticketLogo}"
     style="width:120px;max-height:120px;object-fit:contain;"
   >
 </div>

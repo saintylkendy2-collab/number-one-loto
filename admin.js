@@ -2792,7 +2792,7 @@ tbody tr:nth-child(even){background:#313652;}
    <div class="submenu-item" onclick="goPage('grupos')">Grupo</div>
   </div>
 
-  <div class="menu-item" onclick="openTicketConfigPage()">
+  <div class="side-menu-item" onclick="openTicketConfigPage()">
   <span>Ticket Config</span>
   <span>></span>
 </div>

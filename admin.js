@@ -3972,19 +3972,21 @@ function renderLoteriasAdmin(){
   }
 
   tbody.innerHTML = html;
-}
 
-var btns = document.querySelectorAll(".mini-btn");
+var btns = tbody.querySelectorAll(".mini-btn");
 
-for(var i=0; i<btns.length; i++){
+for(var b = 0; b < btns.length; b++){
 
-  btns[i].onclick = function(){
+  btns[b].onclick = function(){
 
-    alert("OK");
+    editLoteriaAdmin(this.getAttribute("data-id"));
 
   };
 
 }
+
+}
+
 
 function editLoteriaAdmin(id){
 
@@ -4011,7 +4013,7 @@ function editLoteriaAdmin(id){
   if(nuevoCierre === null) return;
 
   fetch("/api/loterias/" + id,{
-    method:"PUT",
+    method:"POST",
     headers:{
       "Content-Type":"application/json"
     },

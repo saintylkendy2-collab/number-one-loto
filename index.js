@@ -2659,35 +2659,53 @@ function toggleLoterie(name){
 }
 
 function renderLoterieList(){
- var list = document.getElementById("loterieList");
- list.innerHTML = "";
+  var list = document.getElementById("loterieList");
+  list.innerHTML = "";
 
- loteries.forEach(function(item){
-   var row = document.createElement("div");
-   row.className = "loterie-item" + (selectedLoteries.indexOf(item.name) >= 0 ? " selected" : "");
-   row.onclick = function(){
-     toggleLoterie(item.name);
-   };
+  var visibleLoteries = loteries.filter(function(item){
+    return getLoteriaState(item).open;
+  });
 
-   var left = document.createElement("div");
-   left.className = "loterie-check";
-   left.textContent = selectedLoteries.indexOf(item.name) >= 0 ? "✓" : "";
+  if(!visibleLoteries.length){
+    list.innerHTML =
+      '<div style="padding:30px;text-align:center;font-size:20px;font-weight:800;color:#888;">' +
+        'Pa gen lotri ouvè pou kounya' +
+      '</div>';
+    return;
+  }
 
-   var center = document.createElement("div");
-   center.innerHTML =
-     '<div class="loterie-name">' + item.name + '</div>' +
-     '<div class="loterie-sub">' + item.sub + '</div>';
+  visibleLoteries.forEach(function(item){
+    var state = getLoteriaState(item);
 
-   var right = document.createElement("div");
-   right.className = "loterie-time";
-   right.textContent = item.time;
+    var row = document.createElement("div");
+    row.className = "loterie-item" + (selectedLoteries.indexOf(item.name) >= 0 ? " selected" : "");
 
-   row.appendChild(left);
-   row.appendChild(center);
-   row.appendChild(right);
-   list.appendChild(row);
- });
+    row.onclick = function(){
+      toggleLoterie(item.name);
+    };
+
+    var left = document.createElement("div");
+    left.className = "loterie-check";
+    left.textContent = selectedLoteries.indexOf(item.name) >= 0 ? "✓" : "";
+
+    var center = document.createElement("div");
+    center.innerHTML =
+      '<div class="loterie-name">' + item.name + '</div>' +
+      '<div class="loterie-sub" style="font-weight:800;color:' + state.color + ';">' +
+        state.label +
+      '</div>';
+
+    var right = document.createElement("div");
+    right.className = "loterie-time";
+    right.textContent = item.time || item.closeTime || "";
+
+    row.appendChild(left);
+    row.appendChild(center);
+    row.appendChild(right);
+    list.appendChild(row);
+  });
 }
+
 
 function reverse2(s){
  return s.charAt(1) + s.charAt(0);

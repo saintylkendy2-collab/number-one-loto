@@ -8,6 +8,7 @@ const Ticket = require("./models/Ticket");
 const Vendor = require("./models/vendor");
 
 const Sorteo = require("./models/Sorteo");
+const Loteria = require("./models/Loteria");
 
 // =============================
 // 📁 FILE PATHS
@@ -1922,6 +1923,100 @@ router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
   }
 });
 
+router.get("/api/loterias", async (req, res) => {
+  try {
+    let rows = await Loteria.find().sort({ closeTime: 1 }).lean();
+
+    if (!rows.length) {
+      const defaults = [
+        ["TENNESSE MORNING", "TNM", "00:00", "11:55"],
+        ["TEXAS MORNING", "TXM", "00:00", "11:55"],
+        ["GEORGIA MIDDAY", "GAM", "00:00", "12:25"],
+        ["FLORIDA MIDDAY", "FLM", "00:00", "13:25"],
+        ["NEW YORK MIDDAY", "NYM", "00:00", "14:25"],
+        ["TEXAS EVENING", "TXE", "00:00", "18:25"],
+        ["GEORGIA EVENING", "GAE", "00:00", "18:50"],
+        ["TENNESSE EVENING", "TNE", "00:00", "19:25"],
+        ["FLORIDA EVENING", "FLE", "00:00", "21:30"],
+        ["NEW YORK EVENING", "NYE", "00:00", "22:25"],
+        ["GEORGIA NIGHT", "GAN", "00:00", "23:15"]
+      ];
+
+      await Loteria.insertMany(defaults.map(function(x){
+        return {
+          name: x[0],
+          abrev: x[1],
+          openTime: x[2],
+          closeTime: x[3],
+          closeDays: {
+            monday: x[3],
+            tuesday: x[3],
+            wednesday: x[3],
+            thursday: x[3],
+            friday: x[3],
+            saturday: x[3],
+            sunday: x[3]
+          },
+          estatus: "Activo",
+          limite: false,
+          pago: true
+        };
+      }));
+
+      rows = await Loteria.find().sort({ closeTime: 1 }).lean();
+    }
+
+    res.json(rows);
+  } catch (err) {
+    console.error("GET LOTERIAS ERROR:", err);
+    res.status(500).json([]);
+  }
+});
+
+router.post("/api/loterias/:id", async (req, res) => {
+  try {
+    const closeTime = String(req.body.closeTime || "23:59");
+
+    const data = {
+      name: String(req.body.name || "").trim().toUpperCase(),
+      abrev: String(req.body.abrev || "").trim().toUpperCase(),
+      estatus: String(req.body.estatus || "Activo"),
+      openTime: String(req.body.openTime || "00:00"),
+      closeTime: closeTime,
+      closeDays: req.body.closeDays || {
+        monday: closeTime,
+        tuesday: closeTime,
+        wednesday: closeTime,
+        thursday: closeTime,
+        friday: closeTime,
+        saturday: closeTime,
+        sunday: closeTime
+      },
+      limite: req.body.limite === true,
+      pago: req.body.pago !== false
+    };
+
+    if (!data.name) {
+      return res.status(400).json({ ok:false, message:"Nombre obligatoire" });
+    }
+
+    const row = await Loteria.findByIdAndUpdate(
+      req.params.id,
+      { $set:data },
+      { new:true }
+    );
+
+    if (!row) {
+      return res.status(404).json({ ok:false, message:"Lotería pa jwenn" });
+    }
+
+    res.json({ ok:true, loteria:row });
+  } catch (err) {
+    console.error("SAVE LOTERIA ERROR:", err);
+    res.status(500).json({ ok:false, message:"Erreur save lotería" });
+  }
+});
+
 router.get("/master/vendors", (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -2661,7 +2756,9 @@ tbody tr:nth-child(even){background:#313652;}
     <div class="submenu-item">Estadísticas</div>
   </div>
 
-  <div class="side-menu-item" id="menu-loterias"><span>Loterías</span></div>
+  <div class="side-menu-item" id="menu-loterias" onclick="goPage('loterias')">
+  <span>Loterías</span>
+</div>
   <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
   <div class="side-menu-item" id="menu-cuenta"><span>Mi Cuenta</span></div>
 
@@ -2939,6 +3036,30 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
 </div>
 </div>
+
+<div id="loteriasPage" class="page-block hidden">
+  <div class="page-title">Loterías</div>
+
+  <div class="table-card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>NOMBRE</th>
+            <th>APERTURA</th>
+            <th>CIERRE</th>
+            <th>LÍMITES</th>
+            <th>PAGO</th>
+            <th>ESTATUS</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="loteriasTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 
 <div id="sorteosPage" class="page-block hidden">
   <div class="page-title">Sorteos</div>
@@ -3595,7 +3716,6 @@ async function loadBalanceReport(){
   }
 }
 
-
 function loginMaster() {
   const user = byId("username");
   const pass = byId("password");
@@ -3611,9 +3731,11 @@ function loginMaster() {
     loginPage.style.display = "none";
     appPage.classList.remove("hidden");
     appPage.style.display = "block";
+
     loadVendorsFromServer();
     loadVentasReport();
     loadBalanceReport();
+
     goPage("ventas");
   } else {
     alert("Login incorrect");
@@ -3809,6 +3931,168 @@ async function loadSorteos(){
     renderSorteosPage();
   }
 }
+
+let loteriasAdminRows = [];
+
+async function loadLoteriasAdmin(){
+  try{
+    const res = await fetch("/api/loterias");
+    const data = await res.json();
+
+    loteriasAdminRows = Array.isArray(data) ? data : [];
+
+  }catch(err){
+    console.error(err);
+    loteriasAdminRows = [];
+  }
+
+  renderLoteriasAdmin();
+}
+
+function renderLoteriasAdmin(){
+
+  var tbody = byId("loteriasTableBody");
+
+  if(!tbody) return;
+
+  var html = "";
+
+  for(var i = 0; i < loteriasAdminRows.length; i++){
+
+    var l = loteriasAdminRows[i];
+
+    var activo =
+      String(l.estatus || "").toLowerCase() === "activo";
+
+    html +=
+      '<tr>' +
+
+      '<td>' + safe(l.name || "") + '</td>' +
+
+      '<td>' + safe(l.openTime || "") + '</td>' +
+
+   '<td>' + safe(l.closeTime || "") + '</td>' +
+
+      '<td>' + (l.limite ? 'YES' : '') + '</td>' +
+
+      '<td>' + (l.pago ? 'YES' : '') + '</td>' +
+
+      '<td>' + (activo ? 'YES' : 'NO') + '</td>' +
+
+      '<td>' +
+'<span class="mini-btn" data-id="' + l._id + '">Edit</span>' +
+'</td>' +
+
+      '</tr>';
+  }
+
+  if(!html){
+    html =
+      '<tr>' +
+      '<td colspan="7">Pa gen loterías</td>' +
+      '</tr>';
+  }
+
+  tbody.innerHTML = html;
+
+var btns = tbody.querySelectorAll(".mini-btn");
+
+for(var b = 0; b < btns.length; b++){
+
+  btns[b].onclick = function(){
+
+    editLoteriaAdmin(this.getAttribute("data-id"));
+
+  };
+
+}
+
+} 
+
+function editLoteriaAdmin(id){
+
+  var row = null;
+
+  for(var i = 0; i < loteriasAdminRows.length; i++){
+    if(String(loteriasAdminRows[i]._id) === String(id)){
+      row = loteriasAdminRows[i];
+      break;
+    }
+  }
+
+  if(!row){
+    alert("Lotería introuvable");
+    return;
+  }
+
+    var nuevoStatus = prompt(
+  "Estatus: Activo ou Bloqueado",
+  row.estatus || "Activo"
+);
+
+if(nuevoStatus === null) return;
+
+  var days = row.closeDays || {};
+
+  var monday = prompt("Lunes fermeture", days.monday || row.closeTime || "23:59");
+  if(monday === null) return;
+
+  var tuesday = prompt("Martes fermeture", days.tuesday || row.closeTime || "23:59");
+  if(tuesday === null) return;
+
+  var wednesday = prompt("Miércoles fermeture", days.wednesday || row.closeTime || "23:59");
+  if(wednesday === null) return;
+
+  var thursday = prompt("Jueves fermeture", days.thursday || row.closeTime || "23:59");
+  if(thursday === null) return;
+
+  var friday = prompt("Viernes fermeture", days.friday || row.closeTime || "23:59");
+  if(friday === null) return;
+
+  var saturday = prompt("Sábado fermeture", days.saturday || row.closeTime || "23:59");
+  if(saturday === null) return;
+
+  var sunday = prompt("Domingo fermeture", days.sunday || row.closeTime || "23:59");
+  if(sunday === null) return;
+
+  fetch("/api/loterias/" + id,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      name: row.name,
+      abrev: row.abrev,
+      estatus: nuevoStatus,
+      openTime: row.openTime,
+      closeTime: monday,
+      closeDays:{
+        monday: monday,
+        tuesday: tuesday,
+        wednesday: wednesday,
+        thursday: thursday,
+        friday: friday,
+        saturday: saturday,
+        sunday: sunday
+      },
+      limite: row.limite === true,
+      pago: row.pago !== false
+    })
+  })
+  .then(function(res){ return res.json(); })
+  .then(function(data){
+    if(!data.ok){
+      alert(data.message || "Erreur modification");
+      return;
+    }
+
+    alert("Lotería modifiée");
+    loadLoteriasAdmin();
+  })
+  .catch(function(err){
+    console.error(err);
+    alert("Erreur modification");
+  });
+}
+
 
 function renderSorteosPage(){
   var box = byId("sorteosRows");
@@ -4011,6 +4295,9 @@ async function goPage(page){
   const sorteosPage = byId("sorteosPage");
   const limitesAjustesPage = byId("limitesAjustesPage");
 
+  const loteriasPage = byId("loteriasPage");
+if(loteriasPage) loteriasPage.classList.add("hidden");
+
   if(ventasPage) ventasPage.classList.add("hidden");
   if(ticketsPage) ticketsPage.classList.add("hidden");
   if(gruposPage) gruposPage.classList.add("hidden");
@@ -4021,8 +4308,18 @@ async function goPage(page){
   if(sorteosPage) sorteosPage.classList.add("hidden");
   if(limitesAjustesPage) limitesAjustesPage.classList.add("hidden");
 
+ if(ventasPage) ventasPage.classList.add("hidden");
+  if(ticketsPage) ticketsPage.classList.add("hidden");
+  if(gruposPage) gruposPage.classList.add("hidden");
+  if(vendorsPage) vendorsPage.classList.add("hidden");
+  if(editorPage) editorPage.classList.add("hidden");
+  if(balancePage) balancePage.classList.add("hidden");
+  if(transactionsPage) transactionsPage.classList.add("hidden");
+  if(sorteosPage) sorteosPage.classList.add("hidden");
+  if(limitesAjustesPage) limitesAjustesPage.classList.add("hidden");
+
   if(page === "ventas"){
-    if(ventasPage) ventasPage.classList.remove("hidden");
+    showMasterPage("ventasPage");
     loadVentasReport();
 
   }else if(page === "grupos"){
@@ -4033,6 +4330,10 @@ async function goPage(page){
   if(limitesAjustesPage) limitesAjustesPage.classList.remove("hidden");
 
 loadLimitesAjustes();
+
+}else if(page === "loterias"){
+  showMasterPage("loteriasPage");
+  loadLoteriasAdmin();
 
   }else if(page === "ventas_loteria"){
     if(ventasPage) ventasPage.classList.remove("hidden");
@@ -4049,6 +4350,8 @@ loadLimitesAjustes();
   }else if(page === "ventas_grupo"){
     if(ventasPage) ventasPage.classList.remove("hidden");
     loadVentasGrupo();
+
+
 
   }else if(page === "tickets"){
     if(ticketsPage) ticketsPage.classList.remove("hidden");
@@ -5328,8 +5631,6 @@ if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
   loadBalanceReport();
 });
 
-goPage("ventas");
-
 async function deleteMovimiento(vendorId, movimientoId){
   if(!confirm("Ou vle siprime transaction sa?")) return;
 
@@ -5694,17 +5995,46 @@ async function saveLimitesAjustes(){
 
 let currentVentasMode = "numero";
 
+
+function hideAllMasterPages(){
+  [
+    "ventasPage",
+    "ventasDetallePage",
+    "gruposPage",
+    "limitesAjustesPage",
+    "balanceVendorPage",
+    "ticketsPage",
+    "sorteosPage",
+    "transactionsPage",
+    "vendorsPage",
+    "vendorEditorPage"
+  ].forEach(function(id){
+    const el = byId(id);
+    if(el){
+      el.classList.add("hidden");
+      el.style.display = "none";
+    }
+  });
+}
+
+function showMasterPage(id){
+  hideAllMasterPages();
+
+  const el = byId(id);
+  if(el){
+    el.classList.remove("hidden");
+    el.style.display = "block";
+  }
+}
+
 async function openVentasDetalle(mode){
   currentVentasMode = mode || "numero";
 
   const page = byId("ventasDetallePage");
   if(!page) return;
 
-  document.querySelectorAll(".page-block").forEach(function(p){
-    p.classList.add("hidden");
-  });
-
-  page.classList.remove("hidden");
+  showMasterPage("ventasDetallePage");
+  
 
   try{
     const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
@@ -5777,21 +6107,13 @@ async function openVentasDetalle(mode){
 
     '<div class="table-card">' +
       '<div class="table-scroll">' +
-        '<table>' +
+        '<table style="width:100%;min-width:100%;border-collapse:collapse;">' +
           '<thead>' +
-'<th>' +
-
-(
-  currentVentasMode === "loteria"
-    ? "LOTERÍA"
-    : currentVentasMode === "jugada"
-    ? "JUGADA"
-    : "NÚMERO"
-)
-
-+
-
-'</th>' +
+            '<tr>' +
+              '<th style="text-align:left;">TIPO</th>' +
+              '<th style="text-align:center;">#</th>' +
+              '<th style="text-align:right;">VENTA</th>' +
+            '</tr>' +
           '</thead>' +
           '<tbody id="detBody"></tbody>' +
           '<tfoot id="detFoot"></tfoot>' +
@@ -5834,8 +6156,7 @@ function fillVentasDetalleSelects(){
 
     gruposList.forEach(function(g){
       const name = safe(g.nombre || g);
-      zona.innerHTML +=
-        '<option value="' + name + '">' + name + '</option>';
+      zona.innerHTML += '<option value="' + name + '">' + name + '</option>';
     });
   }
 
@@ -5845,9 +6166,7 @@ function fillVentasDetalleSelects(){
     vendors.forEach(function(v){
       const id = safe(v.id).toUpperCase();
       const name = safe(v.nombre || v.nom || v.id);
-
-      vendor.innerHTML +=
-        '<option value="' + id + '">' + name + '</option>';
+      vendor.innerHTML += '<option value="' + id + '">' + name + '</option>';
     });
   }
 
@@ -5856,13 +6175,26 @@ function fillVentasDetalleSelects(){
 
     loteriasList.forEach(function(l){
       if(l === "TODAS") return;
-
       const name = safe(l).toUpperCase();
-
-      loteria.innerHTML +=
-        '<option value="' + name + '">' + name + '</option>';
+      loteria.innerHTML += '<option value="' + name + '">' + name + '</option>';
     });
   }
+}
+
+function labelType(type){
+  type = safe(type).toUpperCase();
+
+  if(type === "BOR") return "Borlette";
+  if(type === "MAR") return "Mariage";
+  if(type === "L3") return "Loto 3";
+  if(type === "L41") return "Loto 4";
+  if(type === "L42") return "Loto 4";
+  if(type === "L43") return "Loto 4";
+  if(type === "L51") return "Loto 5";
+  if(type === "L52") return "Loto 5";
+  if(type === "L53") return "Loto 5";
+
+  return type;
 }
 
 function renderVentasDetalle(){
@@ -5924,25 +6256,27 @@ function renderVentasDetalle(){
       if(jugadaFilter && type !== jugadaFilter) return;
       if(numeroFilter && numero !== numeroFilter) return;
 
-      let key = numero;
+      let key = "";
 
-      if(currentVentasMode === "loteria"){
-        key = lot;
+      if(currentVentasMode === "numero"){
+        key = type + "|" + numero;
       }
 
       if(currentVentasMode === "jugada"){
         key = type;
       }
 
-      if(currentVentasMode === "numero"){
-        key = numero;
+      if(currentVentasMode === "loteria"){
+        key = lot;
       }
 
       if(!key) return;
 
       if(!map[key]){
         map[key] = {
-          key: key,
+          type: type,
+          numero: numero,
+          loteria: lot,
           count: 0,
           venta: 0
         };
@@ -5975,21 +6309,40 @@ function renderVentasDetalle(){
     totalCount += r.count;
     totalVenta += r.venta;
 
+    let col1 = "";
+    let col2 = "";
+
+    if(currentVentasMode === "numero"){
+      col1 = labelType(r.type);
+      col2 = r.numero;
+    }
+
+    if(currentVentasMode === "jugada"){
+      col1 = labelType(r.type);
+      col2 = r.count;
+    }
+
+    if(currentVentasMode === "loteria"){
+      col1 = r.loteria;
+      col2 = r.count;
+    }
+
     body.innerHTML +=
       '<tr>' +
-        '<td>' + safe(r.key) + '</td>' +
-        '<td>' + r.count + '</td>' +
-        '<td>' + formatAmount(r.venta) + '</td>' +
+        '<td style="text-align:left;padding:12px 14px;">' + safe(col1) + '</td>' +
+        '<td style="text-align:center;padding:12px 14px;">' + safe(col2) + '</td>' +
+        '<td style="text-align:right;padding:12px 14px;">' + formatAmount(r.venta) + '</td>' +
       '</tr>';
   });
 
   foot.innerHTML =
-  '<tr>' +
-    '<td style="font-weight:900;">TOTAL</td>' +
-    '<td style="font-weight:900;text-align:center;">' + totalCount + '</td>' +
-    '<td style="font-weight:900;text-align:right;">' + formatAmount(totalVenta) + '</td>' +
-  '</tr>';
+    '<tr style="background:#3b405c;font-weight:900;">' +
+      '<td style="text-align:left;padding:14px;">TOTAL</td>' +
+      '<td style="text-align:center;padding:14px;">' + totalCount + '</td>' +
+      '<td style="text-align:right;padding:14px;">' + formatAmount(totalVenta) + '</td>' +
+    '</tr>';
 }
+
 
 </script>
 

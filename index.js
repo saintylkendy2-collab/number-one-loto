@@ -10,6 +10,7 @@ const Vendor = require("./models/vendor");
 const Sorteo = require("./models/Sorteo");
 const Grupo = require("./models/Grupo");
 const Limites = require("./models/Limites");
+const Loteria = require("./models/Loteria");
 
 
 
@@ -1595,6 +1596,24 @@ app.get("/api/master/balance-summary", (req, res) => {
     balanceFinal: x.balanceFinal
   }));
   res.json(summaries);
+});
+
+app.get("/api/vendor/loterias", async (req, res) => {
+  try {
+    const rows = await Loteria.find().sort({ closeTime: 1 }).lean();
+
+    res.json(rows.map(l => ({
+      name: l.name,
+      sub: "",
+      openTime: l.openTime || "00:00",
+      closeTime: l.closeTime || "23:59",
+      time: l.closeTime || "23:59",
+      estatus: l.estatus || "Activo"
+    })));
+  } catch (err) {
+    console.error("VENDOR LOTERIAS ERROR:", err);
+    res.status(500).json([]);
+  }
 });
 
 app.get("/dashboard", async (req, res) => {
@@ -4917,6 +4936,101 @@ function renderBalancePage(){
   });
 }
 
+
+function timeToMinutes(t){
+  t = String(t || "00:00").trim();
+
+  var p = t.split(":");
+  if(p.length < 2) return 0;
+
+  var h = Number(p[0] || 0);
+  var m = Number(p[1] || 0);
+
+  return (h * 60) + m;
+}
+
+function nowMinutes(){
+  var d = new Date();
+  return (d.getHours() * 60) + d.getMinutes();
+}
+
+function getLoteriaState(l){
+  var now = nowMinutes();
+  var open = timeToMinutes(l.openTime || "00:00");
+  var close = timeToMinutes(l.closeTime || "23:59");
+
+  var active = String(l.estatus || "Activo").toLowerCase() === "activo";
+
+  if(!active){
+    return { open:false, minutesLeft:0, label:"Bloqueado", color:"#999" };
+  }
+
+  var isOpen = false;
+  var minutesLeft = 0;
+
+  if(open <= close){
+    isOpen = now >= open && now < close;
+    minutesLeft = close - now;
+  }else{
+    isOpen = now >= open || now < close;
+
+    if(now >= open){
+      minutesLeft = (1440 - now) + close;
+    }else{
+      minutesLeft = close - now;
+    }
+  }
+
+  if(!isOpen){
+    return { open:false, minutesLeft:0, label:"Fèmen", color:"#999" };
+  }
+
+  var h = Math.floor(minutesLeft / 60);
+  var m = minutesLeft % 60;
+
+  var label = "";
+  if(h > 0){
+    label = h + " heure " + m + " minutes";
+  }else{
+    label = m + " minutes";
+  }
+
+  var color = "#666";
+  if(minutesLeft <= 5){
+    color = "#e00000";
+  }else if(minutesLeft <= 30){
+    color = "#d99a00";
+  }
+
+  return {
+    open:true,
+    minutesLeft:minutesLeft,
+    label:label,
+    color:color
+  };
+}
+
+async function loadVendorLoteries(){
+  try{
+    const res = await fetch("/api/vendor/loterias?reload=" + Date.now());
+    const data = await res.json();
+
+    if(Array.isArray(data) && data.length){
+      loteries = data.map(function(l){
+        return {
+          name: l.name,
+          sub: "",
+          openTime: l.openTime || "00:00",
+          closeTime: l.closeTime || "23:59",
+          time: l.closeTime || "23:59",
+          estatus: l.estatus || "Activo"
+        };
+      });
+    }
+  }catch(err){
+    console.error("Erreur load loteries:", err);
+  }
+}
 
 </script>
 </body>

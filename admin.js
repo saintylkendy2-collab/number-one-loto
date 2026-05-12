@@ -3979,11 +3979,9 @@ for(var b = 0; b < btns.length; b++){
 
   btns[b].onclick = function(){
 
-    editLoteriaAdmin(this.getAttribute("data-id"));
+  
 
   };
-
-}
 
 }
 
@@ -3998,6 +3996,7 @@ function editLoteriaAdmin(id){
       row = loteriasAdminRows[i];
       break;
     }
+
   }
 
   if(!row){
@@ -4025,15 +4024,21 @@ function editLoteriaAdmin(id){
     return res.json();
   })
   .then(function(){
-    loadLoteriasAdmin();
+
     alert("Lotería modifiée");
+
+    loadLoteriasAdmin();
+
   })
   .catch(function(err){
-    console.error(err);
-    alert("Erreur modification");
-  });
-}
 
+    console.error(err);
+
+    alert("Erreur modification");
+
+  });
+
+}
 
 function renderSorteosPage(){
   var box = byId("sorteosRows");
@@ -6282,10 +6287,6 @@ function renderVentasDetalle(){
       '<td style="text-align:center;padding:14px;">' + totalCount + '</td>' +
       '<td style="text-align:right;padding:14px;">' + formatAmount(totalVenta) + '</td>' +
     '</tr>';
-}
-
-function editLoteriaAdmin(id){
-  alert("Edit ID: " + id);
 }
 
 

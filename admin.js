@@ -3958,7 +3958,7 @@ function renderLoteriasAdmin(){
       '<td>' + (activo ? 'YES' : 'NO') + '</td>' +
 
       '<td>' +
-      '<button class="mini-btn" data-id="' + l._id + '">Edit</button>'
+      '<button type="button" class="mini-btn lot-edit-btn" data-id="' + safe(l._id) + '">Edit</button>'
       '</td>' +
 
       '</tr>';
@@ -3974,16 +3974,13 @@ function renderLoteriasAdmin(){
   tbody.innerHTML = html;
 }
 
-var btns = tbody.querySelectorAll(".mini-btn");
+var btns = tbody.querySelectorAll(".lot-edit-btn");
 
 for(var j = 0; j < btns.length; j++){
-
-  btns[j].onclick = function(){
-
+  btns[j].addEventListener("click", function(){
     var id = this.getAttribute("data-id");
-
     editLoteriaAdmin(id);
-  };
+  });
 }
 
 function editLoteriaAdmin(id){
@@ -6281,6 +6278,11 @@ function renderVentasDetalle(){
       '<td style="text-align:right;padding:14px;">' + formatAmount(totalVenta) + '</td>' +
     '</tr>';
 }
+
+function editLoteriaAdmin(id){
+  alert("Edit ID: " + id);
+}
+
 
 </script>
 

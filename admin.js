@@ -3986,59 +3986,7 @@ for(var b = 0; b < btns.length; b++){
 }
 
 
-function editLoteriaAdmin(id){
 
-  var row = null;
-
-  for(var i = 0; i < loteriasAdminRows.length; i++){
-
-    if(String(loteriasAdminRows[i]._id) === String(id)){
-      row = loteriasAdminRows[i];
-      break;
-    }
-
-  }
-
-  if(!row){
-    alert("Lotería introuvable");
-    return;
-  }
-
-  var nuevoCierre = prompt(
-    "Nouvelle heure fermeture",
-    row.closeTime || ""
-  );
-
-  if(nuevoCierre === null) return;
-
-  fetch("/api/loterias/" + id,{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      closeTime:nuevoCierre
-    })
-  })
-  .then(function(res){
-    return res.json();
-  })
-  .then(function(){
-
-    alert("Lotería modifiée");
-
-    loadLoteriasAdmin();
-
-  })
-  .catch(function(err){
-
-    console.error(err);
-
-    alert("Erreur modification");
-
-  });
-
-}
 
 function renderSorteosPage(){
   var box = byId("sorteosRows");

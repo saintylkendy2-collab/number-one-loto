@@ -4032,7 +4032,7 @@ async function goPage(page){
   if(limitesAjustesPage) limitesAjustesPage.classList.add("hidden");
 
   if(page === "ventas"){
-    if(ventasPage) ventasPage.classList.remove("hidden");
+    showMasterPage("ventasPage");
     loadVentasReport();
 
   }else if(page === "grupos"){
@@ -5723,9 +5723,19 @@ function hideAllMasterPages(){
     const el = byId(id);
     if(el){
       el.classList.add("hidden");
-
+      el.style.display = "none";
     }
   });
+}
+
+function showMasterPage(id){
+  hideAllMasterPages();
+
+  const el = byId(id);
+  if(el){
+    el.classList.remove("hidden");
+    el.style.display = "block";
+  }
 }
 
 async function openVentasDetalle(mode){
@@ -5734,9 +5744,7 @@ async function openVentasDetalle(mode){
   const page = byId("ventasDetallePage");
   if(!page) return;
 
-  hideAllMasterPages();
-
-  page.classList.remove("hidden");
+  showMasterPage("ventasDetallePage");
   
 
   try{

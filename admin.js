@@ -3985,6 +3985,8 @@ for(var b = 0; b < btns.length; b++){
 
 }
 
+} 
+
 function editLoteriaAdmin(id){
 
   var row = null;

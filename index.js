@@ -4209,9 +4209,20 @@ setTimeout(function(){
   applyAppLang();
 }, 300);
 
-renderJeux();
-updateFields();
-loadBillets();
+loadVendorLoteries().then(function(){
+  renderJeux();
+  updateFields();
+  loadBillets();
+});
+
+setInterval(function(){
+  loadVendorLoteries().then(function(){
+    if(document.getElementById("loterieModal").classList.contains("show")){
+      renderLoterieList();
+    }
+  });
+}, 30000);
+
 (function(){
   var oldRenderBillets = renderBillets;
   var oldValidateLoteries = validateLoteries;

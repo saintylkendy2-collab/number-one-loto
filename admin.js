@@ -5825,6 +5825,7 @@ function hideAllMasterPages(){
     "transactionsPage",
     "vendorsPage",
     "vendorEditorPage"
+    "loteriasPage"
   ].forEach(function(id){
     const el = byId(id);
     if(el){

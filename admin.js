@@ -4153,6 +4153,10 @@ if(loteriasPage) loteriasPage.classList.add("hidden");
 
 loadLimitesAjustes();
 
+}else if(page === "loterias"){
+  showMasterPage("loteriasPage");
+  loadLoteriasAdmin();
+
   }else if(page === "ventas_loteria"){
     if(ventasPage) ventasPage.classList.remove("hidden");
     loadVentasLoteria();
@@ -4195,10 +4199,6 @@ loadLimitesAjustes();
     if(transactionsPage) transactionsPage.classList.remove("hidden");
     renderTransactionsTable();
   }
-
-  }else if(page === "loterias"){
-  showMasterPage("loteriasPage");
-  loadLoteriasAdmin();
 
   setMenuActive(page);
   closeSideMenu();

@@ -2019,46 +2019,76 @@ router.post("/api/loterias/:id", async (req, res) => {
 });
 
 router.get("/api/app-config", async (req, res) => {
-  try {
-    let cfg = await AppConfig.findOne({ key: "main" }).lean();
 
-    if (!cfg) {
-      cfg = await AppConfig.create({ key: "main" });
-      cfg = cfg.toObject();
+  try {
+
+    let config = await AppConfig.findOne({ key: "main" });
+
+    if (!config) {
+      config = await AppConfig.create({
+        key: "main"
+      });
     }
 
-    res.json({ ok: true, config: cfg });
+    res.json({
+      ok: true,
+      config
+    });
+
   } catch (err) {
-    console.error("GET APP CONFIG ERROR:", err);
-    res.status(500).json({ ok: false, message: "Erreur config" });
+
+    console.error("APP CONFIG GET ERROR:", err);
+
+    res.status(500).json({
+      ok: false
+    });
+
   }
+
 });
 
 router.post("/api/app-config", async (req, res) => {
-  try {
-    const body = req.body || {};
 
-    const data = {
-      ticketLogo: String(body.ticketLogo || ""),
-      ticketMessage: String(body.ticketMessage || ""),
-      mariageGratis: {
-        enabled: body.mariageGratis && body.mariageGratis.enabled === true,
-        max: Number(body.mariageGratis && body.mariageGratis.max || 5),
-        stepAmount: Number(body.mariageGratis && body.mariageGratis.stepAmount || 50)
-      }
+  try {
+
+    let config = await AppConfig.findOne({ key: "main" });
+
+    if (!config) {
+      config = await AppConfig.create({
+        key: "main"
+      });
+    }
+
+    config.ticketLogo = String(req.body.ticketLogo || "");
+
+    config.ticketMessage = String(req.body.ticketMessage || "");
+
+    config.mariageGratis = {
+      enabled:
+        req.body.mariageGratis &&
+        req.body.mariageGratis.enabled === true,
+
+      max: 5,
+      stepAmount: 50
     };
 
-    const cfg = await AppConfig.findOneAndUpdate(
-      { key: "main" },
-      { $set: data },
-      { upsert: true, new: true }
-    );
+    await config.save();
 
-    res.json({ ok: true, config: cfg });
+    res.json({
+      ok: true,
+      config
+    });
+
   } catch (err) {
-    console.error("SAVE APP CONFIG ERROR:", err);
-    res.status(500).json({ ok: false, message: "Erreur save config" });
+
+    console.error("APP CONFIG SAVE ERROR:", err);
+
+    res.status(500).json({
+      ok: false
+    });
+
   }
+
 });
 
 router.get("/master/vendors", (req, res) => {

@@ -4025,25 +4025,53 @@ function editLoteriaAdmin(id){
     return;
   }
 
-  var nuevoCierre = prompt("Nouvelle heure fermeture", row.closeTime || "");
-  if(nuevoCierre === null) return;
+  var days = row.closeDays || {};
+
+  var monday = prompt("Lunes fermeture", days.monday || row.closeTime || "23:59");
+  if(monday === null) return;
+
+  var tuesday = prompt("Martes fermeture", days.tuesday || row.closeTime || "23:59");
+  if(tuesday === null) return;
+
+  var wednesday = prompt("Miércoles fermeture", days.wednesday || row.closeTime || "23:59");
+  if(wednesday === null) return;
+
+  var thursday = prompt("Jueves fermeture", days.thursday || row.closeTime || "23:59");
+  if(thursday === null) return;
+
+  var friday = prompt("Viernes fermeture", days.friday || row.closeTime || "23:59");
+  if(friday === null) return;
+
+  var saturday = prompt("Sábado fermeture", days.saturday || row.closeTime || "23:59");
+  if(saturday === null) return;
+
+  var sunday = prompt("Domingo fermeture", days.sunday || row.closeTime || "23:59");
+  if(sunday === null) return;
 
   fetch("/api/loterias/" + id,{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body:JSON.stringify({
-      name: row.name || "",
-      abrev: row.abrev || "",
-      openTime: row.openTime || "00:00",
-      closeTime: nuevoCierre,
-      estatus: row.estatus || "Activo",
+      name: row.name,
+      abrev: row.abrev,
+      estatus: row.estatus,
+      openTime: row.openTime,
+      closeTime: monday,
+      closeDays:{
+        monday: monday,
+        tuesday: tuesday,
+        wednesday: wednesday,
+        thursday: thursday,
+        friday: friday,
+        saturday: saturday,
+        sunday: sunday
+      },
       limite: row.limite === true,
       pago: row.pago !== false
     })
   })
   .then(function(res){ return res.json(); })
   .then(function(data){
-
     if(!data.ok){
       alert(data.message || "Erreur modification");
       return;
@@ -4051,7 +4079,6 @@ function editLoteriaAdmin(id){
 
     alert("Lotería modifiée");
     loadLoteriasAdmin();
-
   })
   .catch(function(err){
     console.error(err);

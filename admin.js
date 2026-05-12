@@ -4013,13 +4013,6 @@ function editLoteriaAdmin(id){
 
   var row = null;
 
-  var nuevoStatus = prompt(
-  "Estatus: Activo ou Bloqueado",
-  row.estatus || "Activo"
-);
-
-if(nuevoStatus === null) return;
-
   for(var i = 0; i < loteriasAdminRows.length; i++){
     if(String(loteriasAdminRows[i]._id) === String(id)){
       row = loteriasAdminRows[i];
@@ -4031,6 +4024,13 @@ if(nuevoStatus === null) return;
     alert("Lotería introuvable");
     return;
   }
+
+    var nuevoStatus = prompt(
+  "Estatus: Activo ou Bloqueado",
+  row.estatus || "Activo"
+);
+
+if(nuevoStatus === null) return;
 
   var days = row.closeDays || {};
 

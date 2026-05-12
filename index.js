@@ -5250,10 +5250,10 @@ body{
 </head>
 <body>
 
-${APP_CONFIG.ticketLogo ? `
+${appConfig.ticketLogo? `
 <div style="text-align:center;margin-bottom:6px;">
   <img 
-    src="${APP_CONFIG.ticketLogo}" 
+    src="${appConfig.ticketLogo}" 
     style="width:120px;max-height:120px;object-fit:contain;"
   >
 </div>
@@ -5280,7 +5280,7 @@ ${gamesHtml}
 <div class="total">TOTAL: ${total.toFixed(2)} G</div>
 
 ${
-  APP_CONFIG.ticketMessage
+  appConfig.ticketMessage
   ?
   `
   <div
@@ -5290,7 +5290,7 @@ ${
       font-size:12px;
     "
   >
-    ${APP_CONFIG.ticketMessage}
+    ${appConfig.ticketMessage}
   </div>
   `
   :

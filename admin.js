@@ -4117,6 +4117,9 @@ async function goPage(page){
   const sorteosPage = byId("sorteosPage");
   const limitesAjustesPage = byId("limitesAjustesPage");
 
+  const loteriasPage = byId("loteriasPage");
+if(loteriasPage) loteriasPage.classList.add("hidden");
+
   if(ventasPage) ventasPage.classList.add("hidden");
   if(ticketsPage) ticketsPage.classList.add("hidden");
   if(gruposPage) gruposPage.classList.add("hidden");
@@ -4192,6 +4195,10 @@ loadLimitesAjustes();
     if(transactionsPage) transactionsPage.classList.remove("hidden");
     renderTransactionsTable();
   }
+
+  }else if(page === "loterias"){
+  showMasterPage("loteriasPage");
+  loadLoteriasAdmin();
 
   setMenuActive(page);
   closeSideMenu();
@@ -5825,7 +5832,6 @@ function hideAllMasterPages(){
     "transactionsPage",
     "vendorsPage",
     "vendorEditorPage"
-    "loteriasPage"
   ].forEach(function(id){
     const el = byId(id);
     if(el){

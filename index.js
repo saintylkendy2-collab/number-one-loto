@@ -5222,6 +5222,11 @@ const sellerName = String(
     });
 
     res.set("Content-Type", "text/html; charset=utf-8");
+
+const APP_CONFIG =
+  await AppConfig.findOne({ key:"main" }).lean()
+  || {};
+
     res.send(`
 <!DOCTYPE html>
 <html>

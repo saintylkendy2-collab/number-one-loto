@@ -6,11 +6,13 @@ const AppConfigSchema = new mongoose.Schema({
   ticketLogo: { type: String, default: "" },
   ticketMessage: { type: String, default: "" },
 
-  mariageGratis: {
-    enabled: { type: Boolean, default: false },
-    max: { type: Number, default: 5 },
-    stepAmount: { type: Number, default: 50 }
-  }
+ mariageGratis: {
+  enabled: { type: Boolean, default: false },
+  max: { type: Number, default: 5 },
+  stepAmount: { type: Number, default: 50 },
+  payout: { type: Number, default: 1000 }
+}
 }, { timestamps: true });
 
 module.exports = mongoose.model("AppConfig", AppConfigSchema);
+

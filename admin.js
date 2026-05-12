@@ -2088,13 +2088,20 @@ router.post("/api/app-config", async (req, res) => {
     config.ticketMessage = String(req.body.ticketMessage || "");
 
     config.mariageGratis = {
-      enabled:
-        req.body.mariageGratis &&
-        req.body.mariageGratis.enabled === true,
+  enabled:
+    req.body.mariageGratis &&
+    req.body.mariageGratis.enabled === true,
 
-      max: 5,
-      stepAmount: 50
-    };
+  max: 5,
+  stepAmount: 50,
+
+  payout: Number(
+    req.body.mariageGratis &&
+    req.body.mariageGratis.payout
+    ? req.body.mariageGratis.payout
+    : 1000
+  )
+};
 
     await config.save();
 
@@ -6519,6 +6526,17 @@ async function openTicketConfigPage(){
           "Activer mariage gratis ?"
         );
 
+    let mariagePayout = 1000;
+
+if(mariageGratis){
+  const p = prompt(
+    "Prix paiement mariage gratis",
+    "1000"
+  );
+
+  mariagePayout = Number(p || 1000);
+}
+
       const saveRes = await fetch(
         "/api/app-config",
         {
@@ -6538,9 +6556,9 @@ async function openTicketConfigPage(){
               ticketMessage || "",
 
             mariageGratis:{
-              enabled:
-                mariageGratis
-            }
+  enabled: mariageGratis,
+  payout: mariagePayout
+}
 
           })
         }

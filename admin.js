@@ -3911,18 +3911,13 @@ async function loadSorteos(){
 
 let loteriasAdminRows = [];
 
-async function loadLoteriasAdmin(){
-  try{
-    const res = await fetch("/api/loterias?reload=" + Date.now());
-    const data = await res.json();
-
-    loteriasAdminRows = Array.isArray(data) ? data : [];
-    renderLoteriasAdmin();
-  }catch(err){
-    console.error(err);
-    loteriasAdminRows = [];
-    renderLoteriasAdmin();
-  }
+function loadLoteriasAdmin(){
+  fetch("/api/loterias?reload=" + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      loteriasAdminRows = Array.isArray(data) ? data : [];
+      renderLoteriasAdmin();
+    });
 }
 
 function renderLoteriasAdmin(){

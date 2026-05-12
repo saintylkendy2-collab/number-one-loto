@@ -1422,6 +1422,57 @@ for (const j of safeJeux) {
   }
 }
 
+const lotNames = [...new Set(safeJeux.map(j => String(j.loterie || "").trim().toUpperCase()))];
+
+const lotRows = await Loteria.find({
+  name: { $in: lotNames }
+}).lean();
+
+const lotMap = {};
+lotRows.forEach(l => {
+  lotMap[String(l.name || "").trim().toUpperCase()] = l;
+});
+
+function minutesNowServer(){
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+function minutesFromTimeServer(t){
+  const p = String(t || "00:00").split(":");
+  return (Number(p[0] || 0) * 60) + Number(p[1] || 0);
+}
+
+function isLoteriaOpenServer(l){
+  if(!l) return true;
+
+  if(String(l.estatus || "Activo").toLowerCase() !== "activo"){
+    return false;
+  }
+
+  const nowM = minutesNowServer();
+  const openM = minutesFromTimeServer(l.openTime || "00:00");
+  const closeM = minutesFromTimeServer(l.closeTime || "23:59");
+
+  if(openM <= closeM){
+    return nowM >= openM && nowM < closeM;
+  }
+
+  return nowM >= openM || nowM < closeM;
+}
+
+for(const j of safeJeux){
+  const lotKey = String(j.loterie || "").trim().toUpperCase();
+  const lot = lotMap[lotKey];
+
+  if(!isLoteriaOpenServer(lot)){
+    return res.status(403).json({
+      ok:false,
+      message:"Lotri sa fèmen: " + lotKey
+    });
+  }
+}
+
     const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
 
     const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);

@@ -2369,22 +2369,7 @@ var tempChoices = [];
 var savedTickets = [];
 var currentPageName = "salePage";
 
-var loteries = [
-  { name: "TENNESSE MORNING", sub: "", openTime: "00:00", closeTime: "11:55", time: "11:55 AM" },
-  { name: "TEXAS MORNING", sub: "", openTime: "00:00", closeTime: "11:55", time: "11:55 AM" },
-
-  { name: "GEORGIA MIDDAY", sub: "", openTime: "00:00", closeTime: "12:25", time: "12:25 PM" },
-  { name: "FLORIDA MIDDAY", sub: "", openTime: "00:00", closeTime: "13:25", time: "1:25 PM" },
-  { name: "NEW YORK MIDDAY", sub: "", openTime: "00:00", closeTime: "14:25", time: "2:25 PM" },
-
-  { name: "TEXAS EVENING", sub: "", openTime: "00:00", closeTime: "18:25", time: "6:25 PM" },
-  { name: "GEORGIA EVENING", sub: "", openTime: "00:00", closeTime: "18:50", time: "6:50 PM" },
-  { name: "TENNESSE EVENING", sub: "", openTime: "00:00", closeTime: "19:25", time: "7:25 PM" },
-  { name: "FLORIDA EVENING", sub: "", openTime: "00:00", closeTime: "21:30", time: "9:30 PM" },
-  { name: "NEW YORK EVENING", sub: "", openTime: "00:00", closeTime: "22:25", time: "10:25 PM" },
-
-  { name: "GEORGIA NIGHT", sub: "", openTime: "00:00", closeTime: "23:15", time: "11:15 PM" }
-];
+var loteries = [];
 
 function getSelectedLoteriesText(){
  return selectedLoteries.length ? selectedLoteries.join(", ") : "";

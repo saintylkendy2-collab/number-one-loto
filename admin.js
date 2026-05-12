@@ -2,7 +2,31 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 
+const multer = require("multer");
+
 const router = express.Router();
+
+if (!fs.existsSync("./uploads")) {
+  fs.mkdirSync("./uploads");
+}
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads");
+  },
+
+  filename: function (req, file, cb) {
+
+    const ext = path.extname(file.originalname);
+
+    cb(
+      null,
+      "logo_" + Date.now() + ext
+    );
+  }
+});
+
+const upload = multer({ storage });
 
 const Ticket = require("./models/Ticket");
 const Vendor = require("./models/vendor");
@@ -2090,6 +2114,34 @@ router.post("/api/app-config", async (req, res) => {
   }
 
 });
+
+router.post(
+  "/api/upload-logo",
+  upload.single("logo"),
+  async (req, res) => {
+
+    try {
+
+      const url =
+        "/uploads/" + req.file.filename;
+
+      res.json({
+        ok: true,
+        url
+      });
+
+    } catch (err) {
+
+      console.error(err);
+
+      res.status(500).json({
+        ok: false
+      });
+
+    }
+
+  }
+);
 
 router.get("/master/vendors", (req, res) => {
   res.send(`

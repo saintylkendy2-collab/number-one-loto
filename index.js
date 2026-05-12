@@ -17,6 +17,11 @@ const AppConfig = require("./models/AppConfig");
 
 const app = express();
 
+app.use(
+  "/uploads",
+  express.static("uploads")
+);
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 

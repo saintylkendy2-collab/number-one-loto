@@ -4013,6 +4013,13 @@ function editLoteriaAdmin(id){
 
   var row = null;
 
+  var nuevoStatus = prompt(
+  "Estatus: Activo ou Bloqueado",
+  row.estatus || "Activo"
+);
+
+if(nuevoStatus === null) return;
+
   for(var i = 0; i < loteriasAdminRows.length; i++){
     if(String(loteriasAdminRows[i]._id) === String(id)){
       row = loteriasAdminRows[i];
@@ -4054,7 +4061,7 @@ function editLoteriaAdmin(id){
     body:JSON.stringify({
       name: row.name,
       abrev: row.abrev,
-      estatus: row.estatus,
+      estatus: nuevoStatus,
       openTime: row.openTime,
       closeTime: monday,
       closeDays:{

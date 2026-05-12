@@ -1719,18 +1719,30 @@ app.get("/api/vendor/config", async (req, res) => {
   }
 });
 
-app.post("/upload-logo", upload.single("logo"), (req, res) => {
-
+app.post("/api/upload-logo", upload.single("logo"), (req, res) => {
   if(!req.file){
     return res.json({ ok:false });
   }
 
   res.json({
     ok:true,
+    url: "/uploads/" + req.file.filename,
     path: "/uploads/" + req.file.filename
   });
-
 });
+
+app.post("/upload-logo", upload.single("logo"), (req, res) => {
+  if(!req.file){
+    return res.json({ ok:false });
+  }
+
+  res.json({
+    ok:true,
+    url: "/uploads/" + req.file.filename,
+    path: "/uploads/" + req.file.filename
+  });
+});
+
 
 app.get("/dashboard", async (req, res) => {
   const sellerId = String(req.query.id || "").trim().toUpperCase();

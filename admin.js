@@ -9,6 +9,7 @@ const Vendor = require("./models/vendor");
 
 const Sorteo = require("./models/Sorteo");
 const Loteria = require("./models/Loteria");
+const AppConfig = require("./models/AppConfig");
 
 // =============================
 // 📁 FILE PATHS
@@ -2014,6 +2015,49 @@ router.post("/api/loterias/:id", async (req, res) => {
   } catch (err) {
     console.error("SAVE LOTERIA ERROR:", err);
     res.status(500).json({ ok:false, message:"Erreur save lotería" });
+  }
+});
+
+router.get("/api/app-config", async (req, res) => {
+  try {
+    let cfg = await AppConfig.findOne({ key: "main" }).lean();
+
+    if (!cfg) {
+      cfg = await AppConfig.create({ key: "main" });
+      cfg = cfg.toObject();
+    }
+
+    res.json({ ok: true, config: cfg });
+  } catch (err) {
+    console.error("GET APP CONFIG ERROR:", err);
+    res.status(500).json({ ok: false, message: "Erreur config" });
+  }
+});
+
+router.post("/api/app-config", async (req, res) => {
+  try {
+    const body = req.body || {};
+
+    const data = {
+      ticketLogo: String(body.ticketLogo || ""),
+      ticketMessage: String(body.ticketMessage || ""),
+      mariageGratis: {
+        enabled: body.mariageGratis && body.mariageGratis.enabled === true,
+        max: Number(body.mariageGratis && body.mariageGratis.max || 5),
+        stepAmount: Number(body.mariageGratis && body.mariageGratis.stepAmount || 50)
+      }
+    };
+
+    const cfg = await AppConfig.findOneAndUpdate(
+      { key: "main" },
+      { $set: data },
+      { upsert: true, new: true }
+    );
+
+    res.json({ ok: true, config: cfg });
+  } catch (err) {
+    console.error("SAVE APP CONFIG ERROR:", err);
+    res.status(500).json({ ok: false, message: "Erreur save config" });
   }
 });
 

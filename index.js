@@ -11,6 +11,7 @@ const Sorteo = require("./models/Sorteo");
 const Grupo = require("./models/Grupo");
 const Limites = require("./models/Limites");
 const Loteria = require("./models/Loteria");
+const AppConfig = require("./models/AppConfig");
 
 
 
@@ -1664,6 +1665,40 @@ app.get("/api/vendor/loterias", async (req, res) => {
   } catch (err) {
     console.error("VENDOR LOTERIAS ERROR:", err);
     res.status(500).json([]);
+  }
+});
+
+app.get("/api/vendor/config", async (req, res) => {
+  try {
+    let cfg = await AppConfig.findOne({ key: "main" }).lean();
+
+    if (!cfg) {
+      cfg = await AppConfig.create({ key: "main" });
+      cfg = cfg.toObject();
+    }
+
+    res.json({
+      ok: true,
+      ticketLogo: cfg.ticketLogo || "",
+      ticketMessage: cfg.ticketMessage || "",
+      mariageGratis: cfg.mariageGratis || {
+        enabled: false,
+        max: 5,
+        stepAmount: 50
+      }
+    });
+  } catch (err) {
+    console.error("VENDOR CONFIG ERROR:", err);
+    res.status(500).json({
+      ok: false,
+      ticketLogo: "",
+      ticketMessage: "",
+      mariageGratis: {
+        enabled: false,
+        max: 5,
+        stepAmount: 50
+      }
+    });
   }
 });
 

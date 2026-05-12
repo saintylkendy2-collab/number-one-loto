@@ -2788,15 +2788,14 @@ tbody tr:nth-child(even){background:#313652;}
   <div class="side-menu-item" id="menu-config" onclick="toggleSubmenu('configMenu')">
     <span>Configuración</span><span>></span>
   </div>
+  <div id="configMenu" class="submenu-box">
+   <div class="submenu-item" onclick="goPage('grupos')">Grupo</div>
+  </div>
 
   <div class="menu-item" onclick="openTicketConfigPage()">
   <span>Ticket Config</span>
   <span>></span>
 </div>
-
-  <div id="configMenu" class="submenu-box">
-   <div class="submenu-item" onclick="goPage('grupos')">Grupo</div>
-  </div>
 
   <div class="side-menu-item" id="menu-limites" onclick="toggleSubmenu('limitesMenu')">
     <span>Límites</span><span>></span>

@@ -2788,6 +2788,12 @@ tbody tr:nth-child(even){background:#313652;}
   <div class="side-menu-item" id="menu-config" onclick="toggleSubmenu('configMenu')">
     <span>Configuración</span><span>></span>
   </div>
+
+  <div class="menu-item" onclick="openTicketConfigPage()">
+  <span>Ticket Config</span>
+  <span>></span>
+</div>
+
   <div id="configMenu" class="submenu-box">
    <div class="submenu-item" onclick="goPage('grupos')">Grupo</div>
   </div>
@@ -6387,6 +6393,55 @@ function renderVentasDetalle(){
     '</tr>';
 }
 
+async function openTicketConfigPage(){
+
+  try{
+
+    const res = await fetch("/api/app-config");
+    const cfg = await res.json();
+
+    const logo = prompt(
+      "Logo URL",
+      cfg.ticketLogo || ""
+    );
+
+    if(logo === null) return;
+
+    const message = prompt(
+      "Message ticket",
+      cfg.ticketMessage || ""
+    );
+
+    if(message === null) return;
+
+    const gratis = confirm(
+      "Activer mariage gratis ?"
+    );
+
+    await fetch("/api/app-config",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        ticketLogo: logo,
+        ticketMessage: message,
+        mariageGratis:{
+          enabled: gratis,
+          max: 5,
+          stepAmount: 50
+        }
+      })
+    });
+
+    alert("Configuration sauvée");
+
+  }catch(err){
+    console.error(err);
+    alert("Erreur configuration");
+  }
+
+}
 
 </script>
 

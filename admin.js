@@ -3971,7 +3971,11 @@ function renderLoteriasAdmin(){
 
       '<td>' + safe(l.openTime || "") + '</td>' +
 
-      '<td>' + safe(l.closeTime || "") + '</td>' +
+      '<td>' + safe(
+  (l.closeDays && l.closeDays.monday)
+    ? l.closeDays.monday
+    : (l.closeTime || "")
+) + '</td>' +
 
       '<td>' + (l.limite ? 'YES' : '') + '</td>' +
 

@@ -3992,12 +3992,10 @@ function editLoteriaAdmin(id){
   var row = null;
 
   for(var i = 0; i < loteriasAdminRows.length; i++){
-
     if(String(loteriasAdminRows[i]._id) === String(id)){
       row = loteriasAdminRows[i];
       break;
     }
-
   }
 
   if(!row){
@@ -4005,40 +4003,38 @@ function editLoteriaAdmin(id){
     return;
   }
 
-  var nuevoCierre = prompt(
-    "Nouvelle heure fermeture",
-    row.closeTime || ""
-  );
-
+  var nuevoCierre = prompt("Nouvelle heure fermeture", row.closeTime || "");
   if(nuevoCierre === null) return;
 
   fetch("/api/loterias/" + id,{
     method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },
+    headers:{ "Content-Type":"application/json" },
     body:JSON.stringify({
-      closeTime:nuevoCierre
+      name: row.name || "",
+      abrev: row.abrev || "",
+      openTime: row.openTime || "00:00",
+      closeTime: nuevoCierre,
+      estatus: row.estatus || "Activo",
+      limite: row.limite === true,
+      pago: row.pago !== false
     })
   })
-  .then(function(res){
-    return res.json();
-  })
-  .then(function(){
+  .then(function(res){ return res.json(); })
+  .then(function(data){
+
+    if(!data.ok){
+      alert(data.message || "Erreur modification");
+      return;
+    }
 
     alert("Lotería modifiée");
-
     loadLoteriasAdmin();
 
   })
   .catch(function(err){
-
     console.error(err);
-
     alert("Erreur modification");
-
   });
-
 }
 
 

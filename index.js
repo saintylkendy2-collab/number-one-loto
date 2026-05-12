@@ -5325,7 +5325,7 @@ ${gamesHtml}
   style="
     margin-top:14px;
     text-align:center;
-    font-size:12px;
+    font-size:8px;
   "
 >
   ${APP_CONFIG.ticketMessage || ""}

@@ -6476,51 +6476,102 @@ function renderVentasDetalle(){
 
 async function openTicketConfigPage(){
 
-  try{
+  const input = document.createElement("input");
 
-    const res = await fetch("/api/app-config");
-    const cfg = await res.json();
+  input.type = "file";
+  input.accept = "image/*";
 
-    const logo = prompt(
-      "Logo URL",
-      cfg.ticketLogo || ""
-    );
+  input.onchange = async () => {
 
-    if(logo === null) return;
+    const file = input.files[0];
 
-    const message = prompt(
-      "Message ticket",
-      cfg.ticketMessage || ""
-    );
+    if(!file) return;
 
-    if(message === null) return;
+    const formData = new FormData();
 
-    const gratis = confirm(
-      "Activer mariage gratis ?"
-    );
+    formData.append("logo", file);
 
-    await fetch("/api/app-config",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        ticketLogo: logo,
-        ticketMessage: message,
-        mariageGratis:{
-          enabled: gratis,
-          max: 5,
-          stepAmount: 50
+    try{
+
+      const uploadRes = await fetch(
+        "/api/upload-logo",
+        {
+          method:"POST",
+          body: formData
         }
-      })
-    });
+      );
 
-    alert("Configuration sauvée");
+      const uploadData =
+        await uploadRes.json();
 
-  }catch(err){
-    console.error(err);
-    alert("Erreur configuration");
-  }
+      if(!uploadData.ok){
+        alert("Erreur upload logo");
+        return;
+      }
+
+      const ticketMessage = prompt(
+        "Message ticket",
+        ""
+      );
+
+      const mariageGratis =
+        confirm(
+          "Activer mariage gratis ?"
+        );
+
+      const saveRes = await fetch(
+        "/api/app-config",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":
+            "application/json"
+          },
+
+          body: JSON.stringify({
+
+            ticketLogo:
+              uploadData.url,
+
+            ticketMessage:
+              ticketMessage || "",
+
+            mariageGratis:{
+              enabled:
+                mariageGratis
+            }
+
+          })
+        }
+      );
+
+      const saveData =
+        await saveRes.json();
+
+      if(saveData.ok){
+
+        alert(
+          "Configuration sauvegardée"
+        );
+
+      }else{
+
+        alert("Erreur sauvegarde");
+
+      }
+
+    }catch(err){
+
+      console.error(err);
+
+      alert("Erreur système");
+
+    }
+
+  };
+
+  input.click();
 
 }
 

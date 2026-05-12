@@ -3974,6 +3974,18 @@ function renderLoteriasAdmin(){
   tbody.innerHTML = html;
 }
 
+var btns = tbody.querySelectorAll(".mini-btn");
+
+for(var j = 0; j < btns.length; j++){
+
+  btns[j].onclick = function(){
+
+    var id = this.getAttribute("data-id");
+
+    editLoteriaAdmin(id);
+  };
+}
+
 function editLoteriaAdmin(id){
 
   var row = null;

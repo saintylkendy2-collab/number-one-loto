@@ -1942,15 +1942,26 @@ router.get("/api/loterias", async (req, res) => {
         ["GEORGIA NIGHT", "GAN", "00:00", "23:15"]
       ];
 
-      await Loteria.insertMany(defaults.map(x => ({
-        name: x[0],
-        abrev: x[1],
-        openTime: x[2],
-        closeTime: x[3],
-        estatus: "Activo",
-        limite: false,
-        pago: true
-      })));
+      await Loteria.insertMany(defaults.map(function(x){
+        return {
+          name: x[0],
+          abrev: x[1],
+          openTime: x[2],
+          closeTime: x[3],
+          closeDays: {
+            monday: x[3],
+            tuesday: x[3],
+            wednesday: x[3],
+            thursday: x[3],
+            friday: x[3],
+            saturday: x[3],
+            sunday: x[3]
+          },
+          estatus: "Activo",
+          limite: false,
+          pago: true
+        };
+      }));
 
       rows = await Loteria.find().sort({ closeTime: 1 }).lean();
     }
@@ -1964,12 +1975,23 @@ router.get("/api/loterias", async (req, res) => {
 
 router.post("/api/loterias/:id", async (req, res) => {
   try {
+    const closeTime = String(req.body.closeTime || "23:59");
+
     const data = {
       name: String(req.body.name || "").trim().toUpperCase(),
       abrev: String(req.body.abrev || "").trim().toUpperCase(),
       estatus: String(req.body.estatus || "Activo"),
       openTime: String(req.body.openTime || "00:00"),
-      closeTime: String(req.body.closeTime || "23:59"),
+      closeTime: closeTime,
+      closeDays: req.body.closeDays || {
+        monday: closeTime,
+        tuesday: closeTime,
+        wednesday: closeTime,
+        thursday: closeTime,
+        friday: closeTime,
+        saturday: closeTime,
+        sunday: closeTime
+      },
       limite: req.body.limite === true,
       pago: req.body.pago !== false
     };

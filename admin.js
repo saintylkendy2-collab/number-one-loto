@@ -4021,18 +4021,8 @@ async function goPage(page){
   if(sorteosPage) sorteosPage.classList.add("hidden");
   if(limitesAjustesPage) limitesAjustesPage.classList.add("hidden");
 
- if(ventasPage) ventasPage.classList.add("hidden");
-  if(ticketsPage) ticketsPage.classList.add("hidden");
-  if(gruposPage) gruposPage.classList.add("hidden");
-  if(vendorsPage) vendorsPage.classList.add("hidden");
-  if(editorPage) editorPage.classList.add("hidden");
-  if(balancePage) balancePage.classList.add("hidden");
-  if(transactionsPage) transactionsPage.classList.add("hidden");
-  if(sorteosPage) sorteosPage.classList.add("hidden");
-  if(limitesAjustesPage) limitesAjustesPage.classList.add("hidden");
-
   if(page === "ventas"){
-    showMasterPage("ventasPage");
+    if(ventasPage) ventasPage.classList.remove("hidden");
     loadVentasReport();
 
   }else if(page === "grupos"){
@@ -4059,8 +4049,6 @@ loadLimitesAjustes();
   }else if(page === "ventas_grupo"){
     if(ventasPage) ventasPage.classList.remove("hidden");
     loadVentasGrupo();
-
-
 
   }else if(page === "tickets"){
     if(ticketsPage) ticketsPage.classList.remove("hidden");
@@ -5706,46 +5694,17 @@ async function saveLimitesAjustes(){
 
 let currentVentasMode = "numero";
 
-
-function hideAllMasterPages(){
-  [
-    "ventasPage",
-    "ventasDetallePage",
-    "gruposPage",
-    "limitesAjustesPage",
-    "balanceVendorPage",
-    "ticketsPage",
-    "sorteosPage",
-    "transactionsPage",
-    "vendorsPage",
-    "vendorEditorPage"
-  ].forEach(function(id){
-    const el = byId(id);
-    if(el){
-      el.classList.add("hidden");
-      el.style.display = "none";
-    }
-  });
-}
-
-function showMasterPage(id){
-  hideAllMasterPages();
-
-  const el = byId(id);
-  if(el){
-    el.classList.remove("hidden");
-    el.style.display = "block";
-  }
-}
-
 async function openVentasDetalle(mode){
   currentVentasMode = mode || "numero";
 
   const page = byId("ventasDetallePage");
   if(!page) return;
 
-  showMasterPage("ventasDetallePage");
-  
+  document.querySelectorAll(".page-block").forEach(function(p){
+    p.classList.add("hidden");
+  });
+
+  page.classList.remove("hidden");
 
   try{
     const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
@@ -5818,13 +5777,21 @@ async function openVentasDetalle(mode){
 
     '<div class="table-card">' +
       '<div class="table-scroll">' +
-        '<table style="width:100%;min-width:100%;border-collapse:collapse;">' +
+        '<table>' +
           '<thead>' +
-            '<tr>' +
-              '<th style="text-align:left;">TIPO</th>' +
-              '<th style="text-align:center;">#</th>' +
-              '<th style="text-align:right;">VENTA</th>' +
-            '</tr>' +
+'<th>' +
+
+(
+  currentVentasMode === "loteria"
+    ? "LOTERÍA"
+    : currentVentasMode === "jugada"
+    ? "JUGADA"
+    : "NÚMERO"
+)
+
++
+
+'</th>' +
           '</thead>' +
           '<tbody id="detBody"></tbody>' +
           '<tfoot id="detFoot"></tfoot>' +
@@ -5867,7 +5834,8 @@ function fillVentasDetalleSelects(){
 
     gruposList.forEach(function(g){
       const name = safe(g.nombre || g);
-      zona.innerHTML += '<option value="' + name + '">' + name + '</option>';
+      zona.innerHTML +=
+        '<option value="' + name + '">' + name + '</option>';
     });
   }
 
@@ -5877,7 +5845,9 @@ function fillVentasDetalleSelects(){
     vendors.forEach(function(v){
       const id = safe(v.id).toUpperCase();
       const name = safe(v.nombre || v.nom || v.id);
-      vendor.innerHTML += '<option value="' + id + '">' + name + '</option>';
+
+      vendor.innerHTML +=
+        '<option value="' + id + '">' + name + '</option>';
     });
   }
 
@@ -5886,26 +5856,13 @@ function fillVentasDetalleSelects(){
 
     loteriasList.forEach(function(l){
       if(l === "TODAS") return;
+
       const name = safe(l).toUpperCase();
-      loteria.innerHTML += '<option value="' + name + '">' + name + '</option>';
+
+      loteria.innerHTML +=
+        '<option value="' + name + '">' + name + '</option>';
     });
   }
-}
-
-function labelType(type){
-  type = safe(type).toUpperCase();
-
-  if(type === "BOR") return "Borlette";
-  if(type === "MAR") return "Mariage";
-  if(type === "L3") return "Loto 3";
-  if(type === "L41") return "Loto 4";
-  if(type === "L42") return "Loto 4";
-  if(type === "L43") return "Loto 4";
-  if(type === "L51") return "Loto 5";
-  if(type === "L52") return "Loto 5";
-  if(type === "L53") return "Loto 5";
-
-  return type;
 }
 
 function renderVentasDetalle(){
@@ -5967,27 +5924,25 @@ function renderVentasDetalle(){
       if(jugadaFilter && type !== jugadaFilter) return;
       if(numeroFilter && numero !== numeroFilter) return;
 
-      let key = "";
+      let key = numero;
 
-      if(currentVentasMode === "numero"){
-        key = type + "|" + numero;
+      if(currentVentasMode === "loteria"){
+        key = lot;
       }
 
       if(currentVentasMode === "jugada"){
         key = type;
       }
 
-      if(currentVentasMode === "loteria"){
-        key = lot;
+      if(currentVentasMode === "numero"){
+        key = numero;
       }
 
       if(!key) return;
 
       if(!map[key]){
         map[key] = {
-          type: type,
-          numero: numero,
-          loteria: lot,
+          key: key,
           count: 0,
           venta: 0
         };
@@ -6020,38 +5975,20 @@ function renderVentasDetalle(){
     totalCount += r.count;
     totalVenta += r.venta;
 
-    let col1 = "";
-    let col2 = "";
-
-    if(currentVentasMode === "numero"){
-      col1 = labelType(r.type);
-      col2 = r.numero;
-    }
-
-    if(currentVentasMode === "jugada"){
-      col1 = labelType(r.type);
-      col2 = r.count;
-    }
-
-    if(currentVentasMode === "loteria"){
-      col1 = r.loteria;
-      col2 = r.count;
-    }
-
     body.innerHTML +=
       '<tr>' +
-        '<td style="text-align:left;padding:12px 14px;">' + safe(col1) + '</td>' +
-        '<td style="text-align:center;padding:12px 14px;">' + safe(col2) + '</td>' +
-        '<td style="text-align:right;padding:12px 14px;">' + formatAmount(r.venta) + '</td>' +
+        '<td>' + safe(r.key) + '</td>' +
+        '<td>' + r.count + '</td>' +
+        '<td>' + formatAmount(r.venta) + '</td>' +
       '</tr>';
   });
 
   foot.innerHTML =
-    '<tr style="background:#3b405c;font-weight:900;">' +
-      '<td style="text-align:left;padding:14px;">TOTAL</td>' +
-      '<td style="text-align:center;padding:14px;">' + totalCount + '</td>' +
-      '<td style="text-align:right;padding:14px;">' + formatAmount(totalVenta) + '</td>' +
-    '</tr>';
+  '<tr>' +
+    '<td style="font-weight:900;">TOTAL</td>' +
+    '<td style="font-weight:900;text-align:center;">' + totalCount + '</td>' +
+    '<td style="font-weight:900;text-align:right;">' + formatAmount(totalVenta) + '</td>' +
+  '</tr>';
 }
 
 </script>

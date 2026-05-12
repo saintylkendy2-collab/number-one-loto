@@ -3979,11 +3979,9 @@ for(var b = 0; b < btns.length; b++){
 
   btns[b].onclick = function(){
 
-  
+  editLoteriaAdmin(this.getAttribute("data-id"));
 
-  };
-
-}
+};
 
 
 

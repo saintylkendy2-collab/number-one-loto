@@ -3909,93 +3909,6 @@ async function loadSorteos(){
   }
 }
 
-let loteriasAdminRows = [];
-
-async function loadLoteriasAdmin(){
-  try{
-    const res = await fetch("/api/loterias?reload=" + Date.now());
-    const data = await res.json();
-
-    loteriasAdminRows = Array.isArray(data) ? data : [];
-    renderLoteriasAdmin();
-  }catch(err){
-    console.error(err);
-    loteriasAdminRows = [];
-    renderLoteriasAdmin();
-  }
-}
-
-function renderLoteriasAdmin(){
-  const tbody = byId("loteriasTableBody");
-  if(!tbody) return;
-
-  tbody.innerHTML = "";
-
-  if(!loteriasAdminRows.length){
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Pa gen loterías</td></tr>';
-    return;
-  }
-
-  loteriasAdminRows.forEach(function(l){
-    const activo = String(l.estatus || "").toLowerCase() === "activo";
-
-    tbody.innerHTML +=
-      '<tr>' +
-        '<td>🔒 ' + safe(l.name) + '</td>' +
-        '<td>' + safe(l.openTime) + '</td>' +
-        '<td>' + safe(l.closeTime) + '</td>' +
-        '<td style="text-align:center;">' + (l.limite ? "✓" : "") + '</td>' +
-        '<td style="text-align:center;">' + (l.pago ? "✓" : "") + '</td>' +
-        '<td style="text-align:center;">' + (activo ? "✓" : "⊘") + '</td>' +
-        '<td><button class="mini-btn" onclick="editLoteriaAdmin(\'' + safe(l._id) + '\')">✎</button></td>' +
-      '</tr>';
-  });
-}
-
-async function editLoteriaAdmin(id){
-  const l = loteriasAdminRows.find(x => String(x._id) === String(id));
-  if(!l) return;
-
-  const name = prompt("Nombre", l.name || "");
-  if(name === null) return;
-
-  const abrev = prompt("Abreviado", l.abrev || "");
-  if(abrev === null) return;
-
-  const openTime = prompt("Horario de Apertura ex: 00:00", l.openTime || "00:00");
-  if(openTime === null) return;
-
-  const closeTime = prompt("Horario de Cierre ex: 21:30", l.closeTime || "23:59");
-  if(closeTime === null) return;
-
-  const estatus = confirm("OK = Activo / Cancel = Bloqueado")
-    ? "Activo"
-    : "Bloqueado";
-
-  const res = await fetch("/api/loterias/" + encodeURIComponent(id), {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({
-      name,
-      abrev,
-      openTime,
-      closeTime,
-      estatus,
-      limite: !!l.limite,
-      pago: !!l.pago
-    })
-  });
-
-  const data = await res.json();
-
-  if(!data.ok){
-    alert(data.message || "Erreur save lotería");
-    return;
-  }
-
-  await loadLoteriasAdmin();
-}
-
 
 function renderSorteosPage(){
   var box = byId("sorteosRows");
@@ -6239,6 +6152,93 @@ function renderVentasDetalle(){
       '<td style="text-align:center;padding:14px;">' + totalCount + '</td>' +
       '<td style="text-align:right;padding:14px;">' + formatAmount(totalVenta) + '</td>' +
     '</tr>';
+}
+
+let loteriasAdminRows = [];
+
+async function loadLoteriasAdmin(){
+  try{
+    const res = await fetch("/api/loterias?reload=" + Date.now());
+    const data = await res.json();
+
+    loteriasAdminRows = Array.isArray(data) ? data : [];
+    renderLoteriasAdmin();
+  }catch(err){
+    console.error(err);
+    loteriasAdminRows = [];
+    renderLoteriasAdmin();
+  }
+}
+
+function renderLoteriasAdmin(){
+  const tbody = byId("loteriasTableBody");
+  if(!tbody) return;
+
+  tbody.innerHTML = "";
+
+  if(!loteriasAdminRows.length){
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Pa gen loterías</td></tr>';
+    return;
+  }
+
+  loteriasAdminRows.forEach(function(l){
+    const activo = String(l.estatus || "").toLowerCase() === "activo";
+
+    tbody.innerHTML +=
+      '<tr>' +
+        '<td>🔒 ' + safe(l.name) + '</td>' +
+        '<td>' + safe(l.openTime) + '</td>' +
+        '<td>' + safe(l.closeTime) + '</td>' +
+        '<td style="text-align:center;">' + (l.limite ? "✓" : "") + '</td>' +
+        '<td style="text-align:center;">' + (l.pago ? "✓" : "") + '</td>' +
+        '<td style="text-align:center;">' + (activo ? "✓" : "⊘") + '</td>' +
+        '<td><button class="mini-btn" onclick="editLoteriaAdmin(\'' + safe(l._id) + '\')">✎</button></td>' +
+      '</tr>';
+  });
+}
+
+async function editLoteriaAdmin(id){
+  const l = loteriasAdminRows.find(x => String(x._id) === String(id));
+  if(!l) return;
+
+  const name = prompt("Nombre", l.name || "");
+  if(name === null) return;
+
+  const abrev = prompt("Abreviado", l.abrev || "");
+  if(abrev === null) return;
+
+  const openTime = prompt("Horario de Apertura ex: 00:00", l.openTime || "00:00");
+  if(openTime === null) return;
+
+  const closeTime = prompt("Horario de Cierre ex: 21:30", l.closeTime || "23:59");
+  if(closeTime === null) return;
+
+  const estatus = confirm("OK = Activo / Cancel = Bloqueado")
+    ? "Activo"
+    : "Bloqueado";
+
+  const res = await fetch("/api/loterias/" + encodeURIComponent(id), {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({
+      name,
+      abrev,
+      openTime,
+      closeTime,
+      estatus,
+      limite: !!l.limite,
+      pago: !!l.pago
+    })
+  });
+
+  const data = await res.json();
+
+  if(!data.ok){
+    alert(data.message || "Erreur save lotería");
+    return;
+  }
+
+  await loadLoteriasAdmin();
 }
 
 </script>

@@ -3908,12 +3908,48 @@ async function loadSorteos(){
     renderSorteosPage();
   }
 }
+
 let loteriasAdminRows = [];
 
 async function loadLoteriasAdmin(){
-  const res = await fetch("/api/loterias");
-  loteriasAdminRows = await res.json();
-  console.log(loteriasAdminRows);
+  try{
+    const res = await fetch("/api/loterias?reload=" + Date.now());
+    const data = await res.json();
+
+    loteriasAdminRows = Array.isArray(data) ? data : [];
+    renderLoteriasAdmin();
+  }catch(err){
+    console.error(err);
+    loteriasAdminRows = [];
+    renderLoteriasAdmin();
+  }
+}
+
+function renderLoteriasAdmin(){
+  const tbody = byId("loteriasTableBody");
+  if(!tbody) return;
+
+  tbody.innerHTML = "";
+
+  if(!loteriasAdminRows.length){
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Pa gen loterías</td></tr>';
+    return;
+  }
+
+  loteriasAdminRows.forEach(function(l){
+    const activo = String(l.estatus || "").toLowerCase() === "activo";
+
+    tbody.innerHTML +=
+      '<tr>' +
+        '<td>🔒 ' + safe(l.name) + '</td>' +
+        '<td>' + safe(l.openTime) + '</td>' +
+        '<td>' + safe(l.closeTime) + '</td>' +
+        '<td style="text-align:center;">' + (l.limite ? "✓" : "") + '</td>' +
+        '<td style="text-align:center;">' + (l.pago ? "✓" : "") + '</td>' +
+        '<td style="text-align:center;">' + (activo ? "✓" : "⊘") + '</td>' +
+        '<td><button class="mini-btn" onclick="editLoteriaAdmin(\'' + safe(l._id) + '\')">✎</button></td>' +
+      '</tr>';
+  });
 }
 
 function renderSorteosPage(){

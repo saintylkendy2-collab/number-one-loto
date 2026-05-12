@@ -3694,7 +3694,6 @@ async function loadBalanceReport(){
   }
 }
 
-
 function loginMaster() {
   const user = byId("username");
   const pass = byId("password");
@@ -3710,9 +3709,11 @@ function loginMaster() {
     loginPage.style.display = "none";
     appPage.classList.remove("hidden");
     appPage.style.display = "block";
+
     loadVendorsFromServer();
     loadVentasReport();
     loadBalanceReport();
+
     goPage("ventas");
   } else {
     alert("Login incorrect");

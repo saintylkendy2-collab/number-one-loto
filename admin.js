@@ -8,6 +8,7 @@ const Ticket = require("./models/Ticket");
 const Vendor = require("./models/vendor");
 
 const Sorteo = require("./models/Sorteo");
+const Loteria = require("./models/Loteria");
 
 // =============================
 // 📁 FILE PATHS
@@ -1922,6 +1923,78 @@ router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
   }
 });
 
+router.get("/api/loterias", async (req, res) => {
+  try {
+    let rows = await Loteria.find().sort({ closeTime: 1 }).lean();
+
+    if (!rows.length) {
+      const defaults = [
+        ["TENNESSE MORNING", "TNM", "00:00", "11:55"],
+        ["TEXAS MORNING", "TXM", "00:00", "11:55"],
+        ["GEORGIA MIDDAY", "GAM", "00:00", "12:25"],
+        ["FLORIDA MIDDAY", "FLM", "00:00", "13:25"],
+        ["NEW YORK MIDDAY", "NYM", "00:00", "14:25"],
+        ["TEXAS EVENING", "TXE", "00:00", "18:25"],
+        ["GEORGIA EVENING", "GAE", "00:00", "18:50"],
+        ["TENNESSE EVENING", "TNE", "00:00", "19:25"],
+        ["FLORIDA EVENING", "FLE", "00:00", "21:30"],
+        ["NEW YORK EVENING", "NYE", "00:00", "22:25"],
+        ["GEORGIA NIGHT", "GAN", "00:00", "23:15"]
+      ];
+
+      await Loteria.insertMany(defaults.map(x => ({
+        name: x[0],
+        abrev: x[1],
+        openTime: x[2],
+        closeTime: x[3],
+        estatus: "Activo",
+        limite: false,
+        pago: true
+      })));
+
+      rows = await Loteria.find().sort({ closeTime: 1 }).lean();
+    }
+
+    res.json(rows);
+  } catch (err) {
+    console.error("GET LOTERIAS ERROR:", err);
+    res.status(500).json([]);
+  }
+});
+
+router.post("/api/loterias/:id", async (req, res) => {
+  try {
+    const data = {
+      name: String(req.body.name || "").trim().toUpperCase(),
+      abrev: String(req.body.abrev || "").trim().toUpperCase(),
+      estatus: String(req.body.estatus || "Activo"),
+      openTime: String(req.body.openTime || "00:00"),
+      closeTime: String(req.body.closeTime || "23:59"),
+      limite: req.body.limite === true,
+      pago: req.body.pago !== false
+    };
+
+    if (!data.name) {
+      return res.status(400).json({ ok:false, message:"Nombre obligatoire" });
+    }
+
+    const row = await Loteria.findByIdAndUpdate(
+      req.params.id,
+      { $set:data },
+      { new:true }
+    );
+
+    if (!row) {
+      return res.status(404).json({ ok:false, message:"Lotería pa jwenn" });
+    }
+
+    res.json({ ok:true, loteria:row });
+  } catch (err) {
+    console.error("SAVE LOTERIA ERROR:", err);
+    res.status(500).json({ ok:false, message:"Erreur save lotería" });
+  }
+});
+
 router.get("/master/vendors", (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -2661,7 +2734,9 @@ tbody tr:nth-child(even){background:#313652;}
     <div class="submenu-item">Estadísticas</div>
   </div>
 
-  <div class="side-menu-item" id="menu-loterias"><span>Loterías</span></div>
+  <div class="side-menu-item" id="menu-loterias" onclick="goPage('loterias')">
+  <span>Loterías</span>
+</div>
   <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
   <div class="side-menu-item" id="menu-cuenta"><span>Mi Cuenta</span></div>
 

@@ -3015,6 +3015,30 @@ tbody tr:nth-child(even){background:#313652;}
 </div>
 </div>
 
+<div id="loteriasPage" class="page-block hidden">
+  <div class="page-title">Loterías</div>
+
+  <div class="table-card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>NOMBRE</th>
+            <th>APERTURA</th>
+            <th>CIERRE</th>
+            <th>LÍMITES</th>
+            <th>PAGO</th>
+            <th>ESTATUS</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="loteriasTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
 <div id="sorteosPage" class="page-block hidden">
   <div class="page-title">Sorteos</div>
 

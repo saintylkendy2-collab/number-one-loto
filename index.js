@@ -5279,23 +5279,15 @@ ${gamesHtml}
 
 <div class="total">TOTAL: ${total.toFixed(2)} G</div>
 
-${
-  appConfig.ticketMessage
-  ?
-  `
-  <div
-    style="
-      margin-top:14px;
-      text-align:center;
-      font-size:12px;
-    "
-  >
-    ${appConfig.ticketMessage}
-  </div>
-  `
-  :
-  ""
-}
+<div
+  style="
+    margin-top:14px;
+    text-align:center;
+    font-size:12px;
+  "
+>
+  ${APP_CONFIG.ticketMessage || ""}
+</div>
 
 <script>
 setTimeout(function(){

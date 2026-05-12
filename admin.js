@@ -1942,26 +1942,15 @@ router.get("/api/loterias", async (req, res) => {
         ["GEORGIA NIGHT", "GAN", "00:00", "23:15"]
       ];
 
-      await Loteria.insertMany(defaults.map(function(x){
-        return {
-          name: x[0],
-          abrev: x[1],
-          openTime: x[2],
-          closeTime: x[3],
-          closeDays: {
-            monday: x[3],
-            tuesday: x[3],
-            wednesday: x[3],
-            thursday: x[3],
-            friday: x[3],
-            saturday: x[3],
-            sunday: x[3]
-          },
-          estatus: "Activo",
-          limite: false,
-          pago: true
-        };
-      }));
+      await Loteria.insertMany(defaults.map(x => ({
+        name: x[0],
+        abrev: x[1],
+        openTime: x[2],
+        closeTime: x[3],
+        estatus: "Activo",
+        limite: false,
+        pago: true
+      })));
 
       rows = await Loteria.find().sort({ closeTime: 1 }).lean();
     }
@@ -1975,23 +1964,12 @@ router.get("/api/loterias", async (req, res) => {
 
 router.post("/api/loterias/:id", async (req, res) => {
   try {
-    const closeTime = String(req.body.closeTime || "23:59");
-
     const data = {
       name: String(req.body.name || "").trim().toUpperCase(),
       abrev: String(req.body.abrev || "").trim().toUpperCase(),
       estatus: String(req.body.estatus || "Activo"),
       openTime: String(req.body.openTime || "00:00"),
-      closeTime: closeTime,
-      closeDays: req.body.closeDays || {
-        monday: closeTime,
-        tuesday: closeTime,
-        wednesday: closeTime,
-        thursday: closeTime,
-        friday: closeTime,
-        saturday: closeTime,
-        sunday: closeTime
-      },
+      closeTime: String(req.body.closeTime || "23:59"),
       limite: req.body.limite === true,
       pago: req.body.pago !== false
     };
@@ -3716,6 +3694,7 @@ async function loadBalanceReport(){
   }
 }
 
+
 function loginMaster() {
   const user = byId("username");
   const pass = byId("password");
@@ -3731,11 +3710,9 @@ function loginMaster() {
     loginPage.style.display = "none";
     appPage.classList.remove("hidden");
     appPage.style.display = "block";
-
     loadVendorsFromServer();
     loadVentasReport();
     loadBalanceReport();
-
     goPage("ventas");
   } else {
     alert("Login incorrect");
@@ -3931,168 +3908,6 @@ async function loadSorteos(){
     renderSorteosPage();
   }
 }
-
-let loteriasAdminRows = [];
-
-async function loadLoteriasAdmin(){
-  try{
-    const res = await fetch("/api/loterias");
-    const data = await res.json();
-
-    loteriasAdminRows = Array.isArray(data) ? data : [];
-
-  }catch(err){
-    console.error(err);
-    loteriasAdminRows = [];
-  }
-
-  renderLoteriasAdmin();
-}
-
-function renderLoteriasAdmin(){
-
-  var tbody = byId("loteriasTableBody");
-
-  if(!tbody) return;
-
-  var html = "";
-
-  for(var i = 0; i < loteriasAdminRows.length; i++){
-
-    var l = loteriasAdminRows[i];
-
-    var activo =
-      String(l.estatus || "").toLowerCase() === "activo";
-
-    html +=
-      '<tr>' +
-
-      '<td>' + safe(l.name || "") + '</td>' +
-
-      '<td>' + safe(l.openTime || "") + '</td>' +
-
-   '<td>' + safe(l.closeTime || "") + '</td>' +
-
-      '<td>' + (l.limite ? 'YES' : '') + '</td>' +
-
-      '<td>' + (l.pago ? 'YES' : '') + '</td>' +
-
-      '<td>' + (activo ? 'YES' : 'NO') + '</td>' +
-
-      '<td>' +
-'<span class="mini-btn" data-id="' + l._id + '">Edit</span>' +
-'</td>' +
-
-      '</tr>';
-  }
-
-  if(!html){
-    html =
-      '<tr>' +
-      '<td colspan="7">Pa gen loterías</td>' +
-      '</tr>';
-  }
-
-  tbody.innerHTML = html;
-
-var btns = tbody.querySelectorAll(".mini-btn");
-
-for(var b = 0; b < btns.length; b++){
-
-  btns[b].onclick = function(){
-
-    editLoteriaAdmin(this.getAttribute("data-id"));
-
-  };
-
-}
-
-} 
-
-function editLoteriaAdmin(id){
-
-  var row = null;
-
-  for(var i = 0; i < loteriasAdminRows.length; i++){
-    if(String(loteriasAdminRows[i]._id) === String(id)){
-      row = loteriasAdminRows[i];
-      break;
-    }
-  }
-
-  if(!row){
-    alert("Lotería introuvable");
-    return;
-  }
-
-    var nuevoStatus = prompt(
-  "Estatus: Activo ou Bloqueado",
-  row.estatus || "Activo"
-);
-
-if(nuevoStatus === null) return;
-
-  var days = row.closeDays || {};
-
-  var monday = prompt("Lunes fermeture", days.monday || row.closeTime || "23:59");
-  if(monday === null) return;
-
-  var tuesday = prompt("Martes fermeture", days.tuesday || row.closeTime || "23:59");
-  if(tuesday === null) return;
-
-  var wednesday = prompt("Miércoles fermeture", days.wednesday || row.closeTime || "23:59");
-  if(wednesday === null) return;
-
-  var thursday = prompt("Jueves fermeture", days.thursday || row.closeTime || "23:59");
-  if(thursday === null) return;
-
-  var friday = prompt("Viernes fermeture", days.friday || row.closeTime || "23:59");
-  if(friday === null) return;
-
-  var saturday = prompt("Sábado fermeture", days.saturday || row.closeTime || "23:59");
-  if(saturday === null) return;
-
-  var sunday = prompt("Domingo fermeture", days.sunday || row.closeTime || "23:59");
-  if(sunday === null) return;
-
-  fetch("/api/loterias/" + id,{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({
-      name: row.name,
-      abrev: row.abrev,
-      estatus: nuevoStatus,
-      openTime: row.openTime,
-      closeTime: monday,
-      closeDays:{
-        monday: monday,
-        tuesday: tuesday,
-        wednesday: wednesday,
-        thursday: thursday,
-        friday: friday,
-        saturday: saturday,
-        sunday: sunday
-      },
-      limite: row.limite === true,
-      pago: row.pago !== false
-    })
-  })
-  .then(function(res){ return res.json(); })
-  .then(function(data){
-    if(!data.ok){
-      alert(data.message || "Erreur modification");
-      return;
-    }
-
-    alert("Lotería modifiée");
-    loadLoteriasAdmin();
-  })
-  .catch(function(err){
-    console.error(err);
-    alert("Erreur modification");
-  });
-}
-
 
 function renderSorteosPage(){
   var box = byId("sorteosRows");
@@ -5631,6 +5446,8 @@ if(fechaFin) fechaFin.addEventListener("change", loadVentasReport);
   loadBalanceReport();
 });
 
+goPage("ventas");
+
 async function deleteMovimiento(vendorId, movimientoId){
   if(!confirm("Ou vle siprime transaction sa?")) return;
 
@@ -6342,7 +6159,6 @@ function renderVentasDetalle(){
       '<td style="text-align:right;padding:14px;">' + formatAmount(totalVenta) + '</td>' +
     '</tr>';
 }
-
 
 </script>
 

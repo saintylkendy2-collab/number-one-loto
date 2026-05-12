@@ -1213,9 +1213,19 @@ function normGameType(v){
 
   if (s === "BORLETTE" || s === "BOR") return "BOR";
   if (s === "MARIAGE" || s === "MAR") return "MAR";
+
   if (s === "LOTO 3" || s === "L3") return "L3";
-  if (s === "LOTO 4" || s === "L4" || s === "L41" || s === "L42" || s === "L43") return "L41";
-  if (s === "LOTO 5" || s === "L5" || s === "L51" || s === "L52" || s === "L53") return "L51";
+
+  if (s === "L41") return "L41";
+  if (s === "L42") return "L42";
+  if (s === "L43") return "L43";
+
+  if (s === "L51") return "L51";
+  if (s === "L52") return "L52";
+  if (s === "L53") return "L53";
+
+  if (s === "LOTO 4" || s === "L4") return "L41";
+  if (s === "LOTO 5" || s === "L5") return "L51";
 
   return s;
 }

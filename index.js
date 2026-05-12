@@ -12,10 +12,22 @@ const Grupo = require("./models/Grupo");
 const Limites = require("./models/Limites");
 const Loteria = require("./models/Loteria");
 const AppConfig = require("./models/AppConfig");
-
+const multer = require("multer");
 
 
 const app = express();
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  }
+});
+
+const upload = multer({ storage });
 
 app.use(
   "/uploads",
@@ -1705,6 +1717,19 @@ app.get("/api/vendor/config", async (req, res) => {
       }
     });
   }
+});
+
+app.post("/upload-logo", upload.single("logo"), (req, res) => {
+
+  if(!req.file){
+    return res.json({ ok:false });
+  }
+
+  res.json({
+    ok:true,
+    path: "/uploads/" + req.file.filename
+  });
+
 });
 
 app.get("/dashboard", async (req, res) => {

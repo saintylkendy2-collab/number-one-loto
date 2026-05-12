@@ -3957,8 +3957,9 @@ function renderLoteriasAdmin(){
 
       '<td>' + (activo ? 'YES' : 'NO') + '</td>' +
 
-      
-'<button type="button" class="mini-btn lot-edit-btn" data-id="' + safe(l._id) + '">Edit</button>'
+      '<td>' +
+'<span class="mini-btn" data-id="' + l._id + '">Edit</span>' +
+'</td>' +
 
       '</tr>';
   }

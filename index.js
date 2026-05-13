@@ -1681,7 +1681,7 @@ const finalJeux = jeux
       channel,
       total,
       tirages,
-      jeux,
+      jeux: finalJeux
     });
 
     const obj = ticket.toObject();

@@ -1670,7 +1670,7 @@ jeux.push(...freeMariages);
       channel,
       total,
       tirages,
-      jeux: safeJeux
+      jeux,
     });
 
     const obj = ticket.toObject();

@@ -2855,6 +2855,35 @@ tbody tr:nth-child(even){background:#313652;}
   display:block;
 }
 
+.side-menu{
+  overflow-y:auto;
+  height:100vh;
+}
+
+.side-menu-header{
+  padding-top:5px;
+  padding-bottom:5px;
+}
+
+.side-menu-logo-wrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px;
+}
+
+.side-menu-logo-img{
+  width:55px;
+  height:55px;
+  object-fit:contain;
+}
+
+.side-menu-logo{
+  font-size:16px;
+  font-weight:700;
+  color:#fff;
+}
+
 </style>
 </head>
 <body>

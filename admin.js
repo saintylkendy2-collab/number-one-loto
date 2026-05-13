@@ -2916,6 +2916,7 @@ alt="logo">
 '<div class=&quot;table-card&quot; style=&quot;padding:14px;&quot;>' +
 '<input id=&quot;newUsername&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo username&quot;>' +
 '<input id=&quot;newPassword&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo password&quot;>' +
+'<input id=&quot;securityPin&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;PIN sécurité&quot;>' +
 '<button class=&quot;login-btn&quot; onclick=&quot;saveAccount()&quot;>Guardar</button>' +
 '</div>';
 goPage('ventas');">

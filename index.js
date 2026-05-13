@@ -5438,28 +5438,42 @@ let key =
 let freeHtml = "";
 
 freeGames.forEach(j => {
-  let typeRaw = String(j.type || "").toUpperCase();
-
-  let type = typeRaw;
-  if (typeRaw === "BOR") type = "Borlette";
-  else if (typeRaw === "MAR") type = "Mariage";
-
-  let numero = String(j.numero || "").trim();
 
   let loterie = String(
     j.loterie || j.loteria || ""
   ).trim();
 
-  freeHtml +=
-    '<div class="tirage">' + loterie + '</div>' +
+  if (!freeMap[loterie]) {
+    freeMap[loterie] = [];
+  }
 
-    '<div class="game-row">' +
-      '<div class="col-type">' + type + '</div>' +
-      '<div class="col-num">' + numero + '</div>' +
-      '<div class="col-amt">Gratis</div>' +
-    '</div>';
+  freeMap[loterie].push(j);
 });
 
+Object.keys(freeMap).forEach(loterie => {
+
+  freeHtml +=
+    '<div class="tirage">' + loterie + '</div>';
+
+  freeMap[loterie].forEach(j => {
+
+    let typeRaw = String(j.type || "").toUpperCase();
+
+    let type = typeRaw;
+    if (typeRaw === "BOR") type = "Borlette";
+    else if (typeRaw === "MAR") type = "Mariage";
+
+    let numero = String(j.numero || "").trim();
+
+    freeHtml +=
+      '<div class="game-row">' +
+        '<div class="col-type">' + type + '</div>' +
+        '<div class="col-num">' + numero + '</div>' +
+        '<div class="col-amt">Gratis</div>' +
+      '</div>';
+  });
+
+});
     res.set("Content-Type", "text/html; charset=utf-8");
 
 const APP_CONFIG =

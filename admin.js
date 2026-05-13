@@ -2917,7 +2917,7 @@ alt="logo">
      '<input id=&quot;newUsername&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo username&quot;>' +
      '<input id=&quot;newPassword&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo password&quot;>' +
      '<input id=&quot;securityPin&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;PIN sécurité&quot;>' +
-     '<button class=&quot;login-btn&quot; onclick=&quot;checkPinAndSave()&quot;>Guardar</button>' +
+     onclick=&quot;if(document.getElementById('securityPin').value !== '1234'){alert('PIN incorrect');return;}alert('PIN OK');&quot;
      '</div>';
      goPage('ventas');">
   <span>Mi Cuenta</span>

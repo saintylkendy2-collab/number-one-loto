@@ -6616,17 +6616,6 @@ if(mariageGratis){
 
 }
 
-function checkPinAndSave(){
-  const pin = document.getElementById("securityPin").value;
-
-  if(pin !== "1234"){
-    alert("PIN incorrect");
-    return;
-  }
-
-  saveAccount();
-}
-
 </script>
 
 </body>

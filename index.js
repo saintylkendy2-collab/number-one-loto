@@ -5437,6 +5437,8 @@ let key =
 
 let freeHtml = "";
 
+let freeMap = {};
+
 freeGames.forEach(j => {
 
   let loterie = String(
@@ -5448,6 +5450,7 @@ freeGames.forEach(j => {
   }
 
   freeMap[loterie].push(j);
+
 });
 
 Object.keys(freeMap).forEach(loterie => {
@@ -5471,9 +5474,11 @@ Object.keys(freeMap).forEach(loterie => {
         '<div class="col-num">' + numero + '</div>' +
         '<div class="col-amt">Gratis</div>' +
       '</div>';
+
   });
 
 });
+
     res.set("Content-Type", "text/html; charset=utf-8");
 
 const APP_CONFIG =

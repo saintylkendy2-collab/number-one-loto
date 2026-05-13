@@ -4643,7 +4643,14 @@ ticketsRows.forEach(function(t){
 
       '<div class="table-card">' +
         '<div class="table-scroll">' +
-          '<table style="min-width:720px;">' +
+          '<table style="min-width:720px;width:100%;table-layout:fixed;">' +
+  '<colgroup>' +
+    '<col style="width:32%;">' +
+    '<col style="width:18%;">' +
+    '<col style="width:18%;">' +
+    '<col style="width:20%;">' +
+    '<col style="width:12%;">' +
+  '</colgroup>' +
             '<thead>' +
               '<tr>' +
                 '<th>LOTERIA</th>' +

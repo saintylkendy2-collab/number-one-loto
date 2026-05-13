@@ -2908,7 +2908,13 @@ alt="logo">
   <span>Loterías</span>
 </div>
   <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
-  <div class="side-menu-item" id="menu-cuenta"><span>Mi Cuenta</span></div>
+  <div class="side-menu-item"
+     id="menu-cuenta"
+     onclick="openAccountPage()">
+
+  <span>Mi Cuenta</span>
+
+</div>
 
   <div class="side-menu-section">MONITOREO</div>
   <div class="side-menu-item" id="menu-tickets" onclick="goPage('tickets')">
@@ -6601,6 +6607,60 @@ if(mariageGratis){
 
   input.click();
 
+}
+
+function openAccountPage(){
+
+  document.getElementById("app").innerHTML = 
+  
+    '<div class="account-box">' +
+
+      '<div class="account-title">' +
+        'Mi Cuenta' +
+      '</div>' +
+
+      '<input ' +
+        'id="newUsername" ' +
+        'class="account-input" ' +
+        'placeholder="Nuevo username">' +
+
+      '<input ' +
+        'id="newPassword" ' +
+        'type="password" ' +
+        'class="account-input" ' +
+        'placeholder="Nuevo password">' +
+
+      '<button ' +
+        'class="account-btn" ' +
+        'onclick="saveAccount()">' +
+        'Guardar' +
+      '</button>' +
+
+    '</div>';
+}
+
+async function saveAccount(){
+
+  const username =
+    document.getElementById("newUsername").value;
+
+  const password =
+    document.getElementById("newPassword").value;
+
+  const r = await fetch("/master/update-account",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      username,
+      password
+    })
+  });
+
+  const data = await r.json();
+
+  alert(data.message || "Guardado");
 }
 
 </script>

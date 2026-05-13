@@ -6607,7 +6607,7 @@ if(mariageGratis){
 
 }
 
-function openAccountPage(){
+window.openAccountPage = function(){
 
   document.getElementById("app").innerHTML =
 

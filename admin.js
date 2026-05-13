@@ -6616,6 +6616,29 @@ if(mariageGratis){
 
 }
 
+async function saveAccount(){
+
+  const username =
+    document.getElementById("newUsername").value;
+
+  const password =
+    document.getElementById("newPassword").value;
+
+  const r = await fetch("/master/update-account",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      username,
+      password
+    })
+  });
+
+  const data = await r.json();
+
+  alert(data.message || "Guardado");
+}
 
 
 </script>

@@ -644,6 +644,54 @@ function getGain(j, tirage, config){
     }
   }
 
+  if(type === "MAR"){
+
+  const isGratis =
+    j.gratis === true ||
+    j.free === true ||
+    Number(j.montant || 0) === 0;
+
+  const parts = String(num)
+    .replace("-", "x")
+    .replace("*", "x")
+    .split("x")
+    .map(x => pad2(x));
+
+  const played = parts.join("");
+
+  const wins = [
+    r2 + r3,
+    r2 + r4,
+    r3 + r4
+  ];
+
+  if(wins.includes(played)){
+
+    if(isGratis){
+      return Number(j.payoutGratis || 0);
+    }
+
+    pay = payout(config, "premios.mariage", 1000);
+    return montant * pay;
+  }
+}
+
+
+const wins = [
+  r2 + r3,
+  r2 + r4,
+  r3 + r4
+];
+
+const wonOnce = wins.some(function(w){
+  return w === played;
+});
+
+if(wonOnce){
+  return Number(j.payoutGratis || 0);
+}
+
+
   // =========================
   // MARIAGE
   // =========================
@@ -1249,6 +1297,68 @@ function normGameType(v){
   return s;
 }
 
+function getFreeMariageCount(total){
+  total = Number(total || 0);
+
+  if(total < 50) return 0;
+  if(total >= 250) return 5;
+
+  return Math.floor(total / 50);
+}
+
+function buildFreeMariagesForTicket(tirages, total, appConfig, vendor){
+
+  const mg = appConfig.mariageGratis || {};
+
+  const vendorBonus =
+    vendor &&
+    (
+      vendor.bono === true ||
+      vendor.bonus === true ||
+      vendor.activarBono === true ||
+      vendor.config?.activarBono === true ||
+      vendor.config?.bono === true
+    );
+
+  if(!mg.enabled || !vendorBonus){
+    return [];
+  }
+
+  const count = getFreeMariageCount(total);
+
+  if(count <= 0) return [];
+
+  const nums = [
+    "00x11",
+    "22x33",
+    "44x55",
+    "66x77",
+    "88x99"
+  ];
+
+  const gratuits = [];
+
+  for(const t of tirages){
+
+    for(let i = 0; i < count; i++){
+
+      gratuits.push({
+        type: "MAR",
+        numero: nums[i],
+        montant: 0,
+        gratis: true,
+        free: true,
+        payoutGratis: Number(mg.payout || 1000),
+        loteria: t.loteria || t.name || t
+      });
+
+    }
+
+  }
+
+  return gratuits;
+}
+
 
 app.post("/api/tickets", async (req, res) => {
   try {
@@ -1501,6 +1611,20 @@ for(const j of safeJeux){
     const ticketId =
       "T" + Date.now().toString() +
       Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      const appConfig =
+  await AppConfig.findOne({ key:"main" }).lean()
+  || {};
+
+const freeMariages =
+  buildFreeMariagesForTicket(
+    tirages,
+    total,
+    appConfig,
+    vendor
+  );
+
+jeux = jeux.concat(freeMariages);
 
     const ticket = await Ticket.create({
       id: ticketId,

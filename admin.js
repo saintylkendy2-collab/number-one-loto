@@ -2909,14 +2909,15 @@ alt="logo">
 </div>
    <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
  
-   <div class="side-menu-item"
+  <div class="side-menu-item"
      id="menu-cuenta"
      onclick="document.getElementById('ventasPage').innerHTML =
 '<div class=&quot;page-title&quot;>Mi Cuenta</div>' +
 '<div class=&quot;table-card&quot; style=&quot;padding:14px;&quot;>' +
 '<input id=&quot;newUsername&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo username&quot;>' +
 '<input id=&quot;newPassword&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo password&quot;>' +
-'<button class=&quot;login-btn&quot; onclick=&quot;saveAccount()&quot;>Guardar</button>' +
+'<input id=&quot;securityPin&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;PIN sécurité&quot;>' +
+'<button class=&quot;login-btn&quot; onclick=&quot;if(document.getElementById(&#39;securityPin&#39;).value !== &#39;1234&#39;){alert(&#39;PIN incorrect&#39;);return;}saveAccount();&quot;>Guardar</button>' +
 '</div>';
 goPage('ventas');">
   <span>Mi Cuenta</span>

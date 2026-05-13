@@ -1316,6 +1316,18 @@ function getFreeMariageCount(total){
   );
 }
 
+function randomFreeMariage(){
+  const a = String(Math.floor(Math.random() * 100)).padStart(2, "0");
+
+  let b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
+
+  while(b === a){
+    b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
+  }
+
+  return a + "x" + b;
+}
+
 function buildFreeMariagesForTicket(tirages, jeux, appConfig, vendor){
 
   const mg = appConfig.mariageGratis || {};

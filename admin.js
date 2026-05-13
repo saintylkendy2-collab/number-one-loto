@@ -4671,21 +4671,21 @@ ticketsRows.forEach(function(t){
 '<tfoot>' +
   '<tr>' +
 
-    '<td style="padding:16px 18px;font-weight:900;">TOTAL</td>' +
+    '<td><b>TOTAL</b></td>' +
 
-    '<td style="padding:16px 18px;text-align:right;font-weight:900;">' +
+    '<td style="text-align:right;"><b>' +
       formatAmount(totalVenta) +
-    '</td>' +
+    '</b></td>' +
 
-    '<td style="padding:16px 18px;text-align:right;font-weight:900;">' +
+    '<td style="text-align:right;"><b>' +
       formatAmount(totalPremios) +
-    '</td>' +
+    '</b></td>' +
 
-    '<td class="' + (totalResultado >= 0 ? 'result-ok' : 'result-bad') + '" style="padding:16px 18px;text-align:right;font-weight:900;">' +
+    '<td class="' + (totalResultado >= 0 ? 'result-ok' : 'result-bad') + '" style="text-align:right;"><b>' +
       formatAmount(totalResultado) +
-    '</td>' +
+    '</b></td>' +
 
-    '<td style="padding:16px 18px;"></td>' +
+    '<td></td>' +
 
   '</tr>' +
 '</tfoot>' +

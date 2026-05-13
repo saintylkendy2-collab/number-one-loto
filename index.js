@@ -5390,7 +5390,11 @@ const sellerName = String(
       if (typeRaw === "BOR") type = "Borlette";
       else if (typeRaw === "MAR") type = "Mariage";
 
-      let key = type + "|" + numero + "|" + montant;
+      let loterie =
+  String(j.loterie || j.loteria || "").trim().toUpperCase();
+
+let key =
+  loterie + "|" + type + "|" + numero + "|" + montant;
 
    if (!gameMap[key]) {
 

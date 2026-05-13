@@ -2907,13 +2907,8 @@ alt="logo">
   <div class="side-menu-item" id="menu-loterias" onclick="goPage('loterias')">
   <span>Loterías</span>
 </div>
+   <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
  <div class="side-menu-item"
-     id="menu-vendors"
-     onclick="goPage('vendors')">
-  <span>Vendedores</span>
-</div>
-
-<div class="side-menu-item"
      id="menu-cuenta"
      onclick="openAccountPage()">
   <span>Mi Cuenta</span>
@@ -6614,7 +6609,7 @@ if(mariageGratis){
 
 window.openAccountPage = function(){
 
-  document.getElementById("app").innerHTML =
+  document.getElementById("content").innerHTML =
 
     '<div class="account-box">' +
 

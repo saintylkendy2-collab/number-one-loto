@@ -1358,23 +1358,27 @@ const vendorBonus =
 
   const gratuits = [];
 
-  for(const t of tirages){
+ for(const t of tirages){
 
-    for(let i = 0; i < count; i++){
+  const loterieName =
+    t.loterie || t.loteria || t.name || t;
 
-      gratuits.push({
-        type: "MAR",
-        numero: randomFreeMariage(),
-        montant: 0,
-        gratis: true,
-        free: true,
-        payoutGratis: Number(mg.payout || 1000),
-        loteria: t.loteria || t.name || t
-      });
+  for(let i = 0; i < count; i++){
 
-    }
+    gratuits.push({
+      type: "MAR",
+      numero: randomFreeMariage(),
+      montant: 0,
+      gratis: true,
+      free: true,
+      payoutGratis: Number(mg.payout || 1000),
+
+      loterie: loterieName,
+      loteria: loterieName
+    });
 
   }
+}
 
   return gratuits;
 }
@@ -1643,6 +1647,10 @@ const freeMariages =
     appConfig,
     vendor
   );
+
+jeux = jeux.filter(j =>
+  !(j.gratis === true || j.free === true)
+);
 
 jeux.push(...freeMariages);
 

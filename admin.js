@@ -4669,7 +4669,7 @@ ticketsRows.forEach(function(t){
 
             '</tbody>' +
             '<tfoot>' +
-  '<tr style="transform:translateX(8px);">' +
+  '<tr style="transform:translateX(16px);">' +
                 '<td style="transform:translateX(8px);"><b>TOTAL</b></td>' +
                 '<td><b>' + formatAmount(totalVenta) + '</b></td>' +
                 '<td style="transform:translateX(6px);"><b>' + formatAmount(totalPremios) + '</b></td>' +

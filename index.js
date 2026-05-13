@@ -5519,6 +5519,8 @@ ${loteriesHtml}
 
 ${gamesHtml}
 
+${freeHtml}
+
 <div class="line"></div>
 
 <div class="total">TOTAL: ${total.toFixed(2)} G</div>

@@ -2908,12 +2908,10 @@ alt="logo">
   <span>Loterías</span>
 </div>
   <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
-  <div class="side-menu-item"
+ <div class="side-menu-item"
      id="menu-cuenta"
-     onclick="alert('Mi Cuenta OK')"
-
+     onclick="openAccountPage()">
   <span>Mi Cuenta</span>
-
 </div>
 
   <div class="side-menu-section">MONITOREO</div>

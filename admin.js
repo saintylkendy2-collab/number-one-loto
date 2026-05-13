@@ -2866,7 +2866,9 @@ tbody tr:nth-child(even){background:#313652;}
 <div id="sideMenu" class="side-menu">
   <div class="side-menu-header">
     <div class="side-menu-logo-wrap">
-      <img class="side-menu-logo-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/240px-Placeholder_view_vector.svg.png" alt="logo">
+      <img class="side-menu-logo-img"
+src="/logo.png"
+alt="logo">
       <div class="side-menu-logo">NUMBER ONE LOTO</div>
     </div>
     <div id="menuCloseBtn" class="side-menu-close" onclick="closeSideMenu()">✕</div>

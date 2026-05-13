@@ -1358,26 +1358,24 @@ const vendorBonus =
 
   const gratuits = [];
 
- for(const t of tirages){
+ for(let i = 0; i < count; i++){
+
+  const t = tirages[i % tirages.length];
 
   const loterieName =
     t.loterie || t.loteria || t.name || t;
 
-  for(let i = 0; i < count; i++){
+  gratuits.push({
+    type: "MAR",
+    numero: randomFreeMariage(),
+    montant: 0,
+    gratis: true,
+    free: true,
+    payoutGratis: Number(mg.payout || 1000),
+    loterie: loterieName,
+    loteria: loterieName
+  });
 
-    gratuits.push({
-      type: "MAR",
-      numero: randomFreeMariage(),
-      montant: 0,
-      gratis: true,
-      free: true,
-      payoutGratis: Number(mg.payout || 1000),
-
-      loterie: loterieName,
-      loteria: loterieName
-    });
-
-  }
 }
 
   return gratuits;

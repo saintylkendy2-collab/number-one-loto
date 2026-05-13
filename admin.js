@@ -6615,60 +6615,7 @@ if(mariageGratis){
 
 }
 
-window.openAccountPage = function(){
 
-  document.getElementById("content").innerHTML =
-
-    '<div class="account-box">' +
-
-      '<div class="account-title">' +
-        'Mi Cuenta' +
-      '</div>' +
-
-      '<input ' +
-        'id="newUsername" ' +
-        'class="account-input" ' +
-        'placeholder="Nuevo username">' +
-
-      '<input ' +
-        'id="newPassword" ' +
-        'type="password" ' +
-        'class="account-input" ' +
-        'placeholder="Nuevo password">' +
-
-      '<button ' +
-        'class="account-btn" ' +
-        'onclick="saveAccount()">' +
-        'Guardar' +
-      '</button>' +
-
-    '</div>';
-
-}
-
-async function saveAccount(){
-
-  const username =
-    document.getElementById("newUsername").value;
-
-  const password =
-    document.getElementById("newPassword").value;
-
-  const r = await fetch("/master/update-account",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      username,
-      password
-    })
-  });
-
-  const data = await r.json();
-
-  alert(data.message || "Guardado");
-}
 
 </script>
 

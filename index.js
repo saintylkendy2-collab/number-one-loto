@@ -1327,7 +1327,7 @@ console.log("VENDOR BONUS:", vendor.bono, vendor.bonus, vendor.activarBono, vend
       vendor.bono === true ||
       vendor.bonus === true ||
       vendor.activarBono === true ||
-      vendor.config?.activarBono === true ||
+      String(vendor.config?.activarBono) === "true" ||
       vendor.config?.bono === true
     );
 

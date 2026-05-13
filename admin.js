@@ -4556,43 +4556,72 @@ async function openHomeDashboard(){
   let pendientes = 0;
   let ganadores = 0;
 
-  ticketsRows.forEach(function(t){
+const today = todayISO();
 
-    const status = safe(t.status).toUpperCase();
+ticketsRows.forEach(function(t){
 
-    if(status === "ANILE") return;
+  let d = "";
 
-    if(status === "ANATAN") pendientes++;
-    else evaluados++;
+  if(t.dateLabel){
+    const p = String(t.dateLabel).split("/");
+    if(p.length === 3){
+      d = p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+    }
+  }
 
-    if(status === "GANYE") ganadores++;
+  if(!d && t.createdAt){
+    const dt = new Date(t.createdAt);
+    d =
+      dt.getFullYear() + "-" +
+      String(dt.getMonth() + 1).padStart(2,"0") + "-" +
+      String(dt.getDate()).padStart(2,"0");
+  }
 
-    (t.jeux || []).forEach(function(j){
+  // ✅ pran sèlman tickets jounen an
+  if(d !== today) return;
 
-      const lot = safe(j.loterie || "SIN LOTERIA").toUpperCase();
-      const venta = parseAmount(j.montant || j.monto || j.amount || 0);
-      const premio = parseAmount(j.gain || 0);
+  const status = safe(t.status).toUpperCase();
 
-      if(!map[lot]){
-        map[lot] = {
-          loteria: lot,
-          venta: 0,
-          premio: 0,
-          resultado: 0,
-          sorteo: ""
-        };
-      }
+  if(status === "ANILE") return;
 
-      map[lot].venta += venta;
-      map[lot].premio += premio;
-      map[lot].resultado += venta - premio;
+  if(status === "ANATAN") pendientes++;
+  else evaluados++;
 
-      totalVenta += venta;
-      totalPremios += premio;
-      totalResultado += venta - premio;
-    });
+  if(status === "GANYE") ganadores++;
 
+  (t.jeux || []).forEach(function(j){
+
+    const lot = safe(j.loterie).toUpperCase().trim();
+
+    // ✅ si pa gen loterie, pa montre li
+    if(!lot) return;
+
+    const venta = parseAmount(j.montant || j.monto || j.amount || 0);
+    const premio = parseAmount(j.gain || 0);
+
+    // ✅ si loterie pa vann jodi a, pa monte
+    if(venta <= 0 && premio <= 0) return;
+
+    if(!map[lot]){
+      map[lot] = {
+        loteria: lot,
+        venta: 0,
+        premio: 0,
+        resultado: 0,
+        sorteo: ""
+      };
+    }
+
+    map[lot].venta += venta;
+    map[lot].premio += premio;
+    map[lot].resultado += venta - premio;
+
+    totalVenta += venta;
+    totalPremios += premio;
+    totalResultado += venta - premio;
   });
+
+});
 
   const totalComision = ventasRows.reduce(function(a,b){
     return a + parseAmount(b.comision);

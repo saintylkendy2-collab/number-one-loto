@@ -2909,17 +2909,9 @@ alt="logo">
 </div>
    <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
  
-   <div class="side-menu-item"
+ <div class="side-menu-item"
      id="menu-cuenta"
-     onclick="document.getElementById('ventasPage').innerHTML =
-'<div class=&quot;page-title&quot;>Mi Cuenta</div>' +
-'<div class=&quot;table-card&quot; style=&quot;padding:14px;&quot;>' +
-'<input id=&quot;newUsername&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo username&quot;>' +
-'<input id=&quot;newPassword&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo password&quot;>' +
-'<input id=&quot;securityPin&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;PIN sécurité&quot;>' +
-'<button class=&quot;login-btn&quot; onclick=&quot;if(document.getElementById(&#39;securityPin&#39;).value != &#39;1234&#39;){alert(&#39;PIN incorrect&#39;)}else{saveAccount()}&quot;>Guardar</button>' +
-'</div>';
-goPage('ventas');">
+     onclick="openMiCuenta()">
   <span>Mi Cuenta</span>
 </div>
 
@@ -3874,32 +3866,6 @@ async function loadBalanceReport(){
     console.error(err);
     balanceRows = [];
     renderBalanceTable();
-  }
-}
-
-function loginMaster() {
-  const user = byId("username");
-  const pass = byId("password");
-  const loginPage = byId("loginPage");
-  const appPage = byId("appPage");
-
-  if (!user || !pass || !loginPage || !appPage) return;
-
-  const u = user.value.trim();
-  const p = pass.value.trim();
-
-  if (u === "Number" && p === "1234") {
-    loginPage.style.display = "none";
-    appPage.classList.remove("hidden");
-    appPage.style.display = "block";
-
-    loadVendorsFromServer();
-    loadVentasReport();
-    loadBalanceReport();
-
-    goPage("ventas");
-  } else {
-    alert("Login incorrect");
   }
 }
 
@@ -6616,16 +6582,135 @@ if(mariageGratis){
 
 }
 
-async function saveAccount(){
+function getMasterUser(){
+  return localStorage.getItem("masterUsername") || "Number";
+}
 
-  const username =
-    document.getElementById("newUsername").value;
+function getMasterPass(){
+  return localStorage.getItem("masterPassword") || "1234";
+}
 
-  const password =
-    document.getElementById("newPassword").value;
+function getSecurityPin(){
+  return localStorage.getItem("securityPin") || "1234";
+}
 
-  alert("Guardado");
+function loginMaster() {
+  const user = byId("username");
+  const pass = byId("password");
+  const loginPage = byId("loginPage");
+  const appPage = byId("appPage");
 
+  if (!user || !pass || !loginPage || !appPage) return;
+
+  const u = user.value.trim();
+  const p = pass.value.trim();
+
+  if (u === getMasterUser() && p === getMasterPass()) {
+    loginPage.style.display = "none";
+    appPage.classList.remove("hidden");
+    appPage.style.display = "block";
+
+    loadVendorsFromServer();
+    loadVentasReport();
+    loadBalanceReport();
+
+    goPage("ventas");
+  } else {
+    alert("Login incorrect");
+  }
+}
+
+function openMiCuenta(){
+  showMasterPage("ventasPage");
+
+  byId("ventasPage").innerHTML =
+    '<div class="page-title">Mi Cuenta</div>' +
+
+    '<div class="table-card" style="padding:14px;">' +
+
+      '<div class="field-group">' +
+        '<div class="field-label">Nuevo username</div>' +
+        '<input id="newUsername" class="field-input" value="' + getMasterUser() + '">' +
+      '</div>' +
+
+      '<div class="field-group">' +
+        '<div class="field-label">Nuevo password</div>' +
+        '<input id="newPassword" type="password" class="field-input" placeholder="Nuevo password">' +
+      '</div>' +
+
+      '<div class="field-group">' +
+        '<div class="field-label">PIN sécurité actuel</div>' +
+        '<input id="securityPin" type="password" class="field-input" placeholder="PIN actuel obligatoire">' +
+      '</div>' +
+
+      '<button class="login-btn" onclick="saveAccount()">Guardar cuenta</button>' +
+
+      '<hr style="border:0;border-top:1px solid rgba(255,255,255,.12);margin:22px 0;">' +
+
+      '<div class="page-title" style="font-size:20px;">Changer PIN</div>' +
+
+      '<div class="field-group">' +
+        '<div class="field-label">PIN actuel</div>' +
+        '<input id="oldSecurityPin" type="password" class="field-input" placeholder="PIN actuel">' +
+      '</div>' +
+
+      '<div class="field-group">' +
+        '<div class="field-label">Nouveau PIN</div>' +
+        '<input id="newSecurityPin" type="password" class="field-input" placeholder="Nouveau PIN">' +
+      '</div>' +
+
+      '<button class="login-btn" onclick="changeSecurityPin()">Changer PIN</button>' +
+
+    '</div>';
+
+  currentPage = "cuenta";
+  setMenuActive("cuenta");
+  closeSideMenu();
+}
+
+function saveAccount(){
+  const pin = getValue("securityPin").trim();
+
+  if(pin !== getSecurityPin()){
+    alert("PIN incorrect");
+    return;
+  }
+
+  const username = getValue("newUsername").trim();
+  const password = getValue("newPassword").trim();
+
+  if(!username){
+    alert("Username obligatoire");
+    return;
+  }
+
+  localStorage.setItem("masterUsername", username);
+
+  if(password){
+    localStorage.setItem("masterPassword", password);
+  }
+
+  alert("Cuenta guardada ✔");
+}
+
+function changeSecurityPin(){
+  const oldPin = getValue("oldSecurityPin").trim();
+  const newPin = getValue("newSecurityPin").trim();
+
+  if(oldPin !== getSecurityPin()){
+    alert("PIN actuel incorrect");
+    return;
+  }
+
+  if(!newPin){
+    alert("Mete nouveau PIN la");
+    return;
+  }
+
+  localStorage.setItem("securityPin", newPin);
+
+  alert("PIN changé ✔");
+  openMiCuenta();
 }
 
 </script>

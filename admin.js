@@ -2150,7 +2150,15 @@ router.post(
   }
 );
 
-router.get("/master/vendors", (req, res) => {
+router.get("/master/vendors", async (req, res) => {
+
+  const appConfig =
+    await AppConfig.findOne({ key: "main" }).lean()
+    || {};
+
+  const logoUrl =
+    appConfig.ticketLogo || "";
+
   res.send(`
 <!DOCTYPE html>
 <html lang="es">
@@ -2864,8 +2872,8 @@ tbody tr:nth-child(even){background:#313652;}
 <div id="menuOverlay" class="menu-overlay"></div>
 
 <div class="side-menu-logo-wrap">
-  <img class="side-menu-logo-img"
-src="${appConfig.logo}"
+<img class="side-menu-logo-img"
+src="${logoUrl}"
 alt="logo">
 
   <div class="side-menu-logo">

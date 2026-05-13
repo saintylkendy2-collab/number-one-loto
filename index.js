@@ -1345,13 +1345,16 @@ const vendorBonus =
 
   if(count <= 0) return [];
 
-  const nums = [
-    "00x11",
-    "22x33",
-    "44x55",
-    "66x77",
-    "88x99"
-  ];
+  function randomFreeMariage(){
+  const a = pad2(Math.floor(Math.random() * 100));
+  let b = pad2(Math.floor(Math.random() * 100));
+
+  while(b === a){
+    b = pad2(Math.floor(Math.random() * 100));
+  }
+
+  return a + "x" + b;
+}
 
   const gratuits = [];
 
@@ -1361,7 +1364,7 @@ const vendorBonus =
 
       gratuits.push({
         type: "MAR",
-        numero: nums[i],
+        numero: randomFreeMariage(),
         montant: 0,
         gratis: true,
         free: true,
@@ -5389,7 +5392,10 @@ const sellerName = String(
     });
 
     Object.values(gameMap).forEach(g => {
-      let totalLine = (g.montant * g.count).toFixed(2);
+      let totalLine =
+  g.gratis || g.free
+    ? "Gratis"
+    : (g.montant * g.count).toFixed(2);
 
       gamesHtml +=
         '<div class="game-row">' +

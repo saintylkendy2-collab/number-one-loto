@@ -2909,15 +2909,14 @@ alt="logo">
 </div>
    <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
  
-<div class="side-menu-item"
+   <div class="side-menu-item"
      id="menu-cuenta"
      onclick="document.getElementById('ventasPage').innerHTML =
 '<div class=&quot;page-title&quot;>Mi Cuenta</div>' +
 '<div class=&quot;table-card&quot; style=&quot;padding:14px;&quot;>' +
 '<input id=&quot;newUsername&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo username&quot;>' +
 '<input id=&quot;newPassword&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo password&quot;>' +
-'<input id=&quot;securityPin&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;PIN sécurité&quot;>' +
-'<button class=&quot;login-btn&quot; onclick=&quot;if(document.getElementById(&#39;securityPin&#39;).value != &#39;1234&#39;){alert(&#39;PIN incorrect&#39;);return false;}saveAccount();&quot;>Guardar</button>' +
+'<button class=&quot;login-btn&quot; onclick=&quot;saveAccount()&quot;>Guardar</button>' +
 '</div>';
 goPage('ventas');">
   <span>Mi Cuenta</span>
@@ -6616,29 +6615,6 @@ if(mariageGratis){
 
 }
 
-async function saveAccount(){
-
-  const username =
-    document.getElementById("newUsername").value;
-
-  const password =
-    document.getElementById("newPassword").value;
-
-  const r = await fetch("/master/update-account",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      username,
-      password
-    })
-  });
-
-  const data = await r.json();
-
-  alert(data.message || "Guardado");
-}
 
 
 </script>

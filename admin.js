@@ -6616,7 +6616,17 @@ if(mariageGratis){
 
 }
 
+async function saveAccount(){
 
+  const username =
+    document.getElementById("newUsername").value;
+
+  const password =
+    document.getElementById("newPassword").value;
+
+  alert("Guardado");
+
+}
 
 </script>
 

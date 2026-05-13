@@ -4670,13 +4670,26 @@ ticketsRows.forEach(function(t){
             '</tbody>' +
 '<tfoot>' +
   '<tr>' +
-    '<td style="padding:14px 18px;text-align:left;"><b>TOTAL</b></td>' +
-    '<td style="padding:14px 18px;text-align:right;"><b>' + formatAmount(totalVenta) + '</b></td>' +
-    '<td style="padding:14px 18px;text-align:right;"><b>' + formatAmount(totalPremios) + '</b></td>' +
-    '<td class="' + (totalResultado >= 0 ? "result-ok" : "result-bad") + '" style="padding:14px 18px;text-align:right;"><b>' + formatAmount(totalResultado) + '</b></td>' +
-    '<td style="padding:14px 18px;text-align:right;"></td>' +
+
+    '<td style="padding:14px 18px;"><b>TOTAL</b></td>' +
+
+    '<td style="padding:14px 18px;text-align:right;">' +
+      '<b>' + formatAmount(totalVenta) + '</b>' +
+    '</td>' +
+
+    '<td style="padding:14px 18px;text-align:right;">' +
+      '<b>' + formatAmount(totalPremios) + '</b>' +
+    '</td>' +
+
+    '<td class="' + (totalResultado >= 0 ? 'result-ok' : 'result-bad') + '" style="padding:14px 18px;text-align:right;">' +
+      '<b>' + formatAmount(totalResultado) + '</b>' +
+    '</td>' +
+
+    // ✅ kolòn SORTÉO a
+    '<td style="padding:14px 18px;"></td>' +
+
   '</tr>' +
-'</tfoot>'
+'</tfoot>' +
           '</table>' +
         '</div>' +
       '</div>' +

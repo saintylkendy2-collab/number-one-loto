@@ -6609,8 +6609,8 @@ if(mariageGratis){
 
 function openAccountPage(){
 
-  document.getElementById("app").innerHTML = 
-  
+  document.getElementById("app").innerHTML =
+
     '<div class="account-box">' +
 
       '<div class="account-title">' +
@@ -6635,6 +6635,7 @@ function openAccountPage(){
       '</button>' +
 
     '</div>';
+
 }
 
 async function saveAccount(){

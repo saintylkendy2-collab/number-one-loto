@@ -4671,22 +4671,21 @@ ticketsRows.forEach(function(t){
 '<tfoot>' +
   '<tr>' +
 
-    '<td style="padding:14px 18px;"><b>TOTAL</b></td>' +
+    '<td style="padding:16px 18px;font-weight:900;">TOTAL</td>' +
 
-    '<td style="padding:14px 18px;text-align:right;">' +
-      '<b>' + formatAmount(totalVenta) + '</b>' +
+    '<td style="padding:16px 18px;text-align:right;font-weight:900;">' +
+      formatAmount(totalVenta) +
     '</td>' +
 
-    '<td style="padding:14px 18px;text-align:right;">' +
-      '<b>' + formatAmount(totalPremios) + '</b>' +
+    '<td style="padding:16px 18px;text-align:right;font-weight:900;">' +
+      formatAmount(totalPremios) +
     '</td>' +
 
-    '<td class="' + (totalResultado >= 0 ? 'result-ok' : 'result-bad') + '" style="padding:14px 18px;text-align:right;">' +
-      '<b>' + formatAmount(totalResultado) + '</b>' +
+    '<td class="' + (totalResultado >= 0 ? 'result-ok' : 'result-bad') + '" style="padding:16px 18px;text-align:right;font-weight:900;">' +
+      formatAmount(totalResultado) +
     '</td>' +
 
-    // ✅ kolòn SORTÉO a
-    '<td style="padding:14px 18px;"></td>' +
+    '<td style="padding:16px 18px;"></td>' +
 
   '</tr>' +
 '</tfoot>' +

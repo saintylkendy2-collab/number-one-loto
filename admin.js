@@ -2910,7 +2910,7 @@ alt="logo">
   <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
   <div class="side-menu-item"
      id="menu-cuenta"
-     onclick="openAccountPage()">
+     onclick="alert('Mi Cuenta OK')"
 
   <span>Mi Cuenta</span>
 

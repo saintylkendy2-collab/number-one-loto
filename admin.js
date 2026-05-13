@@ -2863,14 +2863,15 @@ tbody tr:nth-child(even){background:#313652;}
 
 <div id="menuOverlay" class="menu-overlay"></div>
 
-<div id="sideMenu" class="side-menu">
-  <div class="side-menu-header">
-    <div class="side-menu-logo-wrap">
-<img class="side-menu-logo-img"
-src="/logo.png"
-alt="logo">
-      <div class="side-menu-logo">NUMBER ONE LOTO</div>
-    </div>
+<div class="side-menu-logo-wrap">
+  <img class="side-menu-logo-img"
+  src="${APP_CONFIG.logo}"
+  alt="logo">
+
+  <div class="side-menu-logo">
+    NUMBER ONE LOTO
+  </div>
+</div>
     <div id="menuCloseBtn" class="side-menu-close" onclick="closeSideMenu()">✕</div>
   </div>
 

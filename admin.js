@@ -4414,6 +4414,12 @@ async function deleteSorteo(loteria){
 async function goPage(page){
   currentPage = page;
 
+  const homeDashboardPage = byId("homeDashboardPage");
+  if(homeDashboardPage){
+    homeDashboardPage.classList.add("hidden");
+    homeDashboardPage.style.display = "none";
+  }
+
   const today = todayISO();
 
   await loadGrupoSelects();

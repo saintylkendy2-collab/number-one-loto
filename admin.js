@@ -4521,152 +4521,80 @@ loadLimitesAjustes();
   closeSideMenu();
 }
 
-function openHomeDashboard(){
 
-  hideAllMasterPages();
+async function openHomeDashboard(){
+
+  "homeDashboardPage",
+
+  await loadVentasReport();
 
   let page = byId("homeDashboardPage");
 
   if(!page){
-
     page = document.createElement("div");
-
     page.id = "homeDashboardPage";
     page.className = "page-block";
 
-    document.querySelector(".main-content").appendChild(page);
+    const app = byId("appPage");
+    if(app){
+      app.appendChild(page);
+    }
   }
 
   page.classList.remove("hidden");
+  page.style.display = "block";
 
-  const totalVenta =
-    ventasRows.reduce((a,b)=>a + parseAmount(b.venta),0);
-
-  const totalPremios =
-    ventasRows.reduce((a,b)=>a + parseAmount(b.premios),0);
-
-  const totalComision =
-    ventasRows.reduce((a,b)=>a + parseAmount(b.comision),0);
-
-  const totalResultado =
-    ventasRows.reduce((a,b)=>a + parseAmount(b.resultado),0);
+  const totalVenta = ventasRows.reduce((a,b)=>a + parseAmount(b.venta),0);
+  const totalPremios = ventasRows.reduce((a,b)=>a + parseAmount(b.premios),0);
+  const totalComision = ventasRows.reduce((a,b)=>a + parseAmount(b.comision),0);
+  const totalResultado = ventasRows.reduce((a,b)=>a + parseAmount(b.resultado),0);
 
   page.innerHTML =
+    '<div style="padding:18px;">' +
 
-  '<div style="padding:18px;">' +
-
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">' +
-
-      cardBox(
-        "Ventas",
-        formatAmount(totalVenta),
-        "#00d2ff"
-      ) +
-
-      cardBox(
-        "Comisión",
-        formatAmount(totalComision),
-        "#7c4dff"
-      ) +
-
-      cardBox(
-        "Premios",
-        formatAmount(totalPremios),
-        "#ff4d6d"
-      ) +
-
-      cardBox(
-        "Resultados",
-        formatAmount(totalResultado),
-        "#35d07f"
-      ) +
-
-    '</div>' +
-
-    '<div class="table-card" style="margin-top:20px;">' +
-
-      '<div class="table-scroll">' +
-
-        '<table>' +
-
-          '<thead>' +
-            '<tr>' +
-              '<th>LOTERIA</th>' +
-              '<th>VENTA</th>' +
-              '<th>PREMIO</th>' +
-              '<th>RESULTADO</th>' +
-            '</tr>' +
-          '</thead>' +
-
-          '<tbody>' +
-
-            ventasRows.map(function(r){
-
-              return '' +
-
-              '<tr>' +
-
-                '<td>' + safe(r.nombre) + '</td>' +
-
-                '<td>' +
-                  formatAmount(r.venta) +
-                '</td>' +
-
-                '<td>' +
-                  formatAmount(r.premios) +
-                '</td>' +
-
-                '<td class="' +
-                  (parseAmount(r.resultado) >= 0
-                    ? 'result-ok'
-                    : 'result-bad') +
-                '">' +
-
-                  formatAmount(r.resultado) +
-
-                '</td>' +
-
-              '</tr>';
-
-            }).join("") +
-
-          '</tbody>' +
-
-        '</table>' +
-
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">' +
+        cardBox("Ventas", "HTG " + formatAmount(totalVenta), "#00d2ff") +
+        cardBox("Comisión", "HTG " + formatAmount(totalComision), "#7c4dff") +
+        cardBox("Premios", "HTG " + formatAmount(totalPremios), "#ff4d6d") +
+        cardBox("Resultados", "HTG " + formatAmount(totalResultado), totalResultado >= 0 ? "#35d07f" : "#ff9f43") +
       '</div>' +
 
-    '</div>' +
+      '<div class="table-card" style="margin-top:20px;">' +
+        '<div class="table-scroll">' +
+          '<table>' +
+            '<thead>' +
+              '<tr>' +
+                '<th>VENDEDOR</th>' +
+                '<th>VENTA</th>' +
+                '<th>PREMIO</th>' +
+                '<th>RESULTADO</th>' +
+              '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+              ventasRows.map(function(r){
+                return '<tr>' +
+                  '<td>' + safe(r.nombre) + '</td>' +
+                  '<td>' + formatAmount(r.venta) + '</td>' +
+                  '<td>' + formatAmount(r.premios) + '</td>' +
+                  '<td class="' + (parseAmount(r.resultado) >= 0 ? 'result-ok' : 'result-bad') + '">' +
+                    formatAmount(r.resultado) +
+                  '</td>' +
+                '</tr>';
+              }).join("") +
+            '</tbody>' +
+          '</table>' +
+        '</div>' +
+      '</div>' +
 
-  '</div>';
+    '</div>';
+
+  closeSideMenu();
 }
 
 function cardBox(title,value,color){
-
-  return '' +
-
-  '<div style="' +
-    'background:#252946;' +
-    'border-radius:22px;' +
-    'padding:22px;' +
-    'border-bottom:4px solid ' + color + ';' +
-  '">' +
-
-    '<div style="font-size:18px;color:#cfd3ff;">' +
-      title +
-    '</div>' +
-
-    '<div style="' +
-      'font-size:42px;' +
-      'font-weight:900;' +
-      'margin-top:14px;' +
-      'color:' + color + ';' +
-    '">' +
-
-      'HTG ' + value +
-
-    '</div>' +
-
+  return '<div style="background:#252946;border-radius:18px;padding:22px;border-bottom:4px solid '+color+';">' +
+    '<div style="font-size:18px;color:#cfd3ff;">' + title + '</div>' +
+    '<div style="font-size:34px;font-weight:900;margin-top:14px;color:'+color+';">' + value + '</div>' +
   '</div>';
 }
 

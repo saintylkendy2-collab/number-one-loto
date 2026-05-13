@@ -1632,7 +1632,7 @@ const freeMariages =
     vendor
   );
 
-jeux = jeux.concat(freeMariages);
+jeux.push(...freeMariages);
 
     const ticket = await Ticket.create({
       id: ticketId,

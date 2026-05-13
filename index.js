@@ -5384,9 +5384,18 @@ const sellerName = String(
 
       let key = type + "|" + numero + "|" + montant;
 
-      if (!gameMap[key]) {
-        gameMap[key] = { type, numero, montant, count: 0 };
-      }
+   if (!gameMap[key]) {
+
+  gameMap[key] = {
+    type,
+    numero,
+    montant,
+    count: 0,
+    gratis: j.gratis === true,
+    free: j.free === true
+  };
+
+}
 
       gameMap[key].count++;
     });

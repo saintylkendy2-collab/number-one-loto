@@ -5382,6 +5382,11 @@ const sellerName = String(
     let gamesHtml = "";
 
     (ticket.jeux || []).forEach(j => {
+
+if (j.gratis === true || j.free === true) {
+  return;
+}
+
       let typeRaw = String(j.type || "").toUpperCase();
       let numero = String(j.numero || "").trim();
       let montant = Number(j.montant || 0);
@@ -5425,6 +5430,35 @@ let key =
           '<div class="col-amt">' + totalLine + '</div>' +
         '</div>';
     });
+
+    const freeGames = (ticket.jeux || []).filter(
+  j => j.gratis === true || j.free === true
+);
+
+let freeHtml = "";
+
+freeGames.forEach(j => {
+  let typeRaw = String(j.type || "").toUpperCase();
+
+  let type = typeRaw;
+  if (typeRaw === "BOR") type = "Borlette";
+  else if (typeRaw === "MAR") type = "Mariage";
+
+  let numero = String(j.numero || "").trim();
+
+  let loterie = String(
+    j.loterie || j.loteria || ""
+  ).trim();
+
+  freeHtml +=
+    '<div class="tirage">' + loterie + '</div>' +
+
+    '<div class="game-row">' +
+      '<div class="col-type">' + type + '</div>' +
+      '<div class="col-num">' + numero + '</div>' +
+      '<div class="col-amt">Gratis</div>' +
+    '</div>';
+});
 
     res.set("Content-Type", "text/html; charset=utf-8");
 

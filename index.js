@@ -1309,9 +1309,11 @@ function getFreeMariageCount(total){
   total = Number(total || 0);
 
   if(total < 50) return 0;
-  if(total >= 250) return 5;
 
-  return Math.floor(total / 50);
+  return Math.min(
+    5,
+    Math.floor(total / 50)
+  );
 }
 
 function buildFreeMariagesForTicket(tirages, total, appConfig, vendor){

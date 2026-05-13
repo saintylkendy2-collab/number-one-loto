@@ -1648,11 +1648,11 @@ const freeMariages =
     vendor
   );
 
-jeux = jeux.filter(j =>
-  !(j.gratis === true || j.free === true)
-);
-
-jeux.push(...freeMariages);
+const finalJeux = jeux
+  .filter(j =>
+    !(j.gratis === true || j.free === true)
+  )
+  .concat(freeMariages);
 
     const ticket = await Ticket.create({
       id: ticketId,

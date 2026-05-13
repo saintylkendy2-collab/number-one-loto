@@ -1641,11 +1641,11 @@ for(const j of safeJeux){
 
 const freeMariages =
   buildFreeMariagesForTicket(
-    tirages,
-    total,
-    appConfig,
-    vendor
-  );
+  tirages,
+  jeux,
+  appConfig,
+  vendor
+)
 
 const finalJeux = jeux
   .filter(j =>

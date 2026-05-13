@@ -2911,16 +2911,23 @@ alt="logo">
  
    <div class="side-menu-item"
      id="menu-cuenta"
-     onclick="document.getElementById('ventasPage').innerHTML =
+onclick="document.getElementById('ventasPage').innerHTML =
+
 '<div class=&quot;page-title&quot;>Mi Cuenta</div>' +
+
 '<div class=&quot;table-card&quot; style=&quot;padding:14px;&quot;>' +
+
 '<input id=&quot;newUsername&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo username&quot;>' +
+
 '<input id=&quot;newPassword&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo password&quot;>' +
-'<button class=&quot;login-btn&quot; onclick=&quot;saveAccount()&quot;>Guardar</button>' +
+
+'<input id=&quot;securityPin&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;PIN sécurité&quot;>' +
+
+'<button class=&quot;login-btn&quot; onclick=&quot;if(document.getElementById(\`securityPin\`).value !== \`1234\`){alert(\`PIN incorrect\`);return;}saveAccount()&quot;>Guardar</button>' +
+
 '</div>';
-goPage('ventas');">
-  <span>Mi Cuenta</span>
-</div>
+
+goPage('ventas');"
 
   <div class="side-menu-section">MONITOREO</div>
   <div class="side-menu-item" id="menu-tickets" onclick="goPage('tickets')">

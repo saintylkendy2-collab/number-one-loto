@@ -2908,9 +2908,17 @@ alt="logo">
   <span>Loterías</span>
 </div>
    <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
- <div class="side-menu-item"
+ 
+   <div class="side-menu-item"
      id="menu-cuenta"
-     onclick="openAccountPage()">
+     onclick="document.getElementById('ventasPage').innerHTML =
+'<div class=&quot;page-title&quot;>Mi Cuenta</div>' +
+'<div class=&quot;table-card&quot; style=&quot;padding:14px;&quot;>' +
+'<input id=&quot;newUsername&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo username&quot;>' +
+'<input id=&quot;newPassword&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo password&quot;>' +
+'<button class=&quot;login-btn&quot; onclick=&quot;saveAccount()&quot;>Guardar</button>' +
+'</div>';
+goPage('ventas');">
   <span>Mi Cuenta</span>
 </div>
 

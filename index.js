@@ -5716,12 +5716,86 @@ setTimeout(function(){
 app.get("/api/reportes/tickets", async (req, res) => {
   try {
     const tickets = await Ticket.find().sort({ createdAt: -1 }).lean();
-    res.json(tickets);
+
+    const vendorsArr = await Vendor.find().lean();
+    const vendeurs = {};
+
+    vendorsArr.forEach(v => {
+      const id = String(v.id || "").trim().toUpperCase();
+      if (id) vendeurs[id] = v;
+    });
+
+    const cleanTickets = [];
+
+    for (const t of tickets) {
+      const realId = t.id || t.ticketId || t.serial || String(t._id || "");
+      const vendorId = String(t.vendeur || "").trim().toUpperCase();
+      const vendorConfig = vendeurs[vendorId] || {};
+
+      let totalGain = 0;
+      let hasResult = false;
+
+      const jeux = [];
+
+      for (const j of t.jeux || []) {
+        const tirage = await Sorteo.findOne({
+          date: String(t.dateLabel || "").trim(),
+          loteria: {
+            $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+            $options: "i"
+          }
+        }).lean();
+
+        let gain = 0;
+
+        if (tirage) {
+          const hasBalls =
+            String(tirage.r1 || "").trim() ||
+            String(tirage.r2 || "").trim() ||
+            String(tirage.r3 || "").trim() ||
+            String(tirage.r4 || "").trim();
+
+          if (hasBalls) {
+            hasResult = true;
+            gain = getGain(j, tirage, vendorConfig);
+            totalGain += gain;
+          }
+        }
+
+        jeux.push({
+          ...j,
+          gain: gain,
+          gainLabel: money(gain)
+        });
+      }
+
+      const oldStatus = String(t.status || "").trim().toUpperCase();
+
+      cleanTickets.push({
+        ...t,
+        id: realId,
+        ticketId: realId,
+        serial: realId,
+        jeux: jeux,
+        premio: oldStatus === "ANILE" ? 0 : totalGain,
+        premioLabel: money(oldStatus === "ANILE" ? 0 : totalGain),
+        status:
+          oldStatus === "ANILE"
+            ? "ANILE"
+            : (!hasResult ? "ANATAN" : (totalGain > 0 ? "GANYE" : "PEDI"))
+      });
+    }
+
+    res.json(cleanTickets);
+
   } catch (err) {
-    console.error(err);
+    console.error("Erreur report tickets:", err);
     res.status(500).json([]);
   }
 });
+
+
+
 
 app.get("/tickets/:vendeur", async (req, res) => {
   try {

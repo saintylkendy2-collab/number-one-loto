@@ -1,4 +1,3 @@
-
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -420,6 +419,8 @@ function payout(config, key, def){
 }
 
 function getGainAdmin(j, tirage, config){
+  if (!tirage) return 0;
+
   const type = clean(j.type).toUpperCase();
   const num = clean(j.numero);
   const montant = Number(j.montant || 0);
@@ -433,14 +434,39 @@ function getGainAdmin(j, tirage, config){
 
   if(type === "BOR"){
     const played = pad2(num);
+
     if(played === r2) pay = payout(config, "premios.borlette1", 55);
     else if(played === r3) pay = payout(config, "premios.borlette2", 20);
     else if(played === r4) pay = payout(config, "premios.borlette3", 10);
   }
 
   else if(type === "MAR"){
-    if([r2+"*"+r3, r2+"*"+r4, r3+"*"+r4].includes(num)){
+    const isGratis =
+      j.gratis === true ||
+      j.free === true ||
+      Number(j.montant || 0) === 0;
+
+    const parts = String(num)
+      .replace("-", "x")
+      .replace("*", "x")
+      .split("x")
+      .map(x => pad2(x));
+
+    const played = parts.join("");
+
+    const wins = [
+      r2 + r3,
+      r2 + r4,
+      r3 + r4
+    ];
+
+    if(wins.includes(played)){
+      if(isGratis){
+        return Number(j.payoutGratis || 0);
+      }
+
       pay = payout(config, "premios.mariage", 1000);
+      return montant * pay;
     }
   }
 
@@ -1939,9 +1965,12 @@ router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
     const date = toFRDate(req.params.date);
     const loteria = String(req.params.loteria || "").trim().toUpperCase();
 
-    await Sorteo.deleteOne({ date, loteria });
+   await Sorteo.deleteOne({ date, loteria });
 
-    res.json({ ok: true });
+await runCheckTickets(date, [loteria]);
+
+res.json({ ok: true });
+
 
   } catch (err) {
     console.error("Erreur delete sorteos Mongo:", err);
@@ -2151,7 +2180,15 @@ router.post(
   }
 );
 
-router.get("/master/vendors", (req, res) => {
+router.get("/master/vendors", async (req, res) => {
+
+  const appConfig =
+    await AppConfig.findOne({ key: "main" }).lean()
+    || {};
+
+  const logoUrl =
+    appConfig.ticketLogo || "";
+
   res.send(`
 <!DOCTYPE html>
 <html lang="es">
@@ -2866,11 +2903,25 @@ tbody tr:nth-child(even){background:#313652;}
 
 <div id="sideMenu" class="side-menu">
   <div class="side-menu-header">
-    <div class="side-menu-logo-wrap">
-      <img class="side-menu-logo-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/240px-Placeholder_view_vector.svg.png" alt="logo">
-      <div class="side-menu-logo">NUMBER ONE LOTO</div>
+
+    <div class="side-menu-logo-wrap"
+         onclick="openHomeDashboard()"
+         style="cursor:pointer;">
+
+      <img class="side-menu-logo-img"
+           src="${logoUrl}"
+           alt="logo">
+
+      <div class="side-menu-logo">
+        NUMBER ONE LOTO
+      </div>
+
     </div>
-    <div id="menuCloseBtn" class="side-menu-close" onclick="closeSideMenu()">✕</div>
+
+    <div id="menuCloseBtn"
+         class="side-menu-close"
+         onclick="closeSideMenu()">✕</div>
+
   </div>
 
   <div class="side-menu-section">AJUSTES</div>
@@ -2898,8 +2949,13 @@ tbody tr:nth-child(even){background:#313652;}
   <div class="side-menu-item" id="menu-loterias" onclick="goPage('loterias')">
   <span>Loterías</span>
 </div>
-  <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
-  <div class="side-menu-item" id="menu-cuenta"><span>Mi Cuenta</span></div>
+   <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
+ 
+ <div class="side-menu-item"
+     id="menu-cuenta"
+     onclick="openMiCuenta()">
+  <span>Mi Cuenta</span>
+</div>
 
   <div class="side-menu-section">MONITOREO</div>
   <div class="side-menu-item" id="menu-tickets" onclick="goPage('tickets')">
@@ -3855,32 +3911,6 @@ async function loadBalanceReport(){
   }
 }
 
-function loginMaster() {
-  const user = byId("username");
-  const pass = byId("password");
-  const loginPage = byId("loginPage");
-  const appPage = byId("appPage");
-
-  if (!user || !pass || !loginPage || !appPage) return;
-
-  const u = user.value.trim();
-  const p = pass.value.trim();
-
-  if (u === "Number" && p === "1234") {
-    loginPage.style.display = "none";
-    appPage.classList.remove("hidden");
-    appPage.style.display = "block";
-
-    loadVendorsFromServer();
-    loadVentasReport();
-    loadBalanceReport();
-
-    goPage("ventas");
-  } else {
-    alert("Login incorrect");
-  }
-}
-
 function openSideMenu(){
   const menu = byId("sideMenu");
   const overlay = byId("menuOverlay");
@@ -4146,7 +4176,7 @@ for(var b = 0; b < btns.length; b++){
 
 }
 
-}
+} 
 
 function editLoteriaAdmin(id){
 
@@ -4414,6 +4444,12 @@ async function deleteSorteo(loteria){
 async function goPage(page){
   currentPage = page;
 
+  const homeDashboardPage = byId("homeDashboardPage");
+  if(homeDashboardPage){
+    homeDashboardPage.classList.add("hidden");
+    homeDashboardPage.style.display = "none";
+  }
+
   const today = todayISO();
 
   await loadGrupoSelects();
@@ -4520,6 +4556,206 @@ loadLimitesAjustes();
   setMenuActive(page);
   closeSideMenu();
 }
+
+async function openHomeDashboard(){
+
+  hideAllMasterPages();
+
+  await loadTicketsReport();
+
+  let page = byId("homeDashboardPage");
+
+  if(!page){
+    page = document.createElement("div");
+    page.id = "homeDashboardPage";
+    page.className = "page-block";
+
+    const app = byId("appPage");
+    if(app) app.appendChild(page);
+  }
+
+  page.classList.remove("hidden");
+  page.style.display = "block";
+
+  const map = {};
+  let totalVenta = 0;
+  let totalPremios = 0;
+  let totalResultado = 0;
+
+  let evaluados = 0;
+  let pendientes = 0;
+  let ganadores = 0;
+
+const today = todayISO();
+
+ticketsRows.forEach(function(t){
+
+  let d = "";
+
+  if(t.dateLabel){
+    const p = String(t.dateLabel).split("/");
+    if(p.length === 3){
+      d = p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+    }
+  }
+
+  if(!d && t.createdAt){
+    const dt = new Date(t.createdAt);
+    d =
+      dt.getFullYear() + "-" +
+      String(dt.getMonth() + 1).padStart(2,"0") + "-" +
+      String(dt.getDate()).padStart(2,"0");
+  }
+
+  // ✅ pran sèlman tickets jounen an
+  if(d !== today) return;
+
+  const status = safe(t.status).toUpperCase();
+
+  if(status === "ANILE") return;
+
+  if(status === "ANATAN") pendientes++;
+  else evaluados++;
+
+  if(status === "GANYE") ganadores++;
+
+  (t.jeux || []).forEach(function(j){
+
+    const lot = safe(j.loterie).toUpperCase().trim();
+
+    // ✅ si pa gen loterie, pa montre li
+    if(!lot) return;
+
+    const venta = parseAmount(j.montant || j.monto || j.amount || 0);
+    const premio = parseAmount(j.gain || 0);
+
+    // ✅ si loterie pa vann jodi a, pa monte
+    if(venta <= 0 && premio <= 0) return;
+
+    if(!map[lot]){
+      map[lot] = {
+        loteria: lot,
+        venta: 0,
+        premio: 0,
+        resultado: 0,
+        sorteo: ""
+      };
+    }
+
+    map[lot].venta += venta;
+    map[lot].premio += premio;
+    map[lot].resultado += venta - premio;
+
+    totalVenta += venta;
+    totalPremios += premio;
+    totalResultado += venta - premio;
+  });
+
+});
+
+  const totalComision = ventasRows.reduce(function(a,b){
+    return a + parseAmount(b.comision);
+  },0);
+
+  const rows = Object.values(map).sort(function(a,b){
+    return b.venta - a.venta;
+  });
+
+  page.innerHTML =
+    '<div style="padding:10px 0 28px;">' +
+
+      '<div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:18px;">' +
+        homeCard("Ventas", "HTG " + formatAmount(totalVenta), "#00d2ff", "🎟") +
+        homeCard("Comisión", "HTG " + formatAmount(totalComision), "#7c4dff", "%") +
+        homeCard("Premios", "HTG " + formatAmount(totalPremios), "#ff4d6d", "$") +
+        homeCard("Resultados", "HTG " + formatAmount(totalResultado), totalResultado >= 0 ? "#35d07f" : "#ff9f43", "💵") +
+      '</div>' +
+
+      '<div class="table-card">' +
+        '<div class="table-scroll">' +
+     '<table style="min-width:720px;">' +
+            '<thead>' +
+              '<tr>' +
+                '<th>LOTERIA</th>' +
+                '<th>VENTA</th>' +
+                '<th>PREMIO</th>' +
+                '<th>RESULTADO</th>' +
+                '<th>SORTEO</th>' +
+              '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+
+              rows.map(function(r){
+                const cls = parseAmount(r.resultado) >= 0 ? "result-ok" : "result-bad";
+
+                return '<tr>' +
+                  '<td>● ' + safe(r.loteria).slice(0,12) + '...</td>' +
+                  '<td>' + formatAmount(r.venta) + '</td>' +
+                  '<td>' + formatAmount(r.premio) + '</td>' +
+                  '<td class="' + cls + '">' + formatAmount(r.resultado) + '</td>' +
+                  '<td style="color:#00d2ff;">' + safe(r.sorteo) + '</td>' +
+                '</tr>';
+              }).join("") +
+
+            '</tbody>' +
+            '<tfoot>' +
+  '<tr style="transform:translateX(8px);">' +
+                '<td style="transform:translateX(24px);"><b>TOTAL</b></td>' +
+                '<td><b>' + formatAmount(totalVenta) + '</b></td>' +
+                '<td style="transform:translateX(6px);"><b>' + formatAmount(totalPremios) + '</b></td>' +
+                '<td class="' + (totalResultado >= 0 ? "result-ok" : "result-bad") + '"><b>' + formatAmount(totalResultado) + '</b></td>' +
+                '<td></td>' +
+              '</tr>' +
+            '</tfoot>' +
+          '</table>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="table-card" style="padding:24px;margin-top:18px;">' +
+        '<div style="font-size:46px;color:#d7dcef;margin-bottom:22px;">' +
+          formatAmount(evaluados + pendientes).replace(".00","") +
+        '</div>' +
+
+        statLine("✅", "Tickets evaluados", evaluados) +
+        statLine("🕒", "Tickets pendientes", pendientes) +
+        statLine("🔴", "Tickets ganadores", ganadores) +
+      '</div>' +
+
+    '</div>';
+
+  closeSideMenu();
+}
+
+function homeCard(title,value,color,icon){
+  return '<div style="' +
+    'background:#2a2f4a;' +
+    'border-radius:14px;' +
+    'padding:20px 22px;' +
+    'border-bottom:4px solid '+color+';' +
+    'position:relative;' +
+  '">' +
+    '<div style="font-size:22px;color:#cfd3ff;margin-bottom:8px;">' + title + '</div>' +
+    '<div style="font-size:30px;font-weight:800;color:'+color+';">' + value + '</div>' +
+    '<div style="' +
+      'position:absolute;right:18px;top:18px;' +
+      'width:58px;height:58px;border-radius:50%;' +
+      'background:rgba(255,255,255,.06);' +
+      'display:flex;align-items:center;justify-content:center;' +
+      'font-size:26px;color:'+color+';' +
+    '">' + icon + '</div>' +
+  '</div>';
+}
+
+function statLine(icon,label,value){
+  return '<div style="display:flex;align-items:center;gap:18px;margin:18px 0;">' +
+    '<div style="width:64px;height:64px;border-radius:10px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:32px;">' + icon + '</div>' +
+    '<div>' +
+      '<div style="font-size:24px;color:#e0e4f5;">' + label + '</div>' +
+      '<div style="font-size:22px;color:#9ea5cb;margin-top:4px;">' + value + '</div>' +
+    '</div>' +
+  '</div>';
+}
+
 
 function renderTransactionsTable(){
 
@@ -6151,7 +6387,7 @@ function hideAllMasterPages(){
     const el = byId(id);
     if(el){
       el.classList.add("hidden");
-   
+    
     }
   });
 }
@@ -6173,7 +6409,7 @@ async function openVentasDetalle(mode){
   if(!page) return;
 
   showMasterPage("ventasDetallePage");
- 
+  
 
   try{
     const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
@@ -6592,6 +6828,137 @@ if(mariageGratis){
 
   input.click();
 
+}
+
+function getMasterUser(){
+  return localStorage.getItem("masterUsername") || "Number";
+}
+
+function getMasterPass(){
+  return localStorage.getItem("masterPassword") || "1234";
+}
+
+function getSecurityPin(){
+  return localStorage.getItem("securityPin") || "1234";
+}
+
+function loginMaster() {
+  const user = byId("username");
+  const pass = byId("password");
+  const loginPage = byId("loginPage");
+  const appPage = byId("appPage");
+
+  if (!user || !pass || !loginPage || !appPage) return;
+
+  const u = user.value.trim();
+  const p = pass.value.trim();
+
+  if (u === getMasterUser() && p === getMasterPass()) {
+    loginPage.style.display = "none";
+    appPage.classList.remove("hidden");
+    appPage.style.display = "block";
+
+    loadVendorsFromServer();
+    loadVentasReport();
+    loadBalanceReport();
+
+    goPage("ventas");
+  } else {
+    alert("Login incorrect");
+  }
+}
+
+function openMiCuenta(){
+  showMasterPage("ventasPage");
+
+  byId("ventasPage").innerHTML =
+    '<div class="page-title">Mi Cuenta</div>' +
+
+    '<div class="table-card" style="padding:14px;">' +
+
+      '<div class="field-group">' +
+        '<div class="field-label">Nuevo username</div>' +
+        '<input id="newUsername" class="field-input" value="' + getMasterUser() + '">' +
+      '</div>' +
+
+      '<div class="field-group">' +
+        '<div class="field-label">Nuevo password</div>' +
+        '<input id="newPassword" type="password" class="field-input" placeholder="Nuevo password">' +
+      '</div>' +
+
+      '<div class="field-group">' +
+        '<div class="field-label">PIN sécurité actuel</div>' +
+        '<input id="securityPin" type="password" class="field-input" placeholder="PIN actuel obligatoire">' +
+      '</div>' +
+
+      '<button class="login-btn" onclick="saveAccount()">Guardar cuenta</button>' +
+
+      '<hr style="border:0;border-top:1px solid rgba(255,255,255,.12);margin:22px 0;">' +
+
+      '<div class="page-title" style="font-size:20px;">Changer PIN</div>' +
+
+      '<div class="field-group">' +
+        '<div class="field-label">PIN actuel</div>' +
+        '<input id="oldSecurityPin" type="password" class="field-input" placeholder="PIN actuel">' +
+      '</div>' +
+
+      '<div class="field-group">' +
+        '<div class="field-label">Nouveau PIN</div>' +
+        '<input id="newSecurityPin" type="password" class="field-input" placeholder="Nouveau PIN">' +
+      '</div>' +
+
+      '<button class="login-btn" onclick="changeSecurityPin()">Changer PIN</button>' +
+
+    '</div>';
+
+  currentPage = "cuenta";
+  setMenuActive("cuenta");
+  closeSideMenu();
+}
+
+function saveAccount(){
+  const pin = getValue("securityPin").trim();
+
+  if(pin !== getSecurityPin()){
+    alert("PIN incorrect");
+    return;
+  }
+
+  const username = getValue("newUsername").trim();
+  const password = getValue("newPassword").trim();
+
+  if(!username){
+    alert("Username obligatoire");
+    return;
+  }
+
+  localStorage.setItem("masterUsername", username);
+
+  if(password){
+    localStorage.setItem("masterPassword", password);
+  }
+
+  alert("Cuenta guardada ✔");
+}
+
+function changeSecurityPin(){
+  const oldPin = getValue("oldSecurityPin").trim();
+  const newPin = getValue("newSecurityPin").trim();
+
+  if(oldPin !== getSecurityPin()){
+    alert("PIN actuel incorrect");
+    return;
+  }
+
+  if(!newPin){
+    alert("Mete nouveau PIN la");
+    return;
+  }
+
+  localStorage.setItem("securityPin", newPin);
+
+  alert("PIN changé ✔");
+  openMiCuenta();
 }
 
 </script>

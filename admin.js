@@ -2855,35 +2855,6 @@ tbody tr:nth-child(even){background:#313652;}
   display:block;
 }
 
-.side-menu{
-  overflow-y:auto;
-  height:100vh;
-}
-
-.side-menu-header{
-  padding-top:5px;
-  padding-bottom:5px;
-}
-
-.side-menu-logo-wrap{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:10px 14px;
-}
-
-.side-menu-logo-img{
-  width:55px;
-  height:55px;
-  object-fit:contain;
-}
-
-.side-menu-logo{
-  font-size:16px;
-  font-weight:700;
-  color:#fff;
-}
-
 </style>
 </head>
 <body>
@@ -2900,15 +2871,14 @@ tbody tr:nth-child(even){background:#313652;}
 
 <div id="menuOverlay" class="menu-overlay"></div>
 
-<div class="side-menu-logo-wrap">
-<img class="side-menu-logo-img"
+<div id="sideMenu" class="side-menu">
+  <div class="side-menu-header">
+    <div class="side-menu-logo-wrap">
+      <img class="side-menu-logo-img"
 src="${logoUrl}"
 alt="logo">
-
-  <div class="side-menu-logo">
-    NUMBER ONE LOTO
-  </div>
-</div>
+      <div class="side-menu-logo">NUMBER ONE LOTO</div>
+    </div>
     <div id="menuCloseBtn" class="side-menu-close" onclick="closeSideMenu()">✕</div>
   </div>
 

@@ -4527,12 +4527,11 @@ loadLimitesAjustes();
   closeSideMenu();
 }
 
-
 async function openHomeDashboard(){
 
-   hideAllMasterPages();
+  hideAllMasterPages();
 
-  await loadVentasReport();
+  await loadTicketsReport();
 
   let page = byId("homeDashboardPage");
 
@@ -4542,54 +4541,125 @@ async function openHomeDashboard(){
     page.className = "page-block";
 
     const app = byId("appPage");
-    if(app){
-      app.appendChild(page);
-    }
+    if(app) app.appendChild(page);
   }
 
   page.classList.remove("hidden");
   page.style.display = "block";
 
-  const totalVenta = ventasRows.reduce((a,b)=>a + parseAmount(b.venta),0);
-  const totalPremios = ventasRows.reduce((a,b)=>a + parseAmount(b.premios),0);
-  const totalComision = ventasRows.reduce((a,b)=>a + parseAmount(b.comision),0);
-  const totalResultado = ventasRows.reduce((a,b)=>a + parseAmount(b.resultado),0);
+  const map = {};
+  let totalVenta = 0;
+  let totalPremios = 0;
+  let totalResultado = 0;
+
+  let evaluados = 0;
+  let pendientes = 0;
+  let ganadores = 0;
+
+  ticketsRows.forEach(function(t){
+
+    const status = safe(t.status).toUpperCase();
+
+    if(status === "ANILE") return;
+
+    if(status === "ANATAN") pendientes++;
+    else evaluados++;
+
+    if(status === "GANYE") ganadores++;
+
+    (t.jeux || []).forEach(function(j){
+
+      const lot = safe(j.loterie || "SIN LOTERIA").toUpperCase();
+      const venta = parseAmount(j.montant || j.monto || j.amount || 0);
+      const premio = parseAmount(j.gain || 0);
+
+      if(!map[lot]){
+        map[lot] = {
+          loteria: lot,
+          venta: 0,
+          premio: 0,
+          resultado: 0,
+          sorteo: ""
+        };
+      }
+
+      map[lot].venta += venta;
+      map[lot].premio += premio;
+      map[lot].resultado += venta - premio;
+
+      totalVenta += venta;
+      totalPremios += premio;
+      totalResultado += venta - premio;
+    });
+
+  });
+
+  const totalComision = ventasRows.reduce(function(a,b){
+    return a + parseAmount(b.comision);
+  },0);
+
+  const rows = Object.values(map).sort(function(a,b){
+    return b.venta - a.venta;
+  });
 
   page.innerHTML =
-    '<div style="padding:18px;">' +
+    '<div style="padding:10px 0 28px;">' +
 
-      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">' +
-        cardBox("Ventas", "HTG " + formatAmount(totalVenta), "#00d2ff") +
-        cardBox("Comisión", "HTG " + formatAmount(totalComision), "#7c4dff") +
-        cardBox("Premios", "HTG " + formatAmount(totalPremios), "#ff4d6d") +
-        cardBox("Resultados", "HTG " + formatAmount(totalResultado), totalResultado >= 0 ? "#35d07f" : "#ff9f43") +
+      '<div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:18px;">' +
+        homeCard("Ventas", "HTG " + formatAmount(totalVenta), "#00d2ff", "🎟") +
+        homeCard("Comisión", "HTG " + formatAmount(totalComision), "#7c4dff", "%") +
+        homeCard("Premios", "HTG " + formatAmount(totalPremios), "#ff4d6d", "$") +
+        homeCard("Resultados", "HTG " + formatAmount(totalResultado), totalResultado >= 0 ? "#35d07f" : "#ff9f43", "💵") +
       '</div>' +
 
-      '<div class="table-card" style="margin-top:20px;">' +
+      '<div class="table-card">' +
         '<div class="table-scroll">' +
-          '<table>' +
+          '<table style="min-width:720px;">' +
             '<thead>' +
               '<tr>' +
-                '<th>VENDEDOR</th>' +
+                '<th>LOTERIA</th>' +
                 '<th>VENTA</th>' +
                 '<th>PREMIO</th>' +
                 '<th>RESULTADO</th>' +
+                '<th>SORTEO</th>' +
               '</tr>' +
             '</thead>' +
             '<tbody>' +
-              ventasRows.map(function(r){
+
+              rows.map(function(r){
+                const cls = parseAmount(r.resultado) >= 0 ? "result-ok" : "result-bad";
+
                 return '<tr>' +
-                  '<td>' + safe(r.nombre) + '</td>' +
+                  '<td>● ' + safe(r.loteria).slice(0,12) + '...</td>' +
                   '<td>' + formatAmount(r.venta) + '</td>' +
-                  '<td>' + formatAmount(r.premios) + '</td>' +
-                  '<td class="' + (parseAmount(r.resultado) >= 0 ? 'result-ok' : 'result-bad') + '">' +
-                    formatAmount(r.resultado) +
-                  '</td>' +
+                  '<td>' + formatAmount(r.premio) + '</td>' +
+                  '<td class="' + cls + '">' + formatAmount(r.resultado) + '</td>' +
+                  '<td style="color:#00d2ff;">' + safe(r.sorteo) + '</td>' +
                 '</tr>';
               }).join("") +
+
             '</tbody>' +
+            '<tfoot>' +
+              '<tr>' +
+                '<td><b>TOTAL</b></td>' +
+                '<td><b>' + formatAmount(totalVenta) + '</b></td>' +
+                '<td><b>' + formatAmount(totalPremios) + '</b></td>' +
+                '<td class="' + (totalResultado >= 0 ? "result-ok" : "result-bad") + '"><b>' + formatAmount(totalResultado) + '</b></td>' +
+                '<td></td>' +
+              '</tr>' +
+            '</tfoot>' +
           '</table>' +
         '</div>' +
+      '</div>' +
+
+      '<div class="table-card" style="padding:24px;margin-top:18px;">' +
+        '<div style="font-size:46px;color:#d7dcef;margin-bottom:22px;">' +
+          formatAmount(evaluados + pendientes).replace(".00","") +
+        '</div>' +
+
+        statLine("✅", "Tickets evaluados", evaluados) +
+        statLine("🕒", "Tickets pendientes", pendientes) +
+        statLine("🔴", "Tickets ganadores", ganadores) +
       '</div>' +
 
     '</div>';
@@ -4597,12 +4667,36 @@ async function openHomeDashboard(){
   closeSideMenu();
 }
 
-function cardBox(title,value,color){
-  return '<div style="background:#252946;border-radius:18px;padding:22px;border-bottom:4px solid '+color+';">' +
-    '<div style="font-size:18px;color:#cfd3ff;">' + title + '</div>' +
-    '<div style="font-size:34px;font-weight:900;margin-top:14px;color:'+color+';">' + value + '</div>' +
+function homeCard(title,value,color,icon){
+  return '<div style="' +
+    'background:#2a2f4a;' +
+    'border-radius:14px;' +
+    'padding:20px 22px;' +
+    'border-bottom:4px solid '+color+';' +
+    'position:relative;' +
+  '">' +
+    '<div style="font-size:22px;color:#cfd3ff;margin-bottom:8px;">' + title + '</div>' +
+    '<div style="font-size:30px;font-weight:800;color:'+color+';">' + value + '</div>' +
+    '<div style="' +
+      'position:absolute;right:18px;top:18px;' +
+      'width:58px;height:58px;border-radius:50%;' +
+      'background:rgba(255,255,255,.06);' +
+      'display:flex;align-items:center;justify-content:center;' +
+      'font-size:26px;color:'+color+';' +
+    '">' + icon + '</div>' +
   '</div>';
 }
+
+function statLine(icon,label,value){
+  return '<div style="display:flex;align-items:center;gap:18px;margin:18px 0;">' +
+    '<div style="width:64px;height:64px;border-radius:10px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:32px;">' + icon + '</div>' +
+    '<div>' +
+      '<div style="font-size:24px;color:#e0e4f5;">' + label + '</div>' +
+      '<div style="font-size:22px;color:#9ea5cb;margin-top:4px;">' + value + '</div>' +
+    '</div>' +
+  '</div>';
+}
+
 
 function renderTransactionsTable(){
 

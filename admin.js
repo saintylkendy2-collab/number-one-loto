@@ -439,7 +439,12 @@ function getGainAdmin(j, tirage, config){
 
   else if(type === "MAR"){
     if([r2+"*"+r3, r2+"*"+r4, r3+"*"+r4].includes(num)){
-      pay = payout(config, "premios.mariage", 1000);
+      if(j.gratis === true || j.free === true){
+  pay = Number(j.payoutGratis || 3000);
+}
+else{
+  pay = montant * payout(config, "premios.mariage", 1000);
+}
     }
   }
 

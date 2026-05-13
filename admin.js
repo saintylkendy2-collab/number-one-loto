@@ -2909,7 +2909,16 @@ alt="logo">
 </div>
    <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
  
-<div class="side-menu-item" id="menu-cuenta" onclick="goPage('ventas');document.getElementById('ventasPage').innerHTML='<div class=\'page-title\'>Mi Cuenta</div><div class=\'table-card\' style=\'padding:14px;\'><input id=\'newUsername\' class=\'field-input\' placeholder=\'Nuevo username\'><input id=\'newPassword\' type=\'password\' class=\'field-input\' placeholder=\'Nuevo password\'><input id=\'securityPin\' type=\'password\' class=\'field-input\' placeholder=\'PIN sécurité\'><button class=\'login-btn\' onclick=\'if(document.getElementById(&quot;securityPin&quot;).value!==&quot;1234&quot;){alert(&quot;PIN incorrect&quot;);return;}alert(&quot;PIN OK&quot;);\'>Guardar</button></div>';">
+   <div class="side-menu-item"
+     id="menu-cuenta"
+     onclick="document.getElementById('ventasPage').innerHTML =
+'<div class=&quot;page-title&quot;>Mi Cuenta</div>' +
+'<div class=&quot;table-card&quot; style=&quot;padding:14px;&quot;>' +
+'<input id=&quot;newUsername&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo username&quot;>' +
+'<input id=&quot;newPassword&quot; type=&quot;password&quot; class=&quot;field-input&quot; placeholder=&quot;Nuevo password&quot;>' +
+'<button class=&quot;login-btn&quot; onclick=&quot;saveAccount()&quot;>Guardar</button>' +
+'</div>';
+goPage('ventas');">
   <span>Mi Cuenta</span>
 </div>
 
@@ -6605,6 +6614,8 @@ if(mariageGratis){
   input.click();
 
 }
+
+
 
 </script>
 

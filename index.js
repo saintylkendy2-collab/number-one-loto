@@ -1346,11 +1346,11 @@ const vendorBonus =
   if(count <= 0) return [];
 
   function randomFreeMariage(){
-  const a = pad2(Math.floor(Math.random() * 100));
-  let b = pad2(Math.floor(Math.random() * 100));
+  const a = String(Math.floor(Math.random() * 100)).padStart(2, "0");
+  let b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
 
   while(b === a){
-    b = pad2(Math.floor(Math.random() * 100));
+    b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
   }
 
   return a + "x" + b;

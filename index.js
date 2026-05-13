@@ -1316,69 +1316,68 @@ function getFreeMariageCount(total){
   );
 }
 
-function buildFreeMariagesForTicket(tirages, total, appConfig, vendor){
+function buildFreeMariagesForTicket(tirages, jeux, appConfig, vendor){
 
   const mg = appConfig.mariageGratis || {};
+  const cfg = vendor?.config || {};
 
-  const cfg = vendor.config || {};
-
-const vendorBonus =
-  vendor &&
-  (
-    vendor.bono === true ||
-    vendor.bonus === true ||
-    vendor.activarBono === true ||
-    String(vendor.bono) === "true" ||
-    String(vendor.bonus) === "true" ||
-    String(vendor.activarBono) === "true" ||
-    cfg.activarBono === true ||
-    String(cfg.activarBono) === "true" ||
-    cfg.bono === true ||
-    String(cfg.bono) === "true"
-  );
-
-  console.log("VENDOR BONUS FINAL:", vendorBonus);
+  const vendorBonus =
+    vendor &&
+    (
+      vendor.bono === true ||
+      vendor.bonus === true ||
+      vendor.activarBono === true ||
+      String(vendor.bono) === "true" ||
+      String(vendor.bonus) === "true" ||
+      String(vendor.activarBono) === "true" ||
+      cfg.activarBono === true ||
+      String(cfg.activarBono) === "true"
+    );
 
   if(!mg.enabled || !vendorBonus){
     return [];
   }
 
-  const count = getFreeMariageCount(total);
+  const totalsByLoterie = {};
 
-  if(count <= 0) return [];
+  (jeux || []).forEach(j => {
+    if(j.gratis === true || j.free === true) return;
 
-  function randomFreeMariage(){
-  const a = String(Math.floor(Math.random() * 100)).padStart(2, "0");
-  let b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
+    const loterieName =
+      String(j.loterie || j.loteria || "")
+        .trim()
+        .toUpperCase();
 
-  while(b === a){
-    b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
-  }
+    if(!loterieName) return;
 
-  return a + "x" + b;
-}
+    totalsByLoterie[loterieName] =
+      (totalsByLoterie[loterieName] || 0) +
+      Number(j.montant || 0);
+  });
 
   const gratuits = [];
 
- for(let i = 0; i < count; i++){
+  Object.keys(totalsByLoterie).forEach(loterieName => {
 
-  const t = tirages[i % tirages.length];
+    const count =
+      getFreeMariageCount(totalsByLoterie[loterieName]);
 
-  const loterieName =
-    t.loterie || t.loteria || t.name || t;
+    for(let i = 0; i < count; i++){
 
-  gratuits.push({
-    type: "MAR",
-    numero: randomFreeMariage(),
-    montant: 0,
-    gratis: true,
-    free: true,
-    payoutGratis: Number(mg.payout || 1000),
-    loterie: loterieName,
-    loteria: loterieName
+      gratuits.push({
+        type: "MAR",
+        numero: randomFreeMariage(),
+        montant: 0,
+        gratis: true,
+        free: true,
+        payoutGratis: Number(mg.payout || 1000),
+        loterie: loterieName,
+        loteria: loterieName
+      });
+
+    }
+
   });
-
-}
 
   return gratuits;
 }

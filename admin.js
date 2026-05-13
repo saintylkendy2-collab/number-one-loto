@@ -4524,7 +4524,7 @@ loadLimitesAjustes();
 
 async function openHomeDashboard(){
 
-  "homeDashboardPage",
+   hideAllMasterPages();
 
   await loadVentasReport();
 

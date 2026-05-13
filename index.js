@@ -1318,18 +1318,24 @@ function buildFreeMariagesForTicket(tirages, total, appConfig, vendor){
 
   const mg = appConfig.mariageGratis || {};
 
-  console.log("MG CONFIG:", mg);
-console.log("VENDOR BONUS:", vendor.bono, vendor.bonus, vendor.activarBono, vendor.config);
+  console.log("VENDOR BONUS FINAL:", vendorBonus);
 
-  const vendorBonus =
-    vendor &&
-    (
-      vendor.bono === true ||
-      vendor.bonus === true ||
-      vendor.activarBono === true ||
-      String(vendor.config?.activarBono) === "true" ||
-      vendor.config?.bono === true
-    );
+  const cfg = vendor.config || {};
+
+const vendorBonus =
+  vendor &&
+  (
+    vendor.bono === true ||
+    vendor.bonus === true ||
+    vendor.activarBono === true ||
+    String(vendor.bono) === "true" ||
+    String(vendor.bonus) === "true" ||
+    String(vendor.activarBono) === "true" ||
+    cfg.activarBono === true ||
+    String(cfg.activarBono) === "true" ||
+    cfg.bono === true ||
+    String(cfg.bono) === "true"
+  );
 
   if(!mg.enabled || !vendorBonus){
     return [];

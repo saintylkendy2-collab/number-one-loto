@@ -683,6 +683,14 @@ const wins = [
   r3 + r4
 ];
 
+const parts = String(num)
+  .replace("-", "x")
+  .replace("*", "x")
+  .split("x")
+  .map(x => pad2(x));
+
+const played = parts.join("");
+
 const wonOnce = wins.some(function(w){
   return w === played;
 });

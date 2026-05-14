@@ -565,19 +565,30 @@ router.get("/api/reportes/ventas", async (req, res) => {
         const vendorConfig = vendeurs[id] || {};
         let realPremio = 0;
 
-        for (const j of t.jeux || []) {
-          const tirage = await Sorteo.findOne({
-            date: String(t.dateLabel || "").trim(),
-            loteria: {
-              $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
-              $options: "i"
-            }
-          }).lean();
+        const sorteos = await Sorteo.find().lean();
 
-          if (tirage) {
-            realPremio += getGainAdmin(j, tirage, vendorConfig);
-          }
-        }
+for (const j of t.jeux || []) {
+
+  const lotName = String(j.loterie || "")
+    .trim()
+    .toUpperCase();
+
+  const tirage = sorteos.find(s => {
+
+    const sLot = String(s.loteria || "")
+      .trim()
+      .toUpperCase();
+
+    return (
+      s.date === String(t.dateLabel || "").trim() &&
+      sLot === lotName
+    );
+  });
+
+  if (tirage) {
+    realPremio += getGainAdmin(j, tirage, vendorConfig);
+  }
+}
 
         map[id].premios += realPremio;
       }

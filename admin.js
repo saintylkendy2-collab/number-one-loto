@@ -2341,8 +2341,8 @@ html,body{
  color:#fff;
 }
 .submenu-item:hover{
- background:linear-gradient(90deg,#6d63ff,#7d73ff);
- color:#fff;
+ background:rgba(255,255,255,.05);
+ color:#eef1f8;
 }
 .app-page{
  min-height:100vh;

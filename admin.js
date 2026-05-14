@@ -2972,7 +2972,7 @@ tbody tr:nth-child(even){background:#313652;}
   <div id="ventaMenu" class="submenu-box">
   <div class="submenu-item" onclick="goPage('ventas')">General</div>
  <div class="submenu-item" onclick="openVentasDetalle('loteria')">Lotería</div>
-<div class="submenu-item" onclick="openVentasDetalle('jugada')">Jugada</div>
+<div class="submenu-item" onclick="removeActive(); this.classList.add('active'); openVentasDetalle('jugada')">Jugada</div>
 <div class="submenu-item" onclick="openVentasDetalle('numero')">Número</div>
   <div class="submenu-item" onclick="goPage('grupo')">Grupo</div>
 </div>
@@ -7184,6 +7184,12 @@ function renderLimitesEstadisticas(){
         '</div>' +
       '</div>';
   }).join("");
+}
+
+function removeActive(){
+  document.querySelectorAll('.side-menu-item').forEach(function(el){
+    el.classList.remove('active');
+  });
 }
 
 </script>

@@ -6246,35 +6246,7 @@ document.addEventListener("click", function(){
   }
 });
 
-function openVentasDocument(type){
-  var start = getValue("fechaInicio") || todayISO();
-  var end = getValue("fechaFin") || start;
-  var zona = getValue("ventasZonaFilter");
-  var vendor = getValue("ventasVendorFilter");
-  var comision = getValue("ventasComisionFilter");
 
-  window.open(
-    "/ventas-document?type=" + encodeURIComponent(type) +
-    "&start=" + encodeURIComponent(start) +
-    "&end=" + encodeURIComponent(end) +
-    "&zona=" + encodeURIComponent(zona) +
-    "&vendor=" + encodeURIComponent(vendor) +
-    "&comision=" + encodeURIComponent(comision),
-    "_blank"
-  );
-}
-
-function printVentas(){
-  openVentasDocument("print");
-}
-
-function downloadPDF(){
-  openVentasDocument("pdf");
-}
-
-function downloadExcel(){
-  openVentasDocument("excel");
-}
 
 let limiteNumeros = [];
 let bloqueoNumeros = [];

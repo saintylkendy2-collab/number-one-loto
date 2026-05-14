@@ -2493,7 +2493,7 @@ tbody tr:nth-child(even){background:#313652;}
 .balance-positive{
  color:#2fbf71;
  font-weight:700;
- font-size:16px;
+ font-size:20px;
  cursor:pointer;
 }
 

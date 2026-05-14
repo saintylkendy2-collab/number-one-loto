@@ -2513,9 +2513,15 @@ tbody tr:nth-child(even){background:#313652;}
  cursor:pointer;
 }
 
-#balanceTable .balance-positive,
-#balanceTable .balance-negative{
+.balance-negative{
+  color:#ff6767;
+  font-weight:800;
   font-size:20px !important;
+  line-height:1;
+  display:inline-block;
+  cursor:pointer;
+  position:relative;
+  left:-4px;
 }
 
 .page-block{background:transparent;}

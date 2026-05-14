@@ -6377,6 +6377,7 @@ function hideAllMasterPages(){
     "ventasDetallePage",
     "gruposPage",
     "limitesAjustesPage",
+    "limitesEstadisticasPage",
     "balanceVendorPage",
     "ticketsPage",
     "sorteosPage",
@@ -6961,7 +6962,7 @@ function changeSecurityPin(){
   openMiCuenta();
 }
 
-function openLimitesEstadisticas(){
+async function openLimitesEstadisticas(){
   currentPage = "limites_estadisticas";
 
   hideAllMasterPages();
@@ -6979,6 +6980,8 @@ function openLimitesEstadisticas(){
 
   page.classList.remove("hidden");
   page.style.display = "block";
+
+  await loadTicketsReport();
 
   page.innerHTML =
     '<div class="page-title">Límites de Ventas</div>' +

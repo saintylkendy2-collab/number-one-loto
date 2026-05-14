@@ -2970,7 +2970,7 @@ tbody tr:nth-child(even){background:#313652;}
     <span>Venta</span><span>></span>
   </div>
   <div id="ventaMenu" class="submenu-box">
-  <div class="submenu-item" id="submenu-ventas" onclick="goPage('ventas')">General</div>
+  <div class="submenu-item" id="submenu-ventas" onclick="goPage('ventas_general')">General</div>
   <div class="submenu-item" id="submenu-ventas-loteria" onclick="openVentasDetalle('loteria')">Lotería</div>
   <div class="submenu-item" id="submenu-ventas-jugada" onclick="openVentasDetalle('jugada')">Jugada</div>
   <div class="submenu-item" id="submenu-ventas-numero" onclick="openVentasDetalle('numero')">Número</div>
@@ -3840,7 +3840,6 @@ function setMenuActive(page){
 
  if(page === "ventas"){
   if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
-  if(byId("submenu-ventas")) byId("submenu-ventas").classList.add("active");
 }
 
   else if(page === "ventas_loteria"){
@@ -3852,6 +3851,12 @@ function setMenuActive(page){
     if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
     if(byId("submenu-ventas-jugada")) byId("submenu-ventas-jugada").classList.add("active");
   }
+
+  else if(page === "ventas_general"){
+  if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
+  if(byId("submenu-ventas")) byId("submenu-ventas").classList.add("active");
+}
+
 
   else if(page === "ventas_numero"){
     if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
@@ -4594,6 +4599,11 @@ loadLimitesAjustes();
     if(transactionsPage) transactionsPage.classList.remove("hidden");
     renderTransactionsTable();
   }
+
+  }else if(page === "ventas_general"){
+  showMasterPage("ventasPage");
+  loadVentasReport();
+  setMenuActive("ventas_general");
 
   setMenuActive(page);
   closeSideMenu();

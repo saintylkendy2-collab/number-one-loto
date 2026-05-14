@@ -1265,10 +1265,10 @@ router.delete("/api/vendors/:id/movimientos/:movId", async (req, res) => {
     const removed = vendor.movimientos.splice(index, 1)[0];
 
     // 🔥 REAJISTE BALANCE
-   if (removed.tipo === "cobro") {
-  vendor.balance -= removed.monto;
-} else {
-  vendor.balance += removed.monto;
+if(movimiento.tipo === "pago"){
+  vendor.balance -= movimiento.monto;
+}else if(movimiento.tipo === "cobro"){
+  vendor.balance += movimiento.monto;
 }
 
     await vendor.save();

@@ -5181,6 +5181,10 @@ function renderBalanceTable(){
     return okGrupo && okVendor;
   });
 
+  rows.sort(function(a,b){
+  return parseAmount(b.balance) - parseAmount(a.balance);
+});
+
   tbody.innerHTML = "";
 
   let totalBalance = 0;

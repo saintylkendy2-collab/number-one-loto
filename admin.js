@@ -1674,9 +1674,9 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
       Ticket annulé ✅
     </h2>
 
-   <button
+<button
 onclick="
-window.location.href='/master/vendors#tickets';
+window.close();
 "
 style="margin-top:50px;height:65px;width:95%;font-size:22px;border-radius:10px;"
 >
@@ -6245,6 +6245,36 @@ document.addEventListener("click", function(){
     menu.classList.remove("show");
   }
 });
+
+function openVentasDocument(type){
+  var start = getValue("fechaInicio") || todayISO();
+  var end = getValue("fechaFin") || start;
+  var zona = getValue("ventasZonaFilter");
+  var vendor = getValue("ventasVendorFilter");
+  var comision = getValue("ventasComisionFilter");
+
+  window.open(
+    "/ventas-document?type=" + encodeURIComponent(type) +
+    "&start=" + encodeURIComponent(start) +
+    "&end=" + encodeURIComponent(end) +
+    "&zona=" + encodeURIComponent(zona) +
+    "&vendor=" + encodeURIComponent(vendor) +
+    "&comision=" + encodeURIComponent(comision),
+    "_blank"
+  );
+}
+
+function printVentas(){
+  openVentasDocument("print");
+}
+
+function downloadPDF(){
+  openVentasDocument("pdf");
+}
+
+function downloadExcel(){
+  openVentasDocument("excel");
+}
 
 
 

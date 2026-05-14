@@ -2510,9 +2510,14 @@ tbody tr:nth-child(even){background:#313652;}
 .result-bad,.balance-negative{
  color:#ff6767;
  font-weight:700;
- font-size:20px;
  cursor:pointer;
 }
+
+#balanceTable .balance-positive,
+#balanceTable .balance-negative{
+  font-size:20px;
+}
+
 .page-block{background:transparent;}
 .action-row{
  display:flex;

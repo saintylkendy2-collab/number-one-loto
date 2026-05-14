@@ -3011,7 +3011,7 @@ tbody tr:nth-child(even){background:#313652;}
   <div class="topbar">
     <div class="top-left">
       <div class="icon-btn" id="menuBtn" onclick="openSideMenu()">☰</div>
-      <div class="icon-btn" onclick="openSearchBox()">⌕</div>
+      <div class="icon-btn">⌕</div>
     </div>
     <div class="top-right">
       <div class="clock-pill" id="clockBox">13:15</div>
@@ -4025,20 +4025,21 @@ function getStatusIcon(status) {
   status = status.toUpperCase();
 
   if (status.includes("PEDI")) {
-  return '<span style="color:#ff4444;font-weight:bold;">✖</span>';
-}
+    return '<span style="color:#ff4444;font-weight:900;font-size:24px;">✕</span>';
+  }
 
-if (status.includes("ANATAN")) {
-  return '<span style="color:#7c4dff;font-weight:bold;">🕒</span>';
-}
+  if (status.includes("ANATAN")) {
+    return '<span style="color:#7c4dff;">🕒</span>';
+  }
 
-if (status.includes("ANILE")) {
-  return '<span style="color:#999;font-weight:bold;">🚫</span>';
-}
+  if (status.includes("ANILE")) {
+    return '<span style="color:#999;">🚫</span>';
+  }
 
-if (status.includes("GANYE")) {
-  return '<span style="color:#00ff66;font-weight:bold;">✔</span>';
-}
+  if (status.includes("GANYE")) {
+    return '<span style="color:#00ff66;font-weight:900;font-size:24px;">✓</span>';
+  }
+
   return status;
 }
 
@@ -4864,8 +4865,8 @@ hora: safe(m.hora || m.heure || m.time || "")
   });
 
   rows.sort(function(a,b){
-  return Number(b.id || 0) - Number(a.id || 0);
-});
+    return String(b.fecha).localeCompare(String(a.fecha));
+  });
 
   if(!rows.length){
     tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Pa gen transaction</td></tr>';
@@ -7256,16 +7257,6 @@ function renderLimitesEstadisticas(){
         '</div>' +
       '</div>';
   }).join("");
-}
-
-function openSearchBox(){
-  if(currentPage === "vendors"){
-    const input = byId("vendorFilterNombre");
-    if(input){
-      input.scrollIntoView({ behavior:"smooth", block:"center" });
-      input.focus();
-    }
-  }
 }
 
 </script>

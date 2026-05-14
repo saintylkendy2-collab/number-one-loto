@@ -2515,7 +2515,7 @@ tbody tr:nth-child(even){background:#313652;}
 
 #balanceTable .balance-positive,
 #balanceTable .balance-negative{
-  font-size:20px;
+  font-size:20px !important;
 }
 
 .page-block{background:transparent;}

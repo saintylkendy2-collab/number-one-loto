@@ -6403,6 +6403,8 @@ function showMasterPage(id){
 }
 
 async function openVentasDetalle(mode){
+byId('menu-venta')?.classList.remove('active');
+
   currentVentasMode = mode || "numero";
 
   const page = byId("ventasDetallePage");

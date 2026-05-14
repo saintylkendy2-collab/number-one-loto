@@ -2524,7 +2524,7 @@ tbody tr:nth-child(even){background:#313652;}
   display:inline-block;
   cursor:pointer;
   position:relative;
-  left:-4px;
+  left:-7px;
 }
 
 .page-block{background:transparent;}

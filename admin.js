@@ -6986,11 +6986,6 @@ async function openLimitesEstadisticas(){
   page.innerHTML =
     '<div class="page-title">Límites de Ventas</div>' +
 
-    '<button onclick="renderLimitesEstadisticas()" style="' +
-      'position:absolute;right:18px;top:150px;' +
-      'width:64px;height:64px;border:0;border-radius:50%;' +
-      'background:#30344f;color:#7b72ff;font-size:34px;' +
-    '">↻</button>' +
 
     '<div class="filters">' +
 

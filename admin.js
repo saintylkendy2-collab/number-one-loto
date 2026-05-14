@@ -1729,38 +1729,23 @@ function isWinningGame(j, result) {
 
 async function runCheckTickets(date, loteries = []) {
 
-  const cleanDate = String(date || "").trim();
-
-  const cleanLoteries = loteries
-    .map(l => String(l || "").trim().toUpperCase())
-    .filter(Boolean);
-
-  if (!cleanDate || !cleanLoteries.length) {
-    return;
-  }
-
   const tickets = await Ticket.find({
     status: { $ne: "ANILE" },
-    dateLabel: cleanDate,
-    "jeux.loterie": { $in: cleanLoteries }
-  });
-
-  const sorteos = await Sorteo.find({
-    date: cleanDate,
-    loteria: { $in: cleanLoteries }
-  }).lean();
-
-  const sorteoMap = {};
-
-  sorteos.forEach(s => {
-    const key = String(s.loteria || "").trim().toUpperCase();
-
-    sorteoMap[key] = s;
+    dateLabel: String(date || "").trim(),
+    tirages: {
+      $in: loteries.map(l =>
+        String(l || "").trim().toUpperCase()
+      )
+    }
   });
 
   let checked = 0;
 
   for (const ticket of tickets) {
+
+    if (String(ticket.status || "").trim().toUpperCase() === "ANILE") {
+      continue;
+    }
 
     let hasResult = false;
     let isWinner = false;
@@ -1774,23 +1759,22 @@ async function runCheckTickets(date, loteries = []) {
 
     for (const jeu of ticket.jeux || []) {
 
-      const loteria = String(jeu.loterie || "").trim().toUpperCase();
-
-      if (!cleanLoteries.includes(loteria)) {
-        if (Number(jeu.gain || 0) > 0) {
-          totalPremio += Number(jeu.gain || 0);
-          isWinner = true;
-        }
-        continue;
-      }
-
       jeu.gain = 0;
 
-      const tirage = sorteoMap[loteria];
+      const loteria = String(jeu.loterie || "").trim().toUpperCase();
 
-      if (!tirage) {
-        continue;
-      }
+      const tirage = await Sorteo.findOne({
+        date: String(date || "").trim(),
+        loteria: {
+          $regex:
+            "^" +
+            loteria.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") +
+            "$",
+          $options: "i"
+        }
+      }).lean();
+
+      if (!tirage) continue;
 
       const hasBalls =
         String(tirage.r1 || "").trim() ||
@@ -1798,9 +1782,7 @@ async function runCheckTickets(date, loteries = []) {
         String(tirage.r3 || "").trim() ||
         String(tirage.r4 || "").trim();
 
-      if (!hasBalls) {
-        continue;
-      }
+      if (!hasBalls) continue;
 
       hasResult = true;
 
@@ -1819,18 +1801,26 @@ async function runCheckTickets(date, loteries = []) {
         : (isWinner ? "GANYE" : "PEDI");
 
     ticket.premio = isWinner ? totalPremio : 0;
+
     ticket.updatedAt = new Date();
 
-    ticket.markModified("jeux");
-
-    await ticket.save();
+    await Ticket.updateOne(
+      { _id: ticket._id },
+      {
+        $set: {
+          jeux: ticket.jeux,
+          status: ticket.status,
+          premio: ticket.premio,
+          updatedAt: new Date()
+        }
+      }
+    );
 
     checked++;
   }
 
-  console.log("✅ Tickets vérifiés:", checked, cleanDate, cleanLoteries.join(", "));
+  console.log("✅ Tickets vérifiés:", checked);
 }
-
 
 router.get("/api/sorteos", async (req, res) => {
   try {
@@ -2953,7 +2943,7 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
   <div id="limitesMenu" class="submenu-box">
     <div class="submenu-item" onclick="goPage('limites_ajustes')">Ajustes</div>
-    <div class="submenu-item">Estadísticas</div>
+    <div class="submenu-item" onclick="openLimitesEstadisticas()">Estadísticas</div>
   </div>
 
   <div class="side-menu-item" id="menu-loterias" onclick="goPage('loterias')">
@@ -6969,6 +6959,214 @@ function changeSecurityPin(){
 
   alert("PIN changé ✔");
   openMiCuenta();
+}
+
+function openLimitesEstadisticas(){
+  currentPage = "limites_estadisticas";
+
+  hideAllMasterPages();
+
+  let page = byId("limitesEstadisticasPage");
+
+  if(!page){
+    page = document.createElement("div");
+    page.id = "limitesEstadisticasPage";
+    page.className = "page-block";
+
+    const app = byId("appPage");
+    if(app) app.appendChild(page);
+  }
+
+  page.classList.remove("hidden");
+  page.style.display = "block";
+
+  page.innerHTML =
+    '<div class="page-title">Límites de Ventas</div>' +
+
+    '<button onclick="renderLimitesEstadisticas()" style="' +
+      'position:absolute;right:18px;top:150px;' +
+      'width:64px;height:64px;border:0;border-radius:50%;' +
+      'background:#30344f;color:#7b72ff;font-size:34px;' +
+    '">↻</button>' +
+
+    '<div class="filters">' +
+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">' +
+        '<select id="estOrden" class="filter-select" onchange="renderLimitesEstadisticas()">' +
+          '<option value="">- ORDEN -</option>' +
+          '<option value="mayor">Mayor venta</option>' +
+          '<option value="menor">Menor venta</option>' +
+        '</select>' +
+
+        '<select id="estLoteria" class="filter-select" onchange="renderLimitesEstadisticas()">' +
+          '<option value="">- LOTERIA -</option>' +
+        '</select>' +
+      '</div>' +
+
+      '<select id="estVendor" class="filter-select" onchange="renderLimitesEstadisticas()">' +
+        '<option value="">- VENDEDOR -</option>' +
+      '</select>' +
+
+    '</div>' +
+
+    '<div class="table-card" style="padding:14px;margin-top:14px;">' +
+
+      '<div style="display:grid;grid-template-columns:140px 1fr 88px;border:1px solid rgba(255,255,255,.14);border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
+        '<select id="estTipo" onchange="renderLimitesEstadisticas()" style="background:#30344f;color:#d7dcef;border:0;border-right:1px solid rgba(255,255,255,.14);font-size:18px;font-weight:800;padding:0 14px;height:58px;">' +
+          '<option value="BOR">BORLETTE</option>' +
+          '<option value="MAR">MARIAGE</option>' +
+          '<option value="L3">LOTO 3</option>' +
+          '<option value="L41">LOTO 4</option>' +
+          '<option value="L51">LOTO 5</option>' +
+        '</select>' +
+
+        '<input id="estNumero" oninput="renderLimitesEstadisticas()" placeholder="#" style="background:#30344f;color:#d7dcef;border:0;font-size:22px;padding:0 22px;outline:none;height:58px;">' +
+
+        '<button onclick="renderLimitesEstadisticas()" style="background:#30344f;color:#d7dcef;border:0;border-left:1px solid rgba(255,255,255,.14);font-size:30px;">⌕</button>' +
+      '</div>' +
+
+      '<div id="limitesEstadisticasBody"></div>' +
+
+    '</div>';
+
+  fillLimitesEstadisticasFilters();
+  renderLimitesEstadisticas();
+  closeSideMenu();
+}
+
+function fillLimitesEstadisticasFilters(){
+  const lotSel = byId("estLoteria");
+  const venSel = byId("estVendor");
+
+  if(lotSel){
+    lotSel.innerHTML = '<option value="">- LOTERIA -</option>';
+
+    loteriasList.forEach(function(l){
+      if(l === "TODAS") return;
+      lotSel.innerHTML += '<option value="' + safe(l).toUpperCase() + '">' + safe(l) + '</option>';
+    });
+  }
+
+  if(venSel){
+    venSel.innerHTML = '<option value="">- VENDEDOR -</option>';
+
+    vendors.forEach(function(v){
+      venSel.innerHTML +=
+        '<option value="' + safe(v.id).toUpperCase() + '">' +
+          safe(v.nombre || v.nom || v.id) +
+        '</option>';
+    });
+  }
+}
+
+function renderLimitesEstadisticas(){
+  const body = byId("limitesEstadisticasBody");
+  if(!body) return;
+
+  const orden = getValue("estOrden");
+  const loteriaFilter = getValue("estLoteria");
+  const vendorFilter = getValue("estVendor");
+  const tipoFilter = getValue("estTipo") || "BOR";
+  const numeroFilter = getValue("estNumero").trim();
+
+  const map = {};
+  let maxVenta = 0;
+
+  ticketsRows.forEach(function(t){
+    const st = String(t.status || "").toUpperCase();
+    if(st === "ANILE") return;
+
+    const vendorId = safe(t.vendeur).toUpperCase();
+
+    if(vendorFilter && vendorId !== vendorFilter) return;
+
+    (t.jeux || []).forEach(function(j){
+      const type = safe(j.type).toUpperCase();
+      const lot = safe(j.loterie).toUpperCase();
+      const numero = safe(j.numero).trim();
+      const montant = parseAmount(j.montant || j.monto || j.amount || 0);
+
+      if(tipoFilter){
+        if(tipoFilter === "L41"){
+          if(!["L41","L42","L43"].includes(type)) return;
+        }else if(tipoFilter === "L51"){
+          if(!["L51","L52","L53"].includes(type)) return;
+        }else{
+          if(type !== tipoFilter) return;
+        }
+      }
+
+      if(loteriaFilter && lot !== loteriaFilter) return;
+      if(numeroFilter && numero !== numeroFilter) return;
+
+      if(!numero) return;
+
+      if(!map[numero]){
+        map[numero] = {
+          numero: numero,
+          venta: 0
+        };
+      }
+
+      map[numero].venta += montant;
+
+      if(map[numero].venta > maxVenta){
+        maxVenta = map[numero].venta;
+      }
+    });
+  });
+
+  let rows = Object.values(map);
+
+  rows.sort(function(a,b){
+    if(orden === "menor") return a.venta - b.venta;
+    return b.venta - a.venta;
+  });
+
+  if(!rows.length){
+    body.innerHTML =
+      '<div class="empty-state">Pa gen estadísticas pou filtè sa yo</div>';
+    return;
+  }
+
+  body.innerHTML = rows.map(function(r){
+    const pct = maxVenta > 0 ? Math.round((r.venta / maxVenta) * 100) : 0;
+
+    const high = pct >= 100;
+    const mid = pct >= 50 && pct < 100;
+
+    const colorBox = high
+      ? 'background:#62364e;color:#ff6767;'
+      : mid
+        ? 'background:#1f5a70;color:#37d7ff;'
+        : 'background:#4a4f69;color:#e5e9f8;';
+
+    return '' +
+      '<div style="display:grid;grid-template-columns:1fr 150px 74px;gap:8px;align-items:center;margin:10px 0;font-size:24px;">' +
+        '<div style="color:#d7dcef;">' + safe(r.numero) + '</div>' +
+
+        '<div style="' +
+          colorBox +
+          'border-radius:10px;' +
+          'padding:10px 12px;' +
+          'text-align:right;' +
+          'font-weight:800;' +
+        '">' +
+          formatAmount(r.venta) +
+        '</div>' +
+
+        '<div style="' +
+          'background:#41465f;' +
+          'border-radius:8px;' +
+          'padding:10px 8px;' +
+          'text-align:center;' +
+          'color:#bfc5da;' +
+          'font-weight:700;' +
+        '">' +
+          pct + '%' +
+        '</div>' +
+      '</div>';
+  }).join("");
 }
 
 </script>

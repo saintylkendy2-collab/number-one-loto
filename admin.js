@@ -1344,7 +1344,7 @@ router.post("/api/vendors/:id/balance-action", async (req, res) => {
     // 🔥 AJUSTE BALANCE
 
 if (tipo === "pago") {
-  vendor.balance = parseAmount(vendor.balance) - movement.monto;
+  vendor.balance = parseAmount(vendor.balance) + movement.monto;
 } else if (tipo === "cobro") {
   vendor.balance = parseAmount(vendor.balance) - movement.monto;
 } else {

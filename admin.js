@@ -7076,6 +7076,26 @@ function renderLimitesEstadisticas(){
   let maxVenta = 0;
 
   ticketsRows.forEach(function(t){
+
+    let d = "";
+
+    if(t.dateLabel){
+      const p = String(t.dateLabel).split("/");
+      if(p.length === 3){
+        d = p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+      }
+    }
+
+    if(!d && t.createdAt){
+      const dt = new Date(t.createdAt);
+      d =
+        dt.getFullYear() + "-" +
+        String(dt.getMonth() + 1).padStart(2,"0") + "-" +
+        String(dt.getDate()).padStart(2,"0");
+    }
+
+    if(d !== todayISO()) return;
+
     const st = String(t.status || "").toUpperCase();
     if(st === "ANILE") return;
 

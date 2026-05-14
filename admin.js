@@ -2510,6 +2510,7 @@ tbody tr:nth-child(even){background:#313652;}
 .result-bad,.balance-negative{
  color:#ff6767;
  font-weight:700;
+ font-size:20px;
  cursor:pointer;
 }
 .page-block{background:transparent;}

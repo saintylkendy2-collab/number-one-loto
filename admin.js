@@ -3838,9 +3838,10 @@ function setMenuActive(page){
     if(byId("menu-cuenta")) byId("menu-cuenta").classList.add("active");
   }
 
-  else if(page === "ventas"){
-    if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
-  }
+ if(page === "ventas"){
+  if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
+  if(byId("submenu-ventas")) byId("submenu-ventas").classList.add("active");
+}
 
   else if(page === "ventas_loteria"){
     if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");

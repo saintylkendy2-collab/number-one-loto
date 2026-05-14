@@ -6865,6 +6865,7 @@ function loginMaster() {
     loadBalanceReport();
 
     goPage("ventas");
+    byId("menu-venta")?.classList.remove("active");
   } else {
     alert("Login incorrect");
   }

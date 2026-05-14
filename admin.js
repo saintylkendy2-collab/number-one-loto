@@ -565,25 +565,15 @@ router.get("/api/reportes/ventas", async (req, res) => {
         const vendorConfig = vendeurs[id] || {};
         let realPremio = 0;
 
-        const sorteos = await Sorteo.find().lean();
+ for (const j of t.jeux || []) {
 
-for (const j of t.jeux || []) {
-
-  const lotName = String(j.loterie || "")
-    .trim()
-    .toUpperCase();
-
-  const tirage = sorteos.find(s => {
-
-    const sLot = String(s.loteria || "")
-      .trim()
-      .toUpperCase();
-
-    return (
-      s.date === String(t.dateLabel || "").trim() &&
-      sLot === lotName
-    );
-  });
+  const tirage = await Sorteo.findOne({
+    date: String(t.dateLabel || "").trim(),
+    loteria: {
+      $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+      $options: "i"
+    }
+  }).lean();
 
   if (tirage) {
     realPremio += getGainAdmin(j, tirage, vendorConfig);
@@ -1740,23 +1730,38 @@ function isWinningGame(j, result) {
 
 async function runCheckTickets(date, loteries = []) {
 
+  const cleanDate = String(date || "").trim();
+
+  const cleanLoteries = loteries
+    .map(l => String(l || "").trim().toUpperCase())
+    .filter(Boolean);
+
+  if (!cleanDate || !cleanLoteries.length) {
+    return;
+  }
+
   const tickets = await Ticket.find({
     status: { $ne: "ANILE" },
-    dateLabel: String(date || "").trim(),
-    tirages: {
-      $in: loteries.map(l =>
-        String(l || "").trim().toUpperCase()
-      )
-    }
+    dateLabel: cleanDate,
+    "jeux.loterie": { $in: cleanLoteries }
+  });
+
+  const sorteos = await Sorteo.find({
+    date: cleanDate,
+    loteria: { $in: cleanLoteries }
+  }).lean();
+
+  const sorteoMap = {};
+
+  sorteos.forEach(s => {
+    const key = String(s.loteria || "").trim().toUpperCase();
+
+    sorteoMap[key] = s;
   });
 
   let checked = 0;
 
   for (const ticket of tickets) {
-
-    if (String(ticket.status || "").trim().toUpperCase() === "ANILE") {
-      continue;
-    }
 
     let hasResult = false;
     let isWinner = false;
@@ -1770,22 +1775,23 @@ async function runCheckTickets(date, loteries = []) {
 
     for (const jeu of ticket.jeux || []) {
 
-      jeu.gain = 0;
-
       const loteria = String(jeu.loterie || "").trim().toUpperCase();
 
-      const tirage = await Sorteo.findOne({
-        date: String(date || "").trim(),
-        loteria: {
-          $regex:
-            "^" +
-            loteria.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") +
-            "$",
-          $options: "i"
+      if (!cleanLoteries.includes(loteria)) {
+        if (Number(jeu.gain || 0) > 0) {
+          totalPremio += Number(jeu.gain || 0);
+          isWinner = true;
         }
-      }).lean();
+        continue;
+      }
 
-      if (!tirage) continue;
+      jeu.gain = 0;
+
+      const tirage = sorteoMap[loteria];
+
+      if (!tirage) {
+        continue;
+      }
 
       const hasBalls =
         String(tirage.r1 || "").trim() ||
@@ -1793,7 +1799,9 @@ async function runCheckTickets(date, loteries = []) {
         String(tirage.r3 || "").trim() ||
         String(tirage.r4 || "").trim();
 
-      if (!hasBalls) continue;
+      if (!hasBalls) {
+        continue;
+      }
 
       hasResult = true;
 
@@ -1812,26 +1820,18 @@ async function runCheckTickets(date, loteries = []) {
         : (isWinner ? "GANYE" : "PEDI");
 
     ticket.premio = isWinner ? totalPremio : 0;
-
     ticket.updatedAt = new Date();
 
-    await Ticket.updateOne(
-      { _id: ticket._id },
-      {
-        $set: {
-          jeux: ticket.jeux,
-          status: ticket.status,
-          premio: ticket.premio,
-          updatedAt: new Date()
-        }
-      }
-    );
+    ticket.markModified("jeux");
+
+    await ticket.save();
 
     checked++;
   }
 
-  console.log("✅ Tickets vérifiés:", checked);
+  console.log("✅ Tickets vérifiés:", checked, cleanDate, cleanLoteries.join(", "));
 }
+
 
 router.get("/api/sorteos", async (req, res) => {
   try {

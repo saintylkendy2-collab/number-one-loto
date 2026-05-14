@@ -1547,7 +1547,7 @@ router.get("/master/ticket/:id", async (req, res) => {
       ".premio-total{" +
       "color:#00ff66;" +
       "font-weight:900;" +
-      "font-size:30px;" +
+      "font-size:22px;" +
       "text-shadow:0 0 10px rgba(0,255,102,0.7)" +
       "}" +
 

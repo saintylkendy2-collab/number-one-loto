@@ -2970,11 +2970,11 @@ tbody tr:nth-child(even){background:#313652;}
     <span>Venta</span><span>></span>
   </div>
   <div id="ventaMenu" class="submenu-box">
-  <div class="submenu-item" onclick="goPage('ventas')">General</div>
- <div class="submenu-item" onclick="openVentasDetalle('loteria')">Lotería</div>
-<div class="submenu-item" onclick="removeActive(); this.classList.add('active'); openVentasDetalle('jugada')">Jugada</div>
-<div class="submenu-item" onclick="openVentasDetalle('numero')">Número</div>
-  <div class="submenu-item" onclick="goPage('grupo')">Grupo</div>
+  <div class="submenu-item" id="submenu-ventas" onclick="goPage('ventas')">General</div>
+  <div class="submenu-item" id="submenu-ventas-loteria" onclick="openVentasDetalle('loteria')">Lotería</div>
+  <div class="submenu-item" id="submenu-ventas-jugada" onclick="openVentasDetalle('jugada')">Jugada</div>
+  <div class="submenu-item" id="submenu-ventas-numero" onclick="openVentasDetalle('numero')">Número</div>
+  <div class="submenu-item" id="submenu-ventas-grupo" onclick="goPage('grupo')">Grupo</div>
 </div>
 
   <div class="side-menu-section">FLUJO DE EFECTIVO</div>
@@ -3830,18 +3830,61 @@ function resetMenuActive(){
 function setMenuActive(page){
   resetMenuActive();
 
-  if(page === "ventas"){
-    if(byId("menu-venta")) byId("menu-venta").classList.add("active");
+  document.querySelectorAll(".submenu-box").forEach(function(box){
+    box.classList.remove("open");
+  });
+
+  if(page === "cuenta"){
+    if(byId("menu-cuenta")) byId("menu-cuenta").classList.add("active");
+  }
+
+  else if(page === "ventas"){
     if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
     if(byId("submenu-ventas")) byId("submenu-ventas").classList.add("active");
-  }else if(page === "vendors" || page === "editor"){
+  }
+
+  else if(page === "ventas_loteria"){
+    if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
+    if(byId("submenu-ventas-loteria")) byId("submenu-ventas-loteria").classList.add("active");
+  }
+
+  else if(page === "ventas_jugada"){
+    if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
+    if(byId("submenu-ventas-jugada")) byId("submenu-ventas-jugada").classList.add("active");
+  }
+
+  else if(page === "ventas_numero"){
+    if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
+    if(byId("submenu-ventas-numero")) byId("submenu-ventas-numero").classList.add("active");
+  }
+
+  else if(page === "grupo" || page === "ventas_grupo"){
+    if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
+    if(byId("submenu-ventas-grupo")) byId("submenu-ventas-grupo").classList.add("active");
+  }
+
+  else if(page === "vendors" || page === "editor"){
     if(byId("menu-vendors")) byId("menu-vendors").classList.add("active");
-  }else if(page === "balance_vendor"){
-    if(byId("menu-balance")) byId("menu-balance").classList.add("active");
+  }
+
+  else if(page === "tickets"){
+    if(byId("menu-tickets")) byId("menu-tickets").classList.add("active");
+  }
+
+  else if(page === "sorteos"){
+    if(byId("menu-sorteos")) byId("menu-sorteos").classList.add("active");
+  }
+
+  else if(page === "loterias"){
+    if(byId("menu-loterias")) byId("menu-loterias").classList.add("active");
+  }
+
+  else if(page === "balance_vendor"){
     if(byId("balanceMenu")) byId("balanceMenu").classList.add("open");
     if(byId("submenu-balance-vendor")) byId("submenu-balance-vendor").classList.add("active");
   }
 }
+
 
 async function loadVendorsFromServer(){
   try{
@@ -6403,8 +6446,6 @@ function showMasterPage(id){
 }
 
 async function openVentasDetalle(mode){
-byId('menu-venta')?.classList.remove('active');
-
   currentVentasMode = mode || "numero";
 
   const page = byId("ventasDetallePage");
@@ -6519,6 +6560,18 @@ byId('menu-venta')?.classList.remove('active');
   if(numInput){
     numInput.addEventListener("input", renderVentasDetalle);
   }
+
+  if(currentVentasMode === "loteria"){
+  setMenuActive("ventas_loteria");
+}
+
+if(currentVentasMode === "jugada"){
+  setMenuActive("ventas_jugada");
+}
+
+if(currentVentasMode === "numero"){
+  setMenuActive("ventas_numero");
+}
 
   closeSideMenu();
 }
@@ -6865,7 +6918,6 @@ function loginMaster() {
     loadBalanceReport();
 
     goPage("ventas");
-    byId("menu-venta")?.classList.remove("active");
   } else {
     alert("Login incorrect");
   }
@@ -7187,12 +7239,6 @@ function renderLimitesEstadisticas(){
         '</div>' +
       '</div>';
   }).join("");
-}
-
-function removeActive(){
-  document.querySelectorAll('.side-menu-item').forEach(function(el){
-    el.classList.remove('active');
-  });
 }
 
 </script>

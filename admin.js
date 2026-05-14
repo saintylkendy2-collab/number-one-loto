@@ -4025,21 +4025,20 @@ function getStatusIcon(status) {
   status = status.toUpperCase();
 
   if (status.includes("PEDI")) {
-    return '<span style="color:#ff4d4d;">✖</span>';
-  }
+  return '<span style="color:#ff4444;font-weight:bold;">✖</span>';
+}
 
-  if (status.includes("ANATAN")) {
-    return '<span style="color:#7c4dff;">🕒</span>';
-  }
+if (status.includes("ANATAN")) {
+  return '<span style="color:#7c4dff;font-weight:bold;">🕒</span>';
+}
 
-  if (status.includes("ANILE")) {
-    return '<span style="color:#999;">🚫</span>';
-  }
+if (status.includes("ANILE")) {
+  return '<span style="color:#999;font-weight:bold;">🚫</span>';
+}
 
-  if (status.includes("GANYE")) {
-    return '<span style="color:#4caf50;">✔</span>';
-  }
-
+if (status.includes("GANYE")) {
+  return '<span style="color:#00ff66;font-weight:bold;">✔</span>';
+}
   return status;
 }
 

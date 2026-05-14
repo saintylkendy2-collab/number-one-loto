@@ -4865,8 +4865,8 @@ hora: safe(m.hora || m.heure || m.time || "")
   });
 
   rows.sort(function(a,b){
-    return String(b.fecha).localeCompare(String(a.fecha));
-  });
+  return Number(b.id || 0) - Number(a.id || 0);
+});
 
   if(!rows.length){
     tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Pa gen transaction</td></tr>';

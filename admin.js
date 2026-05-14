@@ -2990,7 +2990,7 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
 
   <div class="side-menu-section">DESCONECTAR</div>
-<div class="side-menu-item" onclick="window.location='/'"><span>Salir</span></div>
+<div class="side-menu-item" onclick="window.location='/master/vendors'"><span>Salir</span></div>
 </div>
 <div class="app-page hidden" id="appPage">
   <div class="topbar">

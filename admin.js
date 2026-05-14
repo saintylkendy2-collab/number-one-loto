@@ -1547,7 +1547,7 @@ router.get("/master/ticket/:id", async (req, res) => {
       ".premio-total{" +
       "color:#00ff66;" +
       "font-weight:900;" +
-      "font-size:22px;" +
+      "font-size:20px;" +
       "text-shadow:0 0 10px rgba(0,255,102,0.7)" +
       "}" +
 
@@ -3011,7 +3011,7 @@ tbody tr:nth-child(even){background:#313652;}
   <div class="topbar">
     <div class="top-left">
       <div class="icon-btn" id="menuBtn" onclick="openSideMenu()">☰</div>
-      <div class="icon-btn">⌕</div>
+      <div class="icon-btn" onclick="openSearchBox()">⌕</div>
     </div>
     <div class="top-right">
       <div class="clock-pill" id="clockBox">13:15</div>
@@ -7257,6 +7257,16 @@ function renderLimitesEstadisticas(){
         '</div>' +
       '</div>';
   }).join("");
+}
+
+function openSearchBox(){
+  if(currentPage === "vendors"){
+    const input = byId("vendorFilterNombre");
+    if(input){
+      input.scrollIntoView({ behavior:"smooth", block:"center" });
+      input.focus();
+    }
+  }
 }
 
 </script>

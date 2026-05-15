@@ -2443,7 +2443,7 @@ border-right:1px solid #ddd;
 </head>
 <body>
 <div class="app">
-<div id="overlay" class="overlay" onclick="goBackToJeuxFromMenu()"></div>
+<div id="overlay" class="overlay" onclick="closeDrawer()"></div>
 
 <div class="topbar">
 <div class="top-left">
@@ -5345,21 +5345,15 @@ async function loadVendorLoteries(){
   }
 }
 
-document.addEventListener("click", function(e){
+function openVendorDrawer(){
+  document.getElementById("sideMenu").classList.add("open");
+  document.getElementById("drawerOverlay").classList.add("show");
+}
 
-  const menu = document.getElementById("sideMenu");
-  const btn = document.getElementById("menuBtn");
-
-  if(
-    menu &&
-    !menu.contains(e.target) &&
-    btn &&
-    !btn.contains(e.target)
-  ){
-    menu.classList.remove("open");
-  }
-
-});
+function closeVendorDrawer(){
+  document.getElementById("sideMenu").classList.remove("open");
+  document.getElementById("drawerOverlay").classList.remove("show");
+}
 
 </script>
 </body>

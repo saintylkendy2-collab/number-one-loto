@@ -3785,8 +3785,8 @@ function copyFromTicket(ticket){
   cursorMontant = 0;
   activeField = "numero";
 
-  (ticket.jeux || [])
-.filter(j => !(j.gratis === true || j.free === true))
+ (ticket.jeux || [])
+.filter(j => Number(j.montant || 0) > 0)
 .forEach(function(j){
     jeux.push({
       type: j.type,
@@ -3819,8 +3819,8 @@ function copyFromTicketWithMontant(ticket, newMontant){
   cursorMontant = 0;
   activeField = "numero";
 
-  (ticket.jeux || [])
-.filter(j => !(j.gratis === true || j.free === true))
+ (ticket.jeux || [])
+.filter(j => Number(j.montant || 0) > 0)
 .forEach(function(j){
     jeux.push({
       type: j.type,
@@ -3858,8 +3858,8 @@ function validateLoteries(){
     cursorMontant = 0;
     activeField = "numero";
 
-    (selectedTicketToCopy.jeux || [])
-.filter(j => !(j.gratis === true || j.free === true))
+(selectedTicketToCopy.jeux || [])
+.filter(j => Number(j.montant || 0) > 0)
 .forEach(function(j){
       selectedLoteries.forEach(function(lot){
         jeux.push({

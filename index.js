@@ -3336,15 +3336,6 @@ function closeDrawer(){
   goBackToJeuxFromMenu();
 }
 
-document.addEventListener("DOMContentLoaded", function(){
-  var overlay = document.getElementById("overlay");
-  if(overlay){
-    overlay.onclick = function(){
-      goBackToJeuxFromMenu();
-    };
-  }
-});
-
 function renderJeux(){
  var area = document.getElementById("ticketsArea");
 
@@ -3539,17 +3530,6 @@ function filterTransactions(list, vendor, start, end){
   });
 }
 
-function toggleDrawer(){
- document.getElementById("drawer").classList.toggle("open");
- document.getElementById("overlay").classList.toggle("show");
- closeOptions();
-}
-
-function closeDrawer(){
- document.getElementById("drawer").classList.remove("open");
- document.getElementById("overlay").classList.remove("show");
-}
-
 function openOptions(){
  document.getElementById("drawer").classList.remove("open");
  document.getElementById("optionsSheet").classList.add("open");
@@ -3557,8 +3537,17 @@ function openOptions(){
 }
 
 function closeOptions(){
- document.getElementById("optionsSheet").classList.remove("open");
- document.getElementById("overlay").classList.remove("show");
+ var sheet = document.getElementById("optionsSheet");
+ var overlay = document.getElementById("overlay");
+
+ if(sheet) sheet.classList.remove("open");
+
+ var drawerOpen = document.getElementById("drawer")?.classList.contains("open");
+ var modalOpen = document.getElementById("loterieModal")?.classList.contains("show");
+
+ if(!drawerOpen && !modalOpen && overlay){
+   overlay.classList.remove("show");
+ }
 }
 
 function deleteAllGames(){

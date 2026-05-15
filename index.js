@@ -5345,6 +5345,22 @@ async function loadVendorLoteries(){
   }
 }
 
+document.addEventListener("click", function(e){
+
+  const menu = document.getElementById("sideMenu");
+  const btn = document.getElementById("menuBtn");
+
+  if(
+    menu &&
+    !menu.contains(e.target) &&
+    btn &&
+    !btn.contains(e.target)
+  ){
+    menu.classList.remove("open");
+  }
+
+});
+
 </script>
 </body>
 </html>

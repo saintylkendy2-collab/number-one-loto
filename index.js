@@ -3933,7 +3933,9 @@ function handleCopyButton(){
     cursorMontant = 0;
     activeField = "numero";
 
-    found.jeux.forEach(function(j){
+    (found.jeux || [])
+.filter(j => Number(j.montant || 0) > 0)
+.forEach(function(j){
       jeux.push({
         type: j.type,
         numero: j.numero,

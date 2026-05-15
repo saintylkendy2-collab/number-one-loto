@@ -3112,6 +3112,8 @@ tbody tr:nth-child(even){background:#313652;}
 
   <div id="ventasDetallePage" class="page-block hidden"></div>
 
+  <div id="miCuentaPage" class="page-block hidden"></div>
+
 <div id="gruposPage" class="page-block hidden">
   <div class="page-title">Grupos</div>
 
@@ -6435,6 +6437,7 @@ function hideAllMasterPages(){
   [
     "ventasPage",
     "ventasDetallePage",
+    "miCuentaPage",
     "gruposPage",
     "limitesAjustesPage",
     "limitesEstadisticasPage",
@@ -6942,9 +6945,9 @@ function loginMaster() {
 }
 
 function openMiCuenta(){
-  showMasterPage("ventasPage");
+  showMasterPage("miCuentaPage");
 
-  byId("ventasPage").innerHTML =
+byId("miCuentaPage").innerHTML =
     '<div class="page-title">Mi Cuenta</div>' +
 
     '<div class="table-card" style="padding:14px;">' +

@@ -2439,6 +2439,26 @@ border-left:1px solid #ddd;
 border-right:1px solid #ddd;
 }
 }
+
+.overlay{
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,.35);
+  z-index:10;
+}
+
+.overlay.show{
+  display:block;
+}
+
+#drawer{
+  z-index:20;
+}
+
 </style>
 </head>
 <body>

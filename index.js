@@ -2571,7 +2571,6 @@ border-right:1px solid #ddd;
 
 <div id="drawer" class="drawer">
 <div class="drawer-head" style="display:flex;align-items:center;gap:12px;">
-<span onclick="backToJeux()" style="font-size:30px;cursor:pointer;">←</span>
 <span>NUMBER ONE LOTO</span>
 </div>
 <div class="drawer-item" onclick="openDrawerTirages()">Tirages</div>

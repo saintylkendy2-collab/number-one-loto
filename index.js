@@ -1171,6 +1171,12 @@ app.get("/check-tickets", async (req, res) => {
       let isWinner = false;
       let totalPremio = 0;
 
+      const vendor = await Vendor.findOne({
+        id: String(ticket.vendeur || "").trim().toUpperCase()
+      }).lean();
+
+      const config = vendor || {};
+
       for (let jeu of ticket.jeux || []) {
         jeu.gain = 0;
 
@@ -1187,44 +1193,31 @@ app.get("/check-tickets", async (req, res) => {
 
         if (!tirage) continue;
 
-        const r1 = String(tirage.r1 || "").trim();
-        const r2 = String(tirage.r2 || "").trim();
-        const r3 = String(tirage.r3 || "").trim();
-        const r4 = String(tirage.r4 || "").trim();
+        const hasBalls =
+          String(tirage.r1 || "").trim() ||
+          String(tirage.r2 || "").trim() ||
+          String(tirage.r3 || "").trim() ||
+          String(tirage.r4 || "").trim();
 
-        if (!r1 && !r2 && !r3 && !r4) continue;
+        if (!hasBalls) continue;
 
         hasResult = true;
 
-        const won = isWinningGame(jeu, tirage);
+        const gain = getGain(jeu, tirage, config);
 
-        if (won) {
-          isWinner = true;
-          const gain = Number(jeu.montant || 0);
+        if (gain > 0) {
           jeu.gain = gain;
+          isWinner = true;
           totalPremio += gain;
         }
       }
-
-ticket.jeux = (ticket.jeux || []).map(j => ({ ...j, gain: 0 }));
-
-for (let jeu of ticket.jeux || []) {
-  if (isWinningGame(jeu, tirage)) {
-    const gain = Number(jeu.montant || 0);
-
-    jeu.gain = gain;
-    isWinner = true;
-    totalPremio += gain;
-  }
-}
-
-ticket.markModified("jeux");
 
       ticket.status = !hasResult ? "ANATAN" : (isWinner ? "GANYE" : "PEDI");
       ticket.premio = isWinner ? totalPremio : 0;
       ticket.updatedAt = new Date();
 
       ticket.markModified("jeux");
+
       await ticket.save();
       checked++;
     }
@@ -1244,7 +1237,6 @@ ticket.markModified("jeux");
     });
   }
 });
-
 
 function pad2(v){
   const s = String(v || "").trim();

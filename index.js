@@ -1815,6 +1815,7 @@ app.post("/api/ticket-status", async (req, res) => {
 });
 
 
+
 app.get("/api/master/ventas-summary", (req, res) => {
   res.json(computeSummaries());
 });

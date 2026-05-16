@@ -1,4 +1,5 @@
 
+
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -835,7 +836,7 @@ if (credit <= 0) {
     else if (type === "MAR") limit = Number(limites.mariage || 0);
     else if (type === "L3") limit = Number(limites.loto3 || 0);
    else if (type === "L41" || type === "L42" || type === "L43") limit = Number(limites.loto4 || 0);
-else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0); 
+else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0);
 
 const special = (limites.limiteNumeros || []).find(x =>
   normGameType(x.type) === type &&
@@ -2439,31 +2440,11 @@ border-left:1px solid #ddd;
 border-right:1px solid #ddd;
 }
 }
-
-.overlay{
-  display:none;
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,.35);
-  z-index:10;
-}
-
-.overlay.show{
-  display:block;
-}
-
-#drawer{
-  z-index:20;
-}
-
 </style>
 </head>
 <body>
 <div class="app">
-<div id="overlay" class="overlay" onclick="closeDrawer()"></div>
+<div id="overlay" class="overlay" onclick="goBackToJeuxFromMenu()"></div>
 
 <div class="topbar">
 <div class="top-left">
@@ -2571,6 +2552,7 @@ border-right:1px solid #ddd;
 
 <div id="drawer" class="drawer">
 <div class="drawer-head" style="display:flex;align-items:center;gap:12px;">
+<span onclick="backToJeux()" style="font-size:30px;cursor:pointer;">←</span>
 <span>NUMBER ONE LOTO</span>
 </div>
 <div class="drawer-item" onclick="openDrawerTirages()">Tirages</div>
@@ -3335,6 +3317,15 @@ function closeDrawer(){
   goBackToJeuxFromMenu();
 }
 
+document.addEventListener("DOMContentLoaded", function(){
+  var overlay = document.getElementById("overlay");
+  if(overlay){
+    overlay.onclick = function(){
+      goBackToJeuxFromMenu();
+    };
+  }
+});
+
 function renderJeux(){
  var area = document.getElementById("ticketsArea");
 
@@ -3400,21 +3391,21 @@ function buildPayloadGames(){
 }
 
 function buildPrintableTextFromTicket(ticket){
-  if(!ticket || !Array.isArray(ticket.jeux)) return "";
+  if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
-  var lines = [];
+  var lines = [];
 
-  ticket.jeux.forEach(function(j){
-    lines.push(
-      String(j.type || "") + " " +
-      String(j.numero || "") + " " +
-      Number(j.montant || 0).toFixed(2) +
-      " - " +
-      String(j.loterie || "")
-    );
-  });
+  ticket.jeux.forEach(function(j){
+    lines.push(
+      String(j.type || "") + " " +
+      String(j.numero || "") + " " +
+      Number(j.montant || 0).toFixed(2) +
+      " - " +
+      String(j.loterie || "")
+    );
+  });
 
-  return lines.join("\\n");
+  return lines.join("\\n");
 }
 
 
@@ -3529,6 +3520,17 @@ function filterTransactions(list, vendor, start, end){
   });
 }
 
+function toggleDrawer(){
+ document.getElementById("drawer").classList.toggle("open");
+ document.getElementById("overlay").classList.toggle("show");
+ closeOptions();
+}
+
+function closeDrawer(){
+ document.getElementById("drawer").classList.remove("open");
+ document.getElementById("overlay").classList.remove("show");
+}
+
 function openOptions(){
  document.getElementById("drawer").classList.remove("open");
  document.getElementById("optionsSheet").classList.add("open");
@@ -3536,17 +3538,8 @@ function openOptions(){
 }
 
 function closeOptions(){
- var sheet = document.getElementById("optionsSheet");
- var overlay = document.getElementById("overlay");
-
- if(sheet) sheet.classList.remove("open");
-
- var drawerOpen = document.getElementById("drawer")?.classList.contains("open");
- var modalOpen = document.getElementById("loterieModal")?.classList.contains("show");
-
- if(!drawerOpen && !modalOpen && overlay){
-   overlay.classList.remove("show");
- }
+ document.getElementById("optionsSheet").classList.remove("open");
+ document.getElementById("overlay").classList.remove("show");
 }
 
 function deleteAllGames(){
@@ -3717,7 +3710,7 @@ actions.innerHTML =
   '<button class="small-btn btn-yellow">LOTERIE</button>' +
   '<button class="small-btn btn-yellow">MONTANT</button>' +
   '<button class="small-btn btn-gray">PRINT</button>' +
-  '<button class="small-btn btn-gray">ANILE</button>'; 
+  '<button class="small-btn btn-gray">ANILE</button>';
 
     var btns = actions.querySelectorAll("button");
 
@@ -3771,7 +3764,7 @@ btns[4].onclick = function(e){
   if(confirm("Ou sèten ou vle anile ticket sa?")){
     updateTicketStatus(t.id, "ANILE");
   }
-}; 
+};
 
     card.appendChild(actions);
     wrap.appendChild(card);
@@ -3793,9 +3786,7 @@ function copyFromTicket(ticket){
   cursorMontant = 0;
   activeField = "numero";
 
- (ticket.jeux || [])
-.filter(j => Number(j.montant || 0) > 0)
-.forEach(function(j){
+  ticket.jeux.forEach(function(j){
     jeux.push({
       type: j.type,
       numero: j.numero,
@@ -3827,9 +3818,7 @@ function copyFromTicketWithMontant(ticket, newMontant){
   cursorMontant = 0;
   activeField = "numero";
 
- (ticket.jeux || [])
-.filter(j => Number(j.montant || 0) > 0)
-.forEach(function(j){
+  ticket.jeux.forEach(function(j){
     jeux.push({
       type: j.type,
       numero: j.numero,
@@ -3866,9 +3855,7 @@ function validateLoteries(){
     cursorMontant = 0;
     activeField = "numero";
 
-(selectedTicketToCopy.jeux || [])
-.filter(j => Number(j.montant || 0) > 0)
-.forEach(function(j){
+    selectedTicketToCopy.jeux.forEach(function(j){
       selectedLoteries.forEach(function(lot){
         jeux.push({
           type: j.type,
@@ -3941,9 +3928,7 @@ function handleCopyButton(){
     cursorMontant = 0;
     activeField = "numero";
 
-    (found.jeux || [])
-.filter(j => Number(j.montant || 0) > 0)
-.forEach(function(j){
+    found.jeux.forEach(function(j){
       jeux.push({
         type: j.type,
         numero: j.numero,
@@ -5351,16 +5336,6 @@ async function loadVendorLoteries(){
   }catch(err){
     console.error("Erreur load loteries:", err);
   }
-}
-
-function openVendorDrawer(){
-  document.getElementById("sideMenu").classList.add("open");
-  document.getElementById("drawerOverlay").classList.add("show");
-}
-
-function closeVendorDrawer(){
-  document.getElementById("sideMenu").classList.remove("open");
-  document.getElementById("drawerOverlay").classList.remove("show");
 }
 
 </script>

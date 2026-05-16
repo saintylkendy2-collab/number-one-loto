@@ -1,4 +1,5 @@
 
+
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -11,10 +12,28 @@ const Sorteo = require("./models/Sorteo");
 const Grupo = require("./models/Grupo");
 const Limites = require("./models/Limites");
 const Loteria = require("./models/Loteria");
-
+const AppConfig = require("./models/AppConfig");
+const multer = require("multer");
 
 
 const app = express();
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  }
+});
+
+const upload = multer({ storage });
+
+app.use(
+  "/uploads",
+  express.static("uploads")
+);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -556,6 +575,7 @@ app.post("/login", async (req, res) => {
     return res.send(loginErrorPage("Erreur login ✖"));
   }
 });
+
 
 app.get("/logout", (req, res) => {
   const sellerId = String(req.query.id || "").trim().toUpperCase();

@@ -1394,7 +1394,6 @@ function buildFreeMariagesForTicket(tirages, jeux, appConfig, vendor){
   return gratuits;
 }
 
-
 app.post("/api/tickets", async (req, res) => {
   try {
     const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
@@ -1813,7 +1812,6 @@ app.post("/api/ticket-status", async (req, res) => {
     res.status(500).json({ ok: false, message: "Erreur update ticket" });
   }
 });
-
 
 
 app.get("/api/master/ventas-summary", (req, res) => {
@@ -4117,6 +4115,8 @@ if(!loterieHtml){
 
     '</div>' +
   '</div>';
+
+
 
   var backBtn = document.getElementById("rapportBackBtn");
   var refreshBtn = document.getElementById("rapportRefreshBtn");

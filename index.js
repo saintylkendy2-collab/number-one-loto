@@ -1,5 +1,4 @@
 
-
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -12,28 +11,10 @@ const Sorteo = require("./models/Sorteo");
 const Grupo = require("./models/Grupo");
 const Limites = require("./models/Limites");
 const Loteria = require("./models/Loteria");
-const AppConfig = require("./models/AppConfig");
-const multer = require("multer");
+
 
 
 const app = express();
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  }
-});
-
-const upload = multer({ storage });
-
-app.use(
-  "/uploads",
-  express.static("uploads")
-);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -645,62 +626,6 @@ function getGain(j, tirage, config){
     }
   }
 
-  if(type === "MAR"){
-
-  const isGratis =
-    j.gratis === true ||
-    j.free === true ||
-    Number(j.montant || 0) === 0;
-
-  const parts = String(num)
-    .replace("-", "x")
-    .replace("*", "x")
-    .split("x")
-    .map(x => pad2(x));
-
-  const played = parts.join("");
-
-  const wins = [
-    r2 + r3,
-    r2 + r4,
-    r3 + r4
-  ];
-
-  if(wins.includes(played)){
-
-    if(isGratis){
-      return Number(j.payoutGratis || 0);
-    }
-
-    pay = payout(config, "premios.mariage", 1000);
-    return montant * pay;
-  }
-}
-
-
-const wins = [
-  r2 + r3,
-  r2 + r4,
-  r3 + r4
-];
-
-const parts = String(num)
-  .replace("-", "x")
-  .replace("*", "x")
-  .split("x")
-  .map(x => pad2(x));
-
-const played = parts.join("");
-
-const wonOnce = wins.some(function(w){
-  return w === played;
-});
-
-if(wonOnce){
-  return Number(j.payoutGratis || 0);
-}
-
-
   // =========================
   // MARIAGE
   // =========================
@@ -1306,95 +1231,6 @@ function normGameType(v){
   return s;
 }
 
-function getFreeMariageCount(total){
-  total = Number(total || 0);
-
-  if(total < 50) return 0;
-
-  return Math.min(
-    5,
-    Math.floor(total / 50)
-  );
-}
-
-function randomFreeMariage(){
-  const a = String(Math.floor(Math.random() * 100)).padStart(2, "0");
-
-  let b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
-
-  while(b === a){
-    b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
-  }
-
-  return a + "x" + b;
-}
-
-function buildFreeMariagesForTicket(tirages, jeux, appConfig, vendor){
-
-  const mg = appConfig.mariageGratis || {};
-  const cfg = vendor?.config || {};
-
-  const vendorBonus =
-    vendor &&
-    (
-      vendor.bono === true ||
-      vendor.bonus === true ||
-      vendor.activarBono === true ||
-      String(vendor.bono) === "true" ||
-      String(vendor.bonus) === "true" ||
-      String(vendor.activarBono) === "true" ||
-      cfg.activarBono === true ||
-      String(cfg.activarBono) === "true"
-    );
-
-  if(!mg.enabled || !vendorBonus){
-    return [];
-  }
-
-  const totalsByLoterie = {};
-
-  (jeux || []).forEach(j => {
-    if(j.gratis === true || j.free === true) return;
-
-    const loterieName =
-      String(j.loterie || j.loteria || "")
-        .trim()
-        .toUpperCase();
-
-    if(!loterieName) return;
-
-    totalsByLoterie[loterieName] =
-      (totalsByLoterie[loterieName] || 0) +
-      Number(j.montant || 0);
-  });
-
-  const gratuits = [];
-
-  Object.keys(totalsByLoterie).forEach(loterieName => {
-
-    const count =
-      getFreeMariageCount(totalsByLoterie[loterieName]);
-
-    for(let i = 0; i < count; i++){
-
-      gratuits.push({
-        type: "MAR",
-        numero: randomFreeMariage(),
-        montant: 0,
-        gratis: true,
-        free: true,
-        payoutGratis: Number(mg.payout || 1000),
-        loterie: loterieName,
-        loteria: loterieName
-      });
-
-    }
-
-  });
-
-  return gratuits;
-}
-
 
 app.post("/api/tickets", async (req, res) => {
   try {
@@ -1648,24 +1484,6 @@ for(const j of safeJeux){
       "T" + Date.now().toString() +
       Math.random().toString(36).substring(2, 8).toUpperCase();
 
-      const appConfig =
-  await AppConfig.findOne({ key:"main" }).lean()
-  || {};
-
-const freeMariages =
-  buildFreeMariagesForTicket(
-  tirages,
-  jeux,
-  appConfig,
-  vendor
-)
-
-const finalJeux = jeux
-  .filter(j =>
-    !(j.gratis === true || j.free === true)
-  )
-  .concat(freeMariages);
-
     const ticket = await Ticket.create({
       id: ticketId,
       ticketId: ticketId,
@@ -1693,7 +1511,7 @@ const finalJeux = jeux
       channel,
       total,
       tirages,
-      jeux: finalJeux
+      jeux: safeJeux
     });
 
     const obj = ticket.toObject();

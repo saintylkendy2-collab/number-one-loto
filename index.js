@@ -835,7 +835,7 @@ if (credit <= 0) {
     else if (type === "MAR") limit = Number(limites.mariage || 0);
     else if (type === "L3") limit = Number(limites.loto3 || 0);
    else if (type === "L41" || type === "L42" || type === "L43") limit = Number(limites.loto4 || 0);
-else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0); 
+else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0);
 
 const special = (limites.limiteNumeros || []).find(x =>
   normGameType(x.type) === type &&

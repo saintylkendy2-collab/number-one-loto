@@ -12,10 +12,28 @@ const Sorteo = require("./models/Sorteo");
 const Grupo = require("./models/Grupo");
 const Limites = require("./models/Limites");
 const Loteria = require("./models/Loteria");
-
+const AppConfig = require("./models/AppConfig");
+const multer = require("multer");
 
 
 const app = express();
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  }
+});
+
+const upload = multer({ storage });
+
+app.use(
+  "/uploads",
+  express.static("uploads")
+);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -627,6 +645,62 @@ function getGain(j, tirage, config){
     }
   }
 
+  if(type === "MAR"){
+
+  const isGratis =
+    j.gratis === true ||
+    j.free === true ||
+    Number(j.montant || 0) === 0;
+
+  const parts = String(num)
+    .replace("-", "x")
+    .replace("*", "x")
+    .split("x")
+    .map(x => pad2(x));
+
+  const played = parts.join("");
+
+  const wins = [
+    r2 + r3,
+    r2 + r4,
+    r3 + r4
+  ];
+
+  if(wins.includes(played)){
+
+    if(isGratis){
+      return Number(j.payoutGratis || 0);
+    }
+
+    pay = payout(config, "premios.mariage", 1000);
+    return montant * pay;
+  }
+}
+
+
+const wins = [
+  r2 + r3,
+  r2 + r4,
+  r3 + r4
+];
+
+const parts = String(num)
+  .replace("-", "x")
+  .replace("*", "x")
+  .split("x")
+  .map(x => pad2(x));
+
+const played = parts.join("");
+
+const wonOnce = wins.some(function(w){
+  return w === played;
+});
+
+if(wonOnce){
+  return Number(j.payoutGratis || 0);
+}
+
+
   // =========================
   // MARIAGE
   // =========================
@@ -1232,6 +1306,95 @@ function normGameType(v){
   return s;
 }
 
+function getFreeMariageCount(total){
+  total = Number(total || 0);
+
+  if(total < 50) return 0;
+
+  return Math.min(
+    5,
+    Math.floor(total / 50)
+  );
+}
+
+function randomFreeMariage(){
+  const a = String(Math.floor(Math.random() * 100)).padStart(2, "0");
+
+  let b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
+
+  while(b === a){
+    b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
+  }
+
+  return a + "x" + b;
+}
+
+function buildFreeMariagesForTicket(tirages, jeux, appConfig, vendor){
+
+  const mg = appConfig.mariageGratis || {};
+  const cfg = vendor?.config || {};
+
+  const vendorBonus =
+    vendor &&
+    (
+      vendor.bono === true ||
+      vendor.bonus === true ||
+      vendor.activarBono === true ||
+      String(vendor.bono) === "true" ||
+      String(vendor.bonus) === "true" ||
+      String(vendor.activarBono) === "true" ||
+      cfg.activarBono === true ||
+      String(cfg.activarBono) === "true"
+    );
+
+  if(!mg.enabled || !vendorBonus){
+    return [];
+  }
+
+  const totalsByLoterie = {};
+
+  (jeux || []).forEach(j => {
+    if(j.gratis === true || j.free === true) return;
+
+    const loterieName =
+      String(j.loterie || j.loteria || "")
+        .trim()
+        .toUpperCase();
+
+    if(!loterieName) return;
+
+    totalsByLoterie[loterieName] =
+      (totalsByLoterie[loterieName] || 0) +
+      Number(j.montant || 0);
+  });
+
+  const gratuits = [];
+
+  Object.keys(totalsByLoterie).forEach(loterieName => {
+
+    const count =
+      getFreeMariageCount(totalsByLoterie[loterieName]);
+
+    for(let i = 0; i < count; i++){
+
+      gratuits.push({
+        type: "MAR",
+        numero: randomFreeMariage(),
+        montant: 0,
+        gratis: true,
+        free: true,
+        payoutGratis: Number(mg.payout || 1000),
+        loterie: loterieName,
+        loteria: loterieName
+      });
+
+    }
+
+  });
+
+  return gratuits;
+}
+
 
 app.post("/api/tickets", async (req, res) => {
   try {
@@ -1485,6 +1648,24 @@ for(const j of safeJeux){
       "T" + Date.now().toString() +
       Math.random().toString(36).substring(2, 8).toUpperCase();
 
+      const appConfig =
+  await AppConfig.findOne({ key:"main" }).lean()
+  || {};
+
+const freeMariages =
+  buildFreeMariagesForTicket(
+  tirages,
+  jeux,
+  appConfig,
+  vendor
+)
+
+const finalJeux = jeux
+  .filter(j =>
+    !(j.gratis === true || j.free === true)
+  )
+  .concat(freeMariages);
+
     const ticket = await Ticket.create({
       id: ticketId,
       ticketId: ticketId,
@@ -1512,7 +1693,7 @@ for(const j of safeJeux){
       channel,
       total,
       tirages,
-      jeux: safeJeux
+      jeux: finalJeux
     });
 
     const obj = ticket.toObject();
@@ -1667,6 +1848,65 @@ app.get("/api/vendor/loterias", async (req, res) => {
     res.status(500).json([]);
   }
 });
+
+app.get("/api/vendor/config", async (req, res) => {
+  try {
+    let cfg = await AppConfig.findOne({ key: "main" }).lean();
+
+    if (!cfg) {
+      cfg = await AppConfig.create({ key: "main" });
+      cfg = cfg.toObject();
+    }
+
+    res.json({
+      ok: true,
+      ticketLogo: cfg.ticketLogo || "",
+      ticketMessage: cfg.ticketMessage || "",
+      mariageGratis: cfg.mariageGratis || {
+        enabled: false,
+        max: 5,
+        stepAmount: 50
+      }
+    });
+  } catch (err) {
+    console.error("VENDOR CONFIG ERROR:", err);
+    res.status(500).json({
+      ok: false,
+      ticketLogo: "",
+      ticketMessage: "",
+      mariageGratis: {
+        enabled: false,
+        max: 5,
+        stepAmount: 50
+      }
+    });
+  }
+});
+
+app.post("/api/upload-logo", upload.single("logo"), (req, res) => {
+  if(!req.file){
+    return res.json({ ok:false });
+  }
+
+  res.json({
+    ok:true,
+    url: "/uploads/" + req.file.filename,
+    path: "/uploads/" + req.file.filename
+  });
+});
+
+app.post("/upload-logo", upload.single("logo"), (req, res) => {
+  if(!req.file){
+    return res.json({ ok:false });
+  }
+
+  res.json({
+    ok:true,
+    url: "/uploads/" + req.file.filename,
+    path: "/uploads/" + req.file.filename
+  });
+});
+
 
 app.get("/dashboard", async (req, res) => {
   const sellerId = String(req.query.id || "").trim().toUpperCase();
@@ -5154,6 +5394,11 @@ const sellerName = String(
     let gamesHtml = "";
 
     (ticket.jeux || []).forEach(j => {
+
+if (j.gratis === true || j.free === true) {
+  return;
+}
+
       let typeRaw = String(j.type || "").toUpperCase();
       let numero = String(j.numero || "").trim();
       let montant = Number(j.montant || 0);
@@ -5162,17 +5407,33 @@ const sellerName = String(
       if (typeRaw === "BOR") type = "Borlette";
       else if (typeRaw === "MAR") type = "Mariage";
 
-      let key = type + "|" + numero + "|" + montant;
+      let loterie =
+  String(j.loterie || j.loteria || "").trim().toUpperCase();
 
-      if (!gameMap[key]) {
-        gameMap[key] = { type, numero, montant, count: 0 };
-      }
+let key =
+  loterie + "|" + type + "|" + numero + "|" + montant;
+
+   if (!gameMap[key]) {
+
+  gameMap[key] = {
+    type,
+    numero,
+    montant,
+    count: 0,
+    gratis: j.gratis === true,
+    free: j.free === true
+  };
+
+}
 
       gameMap[key].count++;
     });
 
     Object.values(gameMap).forEach(g => {
-      let totalLine = (g.montant * g.count).toFixed(2);
+      let totalLine =
+  g.gratis || g.free
+    ? "Gratis"
+    : (g.montant * g.count).toFixed(2);
 
       gamesHtml +=
         '<div class="game-row">' +
@@ -5182,7 +5443,60 @@ const sellerName = String(
         '</div>';
     });
 
+    const freeGames = (ticket.jeux || []).filter(
+  j => j.gratis === true || j.free === true
+);
+
+let freeHtml = "";
+
+let freeMap = {};
+
+freeGames.forEach(j => {
+
+  let loterie = String(
+    j.loterie || j.loteria || ""
+  ).trim();
+
+  if (!freeMap[loterie]) {
+    freeMap[loterie] = [];
+  }
+
+  freeMap[loterie].push(j);
+
+});
+
+Object.keys(freeMap).forEach(loterie => {
+
+  freeHtml +=
+    '<div class="tirage">' + loterie + '</div>';
+
+  freeMap[loterie].forEach(j => {
+
+    let typeRaw = String(j.type || "").toUpperCase();
+
+    let type = typeRaw;
+    if (typeRaw === "BOR") type = "Borlette";
+    else if (typeRaw === "MAR") type = "Mariage";
+
+    let numero = String(j.numero || "").trim();
+
+    freeHtml +=
+      '<div class="game-row">' +
+        '<div class="col-type">' + type + '</div>' +
+        '<div class="col-num">' + numero + '</div>' +
+        '<div class="col-amt">Gratis</div>' +
+      '</div>';
+
+  });
+
+});
+
     res.set("Content-Type", "text/html; charset=utf-8");
+
+const APP_CONFIG =
+  await AppConfig.findOne({ key:"main" }).lean()
+  || {};
+
     res.send(`
 <!DOCTYPE html>
 <html>
@@ -5211,6 +5525,15 @@ body{
 </head>
 <body>
 
+${APP_CONFIG.ticketLogo ? `
+<div style="text-align:center;margin-bottom:6px;">
+  <img
+    src="${APP_CONFIG.ticketLogo}"
+    style="width:120px;max-height:120px;object-fit:contain;"
+  >
+</div>
+` : ""}
+
 <div class="title">NUMBER ONE LOTO</div>
 
 <div class="meta">
@@ -5227,9 +5550,21 @@ ${loteriesHtml}
 
 ${gamesHtml}
 
+${freeHtml}
+
 <div class="line"></div>
 
 <div class="total">TOTAL: ${total.toFixed(2)} G</div>
+
+<div
+  style="
+    margin-top:14px;
+    text-align:center;
+    font-size:8px;
+  "
+>
+  ${APP_CONFIG.ticketMessage || ""}
+</div>
 
 <script>
 setTimeout(function(){

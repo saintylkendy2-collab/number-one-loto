@@ -1,4 +1,5 @@
 
+
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -1393,6 +1394,7 @@ function buildFreeMariagesForTicket(tirages, jeux, appConfig, vendor){
 
   return gratuits;
 }
+
 
 app.post("/api/tickets", async (req, res) => {
   try {
@@ -4115,8 +4117,6 @@ if(!loterieHtml){
 
     '</div>' +
   '</div>';
-
-
 
   var backBtn = document.getElementById("rapportBackBtn");
   var refreshBtn = document.getElementById("rapportRefreshBtn");

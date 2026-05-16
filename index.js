@@ -608,7 +608,12 @@ function pad2(v){
 function payout(config, key, def = 0){
   const val = key.split(".").reduce((o, k) => o && o[k], config);
   const n = Number(val);
-  return isNaN(n) ? def : n;
+
+  if (!Number.isFinite(n) || n <= 0) {
+    return def;
+  }
+
+  return n;
 }
 
 function getGain(j, tirage, config){

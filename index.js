@@ -1,5 +1,4 @@
 
-
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -576,7 +575,6 @@ app.post("/login", async (req, res) => {
   }
 });
 
-
 app.get("/logout", (req, res) => {
   const sellerId = String(req.query.id || "").trim().toUpperCase();
   if (sellerId) {
@@ -645,6 +643,62 @@ function getGain(j, tirage, config){
       pay = payout(config, "premios.borlette3", 10);
     }
   }
+
+  if(type === "MAR"){
+
+  const isGratis =
+    j.gratis === true ||
+    j.free === true ||
+    Number(j.montant || 0) === 0;
+
+  const parts = String(num)
+    .replace("-", "x")
+    .replace("*", "x")
+    .split("x")
+    .map(x => pad2(x));
+
+  const played = parts.join("");
+
+  const wins = [
+    r2 + r3,
+    r2 + r4,
+    r3 + r4
+  ];
+
+  if(wins.includes(played)){
+
+    if(isGratis){
+      return Number(j.payoutGratis || 0);
+    }
+
+    pay = payout(config, "premios.mariage", 1000);
+    return montant * pay;
+  }
+}
+
+
+const wins = [
+  r2 + r3,
+  r2 + r4,
+  r3 + r4
+];
+
+const parts = String(num)
+  .replace("-", "x")
+  .replace("*", "x")
+  .split("x")
+  .map(x => pad2(x));
+
+const played = parts.join("");
+
+const wonOnce = wins.some(function(w){
+  return w === played;
+});
+
+if(wonOnce){
+  return Number(j.payoutGratis || 0);
+}
+
 
   // =========================
   // MARIAGE

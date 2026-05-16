@@ -1,4 +1,5 @@
 
+
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -8,40 +9,14 @@ const Ticket = require("./models/Ticket");
 const Vendor = require("./models/vendor");
 
 const Sorteo = require("./models/Sorteo");
-const Grupo = require("./models/Grupo");
-const Limites = require("./models/Limites");
-const Loteria = require("./models/Loteria");
-const AppConfig = require("./models/AppConfig");
-const multer = require("multer");
-
 
 const app = express();
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  }
-});
-
-const upload = multer({ storage });
-
-app.use(
-  "/uploads",
-  express.static("uploads")
-);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 mongoose.connect("mongodb+srv://adminn:Kendy2026@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority&appName=Cluster0")
-.then(async () => {
-  console.log("Mongo connecté");
-  await loadLimites();
-})
+.then(() => console.log("Mongo connecté"))
 .catch(err => console.error("Mongo erreur:", err.message));
 
 mongoose.connection.once("open", async () => {
@@ -337,31 +312,17 @@ function computeSummaries() {
     if (!map[vendeurId]) {
       const vendeurObj = vendeurs[vendeurId] || {};
       map[vendeurId] = {
-  vendeur: vendeurId,
-  nombre: String(vendeurObj.nom || vendeurObj.nombre || vendeurId),
-
-  zona: String(
-    vendeurObj.zona ||
-    vendeurObj.groupe ||
-    vendeurObj.grupo ||
-    ""
-  ),
-
-  venta: 0,
-  premios: 0,
-
-  // KOMISYON VENDEUR
-  comision: venta * getVendorCommissionRate(vendeurObj),
-
-  // KOMISYON GROUP
-  comisionGrupo: venta * (parseAmount(vendeurObj.comision?.zona || 0) / 100),
-
-  resultado: 0,
-
-  tickets: 0,
-  balanceAnterior: Number(vendeurObj.config?.credito || 0),
-  balanceFinal: 0
-};
+        vendeur: vendeurId,
+        nombre: String(vendeurObj.nom || vendeurObj.nombre || vendeurId),
+        zona: String(vendeurObj.zona || vendeurObj.groupe || ""),
+        venta: 0,
+        premios: 0,
+        comision: 0,
+        resultado: 0,
+        tickets: 0,
+        balanceAnterior: Number(vendeurObj.config?.credito || 0),
+        balanceFinal: 0
+      };
     }
 
     const status = normalizeStatus(ticket.status);
@@ -380,39 +341,10 @@ function computeSummaries() {
 
   Object.keys(map).forEach((id) => {
     const vendeurObj = vendeurs[id] || {};
-   const rate = getVendorCommissionRate(vendeurObj);
-
-// =========================
-// KOMISYON VENDEUR
-// =========================
-map[id].comision = map[id].venta * rate;
-
-// =========================
-// KOMISYON GROUP
-// =========================
-let grupoRate = Number(
-  vendeurObj?.grupoComision ||
-  vendeurObj?.groupCommission ||
-  vendeurObj?.zonaComision ||
-  vendeurObj?.comisionGrupo ||
-  0
-);
-
-if (grupoRate > 1) {
-  grupoRate = grupoRate / 100;
-}
-
-map[id].comisionGrupo =
-  map[id].venta * grupoRate;
-
-// =========================
-// RESULTADO FINAL
-// =========================
-map[id].resultado =
-  map[id].venta -
-  map[id].comision -
-  map[id].premios;
-
+    const rate = getVendorCommissionRate(vendeurObj);
+    map[id].comision = map[id].venta * rate;
+    map[id].resultado = map[id].venta - map[id].comision - map[id].premios;
+    map[id].balanceFinal = map[id].balanceAnterior + map[id].resultado;
   });
 
   return Object.values(map);
@@ -608,12 +540,7 @@ function pad2(v){
 function payout(config, key, def = 0){
   const val = key.split(".").reduce((o, k) => o && o[k], config);
   const n = Number(val);
-
-  if (!Number.isFinite(n) || n <= 0) {
-    return def;
-  }
-
-  return n;
+  return isNaN(n) ? def : n;
 }
 
 function getGain(j, tirage, config){
@@ -648,62 +575,6 @@ function getGain(j, tirage, config){
       pay = payout(config, "premios.borlette3", 10);
     }
   }
-
-  if(type === "MAR"){
-
-  const isGratis =
-    j.gratis === true ||
-    j.free === true ||
-    Number(j.montant || 0) === 0;
-
-  const parts = String(num)
-    .replace("-", "x")
-    .replace("*", "x")
-    .split("x")
-    .map(x => pad2(x));
-
-  const played = parts.join("");
-
-  const wins = [
-    r2 + r3,
-    r2 + r4,
-    r3 + r4
-  ];
-
-  if(wins.includes(played)){
-
-    if(isGratis){
-      return Number(j.payoutGratis || 0);
-    }
-
-    pay = payout(config, "premios.mariage", 1000);
-    return montant * pay;
-  }
-}
-
-
-const wins = [
-  r2 + r3,
-  r2 + r4,
-  r3 + r4
-];
-
-const parts = String(num)
-  .replace("-", "x")
-  .replace("*", "x")
-  .split("x")
-  .map(x => pad2(x));
-
-const played = parts.join("");
-
-const wonOnce = wins.some(function(w){
-  return w === played;
-});
-
-if(wonOnce){
-  return Number(j.payoutGratis || 0);
-}
-
 
   // =========================
   // MARIAGE
@@ -795,240 +666,6 @@ function money(v){
     maximumFractionDigits: 2
   });
 }
-
-app.post("/api/check-limit-game", async (req, res) => {
-  try {
-    const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
-    const type = normGameType(req.body.type);
-    const numero = String(req.body.numero || "").trim();
-    const loterie = String(req.body.loterie || "").trim().toUpperCase();
-    const montant = Number(req.body.montant || 0);
-
-    const vendor = await Vendor.findOne({ id: sellerId }).lean();
-    if (!vendor) return res.json({ ok:false, message:"Vandè pa jwenn" });
-
-    const credit = Number(vendor?.config?.credito || vendor?.credito || 0);
-
-if (credit <= 0) {
-  return res.json({
-    ok:false,
-    message:"OU BLOKE POU BALANS TANPRI RANPLI KONSISYON OU!"
-  });
-}
-
-    const limites = limitesAjustes || {};
-
-    const bloques = Array.isArray(limites.bloqueoNumeros) ? limites.bloqueoNumeros : [];
-
-    const blocked = bloques.some(b => {
-      if (typeof b === "string") return b.trim() === numero;
-      return String(b.numero || "").trim() === numero &&
-        (!b.type || String(b.type).toUpperCase() === type);
-    });
-
-    if (blocked) {
-      return res.json({ ok:false, message:
-  "❌ " + loterie + "\n" +
-  type + " " + numero + "\n\n" +
-  "Nimewo sa bloke.\n" +
-  "Ou pa ka vann jwèt sa."});
-    }
-
-    let limit = 0;
-
-    if (type === "BOR") limit = Number(limites.borlette || 0);
-    else if (type === "MAR") limit = Number(limites.mariage || 0);
-    else if (type === "L3") limit = Number(limites.loto3 || 0);
-   else if (type === "L41" || type === "L42" || type === "L43") limit = Number(limites.loto4 || 0);
-else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0); 
-
-const special = (limites.limiteNumeros || []).find(x =>
-  normGameType(x.type) === type &&
-  String(x.numero || "").trim() === numero
-);
-
-if (special) {
-  limit = Number(special.monto || special.montant || special.limit || special.limite || 0);
-}
-
-    if (limit <= 0) {
-      return res.json({ ok:true });
-    }
-
-    const today = new Date().toLocaleDateString("fr-FR");
-
- const tickets = await Ticket.find({
-  status: { $ne:"ANILE" }
-}).lean();
-
-    let dejaVendu = 0;
-
-    tickets.forEach(t => {
-      (t.jeux || []).forEach(j => {
-        if (
-          String(j.type || "").toUpperCase() === type &&
-          String(j.numero || "").trim() === numero &&
-          String(j.loterie || "").trim().toUpperCase() === loterie
-        ) {
-          dejaVendu += Number(j.montant || 0);
-        }
-      });
-    });
-
-    const reste = limit - dejaVendu;
-
-    console.log("LIMIT DEBUG:", {
-  sellerId,
-  type,
-  numero,
-  loterie,
-  limit,
-  dejaVendu,
-  reste
-});
-
-    if (reste <= 0) {
-      return res.json({ ok:false, message:
-  "❌ " + loterie + "\n" +
-  type + " " + numero + "\n\n" +
-  "Limit: " + limit.toFixed(2) + "\n" +
-  "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
-  "Rès disponib: 0.00\n\n" +
-  "Limit nimewo sa fini."});
-    }
-
-    if (montant > reste) {
-      return res.json({
-        ok:false,
-        message:
-  "❌ " + loterie + "\n" +
-  type + " " + numero + "\n\n" +
-  "Limit: " + limit.toFixed(2) + "\n" +
-  "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
-  "Rès disponib: " + reste.toFixed(2) + "\n\n" +
-  "Ou te mande: " + montant.toFixed(2) + "\n" +
-  "Ou ka vann sèlman: " + reste.toFixed(2)
-      });
-    }
-
-    res.json({ ok:true });
-
-  } catch (err) {
-    console.error("CHECK LIMIT ERROR:", err);
-    res.json({ ok:false, message:"Erreur limit" });
-  }
-});
-
-let limitesAjustes = {
-  borlette: 0,
-  mariage: 0,
-  loto3: 0,
-  loto4: 0,
-  loto5: 0,
-  limiteNumeros: [],
-  bloqueoNumeros: []
-};
-
-async function loadLimites(){
-  try{
-
-    const saved = await Limites.findOne().lean();
-
-    if(saved){
-      limitesAjustes = {
-        borlette: Number(saved.borlette || 0),
-        mariage: Number(saved.mariage || 0),
-        loto3: Number(saved.loto3 || 0),
-        loto4: Number(saved.loto4 || 0),
-        loto5: Number(saved.loto5 || 0),
-
-        limiteNumeros: Array.isArray(saved.limiteNumeros)
-          ? saved.limiteNumeros
-          : [],
-
-        bloqueoNumeros: Array.isArray(saved.bloqueoNumeros)
-          ? saved.bloqueoNumeros
-          : []
-      };
-
-      console.log("✅ LIMITES CHARGÉS");
-    }
-
-  }catch(err){
-    console.error("LOAD LIMITES ERROR:", err);
-  }
-}
-
-app.post("/api/limites-ajustes", async (req,res)=>{
-  try{
-
-  limitesAjustes = {
-  borlette: Number(req.body.borlette || 0),
-  mariage: Number(req.body.mariage || 0),
-  loto3: Number(req.body.loto3 || 0),
-  loto4: Number(req.body.loto4 || 0),
-  loto5: Number(req.body.loto5 || 0),
-
-  limiteNumeros: Array.isArray(req.body.limiteNumeros)
-    ? req.body.limiteNumeros
-    : [],
-
-  bloqueoNumeros: Array.isArray(req.body.bloqueoNumeros)
-    ? req.body.bloqueoNumeros
-    : []
-};
-
-await Limites.findOneAndUpdate(
-  {},
-  limitesAjustes,
-  {
-    upsert:true,
-    new:true
-  }
-);
-
-
-    console.log("✅ LIMITES SAUVEGARDÉS MONGO");
-
-    res.json({
-      ok:true
-    });
-
-  }catch(err){
-
-    console.error("LIMITES ERROR:", err);
-
-    res.json({
-      ok:false,
-      message:"Erreur serveur"
-    });
-
-  }
-});
-
-app.get("/api/limites-ajustes", async (req,res)=>{
-  try{
-    let data = await Limites.findOne().lean();
-
-    if(!data){
-      data = {
-        borlette:0,
-        mariage:0,
-        loto3:0,
-        loto4:0,
-        loto5:0,
-        limiteNumeros:[],
-        bloqueoNumeros:[]
-      };
-    }
-
-    limitesAjustes = data;
-    res.json({ ok:true, limites:data });
-
-  }catch(err){
-    res.json({ ok:false, message:"Erreur load limites" });
-  }
-});
 
 // GET tickets pa vendeur
 app.get("/api/vendor/:id/tickets", async (req, res) => {
@@ -1176,12 +813,6 @@ app.get("/check-tickets", async (req, res) => {
       let isWinner = false;
       let totalPremio = 0;
 
-      const vendor = await Vendor.findOne({
-        id: String(ticket.vendeur || "").trim().toUpperCase()
-      }).lean();
-
-      const config = vendor || {};
-
       for (let jeu of ticket.jeux || []) {
         jeu.gain = 0;
 
@@ -1198,31 +829,44 @@ app.get("/check-tickets", async (req, res) => {
 
         if (!tirage) continue;
 
-        const hasBalls =
-          String(tirage.r1 || "").trim() ||
-          String(tirage.r2 || "").trim() ||
-          String(tirage.r3 || "").trim() ||
-          String(tirage.r4 || "").trim();
+        const r1 = String(tirage.r1 || "").trim();
+        const r2 = String(tirage.r2 || "").trim();
+        const r3 = String(tirage.r3 || "").trim();
+        const r4 = String(tirage.r4 || "").trim();
 
-        if (!hasBalls) continue;
+        if (!r1 && !r2 && !r3 && !r4) continue;
 
         hasResult = true;
 
-        const gain = getGain(jeu, tirage, config);
+        const won = isWinningGame(jeu, tirage);
 
-        if (gain > 0) {
-          jeu.gain = gain;
+        if (won) {
           isWinner = true;
+          const gain = Number(jeu.montant || 0);
+          jeu.gain = gain;
           totalPremio += gain;
         }
       }
+
+ticket.jeux = (ticket.jeux || []).map(j => ({ ...j, gain: 0 }));
+
+for (let jeu of ticket.jeux || []) {
+  if (isWinningGame(jeu, tirage)) {
+    const gain = Number(jeu.montant || 0);
+
+    jeu.gain = gain;
+    isWinner = true;
+    totalPremio += gain;
+  }
+}
+
+ticket.markModified("jeux");
 
       ticket.status = !hasResult ? "ANATAN" : (isWinner ? "GANYE" : "PEDI");
       ticket.premio = isWinner ? totalPremio : 0;
       ticket.updatedAt = new Date();
 
       ticket.markModified("jeux");
-
       await ticket.save();
       checked++;
     }
@@ -1242,6 +886,7 @@ app.get("/check-tickets", async (req, res) => {
     });
   }
 });
+
 
 function pad2(v){
   const s = String(v || "").trim();
@@ -1280,117 +925,6 @@ function isWinningGame(j, result){
   return false;
 }
 
-function normGameType(v){
-  const s = String(v || "").trim().toUpperCase();
-
-  if (s === "BORLETTE" || s === "BOR") return "BOR";
-  if (s === "MARIAGE" || s === "MAR") return "MAR";
-
-  if (s === "LOTO 3" || s === "L3") return "L3";
-
-  if (s === "L41") return "L41";
-  if (s === "L42") return "L42";
-  if (s === "L43") return "L43";
-
-  if (s === "L51") return "L51";
-  if (s === "L52") return "L52";
-  if (s === "L53") return "L53";
-
-  if (s === "LOTO 4" || s === "L4") return "L41";
-  if (s === "LOTO 5" || s === "L5") return "L51";
-
-  return s;
-}
-
-function getFreeMariageCount(total){
-  total = Number(total || 0);
-
-  if(total < 50) return 0;
-
-  return Math.min(
-    5,
-    Math.floor(total / 50)
-  );
-}
-
-function randomFreeMariage(){
-  const a = String(Math.floor(Math.random() * 100)).padStart(2, "0");
-
-  let b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
-
-  while(b === a){
-    b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
-  }
-
-  return a + "x" + b;
-}
-
-function buildFreeMariagesForTicket(tirages, jeux, appConfig, vendor){
-
-  const mg = appConfig.mariageGratis || {};
-  const cfg = vendor?.config || {};
-
-  const vendorBonus =
-    vendor &&
-    (
-      vendor.bono === true ||
-      vendor.bonus === true ||
-      vendor.activarBono === true ||
-      String(vendor.bono) === "true" ||
-      String(vendor.bonus) === "true" ||
-      String(vendor.activarBono) === "true" ||
-      cfg.activarBono === true ||
-      String(cfg.activarBono) === "true"
-    );
-
-  if(!mg.enabled || !vendorBonus){
-    return [];
-  }
-
-  const totalsByLoterie = {};
-
-  (jeux || []).forEach(j => {
-    if(j.gratis === true || j.free === true) return;
-
-    const loterieName =
-      String(j.loterie || j.loteria || "")
-        .trim()
-        .toUpperCase();
-
-    if(!loterieName) return;
-
-    totalsByLoterie[loterieName] =
-      (totalsByLoterie[loterieName] || 0) +
-      Number(j.montant || 0);
-  });
-
-  const gratuits = [];
-
-  Object.keys(totalsByLoterie).forEach(loterieName => {
-
-    const count =
-      getFreeMariageCount(totalsByLoterie[loterieName]);
-
-    for(let i = 0; i < count; i++){
-
-      gratuits.push({
-        type: "MAR",
-        numero: randomFreeMariage(),
-        montant: 0,
-        gratis: true,
-        free: true,
-        payoutGratis: Number(mg.payout || 1000),
-        loterie: loterieName,
-        loteria: loterieName
-      });
-
-    }
-
-  });
-
-  return gratuits;
-}
-
 
 app.post("/api/tickets", async (req, res) => {
   try {
@@ -1412,226 +946,16 @@ app.post("/api/tickets", async (req, res) => {
       return res.status(400).json({ ok: false, message: "Pa gen jwèt" });
     }
 
-  const safeJeux = jeux.map(j => ({
-  type: normGameType(j.type),
-  numero: String(j.numero || "").trim(),
-  loterie: String(j.loterie || "").trim().toUpperCase(),
-  montant: Number(j.montant || 0)
-})).filter(j => j.type && j.numero && j.loterie && j.montant > 0);
+    const safeJeux = jeux.map(j => ({
+      type: String(j.type || "").trim(),
+      numero: String(j.numero || "").trim(),
+      loterie: String(j.loterie || "").trim(),
+      montant: Number(j.montant || 0)
+    })).filter(j => j.type && j.numero && j.loterie && j.montant > 0);
 
     if (!safeJeux.length) {
       return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
     }
-
-for (const j of safeJeux) {
-  const limites = limitesAjustes || {};
-  const type = normGameType(j.type);
-
-  const bloques = Array.isArray(limites.bloqueoNumeros)
-    ? limites.bloqueoNumeros
-    : [];
-
-  const blocked = bloques.some(b => {
-    if (typeof b === "string") return b.trim() === j.numero;
-
-    return String(b.numero || "").trim() === j.numero &&
-      (!b.type || normGameType(b.type) === type);
-  });
-
-  if (blocked) {
-    return res.status(403).json({
-      ok:false,
-      message:
-  "❌ " + loterie + "\n" +
-  type + " " + numero + "\n\n" +
-  "Nimewo sa bloke.\n" +
-  "Ou pa ka vann jwèt sa."
-    });
-  }
-
-  let limit = 0;
-
-  if (type === "BOR") limit = Number(limites.borlette || 0);
-  else if (type === "MAR") limit = Number(limites.mariage || 0);
-  else if (type === "L3") limit = Number(limites.loto3 || 0);
-  else if (type === "L41" || type === "L42" || type === "L43") limit = Number(limites.loto4 || 0);
-  else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0);
-
-const special = (limites.limiteNumeros || []).find(x =>
-  normGameType(x.type) === type &&
-  String(x.numero || "").trim() === String(j.numero || "").trim()
-);
-
-if (special) {
-  limit = Number(special.monto || special.montant || special.limit || special.limite || 0);
-}
-
-  if (limit > 0) {
-    const tickets = await Ticket.find({
-      status: { $ne: "ANILE" },
-      "jeux.numero": String(j.numero || "").trim(),
-      "jeux.loterie": String(j.loterie || "").trim().toUpperCase()
-    }).lean();
-
-    let dejaVendu = 0;
-
-    tickets.forEach(t => {
-      (t.jeux || []).forEach(old => {
-        if (
-          normGameType(old.type) === type &&
-          String(old.numero || "").trim() === String(j.numero || "").trim() &&
-          String(old.loterie || "").trim().toUpperCase() === String(j.loterie || "").trim().toUpperCase()
-        ) {
-          dejaVendu += Number(old.montant || 0);
-        }
-      });
-    });
-
-    const reste = limit - dejaVendu;
-
-    if (reste <= 0) {
-      return res.status(403).json({
-        ok:false,
-        message:
-  "❌ " + loterie + "\n" +
-  type + " " + numero + "\n\n" +
-  "Limit: " + limit.toFixed(2) + "\n" +
-  "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
-  "Rès disponib: 0.00\n\n" +
-  "Limit nimewo sa fini."
-      });
-    }
-
-    if (Number(j.montant || 0) > reste) {
-      return res.status(403).json({
-        ok:false,
-        message:
-  "❌ " + loterie + "\n" +
-  type + " " + numero + "\n\n" +
-  "Limit: " + limit.toFixed(2) + "\n" +
-  "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
-  "Rès disponib: " + reste.toFixed(2) + "\n\n" +
-  "Ou te mande: " + montant.toFixed(2) + "\n" +
-  "Ou ka vann sèlman: " + reste.toFixed(2)
-      });
-    }
-  }
-}
-
-    const vendor = await Vendor.findOne({ id: sellerId }).lean();
-
-if (!vendor) {
-  return res.status(404).json({ ok:false, message:"Vandè pa jwenn" });
-}
-
-const credit = Number(vendor?.config?.credito || vendor?.credito || 0);
-
-if (credit <= 0) {
-  return res.status(403).json({
-    ok:false,
-    message:"OU BLOKE POU BALANS TANPRI RANPLI KONSISYON OU!"
-  });
-}
-
-
-const grupo = await Grupo.findOne({
-  nombre: vendor.zona || vendor.groupe
-}).lean();
-
-if (grupo && grupo.estatus === "Bloqueado") {
-  return res.status(403).json({
-    ok:false,
-    message:"Grupo sa bloke. Ou pa ka fè tikè."
-  });
-}
-
-
-function getLimit(limites, type){
-  if (type === "BOR") return Number(limites.borlette || limites.bor || limites.BOR || 0);
-
-  if (type === "MAR") return Number(limites.mariage || limites.mar || limites.MAR || 0);
-
-  if (type === "L3") return Number(limites.loto3 || limites.l3 || limites.L3 || 0);
-
-  if (type === "L41" || type === "L42" || type === "L43") {
-    return Number(limites.loto4 || limites.l4 || limites.L4 || 0);
-  }
-
-  if (type === "L51" || type === "L52" || type === "L53") {
-    return Number(limites.loto5 || limites.l5 || limites.L5 || 0);
-  }
-
-  return 0;
-}
-
-const vendorLimites = vendor.limites || vendor.limits || {};
-
-for (const j of safeJeux) {
-
-  const type = String(j.type || "").trim().toUpperCase();
-
-  const vendorLimit = getLimit(vendorLimites, type);
-
-  if (vendorLimit > 0 && Number(j.montant || 0) > vendorLimit) {
-
-    return res.status(403).json({
-      ok:false,
-      message:"Limit vandè a se " + vendorLimit.toFixed(2)
-    });
-
-  }
-}
-
-const lotNames = [...new Set(safeJeux.map(j => String(j.loterie || "").trim().toUpperCase()))];
-
-const lotRows = await Loteria.find({
-  name: { $in: lotNames }
-}).lean();
-
-const lotMap = {};
-lotRows.forEach(l => {
-  lotMap[String(l.name || "").trim().toUpperCase()] = l;
-});
-
-function minutesNowServer(){
-  const d = new Date();
-  return d.getHours() * 60 + d.getMinutes();
-}
-
-function minutesFromTimeServer(t){
-  const p = String(t || "00:00").split(":");
-  return (Number(p[0] || 0) * 60) + Number(p[1] || 0);
-}
-
-function isLoteriaOpenServer(l){
-  if(!l) return true;
-
-  if(String(l.estatus || "Activo").toLowerCase() !== "activo"){
-    return false;
-  }
-
-  const nowM = minutesNowServer();
-  const openM = minutesFromTimeServer(l.openTime || "00:00");
-  const closeM = minutesFromTimeServer(l.closeTime || "23:59");
-
-  if(openM <= closeM){
-    return nowM >= openM && nowM < closeM;
-  }
-
-  return nowM >= openM || nowM < closeM;
-}
-
-for(const j of safeJeux){
-  const lotKey = String(j.loterie || "").trim().toUpperCase();
-  const lot = lotMap[lotKey];
-
-  if(!isLoteriaOpenServer(lot)){
-    return res.status(403).json({
-      ok:false,
-      message:"Lotri sa fèmen: " + lotKey
-    });
-  }
-}
 
     const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
 
@@ -1643,24 +967,6 @@ for(const j of safeJeux){
     const ticketId =
       "T" + Date.now().toString() +
       Math.random().toString(36).substring(2, 8).toUpperCase();
-
-      const appConfig =
-  await AppConfig.findOne({ key:"main" }).lean()
-  || {};
-
-const freeMariages =
-  buildFreeMariagesForTicket(
-  tirages,
-  jeux,
-  appConfig,
-  vendor
-)
-
-const finalJeux = jeux
-  .filter(j =>
-    !(j.gratis === true || j.free === true)
-  )
-  .concat(freeMariages);
 
     const ticket = await Ticket.create({
       id: ticketId,
@@ -1689,7 +995,7 @@ const finalJeux = jeux
       channel,
       total,
       tirages,
-      jeux: finalJeux
+      jeux: safeJeux
     });
 
     const obj = ticket.toObject();
@@ -1827,91 +1133,11 @@ app.get("/api/master/balance-summary", (req, res) => {
   res.json(summaries);
 });
 
-app.get("/api/vendor/loterias", async (req, res) => {
-  try {
-    const rows = await Loteria.find().sort({ closeTime: 1 }).lean();
-
-    res.json(rows.map(l => ({
-      name: l.name,
-      sub: "",
-      openTime: l.openTime || "00:00",
-      closeTime: l.closeTime || "23:59",
-      time: l.closeTime || "23:59",
-      estatus: l.estatus || "Activo"
-    })));
-  } catch (err) {
-    console.error("VENDOR LOTERIAS ERROR:", err);
-    res.status(500).json([]);
-  }
-});
-
-app.get("/api/vendor/config", async (req, res) => {
-  try {
-    let cfg = await AppConfig.findOne({ key: "main" }).lean();
-
-    if (!cfg) {
-      cfg = await AppConfig.create({ key: "main" });
-      cfg = cfg.toObject();
-    }
-
-    res.json({
-      ok: true,
-      ticketLogo: cfg.ticketLogo || "",
-      ticketMessage: cfg.ticketMessage || "",
-      mariageGratis: cfg.mariageGratis || {
-        enabled: false,
-        max: 5,
-        stepAmount: 50
-      }
-    });
-  } catch (err) {
-    console.error("VENDOR CONFIG ERROR:", err);
-    res.status(500).json({
-      ok: false,
-      ticketLogo: "",
-      ticketMessage: "",
-      mariageGratis: {
-        enabled: false,
-        max: 5,
-        stepAmount: 50
-      }
-    });
-  }
-});
-
-app.post("/api/upload-logo", upload.single("logo"), (req, res) => {
-  if(!req.file){
-    return res.json({ ok:false });
-  }
-
-  res.json({
-    ok:true,
-    url: "/uploads/" + req.file.filename,
-    path: "/uploads/" + req.file.filename
-  });
-});
-
-app.post("/upload-logo", upload.single("logo"), (req, res) => {
-  if(!req.file){
-    return res.json({ ok:false });
-  }
-
-  res.json({
-    ok:true,
-    url: "/uploads/" + req.file.filename,
-    path: "/uploads/" + req.file.filename
-  });
-});
-
-
-app.get("/dashboard", async (req, res) => {
+app.get("/dashboard", (req, res) => {
   const sellerId = String(req.query.id || "").trim().toUpperCase();
-
-  const vendeur = await Vendor.findOne({ id: sellerId }).lean() || {};
-
-  const sellerName = String(
-    vendeur.nom || vendeur.nombre || sellerId || "VENDEUR"
-  );
+  const vendeurs = loadVendeursForLogin();
+  const vendeur = vendeurs[sellerId] || {};
+  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "VENDEUR");
 
   res.send(`
 <!DOCTYPE html>
@@ -2436,31 +1662,11 @@ border-left:1px solid #ddd;
 border-right:1px solid #ddd;
 }
 }
-
-.overlay{
-  display:none;
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,.35);
-  z-index:10;
-}
-
-.overlay.show{
-  display:block;
-}
-
-#drawer{
-  z-index:20;
-}
-
 </style>
 </head>
 <body>
 <div class="app">
-<div id="overlay" class="overlay" onclick="closeDrawer()"></div>
+<div id="overlay" class="overlay" onclick="goBackToJeuxFromMenu()"></div>
 
 <div class="topbar">
 <div class="top-left">
@@ -2568,6 +1774,7 @@ border-right:1px solid #ddd;
 
 <div id="drawer" class="drawer">
 <div class="drawer-head" style="display:flex;align-items:center;gap:12px;">
+<span onclick="backToJeux()" style="font-size:30px;cursor:pointer;">←</span>
 <span>NUMBER ONE LOTO</span>
 </div>
 <div class="drawer-item" onclick="openDrawerTirages()">Tirages</div>
@@ -2625,7 +1832,22 @@ var tempChoices = [];
 var savedTickets = [];
 var currentPageName = "salePage";
 
-var loteries = [];
+var loteries = [
+  { name: "TENNESSE MORNING", sub: "", openTime: "00:00", closeTime: "11:55", time: "11:55 AM" },
+  { name: "TEXAS MORNING", sub: "", openTime: "00:00", closeTime: "11:55", time: "11:55 AM" },
+
+  { name: "GEORGIA MIDDAY", sub: "", openTime: "00:00", closeTime: "12:25", time: "12:25 PM" },
+  { name: "FLORIDA MIDDAY", sub: "", openTime: "00:00", closeTime: "13:25", time: "1:25 PM" },
+  { name: "NEW YORK MIDDAY", sub: "", openTime: "00:00", closeTime: "14:25", time: "2:25 PM" },
+
+  { name: "TEXAS EVENING", sub: "", openTime: "00:00", closeTime: "18:25", time: "6:25 PM" },
+  { name: "GEORGIA EVENING", sub: "", openTime: "00:00", closeTime: "18:50", time: "6:50 PM" },
+  { name: "TENNESSE EVENING", sub: "", openTime: "00:00", closeTime: "19:25", time: "7:25 PM" },
+  { name: "FLORIDA EVENING", sub: "", openTime: "00:00", closeTime: "21:30", time: "9:30 PM" },
+  { name: "NEW YORK EVENING", sub: "", openTime: "00:00", closeTime: "22:25", time: "10:25 PM" },
+
+  { name: "GEORGIA NIGHT", sub: "", openTime: "00:00", closeTime: "23:15", time: "11:15 PM" }
+];
 
 function getSelectedLoteriesText(){
  return selectedLoteries.length ? selectedLoteries.join(", ") : "";
@@ -2951,53 +2173,35 @@ function toggleLoterie(name){
 }
 
 function renderLoterieList(){
-  var list = document.getElementById("loterieList");
-  list.innerHTML = "";
+ var list = document.getElementById("loterieList");
+ list.innerHTML = "";
 
-  var visibleLoteries = loteries.filter(function(item){
-    return getLoteriaState(item).open;
-  });
+ loteries.forEach(function(item){
+   var row = document.createElement("div");
+   row.className = "loterie-item" + (selectedLoteries.indexOf(item.name) >= 0 ? " selected" : "");
+   row.onclick = function(){
+     toggleLoterie(item.name);
+   };
 
-  if(!visibleLoteries.length){
-    list.innerHTML =
-      '<div style="padding:30px;text-align:center;font-size:20px;font-weight:800;color:#888;">' +
-        'Pa gen lotri ouvè pou kounya' +
-      '</div>';
-    return;
-  }
+   var left = document.createElement("div");
+   left.className = "loterie-check";
+   left.textContent = selectedLoteries.indexOf(item.name) >= 0 ? "✓" : "";
 
-  visibleLoteries.forEach(function(item){
-    var state = getLoteriaState(item);
+   var center = document.createElement("div");
+   center.innerHTML =
+     '<div class="loterie-name">' + item.name + '</div>' +
+     '<div class="loterie-sub">' + item.sub + '</div>';
 
-    var row = document.createElement("div");
-    row.className = "loterie-item" + (selectedLoteries.indexOf(item.name) >= 0 ? " selected" : "");
+   var right = document.createElement("div");
+   right.className = "loterie-time";
+   right.textContent = item.time;
 
-    row.onclick = function(){
-      toggleLoterie(item.name);
-    };
-
-    var left = document.createElement("div");
-    left.className = "loterie-check";
-    left.textContent = selectedLoteries.indexOf(item.name) >= 0 ? "✓" : "";
-
-    var center = document.createElement("div");
-    center.innerHTML =
-      '<div class="loterie-name">' + item.name + '</div>' +
-      '<div class="loterie-sub" style="font-weight:800;color:' + state.color + ';">' +
-        state.label +
-      '</div>';
-
-    var right = document.createElement("div");
-    right.className = "loterie-time";
-    right.textContent = item.time || item.closeTime || "";
-
-    row.appendChild(left);
-    row.appendChild(center);
-    row.appendChild(right);
-    list.appendChild(row);
-  });
+   row.appendChild(left);
+   row.appendChild(center);
+   row.appendChild(right);
+   list.appendChild(row);
+ });
 }
-
 
 function reverse2(s){
  return s.charAt(1) + s.charAt(0);
@@ -3244,56 +2448,35 @@ function autoLoto4(){
  updateFields();
 }
 
-async function addGame(){
-  if(!numero.trim()) return;
-  if(!montant.trim()) return;
-  if(selectedLoteries.length === 0) return;
+function addGame(){
+ if(!numero.trim()) return;
+ if(!montant.trim()) return;
+ if(selectedLoteries.length === 0) return;
 
-  var entries = buildGameEntries(numero);
+ var entries = buildGameEntries(numero);
 
-  if(!entries){
-    alert("Jeu pa valid");
-    return;
-  }
+ if(!entries){
+   alert("Jeu pa valid");
+   return;
+ }
 
-  for (const lot of selectedLoteries) {
-    for (const entry of entries) {
-      const check = await fetch("/api/check-limit-game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sellerId: sellerId,
-          type: entry.type,
-          numero: entry.numero,
-          loterie: lot,
-          montant: parseFloat(montant) || 0
-        })
-      }).then(r => r.json());
+ selectedLoteries.forEach(function(lot){
+   entries.forEach(function(entry){
+     mergeOrPushGame({
+       type: entry.type,
+       numero: entry.numero,
+       loterie: lot,
+       montant: parseFloat(montant) || 0
+     });
+   });
+ });
 
-      if(!check.ok){
-        alert(check.message || "Limit pa valid");
-        return;
-      }
-    }
-  }
+ numero = "";
+ cursorNumero = 0;
+ activeField = "numero";
 
-  selectedLoteries.forEach(function(lot){
-    entries.forEach(function(entry){
-      mergeOrPushGame({
-        type: entry.type,
-        numero: entry.numero,
-        loterie: lot,
-        montant: parseFloat(montant) || 0
-      });
-    });
-  });
-
-  numero = "";
-  cursorNumero = 0;
-  activeField = "numero";
-
-  renderJeux();
-  updateFields();
+ renderJeux();
+ updateFields();
 }
 
 function goBackToJeuxFromMenu(){
@@ -3331,6 +2514,15 @@ function toggleDrawer(){
 function closeDrawer(){
   goBackToJeuxFromMenu();
 }
+
+document.addEventListener("DOMContentLoaded", function(){
+  var overlay = document.getElementById("overlay");
+  if(overlay){
+    overlay.onclick = function(){
+      goBackToJeuxFromMenu();
+    };
+  }
+});
 
 function renderJeux(){
  var area = document.getElementById("ticketsArea");
@@ -3397,21 +2589,21 @@ function buildPayloadGames(){
 }
 
 function buildPrintableTextFromTicket(ticket){
-  if(!ticket || !Array.isArray(ticket.jeux)) return "";
+  if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
-  var lines = [];
+  var lines = [];
 
-  ticket.jeux.forEach(function(j){
-    lines.push(
-      String(j.type || "") + " " +
-      String(j.numero || "") + " " +
-      Number(j.montant || 0).toFixed(2) +
-      " - " +
-      String(j.loterie || "")
-    );
-  });
+  ticket.jeux.forEach(function(j){
+    lines.push(
+      String(j.type || "") + " " +
+      String(j.numero || "") + " " +
+      Number(j.montant || 0).toFixed(2) +
+      " - " +
+      String(j.loterie || "")
+    );
+  });
 
-  return lines.join("\\n");
+  return lines.join("\\n");
 }
 
 
@@ -3526,6 +2718,17 @@ function filterTransactions(list, vendor, start, end){
   });
 }
 
+function toggleDrawer(){
+ document.getElementById("drawer").classList.toggle("open");
+ document.getElementById("overlay").classList.toggle("show");
+ closeOptions();
+}
+
+function closeDrawer(){
+ document.getElementById("drawer").classList.remove("open");
+ document.getElementById("overlay").classList.remove("show");
+}
+
 function openOptions(){
  document.getElementById("drawer").classList.remove("open");
  document.getElementById("optionsSheet").classList.add("open");
@@ -3533,17 +2736,8 @@ function openOptions(){
 }
 
 function closeOptions(){
- var sheet = document.getElementById("optionsSheet");
- var overlay = document.getElementById("overlay");
-
- if(sheet) sheet.classList.remove("open");
-
- var drawerOpen = document.getElementById("drawer")?.classList.contains("open");
- var modalOpen = document.getElementById("loterieModal")?.classList.contains("show");
-
- if(!drawerOpen && !modalOpen && overlay){
-   overlay.classList.remove("show");
- }
+ document.getElementById("optionsSheet").classList.remove("open");
+ document.getElementById("overlay").classList.remove("show");
 }
 
 function deleteAllGames(){
@@ -3620,30 +2814,15 @@ function feedbackTouch(){
   }
 }
 
-function rePrintTicket(ticketId){
-  if(!ticketId){
-    alert("Ticket ID pa valid");
-    return;
-  }
-
-  window.open(
-    "/print?ticketId=" + encodeURIComponent(ticketId) +
-    "&sellerId=" + encodeURIComponent(sellerId),
-    "_blank"
-  );
-}
-
-
 function renderBillets(){
   var wrap = document.getElementById("billetsWrap");
 
   function fmt(v){
-  return Number(v || 0).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
-
+    return Number(v || 0).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
 
   if(!savedTickets.length){
     wrap.innerHTML = '<div class="empty-zone">Pa gen billet</div>';
@@ -3708,13 +2887,12 @@ function renderBillets(){
 
     var actions = document.createElement("div");
     actions.className = "billet-actions";
-actions.style.gridTemplateColumns = "1fr 1fr 1fr 1.25fr 1fr";
-actions.innerHTML =
-  '<button class="small-btn btn-green">COPIE</button>' +
-  '<button class="small-btn btn-yellow">LOTERIE</button>' +
-  '<button class="small-btn btn-yellow">MONTANT</button>' +
-  '<button class="small-btn btn-gray">PRINT</button>' +
-  '<button class="small-btn btn-gray">ANILE</button>'; 
+    actions.style.gridTemplateColumns = "repeat(4,1fr)";
+    actions.innerHTML =
+      '<button class="small-btn btn-green">COPIE</button>' +
+      '<button class="small-btn btn-yellow">LOTERIE</button>' +
+      '<button class="small-btn btn-yellow">MONTANT</button>' +
+      '<button class="small-btn btn-gray">ANILE</button>';
 
     var btns = actions.querySelectorAll("button");
 
@@ -3751,24 +2929,14 @@ actions.innerHTML =
       copyFromTicketWithMontant(t, newMontant);
     };
 
-  btns[3].onclick = function(e){
-  e.preventDefault();
-  e.stopPropagation();
-  feedbackTouch();
+    btns[3].onclick = function(e){
+      e.stopPropagation();
+      feedbackTouch();
 
-  setTimeout(function(){
-    rePrintTicket(t.id || t.ticketId || t.serial);
-  }, 80);
-};
-
-btns[4].onclick = function(e){
-  e.stopPropagation();
-  feedbackTouch();
-
-  if(confirm("Ou sèten ou vle anile ticket sa?")){
-    updateTicketStatus(t.id, "ANILE");
-  }
-}; 
+      if(confirm("Ou sèten ou vle anile ticket sa?")){
+        updateTicketStatus(t.id, "ANILE");
+      }
+    };
 
     card.appendChild(actions);
     wrap.appendChild(card);
@@ -3790,9 +2958,7 @@ function copyFromTicket(ticket){
   cursorMontant = 0;
   activeField = "numero";
 
- (ticket.jeux || [])
-.filter(j => Number(j.montant || 0) > 0)
-.forEach(function(j){
+  ticket.jeux.forEach(function(j){
     jeux.push({
       type: j.type,
       numero: j.numero,
@@ -3824,9 +2990,7 @@ function copyFromTicketWithMontant(ticket, newMontant){
   cursorMontant = 0;
   activeField = "numero";
 
- (ticket.jeux || [])
-.filter(j => Number(j.montant || 0) > 0)
-.forEach(function(j){
+  ticket.jeux.forEach(function(j){
     jeux.push({
       type: j.type,
       numero: j.numero,
@@ -3863,9 +3027,7 @@ function validateLoteries(){
     cursorMontant = 0;
     activeField = "numero";
 
-(selectedTicketToCopy.jeux || [])
-.filter(j => Number(j.montant || 0) > 0)
-.forEach(function(j){
+    selectedTicketToCopy.jeux.forEach(function(j){
       selectedLoteries.forEach(function(lot){
         jeux.push({
           type: j.type,
@@ -3938,9 +3100,7 @@ function handleCopyButton(){
     cursorMontant = 0;
     activeField = "numero";
 
-    (found.jeux || [])
-.filter(j => Number(j.montant || 0) > 0)
-.forEach(function(j){
+    found.jeux.forEach(function(j){
       jeux.push({
         type: j.type,
         numero: j.numero,
@@ -4028,32 +3188,32 @@ function renderRapports(){
     });
   });
 
-var commission = vente * (Number(sellerCommissionRate || 0) / 100);
-var resultat = vente - prime - commission;
+  var commission = 0; // kite master panel jere sa
+var resultat = vente - prime;
 
   var daysHtml = "";
   var sortedDays = Object.keys(byDay).sort();
   sortedDays.forEach(function(day){
     var d = byDay[day];
-  var dCommission = d.vente * (Number(sellerCommissionRate || 0) / 100);
-var dBalance = d.vente - d.prime - dCommission;
+    var dCommission = 0;
+var dBalance = d.vente - d.prime;
 
-daysHtml +=
-  '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-    '<div>' + Number(d.vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + Number(dCommission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div></div>' +
-    '<div>' + Number(d.prime || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
-    '<div>' + Number(dBalance || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(day) + '</div></div>' +
-  '</div>';
-});
+    daysHtml +=
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+        '<div>' + d.vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + dCommission.toFixed(2) + '</div></div>' +
+        '<div>' + d.prime.toFixed(2) + '</div>' +
+        '<div>' + dBalance.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(day) + '</div></div>' +
+      '</div>';
+  });
 
-if(!daysHtml){
-  daysHtml =
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-      '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">0.00</div></div>' +
-      '<div>0.00</div>' +
-      '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(endValue) + '</div></div>' +
-    '</div>';
-}
+  if(!daysHtml){
+    daysHtml =
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+        '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">0.00</div></div>' +
+        '<div>0.00</div>' +
+        '<div>0.00<div style="font-size:15px;color:#666;margin-top:4px;">' + toFr(endValue) + '</div></div>' +
+      '</div>';
+  }
 
   var loterieHtml = "";
   var lotKeys = Object.keys(byLoterie).sort();
@@ -4062,22 +3222,22 @@ if(!daysHtml){
     var lCommission = 0;
     var lBalance = l.vente - l.prime - lCommission;
 
-      loterieHtml +=
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-      '<div>' + Number(l.vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + Number(lCommission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div></div>' +
-      '<div>' + Number(l.prime || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
-      '<div>' + Number(lBalance || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + lot + '</div></div>' +
-    '</div>';
-});
+    loterieHtml +=
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+        '<div>' + l.vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + lCommission.toFixed(2) + '</div></div>' +
+        '<div>' + l.prime.toFixed(2) + '</div>' +
+        '<div>' + lBalance.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + lot + '</div></div>' +
+      '</div>';
+  });
 
-if(!loterieHtml){
-  loterieHtml =
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
-      '<div>' + Number(vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + Number(commission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div></div>' +
-      '<div>' + Number(prime || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
-      '<div>' + Number(resultat || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
-    '</div>';
-}
+  if(!loterieHtml){
+    loterieHtml =
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:18px;">' +
+        '<div>' + vente.toFixed(2) + '<div style="font-size:15px;color:#666;margin-top:4px;">' + commission.toFixed(2) + '</div></div>' +
+        '<div>' + prime.toFixed(2) + '</div>' +
+        '<div>' + resultat.toFixed(2) + '</div>' +
+      '</div>';
+  }
 
   box.innerHTML =
   '<div style="height:100%;display:flex;flex-direction:column;background:#f5f5f5;">' +
@@ -4099,13 +3259,13 @@ if(!loterieHtml){
       '</div>' +
 
       '<div style="background:#fff;padding:18px 16px;margin-bottom:18px;">' +
-  '<div style="display:grid;grid-template-columns:1fr 1fr;row-gap:8px;font-size:18px;line-height:1.5;">' +
-    '<div style="text-align:center;font-weight:700;">Ventes</div><div style="text-align:center;font-weight:700;">' + Number(vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
-    '<div style="text-align:center;font-weight:700;">Prix</div><div style="text-align:center;font-weight:700;">' + Number(prime || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
-    '<div style="text-align:center;font-weight:700;">Commission</div><div style="text-align:center;font-weight:700;">' + Number(commission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
-    '<div style="text-align:center;font-weight:700;">Résultat</div><div style="text-align:center;font-weight:700;">' + Number(resultat || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
-  '</div>' +
-'</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;row-gap:8px;font-size:18px;line-height:1.5;">' +
+          '<div style="text-align:center;font-weight:700;">Ventes</div><div style="text-align:center;font-weight:700;">' + vente.toFixed(2) + '</div>' +
+          '<div style="text-align:center;font-weight:700;">Prix</div><div style="text-align:center;font-weight:700;">' + prime.toFixed(2) + '</div>' +
+          '<div style="text-align:center;font-weight:700;">Commission</div><div style="text-align:center;font-weight:700;">' + commission.toFixed(2) + '</div>' +
+          '<div style="text-align:center;font-weight:700;">Résultat</div><div style="text-align:center;font-weight:700;">' + resultat.toFixed(2) + '</div>' +
+        '</div>' +
+      '</div>' +
 
       '<div style="background:#fff;padding:18px 16px;margin-bottom:18px;text-align:center;">' +
         '<div style="font-size:22px;font-weight:700;margin-bottom:18px;">RESUMEN POR DÍA</div>' +
@@ -4498,20 +3658,9 @@ setTimeout(function(){
   applyAppLang();
 }, 300);
 
-loadVendorLoteries().then(function(){
-  renderJeux();
-  updateFields();
-  loadBillets();
-});
-
-setInterval(function(){
-  loadVendorLoteries().then(function(){
-    if(document.getElementById("loterieModal").classList.contains("show")){
-      renderLoterieList();
-    }
-  });
-}, 30000);
-
+renderJeux();
+updateFields();
+loadBillets();
 (function(){
   var oldRenderBillets = renderBillets;
   var oldValidateLoteries = validateLoteries;
@@ -5127,13 +4276,10 @@ function renderImprimantePage(){
 })();
 
 function renderBalancePage(){
-  Promise.all([
-    fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets?reload=" + Date.now()).then(function(res){ return res.json(); }),
-    fetch("/api/reportes/balance?date=" + encodeURIComponent(currentBalanceDate)).then(function(res){ return res.json(); })
-  ])
-  .then(function(data){
-    savedTickets = Array.isArray(data[0]) ? data[0] : [];
-    var balanceRows = Array.isArray(data[1]) ? data[1] : [];
+  fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets?reload=" + Date.now())
+  .then(function(res){ return res.json(); })
+  .then(function(rows){
+    savedTickets = Array.isArray(rows) ? rows : [];
 
     var box = document.getElementById("balanceWrap");
     if(!box) return;
@@ -5160,6 +4306,8 @@ function renderBalancePage(){
       if(st === "ANILE") return;
 
       var ticketDay = ticketDateKey(t);
+
+      // pran tout fich ki fèt avan dat la + menm dat la
       if(currentBalanceDate && ticketDay > currentBalanceDate) return;
 
       vente += Number(t.total || 0);
@@ -5175,30 +4323,9 @@ function renderBalancePage(){
 
     var initial = 0;
     var paiementRecu = 0;
+    var sousTotal = initial + paiementRecu + resultat;
     var collectionsLivrees = 0;
-    var details = "";
-
-    var rowBalance = balanceRows.find(function(r){
-      return String(r.id || "").toUpperCase() === String(sellerId || "").toUpperCase();
-    });
-
-    if(rowBalance && Array.isArray(rowBalance.collectionsLivrees)){
-      rowBalance.collectionsLivrees.forEach(function(m){
-        collectionsLivrees += Number(m.monto || 0);
-
-        details +=
-          '<div style="display:flex;justify-content:space-between;padding:6px 12px;font-size:14px;color:#666;border-top:1px solid #eee;">' +
-            '<span>' + (m.fecha || "") + '</span>' +
-            '<span>' + moneyFmt(m.monto) + '</span>' +
-          '</div>';
-      });
-    }
-
-    var balance = rowBalance && rowBalance.balance !== undefined
-      ? Number(rowBalance.balance || 0)
-      : resultat;
-
-    var sousTotal = balance + collectionsLivrees;
+    var balance = sousTotal - collectionsLivrees;
 
     var credit = Number(sellerCredit || 0);
     var disponible = credit - balance;
@@ -5209,15 +4336,6 @@ function renderBalancePage(){
         '<div style="' + (bold ? 'font-weight:800;' : '') + (green ? 'color:#22a447;' : '') + '">' + moneyFmt(value) + '</div>' +
       '</div>';
     }
-
-    var collectionsBlock =
-      '<details style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
-        '<summary style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:13px 16px;font-size:20px;cursor:pointer;">' +
-          '<span>Collections livrées</span>' +
-          '<span>' + moneyFmt(collectionsLivrees) + '</span>' +
-        '</summary>' +
-        details +
-      '</details>';
 
     box.innerHTML =
       '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">USD ' + moneyFmt(balance) + '</div>' +
@@ -5240,7 +4358,9 @@ function renderBalancePage(){
           row("SOUS-TOTAL", sousTotal, true, false) +
         '</div>' +
 
-        collectionsBlock +
+        '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
+          row("Collections livrées", collectionsLivrees, false, false) +
+        '</div>' +
 
         '<div style="background:#fff;border:1px solid #ddd;margin-bottom:10px;">' +
           row("BALANCE", balance, true, false) +
@@ -5252,112 +4372,6 @@ function renderBalancePage(){
         '</div>' +
       '</div>';
   });
-}
-
-
-function timeToMinutes(t){
-  t = String(t || "00:00").trim();
-
-  var p = t.split(":");
-  if(p.length < 2) return 0;
-
-  var h = Number(p[0] || 0);
-  var m = Number(p[1] || 0);
-
-  return (h * 60) + m;
-}
-
-function nowMinutes(){
-  var d = new Date();
-  return (d.getHours() * 60) + d.getMinutes();
-}
-
-function getLoteriaState(l){
-  var now = nowMinutes();
-  var open = timeToMinutes(l.openTime || "00:00");
-  var close = timeToMinutes(l.closeTime || "23:59");
-
-  var active = String(l.estatus || "Activo").toLowerCase() === "activo";
-
-  if(!active){
-    return { open:false, minutesLeft:0, label:"Bloqueado", color:"#999" };
-  }
-
-  var isOpen = false;
-  var minutesLeft = 0;
-
-  if(open <= close){
-    isOpen = now >= open && now < close;
-    minutesLeft = close - now;
-  }else{
-    isOpen = now >= open || now < close;
-
-    if(now >= open){
-      minutesLeft = (1440 - now) + close;
-    }else{
-      minutesLeft = close - now;
-    }
-  }
-
-  if(!isOpen){
-    return { open:false, minutesLeft:0, label:"Fèmen", color:"#999" };
-  }
-
-  var h = Math.floor(minutesLeft / 60);
-  var m = minutesLeft % 60;
-
-  var label = "";
-  if(h > 0){
-    label = h + " heure " + m + " minutes";
-  }else{
-    label = m + " minutes";
-  }
-
-  var color = "#666";
-  if(minutesLeft <= 5){
-    color = "#e00000";
-  }else if(minutesLeft <= 30){
-    color = "#d99a00";
-  }
-
-  return {
-    open:true,
-    minutesLeft:minutesLeft,
-    label:label,
-    color:color
-  };
-}
-
-async function loadVendorLoteries(){
-  try{
-    const res = await fetch("/api/vendor/loterias?reload=" + Date.now());
-    const data = await res.json();
-
-    if(Array.isArray(data) && data.length){
-      loteries = data.map(function(l){
-        return {
-          name: l.name,
-          sub: "",
-          openTime: l.openTime || "00:00",
-          closeTime: l.closeTime || "23:59",
-          time: l.closeTime || "23:59",
-          estatus: l.estatus || "Activo"
-        };
-      });
-    }
-  }catch(err){
-    console.error("Erreur load loteries:", err);
-  }
-}
-
-function openVendorDrawer(){
-  document.getElementById("sideMenu").classList.add("open");
-  document.getElementById("drawerOverlay").classList.add("show");
-}
-
-function closeVendorDrawer(){
-  document.getElementById("sideMenu").classList.remove("open");
-  document.getElementById("drawerOverlay").classList.remove("show");
 }
 
 </script>
@@ -5416,11 +4430,6 @@ const sellerName = String(
     let gamesHtml = "";
 
     (ticket.jeux || []).forEach(j => {
-
-if (j.gratis === true || j.free === true) {
-  return;
-}
-
       let typeRaw = String(j.type || "").toUpperCase();
       let numero = String(j.numero || "").trim();
       let montant = Number(j.montant || 0);
@@ -5429,33 +4438,17 @@ if (j.gratis === true || j.free === true) {
       if (typeRaw === "BOR") type = "Borlette";
       else if (typeRaw === "MAR") type = "Mariage";
 
-      let loterie =
-  String(j.loterie || j.loteria || "").trim().toUpperCase();
+      let key = type + "|" + numero + "|" + montant;
 
-let key =
-  loterie + "|" + type + "|" + numero + "|" + montant;
-
-   if (!gameMap[key]) {
-
-  gameMap[key] = {
-    type,
-    numero,
-    montant,
-    count: 0,
-    gratis: j.gratis === true,
-    free: j.free === true
-  };
-
-}
+      if (!gameMap[key]) {
+        gameMap[key] = { type, numero, montant, count: 0 };
+      }
 
       gameMap[key].count++;
     });
 
     Object.values(gameMap).forEach(g => {
-      let totalLine =
-  g.gratis || g.free
-    ? "Gratis"
-    : (g.montant * g.count).toFixed(2);
+      let totalLine = (g.montant * g.count).toFixed(2);
 
       gamesHtml +=
         '<div class="game-row">' +
@@ -5465,60 +4458,7 @@ let key =
         '</div>';
     });
 
-    const freeGames = (ticket.jeux || []).filter(
-  j => j.gratis === true || j.free === true
-);
-
-let freeHtml = "";
-
-let freeMap = {};
-
-freeGames.forEach(j => {
-
-  let loterie = String(
-    j.loterie || j.loteria || ""
-  ).trim();
-
-  if (!freeMap[loterie]) {
-    freeMap[loterie] = [];
-  }
-
-  freeMap[loterie].push(j);
-
-});
-
-Object.keys(freeMap).forEach(loterie => {
-
-  freeHtml +=
-    '<div class="tirage">' + loterie + '</div>';
-
-  freeMap[loterie].forEach(j => {
-
-    let typeRaw = String(j.type || "").toUpperCase();
-
-    let type = typeRaw;
-    if (typeRaw === "BOR") type = "Borlette";
-    else if (typeRaw === "MAR") type = "Mariage";
-
-    let numero = String(j.numero || "").trim();
-
-    freeHtml +=
-      '<div class="game-row">' +
-        '<div class="col-type">' + type + '</div>' +
-        '<div class="col-num">' + numero + '</div>' +
-        '<div class="col-amt">Gratis</div>' +
-      '</div>';
-
-  });
-
-});
-
     res.set("Content-Type", "text/html; charset=utf-8");
-
-const APP_CONFIG =
-  await AppConfig.findOne({ key:"main" }).lean()
-  || {};
-
     res.send(`
 <!DOCTYPE html>
 <html>
@@ -5547,15 +4487,6 @@ body{
 </head>
 <body>
 
-${APP_CONFIG.ticketLogo ? `
-<div style="text-align:center;margin-bottom:6px;">
-  <img
-    src="${APP_CONFIG.ticketLogo}"
-    style="width:120px;max-height:120px;object-fit:contain;"
-  >
-</div>
-` : ""}
-
 <div class="title">NUMBER ONE LOTO</div>
 
 <div class="meta">
@@ -5572,21 +4503,9 @@ ${loteriesHtml}
 
 ${gamesHtml}
 
-${freeHtml}
-
 <div class="line"></div>
 
 <div class="total">TOTAL: ${total.toFixed(2)} G</div>
-
-<div
-  style="
-    margin-top:14px;
-    text-align:center;
-    font-size:8px;
-  "
->
-  ${APP_CONFIG.ticketMessage || ""}
-</div>
 
 <script>
 setTimeout(function(){
@@ -5604,80 +4523,67 @@ setTimeout(function(){
   }
 });
 
-app.get("/print-report", async (req, res) => {
-  try {
-    const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
-    const start = String(req.query.start || "").trim();
-    const end = String(req.query.end || "").trim();
+app.get("/print-report", (req, res) => {
+  const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
+  const start = String(req.query.start || "").trim();
+  const end = String(req.query.end || "").trim();
 
-    const printDate = String(req.query.date || "").trim();
-    const printTime = String(req.query.time || "").trim();
+  const printDate = String(req.query.date || "").trim();
+  const printTime = String(req.query.time || "").trim();
 
-    function money(v) {
-      if (v === null || v === undefined) return 0;
-      const n = Number(String(v).replace(/,/g, "").trim());
-      return Number.isFinite(n) ? n : 0;
-    }
+  function formatFRDateInput(iso){
+    if(!iso) return "";
+    const p = String(iso).split("-");
+    if(p.length !== 3) return iso;
+    return p[2] + "/" + p[1] + "/" + p[0];
+  }
 
-    function formatFRDateInput(iso) {
-      if (!iso) return "";
-      const p = String(iso).split("-");
-      if (p.length !== 3) return iso;
-      return p[2] + "/" + p[1] + "/" + p[0];
-    }
+  const vendeurs = loadVendeursForLogin();
+  const vendeur = vendeurs[sellerId] || {};
+  const sellerName = String(vendeur.nom || vendeur.nombre || sellerId || "SELLER");
 
-    function ticketDay(t) {
-      if (t.dateLabel) {
-        const p = String(t.dateLabel).split("/");
-        if (p.length === 3) {
-          return p[2] + "-" + p[1].padStart(2, "0") + "-" + p[0].padStart(2, "0");
-        }
+  const tickets = loadTickets().filter(t =>
+    String(t.vendeur || "").trim().toUpperCase() === sellerId
+  );
+
+  function ticketDay(t){
+    if(t.dateLabel){
+      const p = String(t.dateLabel).split("/");
+      if(p.length === 3){
+        return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
       }
-
-      const d = new Date(t.createdAt || Date.now());
-      return d.getFullYear() + "-" +
-        String(d.getMonth() + 1).padStart(2, "0") + "-" +
-        String(d.getDate()).padStart(2, "0");
     }
 
-    const vendeur = await Vendor.findOne({ id: sellerId }).lean();
+    const d = new Date(t.createdAt || Date.now());
+    return d.getFullYear() + "-" +
+      String(d.getMonth() + 1).padStart(2,"0") + "-" +
+      String(d.getDate()).padStart(2,"0");
+  }
 
-    const sellerName = String(
-      vendeur?.nom || vendeur?.nombre || sellerId || "SELLER"
-    );
+  let vente = 0;
+  let prix = 0;
 
-    const tickets = await Ticket.find({ vendeur: sellerId }).lean();
+  tickets.forEach(t => {
+    const d = ticketDay(t);
+    if(start && d < start) return;
+    if(end && d > end) return;
 
-    let vente = 0;
-    let prix = 0;
+    const st = normalizeStatus(t.status);
+    if(st === "ANILE") return;
 
-    tickets.forEach(t => {
-      const d = ticketDay(t);
-      if (start && d < start) return;
-      if (end && d > end) return;
+    vente += Number(t.total || 0);
 
-      const st = normalizeStatus(t.status);
-      if (st === "ANILE") return;
+    if(st === "GANYE"){
+      prix += Number(t.premio || 0);
+    }
+  });
 
-      vente += money(t.total);
+  const rate = Number(vendeur?.comision?.general || 0);
+  const commission = vente * (rate / 100);
+  const resultat = vente - prix - commission;
 
-      if (st === "GANYE") {
-        prix += money(t.premio);
-      }
-    });
-
-    const rate = money(
-      vendeur?.comision?.general ??
-      vendeur?.comisionGeneral ??
-      vendeur?.com_general ??
-      0
-    );
-
-    const commission = (vente * rate) / 100;
-    const resultat = vente - prix - commission;
-
-    res.set("Content-Type", "text/html; charset=utf-8");
-    res.send(`
+  res.set("Content-Type", "text/html; charset=utf-8");
+  res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -5695,11 +4601,28 @@ body{
   color:#000;
   line-height:1.2;
 }
-.title{ text-align:center; font-size:10px; font-weight:700; margin-bottom:3px; }
+.title{
+  text-align:center;
+  font-size:10px;
+  font-weight:700;
+  margin-bottom:3px;
+}
 .center{text-align:center;}
-.line{ border-top:1px dashed #000; margin:4px 0; }
-.row{ display:grid; grid-template-columns:1fr auto; gap:4px; margin:3px 0; }
-.boxline{ border-top:1px dashed #000; border-bottom:1px dashed #000; padding:4px 0; }
+.line{
+  border-top:1px dashed #000;
+  margin:4px 0;
+}
+.row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:4px;
+  margin:3px 0;
+}
+.boxline{
+  border-top:1px dashed #000;
+  border-bottom:1px dashed #000;
+  padding:4px 0;
+}
 </style>
 </head>
 <body>
@@ -5711,15 +4634,12 @@ body{
 
   <div class="line"></div>
 
- <div class="boxline">
-  <div class="row"><span>| Ventes</span><b>${Number(vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
-
-  <div class="row"><span>| Prix</span><b>${Number(prix || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
-
-  <div class="row"><span>| Commission</span><b>${Number(commission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
-
-  <div class="row"><span>| Balance</span><b>${Number(resultat || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
-</div>
+  <div class="boxline">
+    <div class="row"><span>| Ventes</span><b>${vente.toFixed(2)} |</b></div>
+    <div class="row"><span>| Prix</span><b>${prix.toFixed(2)} |</b></div>
+    <div class="row"><span>| Commission</span><b>${commission.toFixed(2)} |</b></div>
+    <div class="row"><span>| Balance</span><b>${resultat.toFixed(2)} |</b></div>
+  </div>
 
 <script>
 setTimeout(function(){
@@ -5728,15 +4648,8 @@ setTimeout(function(){
 </script>
 </body>
 </html>
-    `);
-
-  } catch (err) {
-    console.error("Erreur print-report:", err);
-    res.status(500).send("Erreur rapport");
-  }
+  `);
 });
-
-
 
 app.get("/api/reportes/tickets", async (req, res) => {
   try {
@@ -5747,7 +4660,6 @@ app.get("/api/reportes/tickets", async (req, res) => {
     res.status(500).json([]);
   }
 });
-
 
 app.get("/tickets/:vendeur", async (req, res) => {
   try {
@@ -5776,145 +4688,6 @@ app.get("/test-tickets", async (req, res) => {
   res.json(tickets);
 });
 
-app.get("/api/grupos", async (req, res) => {
-
-  const grupos = await Grupo.find().sort({ nombre: 1 });
-
-  res.json(grupos);
-
-});
-
-app.post("/api/grupos", async (req, res) => {
-
-  const nombre = String(req.body.nombre || "").trim();
-
-  if(!nombre){
-    return res.status(400).json({
-      ok:false
-    });
-  }
-
-  const existe = await Grupo.findOne({ nombre });
-
-  if(existe){
-    return res.json({
-      ok:true
-    });
-  }
-
-  const grupo = await Grupo.create({
-  nombre,
-  estatus:"Activo",
-  comisionGrupo: Number(req.body.comisionGrupo || 0)
-});
-
-  res.json({
-    ok:true,
-    grupo
-  });
-
-});
-
-app.put("/api/grupos/:id", async (req, res) => {
-  try {
-
-    const nombre = String(req.body.nombre || "").trim();
-
-    if (!nombre) {
-      return res.status(400).json({
-        ok: false,
-        message: "Nom groupe obligatoire"
-      });
-    }
-
-    const grupo = await Grupo.findOneAndUpdate(
-      { nombre: req.params.id },
-      { nombre },
-      { new: true }
-    );
-
-    if (!grupo) {
-      return res.status(404).json({
-        ok: false,
-        message: "Grupo pa jwenn"
-      });
-    }
-
-    res.json({
-      ok: true,
-      grupo
-    });
-
-  } catch (err) {
-
-    console.error("Erreur modification grupo:", err);
-
-    res.status(500).json({
-      ok: false
-    });
-
-  }
-});
-
-app.put("/api/grupos/block/:nombre", async (req, res) => {
-  try{
-    const nombre = decodeURIComponent(req.params.nombre || "").trim();
-
-    await Grupo.updateOne(
-      { nombre },
-      { $set:{ estatus:"Bloqueado" } }
-    );
-
-    await Vendor.updateMany(
-      { $or:[ { zona:nombre }, { groupe:nombre } ] },
-      { $set:{ grupoBloqueado:true } }
-    );
-
-    res.json({ ok:true });
-  }catch(err){
-    console.error(err);
-    res.status(500).json({ ok:false });
-  }
-});
-
-app.put("/api/grupos/unblock/:nombre", async (req, res) => {
-  try{
-    const nombre = decodeURIComponent(req.params.nombre || "").trim();
-
-    await Grupo.updateOne(
-      { nombre },
-      { $set:{ estatus:"Activo" } }
-    );
-
-    await Vendor.updateMany(
-      { $or:[ { zona:nombre }, { groupe:nombre } ] },
-      { $set:{ grupoBloqueado:false } }
-    );
-
-    res.json({ ok:true });
-  }catch(err){
-    console.error(err);
-    res.status(500).json({ ok:false });
-  }
-});
-
-app.delete("/api/grupos/:nombre", async (req, res) => {
-  try{
-    const nombre = decodeURIComponent(req.params.nombre || "").trim();
-
-    await Grupo.deleteOne({ nombre });
-
-    await Vendor.updateMany(
-      { $or:[ { zona:nombre }, { groupe:nombre } ] },
-      { $set:{ zona:"", groupe:"", grupoBloqueado:false } }
-    );
-
-    res.json({ ok:true });
-  }catch(err){
-    console.error(err);
-    res.status(500).json({ ok:false });
-  }
-});
  
 app.listen(3000, "0.0.0.0", () => {
   console.log("Server ap mache sou rezo a");

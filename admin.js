@@ -1677,9 +1677,12 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
 
 <button
   onclick="
-    window.location.href='/master/vendors#tickets&reload=' + Date.now();
+    if (window.opener && !window.opener.closed) {
+      window.opener.location.href = '/master/vendors#tickets&reload=' + Date.now();
+      window.close();
+    }
   "
-  style='margin-top:50px;height:65px;width:95%;font-size:22px;border-radius:10px;'>
+  style="margin-top:50px;height:65px;width:95%;font-size:22px;border-radius:10px;">
   RETOUNEN
 </button>
     </body>

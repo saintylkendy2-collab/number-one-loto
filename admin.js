@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 
 const multer = require("multer");
+const puppeteer = require("puppeteer");
 
 const router = express.Router();
 
@@ -1689,6 +1690,171 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
     </html>
   `);
 });
+
+router.get("/ticket-image/:id", async (req, res) => {
+  try {
+    const ticketId = String(req.params.id || "").trim();
+
+    const ticket = await Ticket.findOne({
+      $or: [
+        { id: ticketId },
+        { ticketId: ticketId },
+        { serial: ticketId }
+      ]
+    }).lean();
+
+    if (!ticket) {
+      return res.status(404).send("Ticket introuvable");
+    }
+
+    const jeux = Array.isArray(ticket.jeux) ? ticket.jeux : [];
+
+    const lignes = jeux.map(j => `
+      <tr>
+        <td>${String(j.type || "").replace(/</g,"")}</td>
+        <td>${String(j.numero || "").replace(/</g,"")}</td>
+        <td>${Number(j.montant || 0).toFixed(2)}</td>
+      </tr>
+    `).join("");
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body{
+  margin:0;
+  background:white;
+  font-family:Arial, Helvetica, sans-serif;
+}
+.ticket{
+  width:520px;
+  padding:28px 28px 22px;
+  color:#111;
+  background:#fff;
+}
+.center{text-align:center;}
+.line{
+  border-top:2px dashed #333;
+  margin:18px 0;
+}
+.title{
+  font-size:24px;
+  font-weight:800;
+}
+.date{
+  font-size:22px;
+  margin-top:6px;
+}
+.serial{
+  font-size:28px;
+  font-weight:900;
+  margin:20px 0;
+}
+.loteria{
+  font-size:28px;
+  font-weight:900;
+  margin-bottom:8px;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:26px;
+}
+td{
+  padding:4px 0;
+}
+td:nth-child(2){
+  text-align:center;
+}
+td:nth-child(3){
+  text-align:right;
+}
+.total{
+  display:flex;
+  justify-content:space-between;
+  font-size:30px;
+  font-weight:900;
+  margin-top:14px;
+}
+.footer{
+  text-align:center;
+  font-size:22px;
+  margin-top:20px;
+  line-height:1.4;
+}
+.barcode{
+  height:60px;
+  margin:18px auto 0;
+  width:260px;
+  background:repeating-linear-gradient(
+    90deg,
+    #000 0 3px,
+    #fff 3px 6px,
+    #000 6px 8px,
+    #fff 8px 12px
+  );
+}
+</style>
+</head>
+<body>
+<div class="ticket">
+  <div class="center title">PAGAMOS AL INSTANTE</div>
+  <div class="line"></div>
+  <div class="center">NBO L</div>
+  <div class="center date">${ticket.createdAtLabel || ticket.dateLabel || ""}</div>
+  <div class="center serial">${ticket.id || ticketId}</div>
+  <div class="line"></div>
+
+  <div class="loteria">${jeux[0]?.loterie || ""}</div>
+
+  <table>
+    ${lignes}
+  </table>
+
+  <div class="line"></div>
+
+  <div class="total">
+    <span>TOTAL</span>
+    <span>USD ${Number(ticket.total || 0).toFixed(2)}</span>
+  </div>
+
+  <div class="footer">
+    1st:$70 2nd:$15 3rd:$10<br>
+    Pale: $10000<br>
+    P2: $70 P3: $800 P4: $4000
+  </div>
+
+  <div class="barcode"></div>
+</div>
+</body>
+</html>
+`;
+
+    const browser = await puppeteer.launch({
+      headless: "new",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    });
+
+    const page = await browser.newPage();
+    await page.setViewport({ width: 560, height: 900, deviceScaleFactor: 2 });
+    await page.setContent(html, { waitUntil: "networkidle0" });
+
+    const el = await page.$(".ticket");
+    const buffer = await el.screenshot({ type: "png" });
+
+    await browser.close();
+
+    res.set("Content-Type", "image/png");
+    res.send(buffer);
+
+  } catch (err) {
+    console.error("ticket image error:", err);
+    res.status(500).send("Erreur ticket image");
+  }
+});
+
 
 function normalizeText(v) {
   return String(v || "").trim().toUpperCase();

@@ -15,6 +15,7 @@ const AppConfig = require("./models/AppConfig");
 const multer = require("multer");
 
 
+
 const app = express();
 
 const storage = multer.diskStorage({
@@ -3436,28 +3437,27 @@ function submitPrint(){
   });
 }
 
-function shareWhatsApp(){
-  var waWin = window.open("", "_blank");
+async function shareTicketWhatsApp(ticket){
+  const url = "/ticket-image/" + encodeURIComponent(ticket.id);
 
-  saveCurrentTicket("WHATSAPP").then(function(ticket){
-    if(!ticket){
-      if(waWin) waWin.close();
-      return;
-    }
+  const res = await fetch(url);
+  const blob = await res.blob();
 
-    var text = buildPrintableTextFromTicket(ticket);
-    var url = "https://wa.me/?text=" + encodeURIComponent(text);
+  const file = new File(
+    [blob],
+    "ticket-" + ticket.id + ".png",
+    { type: "image/png" }
+  );
 
-    if(waWin){
-      waWin.location.href = url;
-    }
-
-    loadBillets();
-    resetAfterSend();
-  }).catch(function(){
-    if(waWin) waWin.close();
-    alert("Erreur WhatsApp");
-  });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    await navigator.share({
+      files: [file],
+      title: "Ticket",
+      text: "Ticket " + ticket.id
+    });
+  } else {
+    window.open(url, "_blank");
+  }
 }
 
 function filterTransactions(list, vendor, start, end){

@@ -3437,6 +3437,24 @@ function submitPrint(){
   });
 }
 
+function shareWhatsApp(){
+
+  saveCurrentTicket("WHATSAPP").then(function(ticket){
+
+    if(!ticket) return;
+
+    shareTicketWhatsApp(ticket);
+
+    loadBillets();
+    resetAfterSend();
+
+  }).catch(function(err){
+    console.log(err);
+    alert("Erreur WhatsApp");
+  });
+
+}
+
 async function shareTicketWhatsApp(ticket){
   const url = "/ticket-image/" + encodeURIComponent(ticket.id);
 

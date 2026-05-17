@@ -3634,9 +3634,13 @@ function renderBillets(){
 
     if(Array.isArray(t.jeux)){
       t.jeux.forEach(function(j){
-        var gain = Number(j.gain || 0);
 
-        var row = document.createElement("div");
+  var statusTxt = String(t.status || "").toUpperCase().trim();
+  var isAnile = statusTxt === "ANILE" || statusTxt === "ANULE" || statusTxt === "ANULADO";
+
+  var gain = Number(j.gain || 0);
+
+  var row = document.createElement("div");
         row.className = "billet-game";
 
         row.innerHTML =

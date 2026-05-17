@@ -3443,7 +3443,9 @@ function shareWhatsApp(){
 
     if(!ticket) return;
 
-    shareTicketWhatsApp(ticket);
+    setTimeout(function(){
+      shareTicketWhatsApp(ticket);
+    }, 800);
 
     loadBillets();
     resetAfterSend();
@@ -3459,7 +3461,14 @@ async function shareTicketWhatsApp(ticket){
   const url = "/ticket-image/" + encodeURIComponent(ticket.id);
 
   const res = await fetch(url);
-  const blob = await res.blob();
+
+if(!res.ok){
+  const txt = await res.text();
+  alert("Image pa fèt: " + txt);
+  return;
+}
+
+const blob = await res.blob();
 
   const file = new File(
     [blob],

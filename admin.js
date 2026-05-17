@@ -1695,17 +1695,18 @@ router.get("/ticket-image/:id", async (req, res) => {
   try {
     const ticketId = String(req.params.id || "").trim();
 
-    const ticket = await Ticket.findOne({
-      $or: [
-        { id: ticketId },
-        { ticketId: ticketId },
-        { serial: ticketId }
-      ]
-    }).lean();
+   let ticket = await Ticket.findOne({
+  $or: [
+    { id: ticketId },
+    { ticketId: ticketId },
+    { serial: ticketId }
+  ]
+}).lean();
 
-    if (!ticket) {
-      return res.status(404).send("Ticket introuvable");
-    }
+if(!ticket){
+  console.log("❌ ticket-image pa jwenn:", ticketId);
+  return res.status(404).send("Ticket introuvable");
+}
 
     const jeux = Array.isArray(ticket.jeux) ? ticket.jeux : [];
 

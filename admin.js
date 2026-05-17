@@ -1266,11 +1266,11 @@ router.delete("/api/vendors/:id/movimientos/:movId", async (req, res) => {
     const removed = vendor.movimientos.splice(index, 1)[0];
 
     // 🔥 REAJISTE BALANCE
-    if (removed.tipo === "cobro") {
-      vendor.balance -= removed.monto;
-    } else {
-      vendor.balance += removed.monto;
-    }
+if (removed.tipo === "pago") {
+  vendor.balance -= removed.monto;
+} else {
+  vendor.balance += removed.monto;
+}
 
     await vendor.save();
 
@@ -1343,11 +1343,14 @@ router.post("/api/vendors/:id/balance-action", async (req, res) => {
     };
 
     // 🔥 AJUSTE BALANCE
-    if (tipo === "cobro") {
-      vendor.balance = parseAmount(vendor.balance) + movement.monto;
-    } else {
-      vendor.balance = parseAmount(vendor.balance) - movement.monto;
-    }
+
+if (tipo === "pago") {
+  vendor.balance = parseAmount(vendor.balance) + movement.monto;
+} else if (tipo === "cobro") {
+  vendor.balance = parseAmount(vendor.balance) - movement.monto;
+} else {
+  vendor.balance = parseAmount(vendor.balance) - movement.monto;
+}
 
     vendor.movimientos.push(movement);
 
@@ -1545,7 +1548,7 @@ router.get("/master/ticket/:id", async (req, res) => {
       ".premio-total{" +
       "color:#00ff66;" +
       "font-weight:900;" +
-      "font-size:30px;" +
+      "font-size:20px;" +
       "text-shadow:0 0 10px rgba(0,255,102,0.7)" +
       "}" +
 
@@ -2342,8 +2345,8 @@ html,body{
  color:#fff;
 }
 .submenu-item:hover{
- background:linear-gradient(90deg,#6d63ff,#7d73ff);
- color:#fff;
+ background:rgba(255,255,255,.05);
+ color:#eef1f8;
 }
 .app-page{
  min-height:100vh;
@@ -2494,7 +2497,7 @@ tbody tr:nth-child(even){background:#313652;}
 .balance-positive{
  color:#2fbf71;
  font-weight:700;
- font-size:16px;
+ font-size:20px;
  cursor:pointer;
 }
 
@@ -2513,6 +2516,18 @@ tbody tr:nth-child(even){background:#313652;}
  font-weight:700;
  cursor:pointer;
 }
+
+.balance-negative{
+  color:#ff6767;
+  font-weight:800;
+  font-size:20px !important;
+  line-height:1;
+  display:inline-block;
+  cursor:pointer;
+  position:relative;
+  left:-7px;
+}
+
 .page-block{background:transparent;}
 .action-row{
  display:flex;
@@ -2971,11 +2986,11 @@ tbody tr:nth-child(even){background:#313652;}
     <span>Venta</span><span>></span>
   </div>
   <div id="ventaMenu" class="submenu-box">
-  <div class="submenu-item" onclick="goPage('ventas')">General</div>
- <div class="submenu-item" onclick="openVentasDetalle('loteria')">Lotería</div>
-<div class="submenu-item" onclick="openVentasDetalle('jugada')">Jugada</div>
-<div class="submenu-item" onclick="openVentasDetalle('numero')">Número</div>
-  <div class="submenu-item" onclick="goPage('grupo')">Grupo</div>
+  <div class="submenu-item" id="submenu-ventas" onclick="goPage('ventas')">General</div>
+  <div class="submenu-item" id="submenu-ventas-loteria" onclick="openVentasDetalle('loteria')">Lotería</div>
+  <div class="submenu-item" id="submenu-ventas-jugada" onclick="openVentasDetalle('jugada')">Jugada</div>
+  <div class="submenu-item" id="submenu-ventas-numero" onclick="openVentasDetalle('numero')">Número</div>
+  <div class="submenu-item" id="submenu-ventas-grupo" onclick="goPage('grupo')">Grupo</div>
 </div>
 
   <div class="side-menu-section">FLUJO DE EFECTIVO</div>
@@ -2991,9 +3006,8 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
 
   <div class="side-menu-section">DESCONECTAR</div>
-  <div class="side-menu-item"><span>Salir</span></div>
+<div class="side-menu-item" onclick="window.location='/master/vendors'"><span>Salir</span></div>
 </div>
-
 <div class="app-page hidden" id="appPage">
   <div class="topbar">
     <div class="top-left">
@@ -3098,6 +3112,8 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
 
   <div id="ventasDetallePage" class="page-block hidden"></div>
+
+  <div id="miCuentaPage" class="page-block hidden"></div>
 
 <div id="gruposPage" class="page-block hidden">
   <div class="page-title">Grupos</div>
@@ -3832,18 +3848,60 @@ function resetMenuActive(){
 function setMenuActive(page){
   resetMenuActive();
 
-  if(page === "ventas"){
-    if(byId("menu-venta")) byId("menu-venta").classList.add("active");
+  document.querySelectorAll(".submenu-box").forEach(function(box){
+    box.classList.remove("open");
+  });
+
+  if(page === "cuenta"){
+    if(byId("menu-cuenta")) byId("menu-cuenta").classList.add("active");
+  }
+
+  else if(page === "ventas"){
     if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
-    if(byId("submenu-ventas")) byId("submenu-ventas").classList.add("active");
-  }else if(page === "vendors" || page === "editor"){
+  }
+
+  else if(page === "ventas_loteria"){
+    if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
+    if(byId("submenu-ventas-loteria")) byId("submenu-ventas-loteria").classList.add("active");
+  }
+
+  else if(page === "ventas_jugada"){
+    if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
+    if(byId("submenu-ventas-jugada")) byId("submenu-ventas-jugada").classList.add("active");
+  }
+
+  else if(page === "ventas_numero"){
+    if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
+    if(byId("submenu-ventas-numero")) byId("submenu-ventas-numero").classList.add("active");
+  }
+
+  else if(page === "grupo" || page === "ventas_grupo"){
+    if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
+    if(byId("submenu-ventas-grupo")) byId("submenu-ventas-grupo").classList.add("active");
+  }
+
+  else if(page === "vendors" || page === "editor"){
     if(byId("menu-vendors")) byId("menu-vendors").classList.add("active");
-  }else if(page === "balance_vendor"){
-    if(byId("menu-balance")) byId("menu-balance").classList.add("active");
+  }
+
+  else if(page === "tickets"){
+    if(byId("menu-tickets")) byId("menu-tickets").classList.add("active");
+  }
+
+  else if(page === "sorteos"){
+    if(byId("menu-sorteos")) byId("menu-sorteos").classList.add("active");
+  }
+
+  else if(page === "loterias"){
+    if(byId("menu-loterias")) byId("menu-loterias").classList.add("active");
+  }
+
+  else if(page === "balance_vendor"){
     if(byId("balanceMenu")) byId("balanceMenu").classList.add("open");
     if(byId("submenu-balance-vendor")) byId("submenu-balance-vendor").classList.add("active");
   }
 }
+
 
 async function loadVendorsFromServer(){
   try{
@@ -3970,7 +4028,7 @@ function getStatusIcon(status) {
   status = status.toUpperCase();
 
   if (status.includes("PEDI")) {
-    return '<span style="color:#ff4d4d;">✖</span>';
+    return '<span style="color:#ff4444;font-weight:900;font-size:24px;">✕</span>';
   }
 
   if (status.includes("ANATAN")) {
@@ -3982,7 +4040,7 @@ function getStatusIcon(status) {
   }
 
   if (status.includes("GANYE")) {
-    return '<span style="color:#4caf50;">✔</span>';
+    return '<span style="color:#00ff66;font-weight:900;font-size:24px;">✓</span>';
   }
 
   return status;
@@ -5140,6 +5198,10 @@ function renderBalanceTable(){
 
     return okGrupo && okVendor;
   });
+
+  rows.sort(function(a,b){
+  return parseAmount(b.balance) - parseAmount(a.balance);
+});
 
   tbody.innerHTML = "";
 
@@ -6376,6 +6438,7 @@ function hideAllMasterPages(){
   [
     "ventasPage",
     "ventasDetallePage",
+    "miCuentaPage",
     "gruposPage",
     "limitesAjustesPage",
     "limitesEstadisticasPage",
@@ -6519,6 +6582,18 @@ async function openVentasDetalle(mode){
   if(numInput){
     numInput.addEventListener("input", renderVentasDetalle);
   }
+
+  if(currentVentasMode === "loteria"){
+  setMenuActive("ventas_loteria");
+}
+
+if(currentVentasMode === "jugada"){
+  setMenuActive("ventas_jugada");
+}
+
+if(currentVentasMode === "numero"){
+  setMenuActive("ventas_numero");
+}
 
   closeSideMenu();
 }
@@ -6871,9 +6946,9 @@ function loginMaster() {
 }
 
 function openMiCuenta(){
-  showMasterPage("ventasPage");
+  showMasterPage("miCuentaPage");
 
-  byId("ventasPage").innerHTML =
+byId("miCuentaPage").innerHTML =
     '<div class="page-title">Mi Cuenta</div>' +
 
     '<div class="table-card" style="padding:14px;">' +

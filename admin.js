@@ -1675,17 +1675,16 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
       Ticket annulé ✅
     </h2>
 
-   <button
-onclick="
-if (window.opener && !window.opener.closed) {
-  window.opener.location.href='/master/vendors#tickets&reload=' + Date.now();
-  window.close();
-} else {
-  window.location.replace('/master/vendors#tickets&reload=' + Date.now());
-}
-"
-style='margin-top:50px;height:65px;width:95%;font-size:22px;border-radius:10px;'>
-RETOUNEN
+<button
+  onclick="
+    if (history.length > 1) {
+      history.back();
+    } else {
+      window.location.href='/master/vendors#tickets&reload=' + Date.now();
+    }
+  "
+  style='margin-top:50px;height:65px;width:95%;font-size:22px;border-radius:10px;'>
+  RETOUNEN
 </button>
     </body>
     </html>

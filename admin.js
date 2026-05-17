@@ -1839,10 +1839,13 @@ td:nth-child(3){
 
     const page = await browser.newPage();
     await page.setViewport({ width: 560, height: 900, deviceScaleFactor: 2 });
-    await page.setContent(html, { waitUntil: "networkidle0" });
+   await page.setContent(html, { waitUntil: "networkidle0" });
 
-    const el = await page.$(".ticket");
-    const buffer = await el.screenshot({ type: "png" });
+await page.waitForSelector(".ticket");
+await new Promise(r => setTimeout(r, 800));
+
+const el = await page.$(".ticket");
+const buffer = await el.screenshot({ type: "png" });
 
     await browser.close();
 

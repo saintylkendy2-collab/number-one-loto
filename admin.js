@@ -1664,12 +1664,12 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
   }
 
   res.send(`
-    <html>
+     <html>
     <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
 
-   <body style="font-family:Arial;background:#1c2037;color:white;padding:20px;text-align:center">
+  <body style="font-family:Arial;background:#1c2037;color:white;padding:20px;text-align:center">
 
     <h2 style="margin-top:100px;font-size:34px;">
       Ticket annulé ✅

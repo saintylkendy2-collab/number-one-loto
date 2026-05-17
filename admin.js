@@ -1858,10 +1858,10 @@ const buffer = await el.screenshot({ type: "png" });
     res.set("Content-Type", "image/png");
     res.send(buffer);
 
-  } catch (err) {
-    console.error("ticket image error:", err);
-    res.status(500).send("Erreur ticket image");
-  }
+ } catch (err) {
+  console.error("ticket image error:", err);
+  res.status(500).send(err.message || "Erreur ticket image");
+} 
 });
 
 

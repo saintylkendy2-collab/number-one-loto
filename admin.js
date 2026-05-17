@@ -37,7 +37,7 @@ const Loteria = require("./models/Loteria");
 const AppConfig = require("./models/AppConfig");
 
 // =============================
-// ðŸ“ FILE PATHS
+// 📁 FILE PATHS
 // =============================
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 const TICKETS_FILE = path.join(__dirname, "tickets.json");
@@ -46,7 +46,7 @@ const SORTEOS_FILE = path.join(__dirname, "sorteos.json");
 console.log("ADMIN VENDEURS_FILE =", VENDEURS_FILE);
 
 // =============================
-// ðŸ”’ ENSURE FILES EXIST
+// 🔒 ENSURE FILES EXIST
 // =============================
 function ensureVendeursFile() {
   if (!fs.existsSync(VENDEURS_FILE)) {
@@ -67,7 +67,7 @@ function ensureSorteosFile() {
 }
 
 // =============================
-// ðŸ“– READ FUNCTIONS
+// 📖 READ FUNCTIONS
 // =============================
 function readTicketsArray() {
   try {
@@ -98,14 +98,14 @@ function readSorteosObject() {
 }
 
 // =============================
-// âœï¸ WRITE FUNCTIONS
+// ✍️ WRITE FUNCTIONS
 // =============================
 function writeSorteosObject(data) {
   fs.writeFileSync(SORTEOS_FILE, JSON.stringify(data, null, 2), "utf8");
 }
 
 // =============================
-// ðŸ”¥ CREATE TICKET (FIX TOTAL)
+// 🔥 CREATE TICKET (FIX TOTAL)
 // =============================
 router.post("/ticket", async (req, res) => {
   try {
@@ -122,10 +122,10 @@ router.post("/ticket", async (req, res) => {
 
     const now = new Date();
 
-    // ðŸ”’ sÃ©curiser jeux
+    // 🔒 sécuriser jeux
     const safeJeux = Array.isArray(jeux) ? jeux : [];
 
-    // ðŸ”¥ ID JAMAIS NULL
+    // 🔥 ID JAMAIS NULL
     const ticketId =
       Date.now().toString() +
       "_" +
@@ -155,12 +155,12 @@ router.post("/ticket", async (req, res) => {
       jeux: safeJeux
     });
 
-    console.log("âœ… Ticket crÃ©Ã©:", ticket.id);
+    console.log("✅ Ticket créé:", ticket.id);
 
     res.json({ ok: true, ticket });
 
   } catch (err) {
-    console.error("âŒ Erreur crÃ©ation ticket:", err);
+    console.error("❌ Erreur création ticket:", err);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
@@ -244,7 +244,7 @@ function normalizeVendor(data = {}) {
     direccion: String(data.direccion || ""),
     sexo: String(data.sexo || "-"),
 
-    // DonnÃ©es ventes / balance
+    // Données ventes / balance
     venta: parseAmount(data.venta),
     premiosMonto: parseAmount(data.premiosMonto),
     balance: parseAmount(data.balance),
@@ -802,7 +802,7 @@ router.post("/api/vendors", async (req, res) => {
     const exists = await Vendor.findOne({ id: id });
 
     if (exists) {
-      return res.status(409).json({ ok: false, message: "ID dÃ©jÃ  existant" });
+      return res.status(409).json({ ok: false, message: "ID déjà existant" });
     }
 
     await Vendor.create({
@@ -846,7 +846,7 @@ router.put("/api/vendors/:id", async (req, res) => {
     if (oldId !== newId) {
       const exists = await Vendor.findOne({ id: newId });
       if (exists) {
-        return res.status(409).json({ ok: false, message: "Nouvel ID dÃ©jÃ  existant" });
+        return res.status(409).json({ ok: false, message: "Nouvel ID déjà existant" });
       }
     }
 
@@ -1142,15 +1142,15 @@ tfoot td{
       <tr>
         <th>Vendeur</th>
         <th>Vente</th>
-        <th>ComisiÃ³n Grupo</th>
-        <th>ComisiÃ³n</th>
+        <th>Comisión Grupo</th>
+        <th>Comisión</th>
         <th>Premios</th>
         <th>Resultado</th>
       </tr>
     </thead>
 
     <tbody>
-      ${rowsHtml || `<tr><td colspan="6">Pa gen done pou filtÃ¨ sa yo</td></tr>`}
+      ${rowsHtml || `<tr><td colspan="6">Pa gen done pou filtè sa yo</td></tr>`}
     </tbody>
 
     <tfoot>
@@ -1186,7 +1186,7 @@ router.delete("/api/vendors/:id", async (req, res) => {
       return res.status(404).json({ ok: false, message: "Vendeur introuvable" });
     }
 
-    // âœ… Efase tout tickets vendor sa nÃ¨t
+    // ✅ Efase tout tickets vendor sa nèt
     await Ticket.deleteMany({
       $or: [
         { vendeur: id },
@@ -1195,10 +1195,10 @@ router.delete("/api/vendors/:id", async (req, res) => {
       ]
     });
 
-    // âœ… Efase vendor a nÃ¨t
+    // ✅ Efase vendor a nèt
     await Vendor.deleteOne({ id });
 
-    res.json({ ok: true, message: "Vendeur et tickets supprimÃ©s" });
+    res.json({ ok: true, message: "Vendeur et tickets supprimés" });
 
   } catch (err) {
     console.error("Erreur delete vendor:", err);
@@ -1223,7 +1223,7 @@ router.post("/api/vendors/:id/connections/:index/unblock", async (req, res) => {
       return res.status(404).json({ ok: false, message: "Connexion introuvable" });
     }
 
-    // âœ… Debloque sÃ¨lman, pa efase anyen
+    // ✅ Debloque sèlman, pa efase anyen
     vendor.conexiones[index].co = true;
     vendor.conexiones[index].on = true;
     vendor.conexiones[index].st = true;
@@ -1237,8 +1237,8 @@ router.post("/api/vendors/:id/connections/:index/unblock", async (req, res) => {
 
     res.json({ ok: true });
   } catch (err) {
-    console.error("Erreur dÃ©blocage connexion:", err);
-    res.status(500).json({ ok: false, message: "Erreur dÃ©blocage connexion" });
+    console.error("Erreur déblocage connexion:", err);
+    res.status(500).json({ ok: false, message: "Erreur déblocage connexion" });
   }
 });
 
@@ -1262,10 +1262,10 @@ router.delete("/api/vendors/:id/movimientos/:movId", async (req, res) => {
       return res.status(404).json({ ok: false, message: "Transaction introuvable" });
     }
 
-    // ðŸ”¥ retire movement
+    // 🔥 retire movement
     const removed = vendor.movimientos.splice(index, 1)[0];
 
-    // ðŸ”¥ REAJISTE BALANCE
+    // 🔥 REAJISTE BALANCE
 if (removed.tipo === "pago") {
   vendor.balance -= removed.monto;
 } else {
@@ -1342,7 +1342,7 @@ router.post("/api/vendors/:id/balance-action", async (req, res) => {
       comentario: comentario || ""
     };
 
-    // ðŸ”¥ AJUSTE BALANCE
+    // 🔥 AJUSTE BALANCE
 
 if (tipo === "pago") {
   vendor.balance = parseAmount(vendor.balance) + movement.monto;
@@ -1664,7 +1664,7 @@ router.post("/master/ticket/:id/anile", async (req, res) => {
   }
 
   res.send(`
-     <html>
+    <html>
     <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
@@ -1823,7 +1823,7 @@ async function runCheckTickets(date, loteries = []) {
     checked++;
   }
 
-  console.log("âœ… Tickets vÃ©rifiÃ©s:", checked);
+  console.log("✅ Tickets vérifiés:", checked);
 }
 
 router.get("/api/sorteos", async (req, res) => {
@@ -1957,7 +1957,7 @@ router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
 
       const s = String(value).trim();
 
-      // 2026-05-02 â†’ 02/05/2026
+      // 2026-05-02 → 02/05/2026
       if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
         const p = s.split("-");
         return p[2] + "/" + p[1] + "/" + p[0];
@@ -2066,13 +2066,13 @@ router.post("/api/loterias/:id", async (req, res) => {
     );
 
     if (!row) {
-      return res.status(404).json({ ok:false, message:"LoterÃ­a pa jwenn" });
+      return res.status(404).json({ ok:false, message:"Lotería pa jwenn" });
     }
 
     res.json({ ok:true, loteria:row });
   } catch (err) {
     console.error("SAVE LOTERIA ERROR:", err);
-    res.status(500).json({ ok:false, message:"Erreur save loterÃ­a" });
+    res.status(500).json({ ok:false, message:"Erreur save lotería" });
   }
 });
 
@@ -2910,7 +2910,7 @@ tbody tr:nth-child(even){background:#313652;}
     <div class="login-field-label">Username</div>
     <input id="username" type="text" placeholder="Username" class="login-input" />
     <div class="login-field-label">Password</div>
-    <input id="password" type="password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" class="login-input" />
+    <input id="password" type="password" placeholder="••••••••" class="login-input" />
     <button class="login-btn" onclick="loginMaster()">Ingresar</button>
   </div>
 </div>
@@ -2936,14 +2936,14 @@ tbody tr:nth-child(even){background:#313652;}
 
     <div id="menuCloseBtn"
          class="side-menu-close"
-         onclick="closeSideMenu()">âœ•</div>
+         onclick="closeSideMenu()">✕</div>
 
   </div>
 
   <div class="side-menu-section">AJUSTES</div>
 
   <div class="side-menu-item" id="menu-config" onclick="toggleSubmenu('configMenu')">
-    <span>ConfiguraciÃ³n</span><span>></span>
+    <span>Configuración</span><span>></span>
   </div>
   <div id="configMenu" class="submenu-box">
    <div class="submenu-item" onclick="goPage('grupos')">Grupo</div>
@@ -2955,15 +2955,15 @@ tbody tr:nth-child(even){background:#313652;}
 </div>
 
   <div class="side-menu-item" id="menu-limites" onclick="toggleSubmenu('limitesMenu')">
-    <span>LÃ­mites</span><span>></span>
+    <span>Límites</span><span>></span>
   </div>
   <div id="limitesMenu" class="submenu-box">
     <div class="submenu-item" onclick="goPage('limites_ajustes')">Ajustes</div>
-    <div class="submenu-item" onclick="openLimitesEstadisticas()">EstadÃ­sticas</div>
+    <div class="submenu-item" onclick="openLimitesEstadisticas()">Estadísticas</div>
   </div>
 
   <div class="side-menu-item" id="menu-loterias" onclick="goPage('loterias')">
-  <span>LoterÃ­as</span>
+  <span>Loterías</span>
 </div>
    <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
  
@@ -2987,9 +2987,9 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
   <div id="ventaMenu" class="submenu-box">
   <div class="submenu-item" id="submenu-ventas" onclick="goPage('ventas')">General</div>
-  <div class="submenu-item" id="submenu-ventas-loteria" onclick="openVentasDetalle('loteria')">LoterÃ­a</div>
+  <div class="submenu-item" id="submenu-ventas-loteria" onclick="openVentasDetalle('loteria')">Lotería</div>
   <div class="submenu-item" id="submenu-ventas-jugada" onclick="openVentasDetalle('jugada')">Jugada</div>
-  <div class="submenu-item" id="submenu-ventas-numero" onclick="openVentasDetalle('numero')">NÃºmero</div>
+  <div class="submenu-item" id="submenu-ventas-numero" onclick="openVentasDetalle('numero')">Número</div>
   <div class="submenu-item" id="submenu-ventas-grupo" onclick="goPage('grupo')">Grupo</div>
 </div>
 
@@ -3011,13 +3011,13 @@ tbody tr:nth-child(even){background:#313652;}
 <div class="app-page hidden" id="appPage">
   <div class="topbar">
     <div class="top-left">
-      <div class="icon-btn" id="menuBtn" onclick="openSideMenu()">â˜°</div>
-      <div class="icon-btn">âŒ•</div>
+      <div class="icon-btn" id="menuBtn" onclick="openSideMenu()">☰</div>
+      <div class="icon-btn">⌕</div>
     </div>
     <div class="top-right">
       <div class="clock-pill" id="clockBox">13:15</div>
-      <div class="icon-btn">â˜¼</div>
-      <div class="avatar">ðŸ‘¤</div>
+      <div class="icon-btn">☼</div>
+      <div class="avatar">👤</div>
     </div>
   </div>
 
@@ -3029,8 +3029,8 @@ tbody tr:nth-child(even){background:#313652;}
     <div class="export-dropdown">
 
       <button class="export-btn" onclick="toggleExportMenu(event)">
-        <span>ðŸ“„</span>
-        <span>â–¼</span>
+        <span>📄</span>
+        <span>▼</span>
       </button>
 
       <div class="export-menu" id="exportMenu">
@@ -3068,7 +3068,7 @@ tbody tr:nth-child(even){background:#313652;}
       </div>
 
       <div class="filter-group">
-        <label class="filter-label">LoterÃ­a</label>
+        <label class="filter-label">Lotería</label>
         <select class="filter-select"><option>-</option></select>
       </div>
 
@@ -3078,7 +3078,7 @@ tbody tr:nth-child(even){background:#313652;}
       </div>
 
       <div class="filter-group">
-        <label class="filter-label">ComisiÃ³n</label>
+        <label class="filter-label">Comisión</label>
         <select id="ventasComisionFilter" class="filter-select">
           <option value="">Todas</option>
           <option value="3">3%</option>
@@ -3096,10 +3096,10 @@ tbody tr:nth-child(even){background:#313652;}
             <tr>
    <th>VENDEDOR</th>
   <th onclick="sortVentasByVenta()" style="cursor:pointer;">
-  VENTA<span id="ventaArrow" style="font-size:10px; display:inline-block; line-height:9px; margin-left:2px;">â†‘<br>â†“</span>
+  VENTA<span id="ventaArrow" style="font-size:10px; display:inline-block; line-height:9px; margin-left:2px;">↑<br>↓</span>
 </th>
-  <th>COMISIÃ“N GRUPO</th>
-  <th>COMISIÃ“N</th>
+  <th>COMISIÓN GRUPO</th>
+  <th>COMISIÓN</th>
   <th>PREMIOS</th>
   <th>RESULTADO</th>
 </tr>
@@ -3139,15 +3139,15 @@ tbody tr:nth-child(even){background:#313652;}
 </div>
 
  <div id="limitesAjustesPage" class="page-block hidden">
-  <div class="page-title">Configurar LÃ­mites</div>
+  <div class="page-title">Configurar Límites</div>
 
   <div class="action-row">
-    <button class="editor-top-btn save" onclick="saveLimitesAjustes()">ðŸ’¾ Guardar</button>
+    <button class="editor-top-btn save" onclick="saveLimitesAjustes()">💾 Guardar</button>
   </div>
 
   <div class="table-card" style="padding:14px;">
     <div class="field-group">
-      <div class="field-label">LÃ­mites por LoterÃ­as</div>
+      <div class="field-label">Límites por Loterías</div>
       <input id="limite_borlette" class="field-input" placeholder="Borlette">
       <input id="limite_mariage" class="field-input" placeholder="Mariage">
       <input id="limite_loto3" class="field-input" placeholder="Loto 3">
@@ -3156,7 +3156,7 @@ tbody tr:nth-child(even){background:#313652;}
     </div>
 
     <div class="field-group">
-      <div class="field-label">LÃ­mite por nÃºmeros</div>
+      <div class="field-label">Límite por números</div>
       <select id="limNumType" class="field-select">
         <option value="BOR">Borlette</option>
         <option value="MAR">Mariage</option>
@@ -3164,14 +3164,14 @@ tbody tr:nth-child(even){background:#313652;}
         <option value="L41">Loto 4</option>
         <option value="L51">Loto 5</option>
       </select>
-      <input id="limNumNumero" class="field-input" placeholder="NÃºmero ex: 00">
+      <input id="limNumNumero" class="field-input" placeholder="Número ex: 00">
       <input id="limNumMonto" class="field-input" placeholder="Limit ex: 100">
-      <button class="login-btn" onclick="addLimiteNumero()">+ Ajouter limite numÃ©ro</button>
+      <button class="login-btn" onclick="addLimiteNumero()">+ Ajouter limite numéro</button>
       <div id="limiteNumerosList"></div>
     </div>
 
     <div class="field-group">
-      <div class="field-label">Bloqueo de nÃºmeros</div>
+      <div class="field-label">Bloqueo de números</div>
       <select id="blockNumType" class="field-select">
         <option value="BOR">Borlette</option>
         <option value="MAR">Mariage</option>
@@ -3179,8 +3179,8 @@ tbody tr:nth-child(even){background:#313652;}
         <option value="L41">Loto 4</option>
         <option value="L51">Loto 5</option>
       </select>
-      <input id="blockNumNumero" class="field-input" placeholder="NÃºmero ex: 00">
-      <button class="login-btn" onclick="addBloqueoNumero()">+ Bloquer numÃ©ro</button>
+      <input id="blockNumNumero" class="field-input" placeholder="Número ex: 00">
+      <button class="login-btn" onclick="addBloqueoNumero()">+ Bloquer numéro</button>
       <div id="bloqueoNumerosList"></div>
     </div>
   </div>
@@ -3250,7 +3250,7 @@ tbody tr:nth-child(even){background:#313652;}
 </div>
 
 <div id="loteriasPage" class="page-block hidden">
-  <div class="page-title">LoterÃ­as</div>
+  <div class="page-title">Loterías</div>
 
   <div class="table-card">
     <div class="table-scroll">
@@ -3260,7 +3260,7 @@ tbody tr:nth-child(even){background:#313652;}
             <th>NOMBRE</th>
             <th>APERTURA</th>
             <th>CIERRE</th>
-            <th>LÃMITES</th>
+            <th>LÍMITES</th>
             <th>PAGO</th>
             <th>ESTATUS</th>
             <th></th>
@@ -3330,7 +3330,7 @@ tbody tr:nth-child(even){background:#313652;}
           <tr>
             <th>FECHA</th>
             <th>MONTO</th>
-            <th>TRANSACCIÃ“N</th>
+            <th>TRANSACCIÓN</th>
             <th>AGENTE</th>
             <th>REALIZADO POR</th>
             <th></th>
@@ -3349,7 +3349,7 @@ tbody tr:nth-child(even){background:#313652;}
       <div></div>
       <div class="action-buttons">
         <button class="square-btn" onclick="openNewVendor()">+</button>
-        <button class="square-btn purple" onclick="loadVendorsFromServer()">â†»</button>
+        <button class="square-btn purple" onclick="loadVendorsFromServer()">↻</button>
       </div>
     </div>
 
@@ -3373,7 +3373,7 @@ tbody tr:nth-child(even){background:#313652;}
               <th>NOMBRE</th>
               <th>ZONA</th>
               <th>APP</th>
-              <th>CONEXIÃ“N</th>
+              <th>CONEXIÓN</th>
               <th>LIMIT</th>
               <th>PAGO</th>
               <th>STATUS</th>
@@ -3392,17 +3392,17 @@ tbody tr:nth-child(even){background:#313652;}
     <div class="page-title">Vendedor</div>
 
     <div class="editor-top-actions">
-      <button class="editor-top-btn back" onclick="backToVendorList()">â‰ª</button>
-      <button class="editor-top-btn save" onclick="saveVendor()">ðŸ’¾</button>
+      <button class="editor-top-btn back" onclick="backToVendorList()">≪</button>
+      <button class="editor-top-btn save" onclick="saveVendor()">💾</button>
     </div>
 
     <div class="tabs-scroll">
       <div class="tabs" id="vendorTabs">
         <div class="tab active" data-tab="datos" onclick="showVendorTab('datos')">Datos Del Vendedor</div>
-        <div class="tab" data-tab="config" onclick="showVendorTab('config')">ConfiguraciÃ³n</div>
-        <div class="tab" data-tab="comision" onclick="showVendorTab('comision')">ComisiÃ³n</div>
+        <div class="tab" data-tab="config" onclick="showVendorTab('config')">Configuración</div>
+        <div class="tab" data-tab="comision" onclick="showVendorTab('comision')">Comisión</div>
         <div class="tab" data-tab="premios" onclick="showVendorTab('premios')">Pago De Premios</div>
-        <div class="tab" data-tab="limites" onclick="showVendorTab('limites')">LÃ­mite De Ventas</div>
+        <div class="tab" data-tab="limites" onclick="showVendorTab('limites')">Límite De Ventas</div>
         <div class="tab" data-tab="conexiones" onclick="showVendorTab('conexiones')">Conexiones</div>
         <div class="tab" data-tab="clonar" onclick="showVendorTab('clonar')">Clonar</div>
       </div>
@@ -3427,15 +3427,15 @@ tbody tr:nth-child(even){background:#313652;}
           <input id="vd_apellido" class="field-input" />
         </div>
         <div class="field-group">
-          <div class="field-label">CÃ©dula</div>
+          <div class="field-label">Cédula</div>
           <input id="vd_cedula" class="field-input" />
         </div>
         <div class="field-group">
-          <div class="field-label">TelÃ©fono</div>
+          <div class="field-label">Teléfono</div>
           <input id="vd_telefono" class="field-input" placeholder="+509 / +1 / +33 ..." />
         </div>
         <div class="field-group">
-          <div class="field-label">DirecciÃ³n</div>
+          <div class="field-label">Dirección</div>
           <input id="vd_direccion" class="field-input" />
         </div>
         <div class="field-group">
@@ -3458,11 +3458,11 @@ tbody tr:nth-child(even){background:#313652;}
           <select id="vd_zona" class="field-select"></select>
         </div>
         <div class="field-group">
-          <div class="field-label">Venta del dÃ­a</div>
+          <div class="field-label">Venta del día</div>
           <input id="vd_venta" class="field-input" value="0" />
         </div>
         <div class="field-group">
-          <div class="field-label">Premios del dÃ­a</div>
+          <div class="field-label">Premios del día</div>
           <input id="vd_premiosMonto" class="field-input" value="0" />
         </div>
         <div class="field-group">
@@ -3473,15 +3473,15 @@ tbody tr:nth-child(even){background:#313652;}
 
       <div class="editor-section vendor-tab-panel hidden" id="tab-config">
         <div class="field-group">
-          <div class="field-label">LÃ­mite Diario</div>
+          <div class="field-label">Límite Diario</div>
           <input id="cfg_limite_diario" class="field-input" value="0" />
         </div>
         <div class="field-group">
-          <div class="field-label">CrÃ©dito</div>
+          <div class="field-label">Crédito</div>
           <input id="cfg_credito" class="field-input" value="0" />
         </div>
         <div class="field-group">
-          <div class="field-label">Deshabilitar LoterÃ­as</div>
+          <div class="field-label">Deshabilitar Loterías</div>
           <input id="cfg_deshabilitar_loterias" class="field-input" />
         </div>
         <div class="field-group">
@@ -3489,7 +3489,7 @@ tbody tr:nth-child(even){background:#313652;}
           <input id="cfg_deshabilitar_jugadas" class="field-input" />
         </div>
         <div class="field-group">
-          <div class="field-label">Mezcla de nÃºmeros</div>
+          <div class="field-label">Mezcla de números</div>
           <input id="cfg_mezcla_numeros" class="field-input" value="0" />
         </div>
 
@@ -3522,11 +3522,11 @@ tbody tr:nth-child(even){background:#313652;}
       <div class="editor-section vendor-tab-panel hidden" id="tab-comision">
         <div class="switch-row" style="justify-content:flex-end;">
           <div id="sw_retener_comision" class="switch"></div>
-          <div class="switch-label">Retener ComisiÃ³n</div>
+          <div class="switch-label">Retener Comisión</div>
         </div>
 
         <div class="field-group">
-          <div class="field-label" style="font-weight:700;">ComisiÃ³n General</div>
+          <div class="field-label" style="font-weight:700;">Comisión General</div>
           <input id="com_general" class="field-input" value="0" />
         </div>
 
@@ -3539,11 +3539,11 @@ tbody tr:nth-child(even){background:#313652;}
         <div class="field-group"><div class="field-label">Loto 5 o3</div><input id="com_loto5o3" class="field-input" value="0" /></div>
 
         <div class="field-group">
-          <div class="field-label" style="font-weight:700;">ComisiÃ³n de Zona</div>
+          <div class="field-label" style="font-weight:700;">Comisión de Zona</div>
           <input id="com_zona" class="field-input" value="0" />
         </div>
 
-        <div class="switch-row"><div id="sw_comision_loteria" class="switch"></div><div class="switch-label">ComisiÃ³n por LoterÃ­a</div></div>
+        <div class="switch-row"><div id="sw_comision_loteria" class="switch"></div><div class="switch-label">Comisión por Lotería</div></div>
       </div>
 
       <div class="editor-section vendor-tab-panel hidden" id="tab-premios">
@@ -3622,7 +3622,7 @@ tbody tr:nth-child(even){background:#313652;}
 
       <div class="editor-section vendor-tab-panel hidden" id="tab-conexiones">
         <div class="refresh-row">
-          <button class="refresh-btn" onclick="refreshCurrentConexiones()">â†»</button>
+          <button class="refresh-btn" onclick="refreshCurrentConexiones()">↻</button>
         </div>
 
         <div class="table-card">
@@ -3661,7 +3661,7 @@ tbody tr:nth-child(even){background:#313652;}
 
 <div id="balanceModal" class="modal-overlay">
   <div class="modal-card">
-    <div class="modal-close" onclick="closeBalanceModal()">Ã—</div>
+    <div class="modal-close" onclick="closeBalanceModal()">×</div>
     <div class="modal-title" id="balanceModalTitle">Balance</div>
 
     <div class="field-group">
@@ -4028,19 +4028,19 @@ function getStatusIcon(status) {
   status = status.toUpperCase();
 
   if (status.includes("PEDI")) {
-    return '<span style="color:#ff4444;font-weight:900;font-size:24px;">âœ•</span>';
+    return '<span style="color:#ff4444;font-weight:900;font-size:24px;">✕</span>';
   }
 
   if (status.includes("ANATAN")) {
-    return '<span style="color:#7c4dff;">ðŸ•’</span>';
+    return '<span style="color:#7c4dff;">🕒</span>';
   }
 
   if (status.includes("ANILE")) {
-    return '<span style="color:#999;">ðŸš«</span>';
+    return '<span style="color:#999;">🚫</span>';
   }
 
   if (status.includes("GANYE")) {
-    return '<span style="color:#00ff66;font-weight:900;font-size:24px;">âœ“</span>';
+    return '<span style="color:#00ff66;font-weight:900;font-size:24px;">✓</span>';
   }
 
   return status;
@@ -4134,14 +4134,14 @@ function renderTicketsReport(){
 
   body.innerHTML = rows.map(function(t){
     return '<tr>' +
-      '<td>ðŸ–¨ ' + safe(t.id) + '</td>' +
+      '<td>🖨 ' + safe(t.id) + '</td>' +
       '<td>' + safe(t.createdAtLabel || t.dateLabel || "") + '</td>' +
       '<td>' + safe(t.vendeurNom || t.vendeur) + '</td>' +
       '<td>' + (Array.isArray(t.jeux) ? t.jeux.length : 0) + '</td>' +
       '<td>' + formatAmount(t.total) + '</td>' +
       '<td>' + (t.premioLabel || formatAmount(t.premio || 0)) + '</td>' +
       '<td style="text-align:center;">' + getStatusIcon(t.status || "ANATAN") + '</td>' +
-     '<td><a class="mini-btn" href="/master/ticket/' + encodeURIComponent(t.id) + '" target="_blank">ðŸ”</a></td>' +
+     '<td><a class="mini-btn" href="/master/ticket/' + encodeURIComponent(t.id) + '" target="_blank">🔍</a></td>' +
     '</tr>';
   }).join("");
 }
@@ -4217,7 +4217,7 @@ function renderLoteriasAdmin(){
   if(!html){
     html =
       '<tr>' +
-      '<td colspan="7">Pa gen loterÃ­as</td>' +
+      '<td colspan="7">Pa gen loterías</td>' +
       '</tr>';
   }
 
@@ -4249,7 +4249,7 @@ function editLoteriaAdmin(id){
   }
 
   if(!row){
-    alert("LoterÃ­a introuvable");
+    alert("Lotería introuvable");
     return;
   }
 
@@ -4268,7 +4268,7 @@ if(nuevoStatus === null) return;
   var tuesday = prompt("Martes fermeture", days.tuesday || row.closeTime || "23:59");
   if(tuesday === null) return;
 
-  var wednesday = prompt("MiÃ©rcoles fermeture", days.wednesday || row.closeTime || "23:59");
+  var wednesday = prompt("Miércoles fermeture", days.wednesday || row.closeTime || "23:59");
   if(wednesday === null) return;
 
   var thursday = prompt("Jueves fermeture", days.thursday || row.closeTime || "23:59");
@@ -4277,7 +4277,7 @@ if(nuevoStatus === null) return;
   var friday = prompt("Viernes fermeture", days.friday || row.closeTime || "23:59");
   if(friday === null) return;
 
-  var saturday = prompt("SÃ¡bado fermeture", days.saturday || row.closeTime || "23:59");
+  var saturday = prompt("Sábado fermeture", days.saturday || row.closeTime || "23:59");
   if(saturday === null) return;
 
   var sunday = prompt("Domingo fermeture", days.sunday || row.closeTime || "23:59");
@@ -4312,7 +4312,7 @@ if(nuevoStatus === null) return;
       return;
     }
 
-    alert("LoterÃ­a modifiÃ©e");
+    alert("Lotería modifiée");
     loadLoteriasAdmin();
   })
   .catch(function(err){
@@ -4371,7 +4371,7 @@ function renderSorteosPage(){
       String(r.r3 || "").trim() ||
       String(r.r4 || "").trim();
 
-    var btnIcon = hasBalls ? "ðŸ—‘" : "ðŸ’¾";
+    var btnIcon = hasBalls ? "🗑" : "💾";
     var btnClass = hasBalls ? "sorteos-delete-btn" : "sorteos-save-btn";
 
     html += ''
@@ -4491,7 +4491,7 @@ async function deleteSorteo(loteria){
       return;
     }
 
-    alert("Rezilta supprimÃ©e âœ”");
+    alert("Rezilta supprimée ✔");
     await loadSorteos();
 
   }catch(err){
@@ -4666,7 +4666,7 @@ ticketsRows.forEach(function(t){
       String(dt.getDate()).padStart(2,"0");
   }
 
-  // âœ… pran sÃ¨lman tickets jounen an
+  // ✅ pran sèlman tickets jounen an
   if(d !== today) return;
 
   const status = safe(t.status).toUpperCase();
@@ -4682,13 +4682,13 @@ ticketsRows.forEach(function(t){
 
     const lot = safe(j.loterie).toUpperCase().trim();
 
-    // âœ… si pa gen loterie, pa montre li
+    // ✅ si pa gen loterie, pa montre li
     if(!lot) return;
 
     const venta = parseAmount(j.montant || j.monto || j.amount || 0);
     const premio = parseAmount(j.gain || 0);
 
-    // âœ… si loterie pa vann jodi a, pa monte
+    // ✅ si loterie pa vann jodi a, pa monte
     if(venta <= 0 && premio <= 0) return;
 
     if(!map[lot]){
@@ -4724,10 +4724,10 @@ ticketsRows.forEach(function(t){
     '<div style="padding:10px 0 28px;">' +
 
       '<div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:18px;">' +
-        homeCard("Ventas", "HTG " + formatAmount(totalVenta), "#00d2ff", "ðŸŽŸ") +
-        homeCard("ComisiÃ³n", "HTG " + formatAmount(totalComision), "#7c4dff", "%") +
+        homeCard("Ventas", "HTG " + formatAmount(totalVenta), "#00d2ff", "🎟") +
+        homeCard("Comisión", "HTG " + formatAmount(totalComision), "#7c4dff", "%") +
         homeCard("Premios", "HTG " + formatAmount(totalPremios), "#ff4d6d", "$") +
-        homeCard("Resultados", "HTG " + formatAmount(totalResultado), totalResultado >= 0 ? "#35d07f" : "#ff9f43", "ðŸ’µ") +
+        homeCard("Resultados", "HTG " + formatAmount(totalResultado), totalResultado >= 0 ? "#35d07f" : "#ff9f43", "💵") +
       '</div>' +
 
       '<div class="table-card">' +
@@ -4748,7 +4748,7 @@ ticketsRows.forEach(function(t){
                 const cls = parseAmount(r.resultado) >= 0 ? "result-ok" : "result-bad";
 
                 return '<tr>' +
-                  '<td>â— ' + safe(r.loteria).slice(0,12) + '...</td>' +
+                  '<td>● ' + safe(r.loteria).slice(0,12) + '...</td>' +
                   '<td>' + formatAmount(r.venta) + '</td>' +
                   '<td>' + formatAmount(r.premio) + '</td>' +
                   '<td class="' + cls + '">' + formatAmount(r.resultado) + '</td>' +
@@ -4775,9 +4775,9 @@ ticketsRows.forEach(function(t){
           formatAmount(evaluados + pendientes).replace(".00","") +
         '</div>' +
 
-        statLine("âœ…", "Tickets evaluados", evaluados) +
-        statLine("ðŸ•’", "Tickets pendientes", pendientes) +
-        statLine("ðŸ”´", "Tickets ganadores", ganadores) +
+        statLine("✅", "Tickets evaluados", evaluados) +
+        statLine("🕒", "Tickets pendientes", pendientes) +
+        statLine("🔴", "Tickets ganadores", ganadores) +
       '</div>' +
 
     '</div>';
@@ -4902,7 +4902,7 @@ const tdAction = document.createElement("td");
 
 const searchBtn = document.createElement("button");
 searchBtn.className = "mini-btn";
-searchBtn.innerText = "ðŸ”";
+searchBtn.innerText = "🔍";
 searchBtn.onclick = function(){
   alert(
     "Vendeur: " + safe(r.vendorName) +
@@ -4915,7 +4915,7 @@ searchBtn.onclick = function(){
 
 const btn = document.createElement("button");
 btn.className = "mini-btn";
-btn.innerText = "ðŸ—‘";
+btn.innerText = "🗑";
 btn.onclick = function(){
   deleteMovimiento(r.vendorId, r.id);
 };
@@ -5028,8 +5028,8 @@ function renderVendorTable(){
     const originalIndex = vendors.findIndex(x=>x.id === v.id);
     const hasActive = Array.isArray(v.conexiones) && v.conexiones.some(c => c && c.st === true);
     const statusDot = hasActive
-      ? '<span class="status-dot green">â—</span>'
-      : '<span class="status-dot gray">â—</span>';
+      ? '<span class="status-dot green">●</span>'
+      : '<span class="status-dot gray">●</span>';
 
     tbody.innerHTML += \`
       <tr class="clickable-row" onclick="openVendorByIndex(\${originalIndex})">
@@ -5038,11 +5038,11 @@ function renderVendorTable(){
         <td>\${safe(v.zona || v.groupe)}</td>
         <td>\${safe(v.app)}</td>
         <td>\${safe(v.conexion)}</td>
-        <td>âœ“</td>
-        <td>âœ“</td>
-        <td>\${safe(v.estatus) === "Activo" ? "âœ“" : ""}</td>
-        <td><button class="mini-btn" onclick="event.stopPropagation();openVendorByIndex(\${originalIndex})">âœŽ</button></td>
-        <td><button class="mini-btn" onclick="event.stopPropagation();deleteVendorByIndex(\${originalIndex})">ðŸ—‘</button></td>
+        <td>✓</td>
+        <td>✓</td>
+        <td>\${safe(v.estatus) === "Activo" ? "✓" : ""}</td>
+        <td><button class="mini-btn" onclick="event.stopPropagation();openVendorByIndex(\${originalIndex})">✎</button></td>
+        <td><button class="mini-btn" onclick="event.stopPropagation();deleteVendorByIndex(\${originalIndex})">🗑</button></td>
         <td></td>
       </tr>
     \`;
@@ -5255,7 +5255,7 @@ function renderBalanceTable(){
 
     const btn = document.createElement("button");
     btn.className = "balance-menu-btn";
-    btn.textContent = "â‹®";
+    btn.textContent = "⋮";
     btn.onclick = function(e){
       toggleBalanceMenu(id, e);
     };
@@ -5632,7 +5632,7 @@ async function saveVendor(){
       return;
     }
 
-    alert("Vendedor guardado âœ”");
+    alert("Vendedor guardado ✔");
     await loadVendorsFromServer();
     await loadVentasReport();
     await loadBalanceReport();
@@ -5703,7 +5703,7 @@ async function cloneVendor(){
       return;
     }
 
-    alert("Copiar vendedor âœ”");
+    alert("Copiar vendedor ✔");
     await loadVendorsFromServer();
     await loadVentasReport();
     await loadBalanceReport();
@@ -5715,7 +5715,7 @@ async function cloneVendor(){
 }
 
 function boolIcon(v, clsOn){
-  return v ? '<span class="' + clsOn + '">â—</span>' : '<span class="bool-off">âŠ˜</span>';
+  return v ? '<span class="' + clsOn + '">●</span>' : '<span class="bool-off">⊘</span>';
 }
 
 function closeAllConnMenus(){
@@ -5765,7 +5765,7 @@ function renderConexiones(rows){
         <td>\${boolIcon(c.st, "bool-ok")}</td>
         <td>
           <div class="conn-actions-wrap">
-            <button class="conn-menu-btn" onclick="toggleConnMenu(\${i});event.stopPropagation();">â‹®</button>
+            <button class="conn-menu-btn" onclick="toggleConnMenu(\${i});event.stopPropagation();">⋮</button>
             <div class="conn-menu" id="conn_menu_\${i}">
               <div class="conn-menu-item" onclick="\${actionFn}">\${actionLabel}</div>
               <div class="conn-menu-item" onclick="deleteConn(\${i})">Eliminar</div>
@@ -5810,7 +5810,7 @@ async function blockConn(i){
       currentVendorIndex = idx;
       fillVendorForm(vendors[idx]);
     }
-    alert("Connexion bloquÃ©e");
+    alert("Connexion bloquée");
   }catch(err){
     console.error(err);
     alert("Erreur blocage connexion");
@@ -5829,7 +5829,7 @@ async function unblockConn(i){
 
     const data = await res.json();
     if(!res.ok){
-      alert(data.message || "Erreur dÃ©blocage");
+      alert(data.message || "Erreur déblocage");
       return;
     }
 
@@ -5840,10 +5840,10 @@ async function unblockConn(i){
       currentVendorIndex = idx;
       fillVendorForm(vendors[idx]);
     }
-    alert("Connexion activÃ©e");
+    alert("Connexion activée");
   }catch(err){
     console.error(err);
-    alert("Erreur dÃ©blocage connexion");
+    alert("Erreur déblocage connexion");
   }
 }
 
@@ -5870,7 +5870,7 @@ async function deleteConn(i){
       currentVendorIndex = idx;
       fillVendorForm(vendors[idx]);
     }
-    alert("Connexion supprimÃ©e");
+    alert("Connexion supprimée");
   }catch(err){
     console.error(err);
     alert("Erreur suppression connexion");
@@ -5885,7 +5885,7 @@ function pinConn(i){
     return;
   }
   closeAllConnMenus();
-  alert("PIN conexiÃ³n: " + safe(conn.pin));
+  alert("PIN conexión: " + safe(conn.pin));
 }
 
 function openBalanceModal(vendorId, vendorName, tipo, currentBalance){
@@ -5947,7 +5947,7 @@ async function submitBalanceAction(){
     await loadVendorsFromServer();
     await loadVentasReport();
     await loadBalanceReport();
-    alert("Balance mis Ã  jour");
+    alert("Balance mis à jour");
   }catch(err){
     console.error(err);
     alert("Erreur balance");
@@ -6091,7 +6091,7 @@ async function deleteMovimiento(vendorId, movimientoId){
     await loadBalanceReport();
     renderTransactionsTable();
 
-    alert("Transaction supprimÃ©e âœ”");
+    alert("Transaction supprimée ✔");
   }catch(err){
     console.error(err);
     alert("Erreur delete transaction");
@@ -6114,7 +6114,7 @@ async function cancelTicket(ticketId){
       return;
     }
 
-    alert("Ticket annulÃ© âœ”");
+    alert("Ticket annulé ✔");
 
     await loadTicketsReport();
     await loadVentasReport();
@@ -6153,13 +6153,13 @@ function renderGruposTable(){
       '<td>' + safe(g.nombre) + '</td>' +
       '<td>' + (activo ? "Activo" : "Bloqueado") + '</td>' +
       '<td style="display:flex;gap:8px;">' +
-      '<button class="mini-btn" onclick="editGrupoByIndex(' + index + ')">âœï¸</button>' +
+      '<button class="mini-btn" onclick="editGrupoByIndex(' + index + ')">✏️</button>' +
       (
         activo
-        ? '<button class="mini-btn danger" onclick="blockGrupoByIndex(' + index + ')">ðŸš«</button>'
-        : '<button class="mini-btn success" onclick="unblockGrupoByIndex(' + index + ')">âœ…</button>'
+        ? '<button class="mini-btn danger" onclick="blockGrupoByIndex(' + index + ')">🚫</button>'
+        : '<button class="mini-btn success" onclick="unblockGrupoByIndex(' + index + ')">✅</button>'
       ) +
-      '<button class="mini-btn danger" onclick="deleteGrupoByIndex(' + index + ')">ðŸ—‘</button>' +
+      '<button class="mini-btn danger" onclick="deleteGrupoByIndex(' + index + ')">🗑</button>' +
       '</td>' +
       '</tr>';
   });
@@ -6215,7 +6215,7 @@ async function openNewGrupo(){
   const nombre = prompt("Nombre grupo");
   if(!nombre) return;
 
-  const comisionGrupo = prompt("ComisiÃ³n grupo");
+  const comisionGrupo = prompt("Comisión grupo");
   if(comisionGrupo === null) return;
 
   await fetch("/api/grupos", {
@@ -6290,7 +6290,7 @@ function addLimiteNumero(){
   const monto = parseFloat(byId("limNumMonto").value || 0);
 
   if(!numero || monto <= 0){
-    alert("Antre numÃ©ro ak limit");
+    alert("Antre numéro ak limit");
     return;
   }
 
@@ -6336,7 +6336,7 @@ function addBloqueoNumero(){
   const numero = byId("blockNumNumero").value.trim();
 
   if(!numero){
-    alert("Antre numÃ©ro");
+    alert("Antre numéro");
     return;
   }
 
@@ -6420,7 +6420,7 @@ async function saveLimitesAjustes(){
     const data = await res.json();
 
     if(data.ok){
-      alert("Limites sauvegardÃ©s");
+      alert("Limites sauvegardés");
     }else{
       alert(data.message || "Erreur");
     }
@@ -6485,8 +6485,8 @@ async function openVentasDetalle(mode){
     ticketsRows = [];
   }
 
-  let title = "Ventas por NÃºmero";
-  if(currentVentasMode === "loteria") title = "Ventas por LoterÃ­a";
+  let title = "Ventas por Número";
+  if(currentVentasMode === "loteria") title = "Ventas por Lotería";
   if(currentVentasMode === "jugada") title = "Ventas por Jugada";
 
   page.innerHTML =
@@ -6518,7 +6518,7 @@ async function openVentasDetalle(mode){
       '</div>' +
 
       '<div class="filter-group">' +
-        '<label class="filter-label">LoterÃ­a</label>' +
+        '<label class="filter-label">Lotería</label>' +
         '<select id="detLoteria" class="filter-select"></select>' +
       '</div>' +
 
@@ -6539,7 +6539,7 @@ async function openVentasDetalle(mode){
       '</div>' +
 
       '<div class="filter-group">' +
-        '<label class="filter-label">NÃºmero</label>' +
+        '<label class="filter-label">Número</label>' +
         '<input type="text" id="detNumero" class="filter-input">' +
       '</div>' +
 
@@ -6884,7 +6884,7 @@ if(mariageGratis){
       if(saveData.ok){
 
         alert(
-          "Configuration sauvegardÃ©e"
+          "Configuration sauvegardée"
         );
 
       }else{
@@ -6897,7 +6897,7 @@ if(mariageGratis){
 
       console.error(err);
 
-      alert("Erreur systÃ¨me");
+      alert("Erreur système");
 
     }
 
@@ -6964,7 +6964,7 @@ byId("miCuentaPage").innerHTML =
       '</div>' +
 
       '<div class="field-group">' +
-        '<div class="field-label">PIN sÃ©curitÃ© actuel</div>' +
+        '<div class="field-label">PIN sécurité actuel</div>' +
         '<input id="securityPin" type="password" class="field-input" placeholder="PIN actuel obligatoire">' +
       '</div>' +
 
@@ -7015,7 +7015,7 @@ function saveAccount(){
     localStorage.setItem("masterPassword", password);
   }
 
-  alert("Cuenta guardada âœ”");
+  alert("Cuenta guardada ✔");
 }
 
 function changeSecurityPin(){
@@ -7034,7 +7034,7 @@ function changeSecurityPin(){
 
   localStorage.setItem("securityPin", newPin);
 
-  alert("PIN changÃ© âœ”");
+  alert("PIN changé ✔");
   openMiCuenta();
 }
 
@@ -7060,7 +7060,7 @@ async function openLimitesEstadisticas(){
   await loadTicketsReport();
 
   page.innerHTML =
-    '<div class="page-title">LÃ­mites de Ventas</div>' +
+    '<div class="page-title">Límites de Ventas</div>' +
 
 
     '<div class="filters">' +
@@ -7096,7 +7096,7 @@ async function openLimitesEstadisticas(){
 
         '<input id="estNumero" oninput="renderLimitesEstadisticas()" placeholder="#" style="background:#30344f;color:#d7dcef;border:0;font-size:22px;padding:0 22px;outline:none;height:58px;">' +
 
-        '<button onclick="renderLimitesEstadisticas()" style="background:#30344f;color:#d7dcef;border:0;border-left:1px solid rgba(255,255,255,.14);font-size:30px;">âŒ•</button>' +
+        '<button onclick="renderLimitesEstadisticas()" style="background:#30344f;color:#d7dcef;border:0;border-left:1px solid rgba(255,255,255,.14);font-size:30px;">⌕</button>' +
       '</div>' +
 
       '<div id="limitesEstadisticasBody"></div>' +
@@ -7219,7 +7219,7 @@ function renderLimitesEstadisticas(){
 
   if(!rows.length){
     body.innerHTML =
-      '<div class="empty-state">Pa gen estadÃ­sticas pou filtÃ¨ sa yo</div>';
+      '<div class="empty-state">Pa gen estadísticas pou filtè sa yo</div>';
     return;
   }
 

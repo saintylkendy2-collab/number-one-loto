@@ -644,62 +644,6 @@ function getGain(j, tirage, config){
     }
   }
 
-  if(type === "MAR"){
-
-  const isGratis =
-    j.gratis === true ||
-    j.free === true ||
-    Number(j.montant || 0) === 0;
-
-  const parts = String(num)
-    .replace("-", "x")
-    .replace("*", "x")
-    .split("x")
-    .map(x => pad2(x));
-
-  const played = parts.join("");
-
-  const wins = [
-    r2 + r3,
-    r2 + r4,
-    r3 + r4
-  ];
-
-  if(wins.includes(played)){
-
-    if(isGratis){
-      return Number(j.payoutGratis || 0);
-    }
-
-    pay = payout(config, "premios.mariage", 1000);
-    return montant * pay;
-  }
-}
-
-
-const wins = [
-  r2 + r3,
-  r2 + r4,
-  r3 + r4
-];
-
-const parts = String(num)
-  .replace("-", "x")
-  .replace("*", "x")
-  .split("x")
-  .map(x => pad2(x));
-
-const played = parts.join("");
-
-const wonOnce = wins.some(function(w){
-  return w === played;
-});
-
-if(wonOnce){
-  return Number(j.payoutGratis || 0);
-}
-
-
   // =========================
   // MARIAGE
   // =========================
@@ -3660,9 +3604,9 @@ function renderBillets(){
     card.className = "billet-card";
 
     var premioTotal = Number(t.premio || 0);
-    var premioTxt = premioTotal > 0
-      ? '<div class="billet-meta" style="font-weight:800;color:#157347;">Gain total: ' + fmt(premioTotal) + '</div>'
-      : '';
+    var premioTxt = premioTotal > 0 && t.status !== "ANILE"
+  ? '<div class="billet-meta" style="font-weight:800;color:#157347;">Gain total: ' + fmt(premioTotal) + '</div>'
+  : '';
 
    card.innerHTML =
   '<div class="billet-head">' +

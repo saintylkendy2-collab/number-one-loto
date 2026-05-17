@@ -3643,7 +3643,7 @@ function renderBillets(){
           '<div>' + j.type + '</div>' +
           '<div>' +
             j.numero + ' - ' + j.loterie +
-            (gain > 0
+            (!isAnile && gain > 0
               ? ' <span style="background:#d1f7de;color:#157347;font-size:12px;font-weight:900;padding:2px 6px;border-radius:8px;margin-left:6px;">+' + fmt(gain) + '</span>'
               : '') +
           '</div>' +

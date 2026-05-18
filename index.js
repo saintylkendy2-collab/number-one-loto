@@ -3422,8 +3422,8 @@ function buildPrintableTextFromTicket(ticket){
     groups[lot].forEach(function(g){
 
       lines.push(
-        fit(g.type, 12) +
-        fit(g.numero, 10) +
+        fit(g.type, 10) +
+        fit(g.numero, 8) +
         (g.gratis ? "Gratis" : g.montant.toFixed(2))
       );
 

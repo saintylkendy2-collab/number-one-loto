@@ -3443,7 +3443,7 @@ function shareWhatsApp(){
 
     setTimeout(function(){
       shareTicketWhatsApp(ticket);
-    }, 800);
+    }, 100);
 
   }).catch(function(err){
     console.log(err);

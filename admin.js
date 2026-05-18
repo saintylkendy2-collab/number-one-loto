@@ -1847,10 +1847,6 @@ await page.setContent(html, {
   timeout: 0
 });
 
-await page.waitForSelector(".ticket", { timeout: 5000 });
-
-await new Promise(r => setTimeout(r, 500));
-
 await page.waitForSelector(".ticket");
 await new Promise(r => setTimeout(r, 150));
 

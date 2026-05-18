@@ -5551,6 +5551,16 @@ const APP_CONFIG =
   await AppConfig.findOne({ key:"main" }).lean()
   || {};
 
+  const sellerConfig = (vendeur && vendeur.config) ? vendeur.config : {};
+
+const footerMessage =
+(
+  sellerConfig.usarMensajeTicket &&
+  sellerConfig.mensajeTicket
+)
+? sellerConfig.mensajeTicket
+: (APP_CONFIG.ticketMessage || "");
+
     res.send(`
 <!DOCTYPE html>
 <html>
@@ -5624,7 +5634,7 @@ sellerConfig.usarMensajeTicket &&
 sellerConfig.mensajeTicket
 )
 ? sellerConfig.mensajeTicket
-: (APP_CONFIG.ticketMessage || "")
+: (footerMessage || "")
 }
 </div>
 

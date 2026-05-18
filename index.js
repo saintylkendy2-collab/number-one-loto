@@ -3347,9 +3347,8 @@ function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
   var lines = [];
-  var gameMap = {};
-  var freeMap = {};
-  var lotSeen = {};
+  var groups = {};
+  var order = [];
 
   lines.push("NUMBER ONE LOTO");
   lines.push("SELLER " + String(ticket.vendeurNom || ticket.vendeur || ""));
@@ -3359,69 +3358,49 @@ function buildPrintableTextFromTicket(ticket){
   lines.push("----------------------");
 
   ticket.jeux.forEach(function(j){
-    var lot = String(j.loterie || j.loteria || "").trim() || "SANS TIRAGE";
-    var typeRaw = String(j.type || "").toUpperCase();
-    var type = typeRaw;
+    var lot = String(j.loterie || j.loteria || "SANS TIRAGE").trim();
 
-    if(typeRaw === "BOR") type = "Borlette";
-    if(typeRaw === "MAR") type = "Mariage";
+    if(!groups[lot]){
+      groups[lot] = [];
+      order.push(lot);
+    }
 
-    var numero = String(j.numero || "").trim();
+    var type = String(j.type || "").toUpperCase();
+    if(type === "BOR") type = "Borlette";
+    if(type === "MAR") type = "Mariage";
+
     var montant = Number(j.montant || 0);
+    var isGratis = j.gratis === true || j.free === true || montant === 0;
 
-    if(j.gratis === true || j.free === true){
-      if(!freeMap[lot]) freeMap[lot] = [];
-      freeMap[lot].push({ type:type, numero:numero });
-      return;
-    }
-
-    var key = lot + "|" + type + "|" + numero + "|" + montant;
-
-    if(!gameMap[key]){
-      gameMap[key] = {
-        lot: lot,
-        type: type,
-        numero: numero,
-        montant: montant,
-        count: 0
-      };
-    }
-
-    gameMap[key].count++;
+    groups[lot].push({
+      type: type,
+      numero: String(j.numero || "").trim(),
+      montant: montant,
+      gratis: isGratis
+    });
   });
 
-  Object.keys(gameMap).forEach(function(k){
-    var g = gameMap[k];
-
-    if(!lotSeen[g.lot]){
-      lotSeen[g.lot] = true;
-      lines.push(g.lot);
-      lines.push("----------------------");
-    }
-
-    lines.push(
-      g.type + "   " +
-      g.numero + "   " +
-      (g.montant * g.count).toFixed(2)
-    );
-  });
-
-  Object.keys(freeMap).forEach(function(lot){
+  order.forEach(function(lot){
+    lines.push("");
     lines.push(lot);
+    lines.push("----------------------");
 
-    freeMap[lot].forEach(function(g){
+    groups[lot].forEach(function(g){
       lines.push(
         g.type + "   " +
-        g.numero + "   Gratis"
+        g.numero + "   " +
+        (g.gratis ? "Gratis" : g.montant.toFixed(2))
       );
     });
   });
 
+  lines.push("");
   lines.push("----------------------");
   lines.push("TOTAL: " + Number(ticket.total || 0).toFixed(2) + " G");
 
   return lines.join("\\n");
 }
+
 
 
 function resetAfterSend(){
@@ -3499,25 +3478,21 @@ function submitPrint(){
 }
 
 function shareWhatsApp(){
-  var waWin = window.open("", "_blank");
-
   saveCurrentTicket("WHATSAPP").then(function(ticket){
-    if(!ticket){
-      if(waWin) waWin.close();
-      return;
-    }
+    if(!ticket) return;
 
     var text = buildPrintableTextFromTicket(ticket);
     var url = "https://wa.me/?text=" + encodeURIComponent(text);
 
-    if(waWin){
-      waWin.location.href = url;
-    }
-
     loadBillets();
     resetAfterSend();
-  }).catch(function(){
-    if(waWin) waWin.close();
+
+    setTimeout(function(){
+      window.location.href = url;
+    }, 100);
+
+  }).catch(function(err){
+    console.log(err);
     alert("Erreur WhatsApp");
   });
 }

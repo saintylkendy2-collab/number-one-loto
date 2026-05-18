@@ -3347,32 +3347,14 @@ function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
   var lines = [];
-  var lastLot = "";
 
-  lines.push("NUMBER ONE LOTO");
-  lines.push("SELLER " + (ticket.vendeurNom || ticket.vendeur || ""));
-  lines.push("TICKET " + (ticket.id || ticket.ticketId || ticket.serial || ""));
-  lines.push("DATE " + ((ticket.createdAtLabel || ((ticket.dateLabel || "") + " " + (ticket.timeLabel || ""))).trim()));
-  lines.push("----------------------");
-
-  ticket.jeux.forEach(function(j){
-    var lot = String(j.loterie || j.loteria || "").trim();
-
-    if(lot && lot !== lastLot){
-      lastLot = lot;
-      lines.push(lot);
-      lines.push("----------------------");
-    }
-
+  (ticket.jeux || []).forEach(function(j){
     lines.push(
       String(j.type || "").toUpperCase() + "     " +
       String(j.numero || "") + "     " +
       Number(j.montant || 0).toFixed(2)
     );
   });
-
-  lines.push("----------------------");
-  lines.push("TOTAL: " + Number(ticket.total || 0).toFixed(2) + " G");
 
   return lines.join("\n");
 }

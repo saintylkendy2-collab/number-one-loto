@@ -3366,6 +3366,14 @@ function buildPrintableTextFromTicket(ticket){
     return typeRaw;
   }
 
+  var sellerConfig =
+(
+  ticket &&
+  ticket.vendeurConfig
+)
+? ticket.vendeurConfig
+: {};
+
   var lines = [];
   var groups = {};
   var order = [];

@@ -2560,6 +2560,7 @@ border-right:1px solid #ddd;
 <script>
 var sellerId = ${JSON.stringify(sellerId)};
 var sellerName = ${JSON.stringify(sellerName)};
+var sellerConfig = ${JSON.stringify(vendeur?.config || {})};
 
 var activeField = "numero";
 var numero = "";
@@ -3535,6 +3536,8 @@ function submitPrint(){
 function shareWhatsApp(){
   saveCurrentTicket("WHATSAPP").then(function(ticket){
     if(!ticket) return;
+
+    ticket.vendeurConfig = sellerConfig || {};
 
     var text = buildPrintableTextFromTicket(ticket);
     var url = "https://wa.me/?text=" + encodeURIComponent(text);

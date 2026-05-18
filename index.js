@@ -3347,46 +3347,78 @@ function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
   var lines = [];
-  var lastLot = "";
-
-  var dateTime = String(
-    ticket.createdAtLabel ||
-    (
-      String(ticket.dateLabel || "") + " " + String(ticket.timeLabel || "")
-    )
-  ).trim();
+  var gameMap = {};
+  var freeMap = {};
+  var lotSeen = {};
 
   lines.push("NUMBER ONE LOTO");
   lines.push("SELLER " + String(ticket.vendeurNom || ticket.vendeur || ""));
-  lines.push("TICKET " + String(ticket.id || ticket.ticketId || ticket.serial || ""));
-  lines.push("DATE " + dateTime);
+  lines.push("TICKET");
+  lines.push(String(ticket.id || ticket.ticketId || ticket.serial || ""));
+  lines.push("DATE " + String(ticket.createdAtLabel || ((ticket.dateLabel || "") + " " + (ticket.timeLabel || ""))));
   lines.push("----------------------");
 
   ticket.jeux.forEach(function(j){
-    var lot = String(j.loterie || j.loteria || "").trim();
+    var lot = String(j.loterie || j.loteria || "").trim() || "SANS TIRAGE";
+    var typeRaw = String(j.type || "").toUpperCase();
+    var type = typeRaw;
 
-    if(lot && lot !== lastLot){
-      lastLot = lot;
-      lines.push("");
-      lines.push(lot);
+    if(typeRaw === "BOR") type = "Borlette";
+    if(typeRaw === "MAR") type = "Mariage";
+
+    var numero = String(j.numero || "").trim();
+    var montant = Number(j.montant || 0);
+
+    if(j.gratis === true || j.free === true){
+      if(!freeMap[lot]) freeMap[lot] = [];
+      freeMap[lot].push({ type:type, numero:numero });
+      return;
+    }
+
+    var key = lot + "|" + type + "|" + numero + "|" + montant;
+
+    if(!gameMap[key]){
+      gameMap[key] = {
+        lot: lot,
+        type: type,
+        numero: numero,
+        montant: montant,
+        count: 0
+      };
+    }
+
+    gameMap[key].count++;
+  });
+
+  Object.keys(gameMap).forEach(function(k){
+    var g = gameMap[k];
+
+    if(!lotSeen[g.lot]){
+      lotSeen[g.lot] = true;
+      lines.push(g.lot);
       lines.push("----------------------");
     }
 
     lines.push(
-      String(j.type || "").toUpperCase() + "   " +
-      String(j.numero || "") + "   " +
-      Number(j.montant || 0).toFixed(2)
+      g.type + "   " +
+      g.numero + "   " +
+      (g.montant * g.count).toFixed(2)
     );
   });
 
-  lines.push("");
+  Object.keys(freeMap).forEach(function(lot){
+    lines.push(lot);
+
+    freeMap[lot].forEach(function(g){
+      lines.push(
+        g.type + "   " +
+        g.numero + "   Gratis"
+      );
+    });
+  });
+
   lines.push("----------------------");
   lines.push("TOTAL: " + Number(ticket.total || 0).toFixed(2) + " G");
-
-  if(ticket.ticketMessage){
-    lines.push("");
-    lines.push(String(ticket.ticketMessage));
-  }
 
   return lines.join("\\n");
 }

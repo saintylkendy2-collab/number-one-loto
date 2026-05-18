@@ -3346,6 +3346,12 @@ function buildPayloadGames(){
 function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
+  function fit(v, n){
+    v = String(v || "");
+    while(v.length < n) v += " ";
+    return v;
+  }
+
   var lines = [];
   var groups = {};
   var order = [];
@@ -3387,8 +3393,8 @@ function buildPrintableTextFromTicket(ticket){
 
     groups[lot].forEach(function(g){
       lines.push(
-        g.type + "   " +
-        g.numero + "   " +
+        fit(g.type, 10) +
+        fit(g.numero, 8) +
         (g.gratis ? "Gratis" : g.montant.toFixed(2))
       );
     });

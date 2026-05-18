@@ -3346,29 +3346,44 @@ function buildPayloadGames(){
 function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
-  var lines = [];
+  var txt = "";
 
-  lines.push("NUMBER ONE LOTO");
-  lines.push("SELLER " + (ticket.vendeurNom || ticket.vendeur || ""));
-  lines.push("TICKET");
-  lines.push(ticket.id || ticket.ticketId || ticket.serial || "");
-  lines.push("DATE " + (ticket.createdAtLabel || ticket.dateLabel || ""));
-  lines.push("----------------------");
+  txt += "NUMBER ONE LOTO\n";
+  txt += "SELLER " + (ticket.vendeurNom || ticket.vendeur || "") + "\n";
+  txt += "TICKET\n";
+  txt += (ticket.id || ticket.ticketId || ticket.serial || "") + "\n";
+  txt += "DATE " + (ticket.createdAtLabel || ticket.dateLabel || "") + "\n";
+  txt += "----------------------\n";
+
+  var currentLot = "";
 
   ticket.jeux.forEach(function(j){
-    lines.push(
-      String(j.type || "") + " " +
-      String(j.numero || "") + " " +
-      Number(j.montant || 0).toFixed(2) +
-      " - " +
-      String(j.loterie || "")
-    );
+
+    var lot = String(j.loterie || "").trim();
+
+    if(lot !== currentLot){
+      currentLot = lot;
+
+      txt += "\n" + lot + "\n";
+      txt += "----------------------\n";
+    }
+
+    var type = String(j.type || "").toUpperCase();
+
+    if(type === "BOR") type = "Borlette";
+    else if(type === "MAR") type = "Mariage";
+
+    txt +=
+      type + "   " +
+      String(j.numero || "") + "   " +
+      Number(j.montant || 0).toFixed(2) + "\n";
+
   });
 
-  lines.push("----------------------");
-  lines.push("TOTAL: " + Number(ticket.total || 0).toFixed(2) + " G");
+  txt += "----------------------\n";
+  txt += "TOTAL: " + Number(ticket.total || 0).toFixed(2) + " G";
 
-  return lines.join("\\n");
+  return txt;
 }
 
 

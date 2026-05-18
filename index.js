@@ -3344,63 +3344,31 @@ function buildPayloadGames(){
 }
 
 function buildPrintableTextFromTicket(ticket){
+  if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
-  var txt = "";
+  var lines = [];
 
-  var sellerName = ticket.vendeurNom || ticket.sellerName || ticket.vendeur || "VENDEUR";
-  var ticketNo = ticket.id || ticket.ticketId || ticket.serial || "";
-  var dateText = (ticket.createdAtLabel || ((ticket.dateLabel || "") + " " + (ticket.timeLabel || ""))).trim();
+  lines.push("NUMBER ONE LOTO");
+  lines.push("SELLER " + (ticket.vendeurNom || ticket.vendeur || ""));
+  lines.push("TICKET");
+  lines.push(ticket.id || ticket.ticketId || ticket.serial || "");
+  lines.push("DATE " + (ticket.createdAtLabel || ticket.dateLabel || ""));
+  lines.push("----------------------");
 
-  txt += "NUMBER ONE LOTO\n";
-  txt += "SELLER " + sellerName + "\n";
-  txt += "TICKET\n";
-  txt += ticketNo + "\n";
-  txt += "DATE " + dateText + "\n";
-  txt += "----------------------\n";
-
-  var groupes = {};
-
-  (ticket.jeux || []).forEach(function(j){
-    if(j.gratis === true || j.free === true) return;
-
-    var lot = String(j.loterie || j.loteria || "SANS TIRAGE").trim().toUpperCase();
-    if(!groupes[lot]) groupes[lot] = [];
-
-    var typeRaw = String(j.type || "").toUpperCase();
-    var type = typeRaw;
-    if(typeRaw === "BOR") type = "Borlette";
-    else if(typeRaw === "MAR") type = "Mariage";
-
-    groupes[lot].push({
-      type: type,
-      numero: String(j.numero || "").trim(),
-      montant: Number(j.montant || 0)
-    });
+  ticket.jeux.forEach(function(j){
+    lines.push(
+      String(j.type || "") + " " +
+      String(j.numero || "") + " " +
+      Number(j.montant || 0).toFixed(2) +
+      " - " +
+      String(j.loterie || "")
+    );
   });
 
-  Object.keys(groupes).forEach(function(lot){
-    txt += lot + "\n";
-    txt += "----------------------\n";
+  lines.push("----------------------");
+  lines.push("TOTAL: " + Number(ticket.total || 0).toFixed(2) + " G");
 
-    groupes[lot].forEach(function(g){
-      txt += g.type + "   " + g.numero + "   " + g.montant.toFixed(2) + "\n";
-    });
-
-    txt += "----------------------\n";
-  });
-
-  txt += "TOTAL: " + Number(ticket.total || 0).toFixed(2) + " G\n";
-
-  var msg =
-    (window.APP_CONFIG && window.APP_CONFIG.ticketMessage) ||
-    (window.appConfig && window.appConfig.ticketMessage) ||
-    "";
-
-  if(msg){
-    txt += "\n" + msg + "\n";
-  }
-
-  return txt;
+  return lines.join("\\n");
 }
 
 

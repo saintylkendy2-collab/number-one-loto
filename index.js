@@ -3537,10 +3537,13 @@ function shareWhatsApp(){
   saveCurrentTicket("WHATSAPP").then(function(ticket){
     if(!ticket) return;
 
-    ticket.vendeurConfig =
-  ticket.vendeurConfig ||
-  sellerConfig ||
-  {};
+   ticket.vendeurConfig = {
+  usarMensajeTicket: true,
+  mensajeTicket:
+    (sellerConfig && sellerConfig.mensajeTicket)
+    ? sellerConfig.mensajeTicket
+    : ""
+};
 
   console.log("WA sellerConfig:", sellerConfig);
 console.log("WA ticket vendeurConfig:", ticket.vendeurConfig);

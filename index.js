@@ -3346,44 +3346,73 @@ function buildPayloadGames(){
 function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
-  var txt = "";
+  var lines = [];
+  var lastLot = "";
 
-  txt += "NUMBER ONE LOTO\n";
-  txt += "SELLER " + (ticket.vendeurNom || ticket.vendeur || "") + "\n";
-  txt += "TICKET\n";
-  txt += (ticket.id || ticket.ticketId || ticket.serial || "") + "\n";
-  txt += "DATE " + (ticket.createdAtLabel || ticket.dateLabel || "") + "\n";
-  txt += "----------------------\n";
+  lines.push("NUMBER ONE LOTO");
+  lines.push("SELLER " + (ticket.vendeurNom || ticket.vendeur || ""));
+  lines.push("");
 
-  var currentLot = "";
+  lines.push("TICKET");
+  lines.push(ticket.id || ticket.ticketId || ticket.serial || "");
+  lines.push("");
+
+  lines.push(
+    "DATE " +
+    (
+      ticket.createdAtLabel ||
+      (
+        (ticket.dateLabel || "") +
+        " " +
+        (ticket.timeLabel || "")
+      ).trim()
+    )
+  );
+
+  lines.push("");
+  lines.push("----------------------");
 
   ticket.jeux.forEach(function(j){
 
     var lot = String(j.loterie || "").trim();
 
-    if(lot !== currentLot){
-      currentLot = lot;
+    if(lot && lot !== lastLot){
+      lastLot = lot;
 
-      txt += "\n" + lot + "\n";
-      txt += "----------------------\n";
+      lines.push("");
+      lines.push(lot);
+      lines.push("");
     }
 
     var type = String(j.type || "").toUpperCase();
 
-    if(type === "BOR") type = "Borlette";
-    else if(type === "MAR") type = "Mariage";
-
-    txt +=
-      type + "   " +
-      String(j.numero || "") + "   " +
-      Number(j.montant || 0).toFixed(2) + "\n";
+    lines.push(
+      type.padEnd(10," ") +
+      String(j.numero || "").padEnd(10," ") +
+      Number(j.montant || 0).toFixed(2)
+    );
 
   });
 
-  txt += "----------------------\n";
-  txt += "TOTAL: " + Number(ticket.total || 0).toFixed(2) + " G";
+  lines.push("");
+  lines.push("----------------------");
+  lines.push("");
 
-  return lines.join("\\n");
+  lines.push(
+    "TOTAL: " +
+    Number(ticket.total || 0).toFixed(2) +
+    " G"
+  );
+
+  lines.push("");
+  lines.push("❤️ NUMBER ONE LOTO ❤️");
+
+  if(ticket.ticketMessage){
+    lines.push("");
+    lines.push(ticket.ticketMessage);
+  }
+
+  return lines.join("\n");
 }
 
 

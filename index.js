@@ -15,7 +15,6 @@ const AppConfig = require("./models/AppConfig");
 const multer = require("multer");
 
 
-
 const app = express();
 
 const storage = multer.diskStorage({
@@ -3441,44 +3440,18 @@ function shareWhatsApp(){
   saveCurrentTicket("WHATSAPP").then(function(ticket){
     if(!ticket) return;
 
-    setTimeout(function(){
-      shareTicketWhatsApp(ticket);
-    }, 100);
+    var text = buildPrintableTextFromTicket(ticket);
+    var url = "https://wa.me/?text=" + encodeURIComponent(text);
+
+    window.open(url, "_blank");
+
+    loadBillets();
+    resetAfterSend();
 
   }).catch(function(err){
     console.log(err);
     alert("Erreur WhatsApp");
   });
-}
-
-async function shareTicketWhatsApp(ticket){
-  const url = "/ticket-image/" + encodeURIComponent(ticket.id);
-
-  const res = await fetch(url);
-
-  if(!res.ok){
-    const txt = await res.text();
-    alert("Image pa fèt: " + txt);
-    return;
-  }
-
-  const blob = await res.blob();
-
-  const file = new File(
-    [blob],
-    "ticket-" + ticket.id + ".png",
-    { type: "image/png" }
-  );
-
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    navigator.share({
-      files: [file],
-      title: "Ticket",
-      text: "Ticket " + ticket.id
-    });
-  } else {
-    window.open(url, "_blank");
-  }
 }
 
 function filterTransactions(list, vendor, start, end){

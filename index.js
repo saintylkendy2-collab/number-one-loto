@@ -3470,11 +3470,18 @@ if(!res.ok){
 
 const blob = await res.blob();
 
-  const file = new File(
-    [blob],
-    "ticket-" + ticket.id + ".png",
-    { type: "image/png" }
-  );
+console.log("IMAGE SIZE:", blob.size);
+
+if(blob.size === 0){
+  alert("Image ticket la vid");
+  return;
+}
+
+const file = new File(
+  [blob],
+  "ticket-" + ticket.id + ".png",
+  { type: "image/png" }
+);
 
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     await navigator.share({

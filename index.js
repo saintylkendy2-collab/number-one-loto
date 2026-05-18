@@ -3542,6 +3542,9 @@ function shareWhatsApp(){
   sellerConfig ||
   {};
 
+  console.log("WA sellerConfig:", sellerConfig);
+console.log("WA ticket vendeurConfig:", ticket.vendeurConfig);
+
     var text = buildPrintableTextFromTicket(ticket);
     var url = "https://wa.me/?text=" + encodeURIComponent(text);
 

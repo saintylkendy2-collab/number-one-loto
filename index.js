@@ -3437,14 +3437,14 @@ function buildPrintableTextFromTicket(ticket){
     " G"
   );
 
-  var footerMessage =
+ var footerMessage =
 (
-sellerConfig &&
-sellerConfig.usarMensajeTicket &&
-sellerConfig.mensajeTicket
+  sellerConfig &&
+  sellerConfig.usarMensajeTicket &&
+  sellerConfig.mensajeTicket
 )
 ? sellerConfig.mensajeTicket
-: (APP_CONFIG.ticketMessage || "");
+: "";
 
 if(footerMessage){
   lines.push("");

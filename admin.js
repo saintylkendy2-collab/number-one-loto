@@ -5463,6 +5463,8 @@ function fillVendorForm(v){
   setSwitchValue("sw_cuadre", !!cfg.habilitarCuadre);
   setSwitchValue("sw_whatsapp", !!cfg.ventasWhatsapp);
   setSwitchValue("sw_nombre_ticket", !!cfg.usarNombreTicket);
+  setSwitchValue("sw_mensaje_ticket", !!cfg.usarMensajeTicket);
+setValue("cfg_mensaje_ticket", cfg.mensajeTicket || "");
   setSwitchValue("sw_prepago", !!cfg.habilitarPrepago);
   setSwitchValue("sw_bono", !!cfg.activarBono);
 
@@ -5542,6 +5544,8 @@ function readVendorForm(){
       habilitarCuadre: getSwitchValue("sw_cuadre"),
       ventasWhatsapp: getSwitchValue("sw_whatsapp"),
       usarNombreTicket: getSwitchValue("sw_nombre_ticket"),
+      usarMensajeTicket: getSwitchValue("sw_mensaje_ticket"),
+mensajeTicket: getValue("cfg_mensaje_ticket", ""),
       deshabilitarDecimales: getValue("cfg_decimales", "0"),
       deshabilitarTerminales: getValue("cfg_terminales", "0"),
       habilitarPrepago: getSwitchValue("sw_prepago"),

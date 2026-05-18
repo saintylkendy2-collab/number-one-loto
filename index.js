@@ -3427,12 +3427,6 @@ function buildPrintableTextFromTicket(ticket){
     "TOTAL: " +
     Number(ticket.total || 0).toFixed(2) +
     " G"
-
-if(ticket.ticketMessage){
-  lines.push("");
-  lines.push(ticket.ticketMessage);
-}
-
   );
 
  var code = String.fromCharCode(96) + String.fromCharCode(96) + String.fromCharCode(96);
@@ -3518,8 +3512,6 @@ function submitPrint(){
 function shareWhatsApp(){
   saveCurrentTicket("WHATSAPP").then(function(ticket){
     if(!ticket) return;
-
-    ticket.ticketMessage = window.TICKET_MESSAGE || "";
 
     var text = buildPrintableTextFromTicket(ticket);
     var url = "https://wa.me/?text=" + encodeURIComponent(text);

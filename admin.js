@@ -3497,6 +3497,26 @@ tbody tr:nth-child(even){background:#313652;}
         <div class="switch-row"><div id="sw_whatsapp" class="switch"></div><div class="switch-label">Ventas por WhatsApp</div></div>
         <div class="switch-row"><div id="sw_nombre_ticket" class="switch"></div><div class="switch-label">Usar nombre en Ticket</div></div>
 
+<div class="switch-row">
+  <div id="sw_mensaje_ticket" class="switch"></div>
+  <div class="switch-label">Mensaje personal Ticket</div>
+</div>
+
+<textarea
+  id="cfg_mensaje_ticket"
+  placeholder="Mensaje personnel vendeur..."
+  style="
+    width:100%;
+    min-height:70px;
+    margin-top:8px;
+    border-radius:10px;
+    padding:10px;
+    background:#111;
+    color:#fff;
+    border:1px solid #333;
+  "
+></textarea>
+
         <div class="field-group">
           <div class="field-label">Deshabilitar Decimales</div>
           <input id="cfg_decimales" class="field-input" value="0" />
@@ -5330,6 +5350,8 @@ function blankVendor(){
       habilitarCuadre:false,
       ventasWhatsapp:false,
       usarNombreTicket:false,
+      usarMensajeTicket:false,
+mensajeTicket:"",
       deshabilitarDecimales:"0",
       deshabilitarTerminales:"0",
       habilitarPrepago:false,

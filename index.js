@@ -3347,10 +3347,11 @@ function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
   function fit(v, n){
-    v = String(v || "");
-    while(v.length < n) v += " ";
-    return v;
-  }
+  v = String(v || "");
+  if(v.length > n) v = v.substring(0, n);
+  while(v.length < n) v += " ";
+  return v;
+}
 
   var lines = [];
   var groups = {};
@@ -3392,13 +3393,11 @@ function buildPrintableTextFromTicket(ticket){
     lines.push("----------------------");
 
     groups[lot].forEach(function(g){
-      lines.push(
-        fit(g.type, 10) +
-        fit(g.numero, 8) +
-        (g.gratis ? "Gratis" : g.montant.toFixed(2))
-      );
-    });
-  });
+    lines.push(
+  fit(g.type, 10) +
+  fit(g.numero, 8) +
+  (g.gratis ? "Gratis" : g.montant.toFixed(2))
+);
 
   lines.push("");
   lines.push("----------------------");

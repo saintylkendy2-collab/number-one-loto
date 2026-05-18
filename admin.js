@@ -1835,6 +1835,7 @@ td:nth-child(3){
 
 const browser = await puppeteer.launch({
   headless: "new",
+  executablePath: puppeteer.executablePath(),
   args: [
     "--no-sandbox",
     "--disable-setuid-sandbox",
@@ -1845,7 +1846,16 @@ const browser = await puppeteer.launch({
 
     const page = await browser.newPage();
     await page.setViewport({ width: 560, height: 900, deviceScaleFactor: 2 });
-   await page.setContent(html, { waitUntil: "networkidle0" });
+   await page.setDefaultNavigationTimeout(0);
+
+await page.setContent(html, {
+  waitUntil: "domcontentloaded",
+  timeout: 0
+});
+
+await page.waitForSelector(".ticket", { timeout: 5000 });
+
+await new Promise(r => setTimeout(r, 500));
 
 await page.waitForSelector(".ticket");
 await new Promise(r => setTimeout(r, 800));

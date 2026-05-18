@@ -3343,30 +3343,32 @@ function buildPayloadGames(){
  });
 }
 
+
 function buildPrintableTextFromTicket(ticket){
-  if(!ticket || !ticket.jeux) return "";
+  if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
-  var text = "NUMBER ONE LOTO\n\n";
+  var lines = [];
 
-  for(var i = 0; i < ticket.jeux.length; i++){
+  lines.push("NUMBER ONE LOTO");
+  lines.push("");
 
-    var j = ticket.jeux[i];
-
-    text +=
-      (j.type || "") + " " +
-      (j.numero || "") + " " +
-      Number(j.montant || 0).toFixed(2);
+  ticket.jeux.forEach(function(j){
+    lines.push(
+      String(j.type || "") + "   " +
+      String(j.numero || "") + "   " +
+      Number(j.montant || 0).toFixed(2)
+    );
 
     if(j.loterie){
-      text += "\n" + j.loterie;
+      lines.push(String(j.loterie || ""));
     }
 
-    text += "\n\n";
-  }
+    lines.push("");
+  });
 
-  text += "TOTAL " + Number(ticket.total || 0).toFixed(2) + " G";
+  lines.push("TOTAL " + Number(ticket.total || 0).toFixed(2) + " G");
 
-  return text;
+  return lines.join("\\n");
 }
 
 

@@ -3342,24 +3342,40 @@ function buildPayloadGames(){
    };
  });
 }
-
+ 
 function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
   var lines = [];
+  var lastLot = "";
+
+  lines.push("NUMBER ONE LOTO");
+  lines.push("SELLER " + String(ticket.vendeurNom || ticket.vendeur || ""));
+  lines.push("TICKET " + String(ticket.id || ticket.ticketId || ticket.serial || ""));
+  lines.push("DATE " + String(ticket.createdAtLabel || ticket.dateLabel || ""));
+  lines.push("");
 
   ticket.jeux.forEach(function(j){
+    var lot = String(j.loterie || "").trim();
+
+    if(lot && lot !== lastLot){
+      lastLot = lot;
+      lines.push(lot);
+    }
+
     lines.push(
-      String(j.type || "") + " " +
-      String(j.numero || "") + " " +
-      Number(j.montant || 0).toFixed(2) +
-      " - " +
-      String(j.loterie || "")
+      String(j.type || "").toUpperCase() + "     " +
+      String(j.numero || "") + "     " +
+      Number(j.montant || 0).toFixed(2)
     );
   });
 
-  return lines.join("\\n");
+  lines.push("");
+  lines.push("TOTAL " + Number(ticket.total || 0).toFixed(2) + " G");
+
+  return lines.join("\n");
 }
+
 
 function resetAfterSend(){
  jeux = [];

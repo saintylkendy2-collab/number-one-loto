@@ -3349,9 +3349,11 @@ function buildPrintableTextFromTicket(ticket){
 
   function fit(v, n){
     v = String(v || "");
+
     while(v.length < n){
       v += " ";
     }
+
     return v;
   }
 
@@ -3380,7 +3382,7 @@ function buildPrintableTextFromTicket(ticket){
     ).trim()
   );
 
-  lines.push("----------------------");
+  lines.push("");
 
   ticket.jeux.forEach(function(j){
 
@@ -3404,24 +3406,23 @@ function buildPrintableTextFromTicket(ticket){
 
   order.forEach(function(lot){
 
-    lines.push("");
     lines.push(lot);
-    lines.push("----------------------");
+    lines.push("");
 
     groups[lot].forEach(function(g){
 
       lines.push(
-        fit(g.type, 14) +
-        fit(g.numero, 12) +
+        fit(g.type, 12) +
+        fit(g.numero, 10) +
         (g.gratis ? "Gratis" : g.montant.toFixed(2))
       );
 
     });
 
+    lines.push("");
+
   });
 
-  lines.push("");
-  lines.push("----------------------");
   lines.push(
     "TOTAL: " +
     Number(ticket.total || 0).toFixed(2) +

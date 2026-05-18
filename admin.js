@@ -1837,7 +1837,6 @@ const chromePath = await puppeteer.executablePath();
 
 const browser = await puppeteer.launch({
   headless: "new",
-  executablePath: chromePath,
   args: [
     "--no-sandbox",
     "--disable-setuid-sandbox",

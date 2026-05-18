@@ -3348,15 +3348,17 @@ function buildPrintableTextFromTicket(ticket){
 
   var lines = [];
 
-  (ticket.jeux || []).forEach(function(j){
+  ticket.jeux.forEach(function(j){
     lines.push(
-      String(j.type || "").toUpperCase() + "     " +
-      String(j.numero || "") + "     " +
-      Number(j.montant || 0).toFixed(2)
+      String(j.type || "") + " " +
+      String(j.numero || "") + " " +
+      Number(j.montant || 0).toFixed(2) +
+      " - " +
+      String(j.loterie || "")
     );
   });
 
-  return lines.join("\n");
+  return lines.join("\\n");
 }
 
 function resetAfterSend(){

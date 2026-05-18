@@ -3438,23 +3438,17 @@ function submitPrint(){
 }
 
 function shareWhatsApp(){
-
   saveCurrentTicket("WHATSAPP").then(function(ticket){
-
     if(!ticket) return;
 
     setTimeout(function(){
       shareTicketWhatsApp(ticket);
     }, 800);
 
-    loadBillets();
-    resetAfterSend();
-
   }).catch(function(err){
     console.log(err);
     alert("Erreur WhatsApp");
   });
-
 }
 
 async function shareTicketWhatsApp(ticket){

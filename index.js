@@ -3416,13 +3416,6 @@ function buildPrintableTextFromTicket(ticket){
 }
 
 
-lines.push(
-  type + "     " +
-  String(j.numero || "") + "     " +
-  Number(j.montant || 0).toFixed(2)
-);
-
-
 function resetAfterSend(){
  jeux = [];
  numero = "";

@@ -3429,7 +3429,7 @@ function buildPrintableTextFromTicket(ticket){
     " G"
   );
 
-  return lines.join("\\n");
+  
 }
 
 

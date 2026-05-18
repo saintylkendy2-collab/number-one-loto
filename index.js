@@ -3348,29 +3348,40 @@ function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
   var lines = [];
+  var lastLot = "";
 
   lines.push("NUMBER ONE LOTO");
-  lines.push("");
+  lines.push("SELLER " + String(ticket.vendeurNom || ticket.vendeur || ""));
+  lines.push("TICKET " + String(ticket.id || ticket.ticketId || ticket.serial || ""));
+  lines.push("DATE " + String(ticket.createdAtLabel || ticket.dateLabel || ""));
+  lines.push("----------------------");
 
   ticket.jeux.forEach(function(j){
+
+    var lot = String(j.loterie || "").trim();
+
+    if(lot && lot !== lastLot){
+      lastLot = lot;
+
+      lines.push("");
+      lines.push(lot);
+      lines.push("----------------------");
+    }
+
     lines.push(
-      String(j.type || "") + "   " +
-      String(j.numero || "") + "   " +
+      String(j.type || "").toUpperCase() + "     " +
+      String(j.numero || "") + "     " +
       Number(j.montant || 0).toFixed(2)
     );
 
-    if(j.loterie){
-      lines.push(String(j.loterie || ""));
-    }
-
-    lines.push("");
   });
 
-  lines.push("TOTAL " + Number(ticket.total || 0).toFixed(2) + " G");
+  lines.push("");
+  lines.push("----------------------");
+  lines.push("TOTAL: " + Number(ticket.total || 0).toFixed(2) + " G");
 
   return lines.join("\\n");
 }
-
 
 function resetAfterSend(){
  jeux = [];

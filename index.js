@@ -3537,7 +3537,10 @@ function shareWhatsApp(){
   saveCurrentTicket("WHATSAPP").then(function(ticket){
     if(!ticket) return;
 
-    ticket.vendeurConfig = sellerConfig || {};
+    ticket.vendeurConfig =
+  ticket.vendeurConfig ||
+  sellerConfig ||
+  {};
 
     var text = buildPrintableTextFromTicket(ticket);
     var url = "https://wa.me/?text=" + encodeURIComponent(text);

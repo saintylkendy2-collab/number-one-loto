@@ -3343,69 +3343,127 @@ function buildPayloadGames(){
  });
 }
 
+
 function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
+  function fmtType(typeRaw){
+    typeRaw = String(typeRaw || "").toUpperCase();
+    if(typeRaw === "BOR") return "Borlette";
+    if(typeRaw === "MAR") return "Mariage";
+    return typeRaw;
+  }
+
   function fit(v, n){
-  v = String(v || "");
-  if(v.length > n) v = v.substring(0, n);
-  while(v.length < n) v += " ";
-  return v;
-}
+    v = String(v || "");
+    if(v.length > n) v = v.substring(0, n);
+    while(v.length < n) v += " ";
+    return v;
+  }
 
   var lines = [];
-  var groups = {};
-  var order = [];
+  var sellerName = String(ticket.vendeurNom || ticket.vendeur || "VENDEUR");
+  var dateText = String(
+    ticket.createdAtLabel ||
+    ((ticket.dateLabel || "") + " " + (ticket.timeLabel || ""))
+  ).trim();
 
   lines.push("NUMBER ONE LOTO");
-  lines.push("SELLER " + String(ticket.vendeurNom || ticket.vendeur || ""));
+  lines.push("SELLER " + sellerName);
   lines.push("TICKET");
   lines.push(String(ticket.id || ticket.ticketId || ticket.serial || ""));
-  lines.push("DATE " + String(ticket.createdAtLabel || ((ticket.dateLabel || "") + " " + (ticket.timeLabel || ""))));
+  lines.push("DATE " + dateText);
   lines.push("----------------------");
 
-  ticket.jeux.forEach(function(j){
-    var lot = String(j.loterie || j.loteria || "SANS TIRAGE").trim();
+  var lotSeen = {};
+  var lotOrder = [];
+  var gameMap = {};
+  var freeMap = {};
 
-    if(!groups[lot]){
-      groups[lot] = [];
-      order.push(lot);
+  ticket.jeux.forEach(function(j){
+    var lot = String(j.loterie || j.loteria || "").trim() || "SANS TIRAGE";
+
+    if(!lotSeen[lot]){
+      lotSeen[lot] = true;
+      lotOrder.push(lot);
     }
 
-    var type = String(j.type || "").toUpperCase();
-    if(type === "BOR") type = "Borlette";
-    if(type === "MAR") type = "Mariage";
-
+    var type = fmtType(j.type);
+    var numero = String(j.numero || "").trim();
     var montant = Number(j.montant || 0);
-    var isGratis = j.gratis === true || j.free === true || montant === 0;
+    var isFree = j.gratis === true || j.free === true;
 
-    groups[lot].push({
-      type: type,
-      numero: String(j.numero || "").trim(),
-      montant: montant,
-      gratis: isGratis
-    });
+    if(isFree){
+      if(!freeMap[lot]) freeMap[lot] = [];
+      freeMap[lot].push({ type:type, numero:numero });
+      return;
+    }
+
+    var key = lot + "|" + type + "|" + numero + "|" + montant;
+
+    if(!gameMap[key]){
+      gameMap[key] = {
+        lot: lot,
+        type: type,
+        numero: numero,
+        montant: montant,
+        count: 0
+      };
+    }
+
+    gameMap[key].count++;
   });
 
-  order.forEach(function(lot){
-    lines.push("");
-    lines.push(lot);
-    lines.push("----------------------");
+  lotOrder.forEach(function(lot){
+    var wroteLot = false;
 
-    groups[lot].forEach(function(g){
-    lines.push(
-  fit(g.type, 10) +
-  fit(g.numero, 8) +
-  (g.gratis ? "Gratis" : g.montant.toFixed(2))
-);
+    Object.keys(gameMap).forEach(function(k){
+      var g = gameMap[k];
+      if(g.lot !== lot) return;
+
+      if(!wroteLot){
+        lines.push("");
+        lines.push(lot);
+        lines.push("----------------------");
+        wroteLot = true;
+      }
+
+      lines.push(
+        fit(g.type, 10) +
+        fit(g.numero, 8) +
+        (g.montant * g.count).toFixed(2)
+      );
+    });
+
+    if(freeMap[lot] && freeMap[lot].length){
+      if(!wroteLot){
+        lines.push("");
+        lines.push(lot);
+        lines.push("----------------------");
+        wroteLot = true;
+      }
+
+      freeMap[lot].forEach(function(g){
+        lines.push(
+          fit(g.type, 10) +
+          fit(g.numero, 8) +
+          "Gratis"
+        );
+      });
+    }
+  });
 
   lines.push("");
   lines.push("----------------------");
   lines.push("TOTAL: " + Number(ticket.total || 0).toFixed(2) + " G");
 
+  if(ticket.ticketMessage){
+    lines.push("");
+    lines.push(String(ticket.ticketMessage));
+  }
+
   return lines.join("\\n");
 }
-
 
 
 function resetAfterSend(){

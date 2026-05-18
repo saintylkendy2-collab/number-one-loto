@@ -1833,9 +1833,11 @@ td:nth-child(3){
 </html>
 `;
 
+const chromePath = await puppeteer.executablePath();
+
 const browser = await puppeteer.launch({
   headless: "new",
-  executablePath: puppeteer.executablePath(),
+  executablePath: chromePath,
   args: [
     "--no-sandbox",
     "--disable-setuid-sandbox",

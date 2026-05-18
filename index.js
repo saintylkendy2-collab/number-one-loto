@@ -3387,10 +3387,10 @@ function buildPrintableTextFromTicket(ticket){
     var type = String(j.type || "").toUpperCase();
 
     lines.push(
-      type.padEnd(10," ") +
-      String(j.numero || "").padEnd(10," ") +
-      Number(j.montant || 0).toFixed(2)
-    );
+  type + "     " +
+  String(j.numero || "") + "     " +
+  Number(j.montant || 0).toFixed(2)
+);
 
   });
 

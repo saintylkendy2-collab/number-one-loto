@@ -3404,14 +3404,6 @@ function buildPrintableTextFromTicket(ticket){
     " G"
   );
 
-  lines.push("");
-  lines.push("❤️ NUMBER ONE LOTO ❤️");
-
-  if(ticket.ticketMessage){
-    lines.push("");
-    lines.push(ticket.ticketMessage);
-  }
-
   return lines.join("\n");
 }
 

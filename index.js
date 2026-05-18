@@ -3429,6 +3429,20 @@ function buildPrintableTextFromTicket(ticket){
     " G"
   );
 
+  var footerMessage =
+(
+sellerConfig &&
+sellerConfig.usarMensajeTicket &&
+sellerConfig.mensajeTicket
+)
+? sellerConfig.mensajeTicket
+: (APP_CONFIG.ticketMessage || "");
+
+if(footerMessage){
+  lines.push("");
+  lines.push(String(footerMessage));
+}
+
  var code = String.fromCharCode(96) + String.fromCharCode(96) + String.fromCharCode(96);
 return code + "\\n" + lines.join("\\n") + "\\n" + code;
 
@@ -5603,7 +5617,15 @@ ${freeHtml}
     font-size:8px;
   "
 >
-  ${APP_CONFIG.ticketMessage || ""}
+  ${
+(
+sellerConfig &&
+sellerConfig.usarMensajeTicket &&
+sellerConfig.mensajeTicket
+)
+? sellerConfig.mensajeTicket
+: (APP_CONFIG.ticketMessage || "")
+}
 </div>
 
 <script>

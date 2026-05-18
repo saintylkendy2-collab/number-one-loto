@@ -3342,38 +3342,31 @@ function buildPayloadGames(){
    };
  });
 }
- 
+
 function buildPrintableTextFromTicket(ticket){
-  if(!ticket || !Array.isArray(ticket.jeux)) return "";
+  if(!ticket || !ticket.jeux) return "";
 
-  var lines = [];
-  var lastLot = "";
+  var text = "NUMBER ONE LOTO\n\n";
 
-  lines.push("NUMBER ONE LOTO");
-  lines.push("SELLER " + String(ticket.vendeurNom || ticket.vendeur || ""));
-  lines.push("TICKET " + String(ticket.id || ticket.ticketId || ticket.serial || ""));
-  lines.push("DATE " + String(ticket.createdAtLabel || ticket.dateLabel || ""));
-  lines.push("");
+  for(var i = 0; i < ticket.jeux.length; i++){
 
-  ticket.jeux.forEach(function(j){
-    var lot = String(j.loterie || "").trim();
+    var j = ticket.jeux[i];
 
-    if(lot && lot !== lastLot){
-      lastLot = lot;
-      lines.push(lot);
+    text +=
+      (j.type || "") + " " +
+      (j.numero || "") + " " +
+      Number(j.montant || 0).toFixed(2);
+
+    if(j.loterie){
+      text += "\n" + j.loterie;
     }
 
-    lines.push(
-      String(j.type || "").toUpperCase() + "     " +
-      String(j.numero || "") + "     " +
-      Number(j.montant || 0).toFixed(2)
-    );
-  });
+    text += "\n\n";
+  }
 
-  lines.push("");
-  lines.push("TOTAL " + Number(ticket.total || 0).toFixed(2) + " G");
+  text += "TOTAL " + Number(ticket.total || 0).toFixed(2) + " G";
 
-  return lines.join("\n");
+  return text;
 }
 
 

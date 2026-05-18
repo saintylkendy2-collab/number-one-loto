@@ -3387,10 +3387,10 @@ function buildPrintableTextFromTicket(ticket){
     var type = String(j.type || "").toUpperCase();
 
     lines.push(
-  type + "     " +
-  String(j.numero || "") + "     " +
-  Number(j.montant || 0).toFixed(2)
-);
+      type.padEnd(10," ") +
+      String(j.numero || "").padEnd(10," ") +
+      Number(j.montant || 0).toFixed(2)
+    );
 
   });
 
@@ -3404,8 +3404,24 @@ function buildPrintableTextFromTicket(ticket){
     " G"
   );
 
+  lines.push("");
+  lines.push("❤️ NUMBER ONE LOTO ❤️");
+
+  if(ticket.ticketMessage){
+    lines.push("");
+    lines.push(ticket.ticketMessage);
+  }
+
   return lines.join("\n");
 }
+
+
+lines.push(
+  type + "     " +
+  String(j.numero || "") + "     " +
+  Number(j.montant || 0).toFixed(2)
+);
+
 
 
 function resetAfterSend(){
@@ -3483,21 +3499,7 @@ function submitPrint(){
 }
 
 function shareWhatsApp(){
-  saveCurrentTicket("WHATSAPP").then(function(ticket){
-    if(!ticket) return;
-
-    var text = buildPrintableTextFromTicket(ticket);
-    var url = "https://wa.me/?text=" + encodeURIComponent(text);
-
-    window.open(url, "_blank");
-
-    loadBillets();
-    resetAfterSend();
-
-  }).catch(function(err){
-    console.log(err);
-    alert("Erreur WhatsApp");
-  });
+  alert("WhatsApp touche mache");
 }
 
 function filterTransactions(list, vendor, start, end){

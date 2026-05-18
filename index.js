@@ -3423,19 +3423,20 @@ function shareWhatsApp(){
   saveCurrentTicket("WHATSAPP").then(function(ticket){
     if(!ticket) return;
 
-    var text =
-      "NUMBER ONE LOTO\n" +
-      "TICKET " + (ticket.id || ticket.ticketId || ticket.serial || "") + "\n" +
-      "TOTAL " + Number(ticket.total || 0).toFixed(2) + " G";
+    var text = buildPrintableTextFromTicket(ticket);
+    var url = "https://wa.me/?text=" + encodeURIComponent(text);
 
-    window.location.href =
-      "https://wa.me/?text=" + encodeURIComponent(text);
+    window.open(url, "_blank");
+
+    loadBillets();
+    resetAfterSend();
 
   }).catch(function(err){
     console.log(err);
     alert("Erreur WhatsApp");
   });
 }
+
 
 function filterTransactions(list, vendor, start, end){
   return list.filter(t => {

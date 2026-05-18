@@ -3483,15 +3483,17 @@ const file = new File(
   { type: "image/png" }
 );
 
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    await navigator.share({
-      files: [file],
-      title: "Ticket",
-      text: "Ticket " + ticket.id
-    });
-  } else {
-    window.open(url, "_blank");
-  }
+if (navigator.canShare && navigator.canShare({ files: [file] })) {
+  console.log("READY TO SHARE");
+  alert("Image pare, map ouvri WhatsApp");
+
+  await navigator.share({
+    files: [file],
+    title: "Ticket",
+    text: "Ticket " + ticket.id
+  });
+} else {
+  window.open(url, "_blank");
 }
 
 function filterTransactions(list, vendor, start, end){

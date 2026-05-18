@@ -3487,7 +3487,7 @@ if (navigator.canShare && navigator.canShare({ files: [file] })) {
   console.log("READY TO SHARE");
   alert("Image pare, map ouvri WhatsApp");
 
-  await navigator.share({
+  navigator.share({
     files: [file],
     title: "Ticket",
     text: "Ticket " + ticket.id

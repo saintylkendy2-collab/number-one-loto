@@ -3383,7 +3383,7 @@ function buildPrintableTextFromTicket(ticket){
   txt += "----------------------\n";
   txt += "TOTAL: " + Number(ticket.total || 0).toFixed(2) + " G";
 
-  return txt;
+  return lines.join("\\n");
 }
 
 

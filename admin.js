@@ -1801,9 +1801,7 @@ td:nth-child(3){
 </head>
 <body>
 <div class="ticket">
-  <div class="center title">PAGAMOS AL INSTANTE</div>
   <div class="line"></div>
-  <div class="center">NBO L</div>
   <div class="center date">${ticket.createdAtLabel || ticket.dateLabel || ""}</div>
   <div class="center serial">${ticket.id || ticketId}</div>
   <div class="line"></div>
@@ -1821,11 +1819,6 @@ td:nth-child(3){
     <span>USD ${Number(ticket.total || 0).toFixed(2)}</span>
   </div>
 
-  <div class="footer">
-    1st:$70 2nd:$15 3rd:$10<br>
-    Pale: $10000<br>
-    P2: $70 P3: $800 P4: $4000
-  </div>
 
   <div class="barcode"></div>
 </div>
@@ -1859,7 +1852,7 @@ await page.waitForSelector(".ticket", { timeout: 5000 });
 await new Promise(r => setTimeout(r, 500));
 
 await page.waitForSelector(".ticket");
-await new Promise(r => setTimeout(r, 800));
+await new Promise(r => setTimeout(r, 150));
 
 const el = await page.$(".ticket");
 const buffer = await el.screenshot({ type: "png" });

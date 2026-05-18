@@ -3506,6 +3506,7 @@ function shareWhatsApp(){
     console.log(err);
     alert("Erreur WhatsApp");
   });
+}
 
 function filterTransactions(list, vendor, start, end){
   return list.filter(t => {

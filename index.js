@@ -3343,45 +3343,54 @@ function buildPayloadGames(){
  });
 }
 
-
 function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
   var lines = [];
   var lastLot = "";
 
+  var dateTime = String(
+    ticket.createdAtLabel ||
+    (
+      String(ticket.dateLabel || "") + " " + String(ticket.timeLabel || "")
+    )
+  ).trim();
+
   lines.push("NUMBER ONE LOTO");
   lines.push("SELLER " + String(ticket.vendeurNom || ticket.vendeur || ""));
   lines.push("TICKET " + String(ticket.id || ticket.ticketId || ticket.serial || ""));
-  lines.push("DATE " + String(ticket.createdAtLabel || ticket.dateLabel || ""));
+  lines.push("DATE " + dateTime);
   lines.push("----------------------");
 
   ticket.jeux.forEach(function(j){
-
-    var lot = String(j.loterie || "").trim();
+    var lot = String(j.loterie || j.loteria || "").trim();
 
     if(lot && lot !== lastLot){
       lastLot = lot;
-
       lines.push("");
       lines.push(lot);
       lines.push("----------------------");
     }
 
     lines.push(
-      String(j.type || "").toUpperCase() + "     " +
-      String(j.numero || "") + "     " +
+      String(j.type || "").toUpperCase() + "   " +
+      String(j.numero || "") + "   " +
       Number(j.montant || 0).toFixed(2)
     );
-
   });
 
   lines.push("");
   lines.push("----------------------");
   lines.push("TOTAL: " + Number(ticket.total || 0).toFixed(2) + " G");
 
+  if(ticket.ticketMessage){
+    lines.push("");
+    lines.push(String(ticket.ticketMessage));
+  }
+
   return lines.join("\\n");
 }
+
 
 function resetAfterSend(){
  jeux = [];
@@ -3458,23 +3467,28 @@ function submitPrint(){
 }
 
 function shareWhatsApp(){
+  var waWin = window.open("", "_blank");
+
   saveCurrentTicket("WHATSAPP").then(function(ticket){
-    if(!ticket) return;
+    if(!ticket){
+      if(waWin) waWin.close();
+      return;
+    }
 
     var text = buildPrintableTextFromTicket(ticket);
     var url = "https://wa.me/?text=" + encodeURIComponent(text);
 
-    window.open(url, "_blank");
+    if(waWin){
+      waWin.location.href = url;
+    }
 
     loadBillets();
     resetAfterSend();
-
-  }).catch(function(err){
-    console.log(err);
+  }).catch(function(){
+    if(waWin) waWin.close();
     alert("Erreur WhatsApp");
   });
 }
-
 
 function filterTransactions(list, vendor, start, end){
   return list.filter(t => {

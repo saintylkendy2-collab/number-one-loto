@@ -3427,6 +3427,12 @@ function buildPrintableTextFromTicket(ticket){
     "TOTAL: " +
     Number(ticket.total || 0).toFixed(2) +
     " G"
+
+if(typeof TICKET_MESSAGE !== "undefined" && TICKET_MESSAGE){
+  lines.push("");
+  lines.push(TICKET_MESSAGE);
+}
+
   );
 
  var code = String.fromCharCode(96) + String.fromCharCode(96) + String.fromCharCode(96);

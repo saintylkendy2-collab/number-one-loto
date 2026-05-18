@@ -1616,6 +1616,7 @@ const finalJeux = jeux
 
       vendeur: sellerId,
       vendeurNom: sellerName,
+      vendeurConfig: vendor.config || {},
 
       createdAt: now,
       createdAtLabel: clientDateLabel && clientTimeLabel

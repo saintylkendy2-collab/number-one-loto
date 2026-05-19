@@ -1481,6 +1481,15 @@ if (credit <= 0) {
   });
 }
 
+const totalTicket = safeJeux.reduce((s, j) => s + Number(j.montant || 0), 0);
+const balance = Number(vendor.balance || 0);
+
+if (credit > 0 && (balance + totalTicket) > credit) {
+  return res.status(403).json({
+    ok:false,
+    message:"OU PA GEN KREDI"
+  });
+}
 
 const grupo = await Grupo.findOne({
   nombre: vendor.zona || vendor.groupe
@@ -1604,32 +1613,11 @@ const freeMariages =
   vendor
 )
 
-console.log("==== SAVE TICKET ROUTE RIVE LA ====");
-
 const finalJeux = jeux
   .filter(j =>
     !(j.gratis === true || j.free === true)
   )
   .concat(freeMariages);
-
-  var credito = Number(vendor.config && vendor.config.credito || 0);
-var balance = Number(vendor.balance || 0);
-var totalTicket = Number(total || 0);
-
-console.log("CREDITO =", credito);
-console.log("BALANCE =", balance);
-console.log("TOTAL =", totalTicket);
-console.log("CHECK =", (balance + totalTicket));
-
-if(
-  credito > 0 &&
-  (balance + totalTicket) > credito
-){
-  return res.status(403).json({
-    ok:false,
-    message:"OU PA GEN KREDI"
-  });
-}
 
     const ticket = await Ticket.create({
       id: ticketId,

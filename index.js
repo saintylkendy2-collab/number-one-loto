@@ -755,6 +755,20 @@ if (credit <= 0) {
   });
 }
 
+var credito = Number(vendor.config && vendor.config.credito || 0);
+var balance = Number(vendor.balance || 0);
+var totalTicket = Number(total || 0);
+
+if(
+  credito > 0 &&
+  (balance + totalTicket) > credito
+){
+  return res.status(403).json({
+    ok:false,
+    message:"OU PA GEN KREDI"
+  });
+}
+
     const limites = limitesAjustes || {};
 
     const bloques = Array.isArray(limites.bloqueoNumeros) ? limites.bloqueoNumeros : [];

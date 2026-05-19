@@ -753,6 +753,17 @@ if (credit <= 0) {
     ok:false,
     message:"OU BLOKE POU BALANS TANPRI RANPLI KONSISYON OU!"
   });
+
+const totalTicket = safeJeux.reduce((s, j) => s + Number(j.montant || 0), 0);
+const balance = Number(vendor.balance || 0);
+
+if (credit > 0 && (balance + totalTicket) > credit) {
+  return res.status(403).json({
+    ok:false,
+    message:"OU PA GEN KREDI"
+  });
+}
+
 }
 
     const limites = limitesAjustes || {};
@@ -1477,16 +1488,6 @@ if (credit <= 0) {
   return res.status(403).json({
     ok:false,
     message:"OU BLOKE POU BALANS TANPRI RANPLI KONSISYON OU!"
-  });
-}
-
-const totalTicket = safeJeux.reduce((s, j) => s + Number(j.montant || 0), 0);
-const balance = Number(vendor.balance || 0);
-
-if (credit > 0 && (balance + totalTicket) > credit) {
-  return res.status(403).json({
-    ok:false,
-    message:"OU PA GEN KREDI"
   });
 }
 

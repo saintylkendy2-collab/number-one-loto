@@ -3535,10 +3535,14 @@ function submitPrint(){
   }
 
   saveCurrentTicket("PRINT").then(function(ticket){
-    if(!ticket || !ticket.id){
-      alert("Ticket pa kreye oubyen ID pa vini.");
-      return;
-    }
+   if(!ticket || !ticket.id){
+
+  if(ticket && ticket.message){
+    alert(ticket.message);
+  }
+
+  return;
+}
 
     window.location.href =
       "/print?ticketId=" + encodeURIComponent(ticket.id) +

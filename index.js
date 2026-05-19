@@ -5541,7 +5541,7 @@ app.get("/print", async (req, res) => {
 
 <style>
 @page{
-  size:58mm 300mm;
+  size:58mm auto;
   margin:0;
 }
 
@@ -5554,14 +5554,13 @@ html, body{
 
 body{
   font-family:monospace;
-  font-size:10px;
-  color:#000;
-}
+  font-size:15px;
+  font-weight:700;
 
 .ticket{
-  width:48mm;
+  width:56mm;
   margin:0 auto;
-  padding:2mm 1mm 10mm 1mm;
+  padding:0.5mm;
   page-break-inside:avoid;
   break-inside:avoid;
 }

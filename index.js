@@ -5425,163 +5425,112 @@ app.get("/print", async (req, res) => {
     const ticketId = String(req.query.ticketId || "").trim();
     const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
 
-   const ticket = await Ticket.findOne({
-  $or: [
-    { id: ticketId },
-    { ticketId: ticketId },
-    { serial: ticketId }
-  ]
-}).lean();
+    const ticket = await Ticket.findOne({
+      $or: [
+        { id: ticketId },
+        { ticketId: ticketId },
+        { serial: ticketId }
+      ]
+    }).lean();
 
-if (!ticket) {
-  return res.status(404).send("Ticket introuvable");
-}
+    if (!ticket) {
+      return res.status(404).send("Ticket introuvable");
+    }
 
-   let vendeur = null;
+    let vendeur = null;
+    if (sellerId) {
+      vendeur = await Vendor.findOne({ id: sellerId }).lean();
+    }
 
-if (sellerId) {
-  vendeur = await Vendor.findOne({ id: sellerId }).lean();
-}
-
-const sellerName = String(
-  (vendeur && (vendeur.nom || vendeur.nombre)) ||
-  ticket.vendeurNom ||
-  ticket.vendeur ||
-  sellerId ||
-  "VENDEUR"
-);
+    const sellerName = String(
+      (vendeur && (vendeur.nom || vendeur.nombre)) ||
+      ticket.vendeurNom ||
+      ticket.vendeur ||
+      sellerId ||
+      "VENDEUR"
+    );
 
     const total = Number(ticket.total || 0);
     const dateStr = ticket.dateLabel || formatDateFR(new Date(ticket.createdAt || Date.now()));
     const timeStr = ticket.timeLabel || formatTimeFR(new Date(ticket.createdAt || Date.now()));
 
-    let lotSeen = {};
-    let loteriesHtml = "";
-
-    (ticket.jeux || []).forEach(j => {
-      const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
-      if (!lotSeen[lot]) {
-        lotSeen[lot] = true;
-        loteriesHtml += '<div class="tirage">' + lot + '</div>';
-      }
-    });
-
     const gameMap = {};
     let gamesHtml = "";
 
     (ticket.jeux || []).forEach(j => {
-
-if (j.gratis === true || j.free === true) {
-  return;
-}
+      if (j.gratis === true || j.free === true) return;
 
       let typeRaw = String(j.type || "").toUpperCase();
       let numero = String(j.numero || "").trim();
       let montant = Number(j.montant || 0);
+      let loterie = String(j.loterie || j.loteria || "SANS TIRAGE").trim().toUpperCase();
 
       let type = typeRaw;
       if (typeRaw === "BOR") type = "Borlette";
       else if (typeRaw === "MAR") type = "Mariage";
 
-      let loterie =
-  String(j.loterie || j.loteria || "").trim().toUpperCase();
+      let key = loterie + "|" + type + "|" + numero + "|" + montant;
 
-let key =
-  loterie + "|" + type + "|" + numero + "|" + montant;
-
-   if (!gameMap[key]) {
-
-  gameMap[key] = {
-    type,
-    numero,
-    montant,
-    count: 0,
-    gratis: j.gratis === true,
-    free: j.free === true
-  };
-
-}
+      if (!gameMap[key]) {
+        gameMap[key] = { loterie, type, numero, montant, count: 0 };
+      }
 
       gameMap[key].count++;
     });
 
+    let lastLot = "";
     Object.values(gameMap).forEach(g => {
-      let totalLine =
-  g.gratis || g.free
-    ? "Gratis"
-    : (g.montant * g.count).toFixed(2);
+      if (g.loterie !== lastLot) {
+        lastLot = g.loterie;
+        gamesHtml += '<div class="line"></div><div class="tirage">' + g.loterie + '</div><div class="line"></div>';
+      }
 
       gamesHtml +=
         '<div class="game-row">' +
           '<div class="col-type">' + g.type + '</div>' +
           '<div class="col-num">' + g.numero + '</div>' +
-          '<div class="col-amt">' + totalLine + '</div>' +
+          '<div class="col-amt">' + (g.montant * g.count).toFixed(2) + '</div>' +
         '</div>';
     });
 
-    const freeGames = (ticket.jeux || []).filter(
-  j => j.gratis === true || j.free === true
-);
+    let freeHtml = "";
+    let freeMap = {};
 
-let freeHtml = "";
+    (ticket.jeux || [])
+      .filter(j => j.gratis === true || j.free === true)
+      .forEach(j => {
+        let loterie = String(j.loterie || j.loteria || "SANS TIRAGE").trim().toUpperCase();
+        if (!freeMap[loterie]) freeMap[loterie] = [];
+        freeMap[loterie].push(j);
+      });
 
-let freeMap = {};
+    Object.keys(freeMap).forEach(loterie => {
+      freeHtml += '<div class="tirage">' + loterie + '</div>';
 
-freeGames.forEach(j => {
+      freeMap[loterie].forEach(j => {
+        let typeRaw = String(j.type || "").toUpperCase();
+        let type = typeRaw;
+        if (typeRaw === "BOR") type = "Borlette";
+        else if (typeRaw === "MAR") type = "Mariage";
 
-  let loterie = String(
-    j.loterie || j.loteria || ""
-  ).trim();
-
-  if (!freeMap[loterie]) {
-    freeMap[loterie] = [];
-  }
-
-  freeMap[loterie].push(j);
-
-});
-
-Object.keys(freeMap).forEach(loterie => {
-
-  freeHtml +=
-    '<div class="tirage">' + loterie + '</div>';
-
-  freeMap[loterie].forEach(j => {
-
-    let typeRaw = String(j.type || "").toUpperCase();
-
-    let type = typeRaw;
-    if (typeRaw === "BOR") type = "Borlette";
-    else if (typeRaw === "MAR") type = "Mariage";
-
-    let numero = String(j.numero || "").trim();
-
-    freeHtml +=
-      '<div class="game-row">' +
-        '<div class="col-type">' + type + '</div>' +
-        '<div class="col-num">' + numero + '</div>' +
-        '<div class="col-amt">Gratis</div>' +
-      '</div>';
-
-  });
-
-});
+        freeHtml +=
+          '<div class="game-row">' +
+            '<div class="col-type">' + type + '</div>' +
+            '<div class="col-num">' + String(j.numero || "").trim() + '</div>' +
+            '<div class="col-amt">Gratis</div>' +
+          '</div>';
+      });
+    });
 
     res.set("Content-Type", "text/html; charset=utf-8");
 
-const APP_CONFIG =
-  await AppConfig.findOne({ key:"main" }).lean()
-  || {};
+    const APP_CONFIG = await AppConfig.findOne({ key: "main" }).lean() || {};
+    const sellerConfig = (vendeur && vendeur.config) ? vendeur.config : {};
 
-  const sellerConfig = (vendeur && vendeur.config) ? vendeur.config : {};
-
-const footerMessage =
-(
-  sellerConfig.usarMensajeTicket &&
-  sellerConfig.mensajeTicket
-)
-? sellerConfig.mensajeTicket
-: (APP_CONFIG.ticketMessage || "");
+    const footerMessage =
+      (sellerConfig.usarMensajeTicket && sellerConfig.mensajeTicket)
+        ? sellerConfig.mensajeTicket
+        : (APP_CONFIG.ticketMessage || "");
 
     res.send(`
 <!DOCTYPE html>
@@ -5589,34 +5538,97 @@ const footerMessage =
 <head>
 <meta charset="UTF-8">
 <title>Print</title>
+
 <style>
-@page{ size:58mm auto; margin:0; }
+@page{
+  size:58mm 300mm;
+  margin:0;
+}
+
+html, body{
+  margin:0;
+  padding:0;
+  width:58mm;
+  background:#fff;
+}
+
 body{
-  width:42mm;
-  margin:0 auto;
   font-family:monospace;
   font-size:10px;
+  color:#000;
 }
-.title{text-align:center;font-weight:700;margin-bottom:4px;}
-.meta{margin-bottom:4px;}
-.line{border-top:1px dashed #000;margin:4px 0;}
-.tirage{font-weight:700;margin-top:4px;}
+
+.ticket{
+  width:48mm;
+  margin:0 auto;
+  padding:2mm 1mm 10mm 1mm;
+  page-break-inside:avoid;
+  break-inside:avoid;
+}
+
+.logo{
+  text-align:center;
+  margin-bottom:4px;
+}
+
+.logo img{
+  width:90px;
+  max-height:45px;
+  object-fit:contain;
+}
+
+.title{
+  text-align:center;
+  font-weight:700;
+  margin-bottom:4px;
+}
+
+.meta{
+  margin-bottom:4px;
+}
+
+.line{
+  border-top:1px dashed #000;
+  margin:4px 0;
+}
+
+.tirage{
+  font-weight:700;
+  margin-top:4px;
+}
+
 .game-row{
   display:grid;
-  grid-template-columns:1fr 30px 40px;
+  grid-template-columns:1fr 28px 38px;
+  column-gap:2px;
+  page-break-inside:avoid;
+  break-inside:avoid;
 }
-.col-amt{text-align:right;}
-.total{font-weight:700;margin-top:4px;}
+
+.col-amt{
+  text-align:right;
+}
+
+.total{
+  font-weight:700;
+  margin-top:4px;
+}
+
+.footer{
+  margin-top:14px;
+  text-align:center;
+  font-size:8px;
+  line-height:1.25;
+}
 </style>
 </head>
+
 <body>
+<div class="ticket">
 
 ${APP_CONFIG.ticketLogo ? `
-<div style="text-align:center;margin-bottom:6px;">
-  <img
-    src="${APP_CONFIG.ticketLogo}"
-    style="width:120px;max-height:120px;object-fit:contain;"
-  >
+<div class="logo">
+  <img src="${APP_CONFIG.ticketLogo}">
 </div>
 ` : ""}
 
@@ -5628,42 +5640,24 @@ TICKET ${ticket.id || ticket.ticketId || ticket.serial || ticketId}<br>
 DATE ${dateStr} ${timeStr}
 </div>
 
-<div class="line"></div>
-
-${loteriesHtml}
-
-<div class="line"></div>
-
 ${gamesHtml}
 
-${freeHtml}
+${freeHtml ? '<div class="line"></div>' + freeHtml : ""}
 
 <div class="line"></div>
 
 <div class="total">TOTAL: ${total.toFixed(2)} G</div>
 
-<div
-  style="
-    margin-top:14px;
-    text-align:center;
-    font-size:8px;
-  "
->
-  ${
-(
-sellerConfig &&
-sellerConfig.usarMensajeTicket &&
-sellerConfig.mensajeTicket
-)
-? sellerConfig.mensajeTicket
-: (footerMessage || "")
-}
+<div class="footer">
+${footerMessage || ""}
+</div>
+
 </div>
 
 <script>
 setTimeout(function(){
   window.print();
-}, 300);
+}, 700);
 </script>
 
 </body>

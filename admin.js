@@ -4395,12 +4395,12 @@ function renderSorteosPage(){
     var btnClass = hasBalls ? "sorteos-delete-btn" : "sorteos-save-btn";
 
     html += ''
-      + '<div style="display:grid;grid-template-columns:1.2fr .7fr .7fr .7fr .7fr 52px;gap:8px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
+      + '<div style="display:grid;grid-template-columns:minmax(130px,1.2fr) repeat(4, minmax(54px,.7fr)) 52px;gap:8px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
       + '<div style="font-size:16px;color:#d7dcef;">' + key + '</div>'
-      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:18px;">'
-      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:18px;">'
-      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r3" value="' + safe(r.r3 || "") + '" style="text-align:center;font-size:18px;">'
-      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r4" value="' + safe(r.r4 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:24px;font-weight:700;padding:0;min-width:54px;"
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:24px;font-weight:700;padding:0;min-width:54px;"
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r3" value="' + safe(r.r3 || "") + '" style="text-align:center;font-size:24px;font-weight:700;padding:0;min-width:54px;"
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r4" value="' + safe(r.r4 || "") + '" style="text-align:center;font-size:24px;font-weight:700;padding:0;min-width:54px;"
       + '<button class="' + btnClass + '" data-loteria="' + key + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#7b72ff;font-size:24px;">' + btnIcon + '</button>'
       + '</div>';
   });

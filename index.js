@@ -755,6 +755,16 @@ if (credit <= 0) {
   });
 }
 
+const totalTicket = safeJeux.reduce((s, j) => s + Number(j.montant || 0), 0);
+const balance = Number(vendor.balance || 0);
+
+if (credit > 0 && (balance + totalTicket) > credit) {
+  return res.status(403).json({
+    ok:false,
+    message:"OU PA GEN KREDI"
+  });
+}
+
 
     const limites = limitesAjustes || {};
 

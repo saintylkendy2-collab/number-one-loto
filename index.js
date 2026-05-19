@@ -755,7 +755,7 @@ if (credit <= 0) {
   });
 }
 
-const totalTicket = safeJeux.reduce((s, j) => s + Number(j.montant || 0), 0);
+const totalTicket = Number(total || montant || 0);
 const balance = Number(vendor.balance || 0);
 
 if (credit > 0 && (balance + totalTicket) > credit) {

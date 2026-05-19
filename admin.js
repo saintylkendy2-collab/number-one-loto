@@ -4552,6 +4552,7 @@ async function goPage(page){
 
   const ventasPage = byId("ventasPage");
   const ticketsPage = byId("ticketsPage");
+  const miCuentaPage = byId("miCuentaPage");
   const gruposPage = byId("gruposPage");
   const vendorsPage = byId("vendorsPage");
   const editorPage = byId("vendorEditorPage");
@@ -4572,16 +4573,7 @@ if(loteriasPage) loteriasPage.classList.add("hidden");
   if(transactionsPage) transactionsPage.classList.add("hidden");
   if(sorteosPage) sorteosPage.classList.add("hidden");
   if(limitesAjustesPage) limitesAjustesPage.classList.add("hidden");
-
- if(ventasPage) ventasPage.classList.add("hidden");
-  if(ticketsPage) ticketsPage.classList.add("hidden");
-  if(gruposPage) gruposPage.classList.add("hidden");
-  if(vendorsPage) vendorsPage.classList.add("hidden");
-  if(editorPage) editorPage.classList.add("hidden");
-  if(balancePage) balancePage.classList.add("hidden");
-  if(transactionsPage) transactionsPage.classList.add("hidden");
-  if(sorteosPage) sorteosPage.classList.add("hidden");
-  if(limitesAjustesPage) limitesAjustesPage.classList.add("hidden");
+if(miCuentaPage) miCuentaPage.classList.add("hidden");
 
   if(page === "ventas"){
     showMasterPage("ventasPage");

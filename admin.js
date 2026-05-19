@@ -43,8 +43,6 @@ const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 const TICKETS_FILE = path.join(__dirname, "tickets.json");
 const SORTEOS_FILE = path.join(__dirname, "sorteos.json");
 
-console.log("ADMIN VENDEURS_FILE =", VENDEURS_FILE);
-
 // =============================
 // 🔒 ENSURE FILES EXIST
 // =============================
@@ -154,8 +152,6 @@ router.post("/ticket", async (req, res) => {
       tirages,
       jeux: safeJeux
     });
-
-    console.log("✅ Ticket créé:", ticket.id);
 
     res.json({ ok: true, ticket });
 
@@ -1935,10 +1931,12 @@ router.post("/api/sorteos/save", async (req, res) => {
       );
     }
 
-await runCheckTickets(
+res.json({ ok: true, date: date });
+
+runCheckTickets(
   date,
   rows.map(r => String(r.loteria || "").trim().toUpperCase())
-);
+).catch(err => console.error(err));
 
     res.json({ ok: true, date: date });
 
@@ -3856,7 +3854,7 @@ function updateClock(){
   const box = byId("clockBox");
   if(box) box.textContent = h + ":" + m;
 }
-setInterval(updateClock,1000);
+setInterval(updateClock,30000);
 updateClock();
 
 function resetMenuActive(){

@@ -59,8 +59,6 @@ mongoose.connection.once("open", async () => {
       ]
     });
 
-    console.log("✅ Tickets id null supprimés");
-
   } catch (err) {
     console.error("Erreur nettoyage tickets null:", err.message);
   }
@@ -68,7 +66,6 @@ mongoose.connection.once("open", async () => {
 });
 
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
-console.log("INDEX VENDEURS_FILE =", VENDEURS_FILE);
 
 const TICKETS_FILE = path.join(__dirname, "tickets.json");
 
@@ -816,16 +813,6 @@ if (special) {
 
     const reste = limit - dejaVendu;
 
-    console.log("LIMIT DEBUG:", {
-  sellerId,
-  type,
-  numero,
-  loterie,
-  limit,
-  dejaVendu,
-  reste
-});
-
     if (reste <= 0) {
       return res.json({ ok:false, message:
   "❌ " + loterie + "\n" +
@@ -890,7 +877,6 @@ async function loadLimites(){
           : []
       };
 
-      console.log("✅ LIMITES CHARGÉS");
     }
 
   }catch(err){
@@ -925,9 +911,6 @@ await Limites.findOneAndUpdate(
     new:true
   }
 );
-
-
-    console.log("✅ LIMITES SAUVEGARDÉS MONGO");
 
     res.json({
       ok:true
@@ -1660,8 +1643,6 @@ const finalJeux = jeux
     });
 
     const obj = ticket.toObject();
-
-    console.log("✅ Ticket créé:", ticketId, "ANATAN");
 
     return res.json({
       ok: true,
@@ -3224,27 +3205,6 @@ async function addGame(){
     return;
   }
 
-  for (const lot of selectedLoteries) {
-    for (const entry of entries) {
-      const check = await fetch("/api/check-limit-game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sellerId: sellerId,
-          type: entry.type,
-          numero: entry.numero,
-          loterie: lot,
-          montant: parseFloat(montant) || 0
-        })
-      }).then(r => r.json());
-
-      if(!check.ok){
-        alert(check.message || "Limit pa valid");
-        return;
-      }
-    }
-  }
-
   selectedLoteries.forEach(function(lot){
     entries.forEach(function(entry){
       mergeOrPushGame({
@@ -3568,9 +3528,6 @@ function shareWhatsApp(){
     : ""
 };
 
-  console.log("WA sellerConfig:", sellerConfig);
-console.log("WA ticket vendeurConfig:", ticket.vendeurConfig);
-
     var text = buildPrintableTextFromTicket(ticket);
     var url = "https://wa.me/?text=" + encodeURIComponent(text);
 
@@ -3580,7 +3537,7 @@ console.log("WA ticket vendeurConfig:", ticket.vendeurConfig);
     resetAfterSend();
 
   }).catch(function(err){
-    console.log(err);
+
     alert("Erreur WhatsApp");
   });
 }
@@ -4604,7 +4561,7 @@ setInterval(function(){
   if(currentPageName === "billetsPage" || currentPageName === "balancePage" || currentPageName === "rapportsPage"){
     loadBillets();
   }
-}, 3000);
+}, 10000);
 
 window.addEventListener("focus", function(){
   loadBillets();

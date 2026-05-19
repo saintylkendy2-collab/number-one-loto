@@ -1614,6 +1614,11 @@ const finalJeux = jeux
 var balance = Number(vendor.balance || 0);
 var totalTicket = Number(total || 0);
 
+console.log("CREDITO =", credito);
+console.log("BALANCE =", balance);
+console.log("TOTAL =", totalTicket);
+console.log("CHECK =", (balance + totalTicket));
+
 if(
   credito > 0 &&
   (balance + totalTicket) > credito

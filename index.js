@@ -3489,27 +3489,48 @@ function saveCurrentTicket(channel){
 }
 
 function submitPrint(){
+
   if(jeux.length === 0){
     alert("Pa gen jwèt pou enprime.");
     return;
   }
 
   saveCurrentTicket("PRINT").then(function(ticket){
-   if(!ticket || !ticket.id){
 
-  if(ticket && ticket.message){
-    alert(ticket.message);
-  }
+    if(!ticket || !ticket.id){
 
-  return;
-}
+      if(ticket && ticket.message){
+        alert(ticket.message);
+      }
 
-    window.location.href =
+      return;
+    }
+
+    var printUrl =
+      location.origin +
       "/print?ticketId=" + encodeURIComponent(ticket.id) +
       "&sellerId=" + encodeURIComponent(sellerId);
 
+    var printerType =
+      localStorage.getItem("NBL_PRINTER") || "POS_INTERNAL";
+
+    // POS / APK printer
+    if(window.AndroidPrinter && AndroidPrinter.printUrl){
+
+      AndroidPrinter.printUrl(
+        printUrl,
+        printerType
+      );
+
+    }else{
+
+      // fallback navigateur
+      window.open(printUrl, "_blank");
+    }
+
     loadBillets();
     resetAfterSend();
+
   }).catch(function(err){
     console.error(err);
     alert("Erreur impression");

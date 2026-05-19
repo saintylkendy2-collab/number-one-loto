@@ -4395,7 +4395,7 @@ function renderSorteosPage(){
     var btnClass = hasBalls ? "sorteos-delete-btn" : "sorteos-save-btn";
 
     html += ''
-       + '<div style="display:grid;grid-template-columns:minmax(130px,1.2fr) repeat(4, minmax(54px,.7fr)) 52px;gap:8px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
+      + '<div style="display:grid;grid-template-columns:minmax(145px,1fr) 54px 54px 54px 54px 48px;gap:6px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);overflow-x:auto;">'
       + '<div style="font-size:16px;color:#d7dcef;">' + key + '</div>'
       + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:18px;">'
       + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:18px;">'

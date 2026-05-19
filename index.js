@@ -1487,14 +1487,12 @@ const totalTicket = safeJeux.reduce(
 
 const balance = Number(vendor.balance || 0);
 
-console.log("CREDIT =", credit);
-console.log("BALANCE =", balance);
-console.log("TOTAL =", totalTicket);
-console.log("CHECK =", (balance + totalTicket));
-
 if (
   credit > 0 &&
-  (balance + totalTicket) > credit
+  (
+    totalTicket > credit ||
+    (balance + totalTicket) > credit
+  )
 ) {
   return res.status(403).json({
     ok:false,

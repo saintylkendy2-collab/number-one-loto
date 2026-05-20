@@ -3489,30 +3489,63 @@ function saveCurrentTicket(channel){
 }
 
 function submitPrint(){
+
   if(jeux.length === 0){
     alert("Pa gen jwèt pou enprime.");
     return;
   }
 
   saveCurrentTicket("PRINT").then(function(ticket){
-   if(!ticket || !ticket.id){
 
-  if(ticket && ticket.message){
-    alert(ticket.message);
-  }
+    if(!ticket || !ticket.id){
 
-  return;
-}
+      if(ticket && ticket.message){
+        alert(ticket.message);
+      }
 
-    window.location.href =
-      "/print?ticketId=" + encodeURIComponent(ticket.id) +
-      "&sellerId=" + encodeURIComponent(sellerId);
+      return;
+    }
+
+    ticket.vendeurConfig = {
+      usarMensajeTicket: true,
+      mensajeTicket:
+        (sellerConfig && sellerConfig.mensajeTicket)
+        ? sellerConfig.mensajeTicket
+        : ""
+    };
+
+    var text = buildPrintableTextFromTicket(ticket);
+
+    try{
+
+      if(
+        window.AndroidPrinter &&
+        typeof AndroidPrinter.printTicket === "function"
+      ){
+
+        AndroidPrinter.printTicket(text);
+
+      } else {
+
+        alert("Printer Android pa disponible");
+
+      }
+
+    }catch(e){
+
+      console.error(e);
+      alert("Erreur impression");
+
+    }
 
     loadBillets();
     resetAfterSend();
+
   }).catch(function(err){
+
     console.error(err);
     alert("Erreur impression");
+
   });
 }
 

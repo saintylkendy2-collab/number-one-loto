@@ -3505,14 +3505,17 @@ function submitPrint(){
     }
 
     var url =
-      "/print-text?ticketId=" + encodeURIComponent(ticket.id) +
+      "/print?ticketId=" + encodeURIComponent(ticket.id) +
       "&sellerId=" + encodeURIComponent(sellerId);
 
     fetch(url)
       .then(function(r){
         return r.text();
       })
-      .then(function(text){
+      .then(function(html){
+
+        var doc = new DOMParser().parseFromString(html, "text/html");
+        var text = doc.body.innerText.trim();
 
         if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
           AndroidPrinter.printTicket(text);

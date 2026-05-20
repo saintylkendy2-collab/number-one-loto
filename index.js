@@ -5604,7 +5604,7 @@ body{
   width:46mm;
   margin:0 auto;
   padding:2mm 1mm 4mm 1mm;
-  font-family:"Courier New", monospace;
+  font-family:monospace;
   font-size:9.5px;
   font-weight:400;
   line-height:1.45;
@@ -5612,7 +5612,7 @@ body{
   -webkit-print-color-adjust:exact;
   print-color-adjust:exact;
   text-rendering:optimizeLegibility;
-  -webkit-font-smoothing:none;
+  
 }
 
 .title{

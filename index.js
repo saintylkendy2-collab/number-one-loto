@@ -2501,26 +2501,26 @@ border-right:1px solid #ddd;
 <div id="activeCaret" class="active-caret"></div>
 </div>
 
-<div class="keypad" id="keypad">
-<div class="key" data-key="+">+</div>
-<div class="key" data-key="1">1</div>
-<div class="key" data-key="2">2</div>
-<div class="key" data-key="3">3</div>
+<div class="keypad">
+<div class="key" onclick="press('+')" ontouchstart="press('+'); return false;">+</div>
+<div class="key" onclick="press('1')" ontouchstart="press('1'); return false;">1</div>
+<div class="key" onclick="press('2')" ontouchstart="press('2'); return false;">2</div>
+<div class="key" onclick="press('3')" ontouchstart="press('3'); return false;">3</div>
 
-<div class="key" data-key="-">-</div>
-<div class="key" data-key="4">4</div>
-<div class="key" data-key="5">5</div>
-<div class="key" data-key="6">6</div>
+<div class="key" onclick="press('-')" ontouchstart="press('-'); return false;">-</div>
+<div class="key" onclick="press('4')" ontouchstart="press('4'); return false;">4</div>
+<div class="key" onclick="press('5')" ontouchstart="press('5'); return false;">5</div>
+<div class="key" onclick="press('6')" ontouchstart="press('6'); return false;">6</div>
 
-<div class="key" data-key="/">/</div>
-<div class="key" data-key="7">7</div>
-<div class="key" data-key="8">8</div>
-<div class="key" data-key="9">9</div>
+<div class="key" onclick="press('/')" ontouchstart="press('/'); return false;">/</div>
+<div class="key" onclick="press('7')" ontouchstart="press('7'); return false;">7</div>
+<div class="key" onclick="press('8')" ontouchstart="press('8'); return false;">8</div>
+<div class="key" onclick="press('9')" ontouchstart="press('9'); return false;">9</div>
 
-<div class="key" data-key=".">.</div>
-<div class="key" data-action="backspace">⌫</div>
-<div class="key" data-key="0">0</div>
-<div class="key enter" data-action="enter">ENTER</div>
+<div class="key" onclick="press('.')" ontouchstart="press('.'); return false;">.</div>
+<div class="key" onclick="backspaceKey()" ontouchstart="backspaceKey(); return false;">⌫</div>
+<div class="key" onclick="press('0')" ontouchstart="press('0'); return false;">0</div>
+<div class="key enter" onclick="handleEnter()" ontouchstart="handleEnter(); return false;">ENTER</div>
 </div>
 </div>
 
@@ -5467,65 +5467,6 @@ function closeVendorDrawer(){
   document.getElementById("drawerOverlay").classList.remove("show");
 }
 
-(function(){
-  var pad = document.querySelector(".keypad");
-  if(!pad) return;
-
-  var lastRealAction = 0;
-
-  var oldPress = window.press;
-  var oldBack = window.backspaceKey;
-  var oldEnter = window.handleEnter;
-
-  window.press = function(v){
-    lastRealAction = Date.now();
-    return oldPress(v);
-  };
-
-  window.backspaceKey = function(){
-    lastRealAction = Date.now();
-    return oldBack();
-  };
-
-  window.handleEnter = function(){
-    lastRealAction = Date.now();
-    return oldEnter();
-  };
-
-  function runFromKey(el){
-    if(!el) return;
-
-    var txt = (el.textContent || "").trim();
-
-    if(el.classList.contains("enter") || txt === "ENTER"){
-      oldEnter();
-      return;
-    }
-
-    if(txt === "⌫" || txt.indexOf("⌫") >= 0){
-      oldBack();
-      return;
-    }
-
-    if(txt){
-      oldPress(txt);
-    }
-  }
-
-  pad.addEventListener("touchend", function(e){
-    var el = e.target.closest(".key");
-    if(!el) return;
-
-    e.preventDefault();
-
-    if(Date.now() - lastRealAction < 180){
-      return;
-    }
-
-    lastRealAction = Date.now();
-    runFromKey(el);
-  }, {passive:false});
-})();
 
 
 </script>

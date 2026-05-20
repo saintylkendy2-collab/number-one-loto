@@ -5592,7 +5592,7 @@ const footerMessage =
 <style>
 <style>
 @page{
-  size:58mm 200mm;
+  size:58mm 600mm;
   margin:0;
 }
 
@@ -5618,7 +5618,7 @@ body{
 .title{
   text-align:center;
   font-weight:600;
-  font-size:15px;
+  font-size:17px;
   margin:2px 0 5px 0;
 }
 
@@ -5636,7 +5636,7 @@ body{
 
 .tirage{
   font-weight:600;
-  font-size:16px;
+  font-size:14px;
   margin:5px 0 4px 0;
 }
 
@@ -5656,7 +5656,7 @@ body{
 
 .total{
   font-weight:600;
-  font-size:17px;
+  font-size:15px;
   margin-top:5px;
 }
 </style>

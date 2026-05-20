@@ -4879,64 +4879,153 @@ function renderParametrePage(){
     '</div>';
 }
 
-function renderImprimantePage(){
-  var box = document.getElementById("imprimanteWrap");
-  if(!box) return;
+function renderImprimante(){
 
-  box.innerHTML =
-    '<div style="height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">Imprimante</div>' +
-    '<div style="padding:14px;">' +
-      '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
-        '<div style="font-size:20px;font-weight:800;margin-bottom:12px;">Printer disponibles</div>' +
-        '<div id="printerList" style="min-height:120px;color:#555;">Peze bouton rechèch la...</div>' +
-        '<button onclick="searchPrinters()" style="width:100%;height:50px;border:none;border-radius:12px;background:#3452aa;color:#fff;font-size:18px;font-weight:800;margin-top:16px;">Chèche imprimante</button>' +
-        '<button onclick="testPrinter()" style="width:100%;height:50px;border:none;border-radius:12px;background:#111;color:#fff;font-size:18px;font-weight:800;margin-top:10px;">Tester impression</button>' +
+  var old = document.getElementById("printerBox");
+  if(old) old.remove();
+
+  var box = document.createElement("div");
+  box.id = "printerBox";
+
+  box.style.position = "fixed";
+  box.style.top = "0";
+  box.style.left = "0";
+  box.style.width = "100%";
+  box.style.height = "100%";
+  box.style.background = "#f5f5f5";
+  box.style.zIndex = "99999";
+  box.style.overflow = "auto";
+
+  box.innerHTML = 
+    '<div style="background:#1d33c9;color:#fff;padding:18px;font-size:28px;font-weight:800;text-align:center;">' +
+      'Imprimante' +
+    '</div>' +
+
+    '<div style="padding:15px;">' +
+
+      '<div style="' +
+        'background:#fff;' +
+        'border-radius:14px;' +
+        'overflow:hidden;' +
+        'box-shadow:0 2px 10px rgba(0,0,0,0.12);' +
+      '">' +
+
+        '<div style="padding:18px;font-size:24px;font-weight:700;border-bottom:1px solid #eee;">' +
+          'Printer disponibles' +
+        '</div>' +
+
+        '<div id="printerList"></div>' +
+
       '</div>' +
+
+      '<button onclick="searchPrinters()" style="' +
+        'margin-top:20px;' +
+        'width:100%;' +
+        'height:55px;' +
+        'border:none;' +
+        'border-radius:12px;' +
+        'background:#1d33c9;' +
+        'color:#fff;' +
+        'font-size:20px;' +
+        'font-weight:800;' +
+      '">' +
+        'Rechèchè imprimante' +
+      '</button>' +
+
+      '<button onclick="closePrinterBox()" style="' +
+        'margin-top:12px;' +
+        'width:100%;' +
+        'height:55px;' +
+        'border:none;' +
+        'border-radius:12px;' +
+        'background:#111;' +
+        'color:#fff;' +
+        'font-size:20px;' +
+        'font-weight:800;' +
+      '">' +
+        'Fèmen' +
+      '</button>' +
+
     '</div>';
+
+  document.body.appendChild(box);
+
+  searchPrinters();
+}
+
+function closePrinterBox(){
+  var box = document.getElementById("printerBox");
+  if(box) box.remove();
 }
 
 function searchPrinters(){
+
   var list = document.getElementById("printerList");
-  list.innerHTML = "Recherche...";
 
-  if(!window.AndroidPrinter || !AndroidPrinter.getPrinters){
-    list.innerHTML = "AndroidPrinter pa konekte.";
-    return;
-  }
+  if(!list) return;
 
-  var data = AndroidPrinter.getPrinters();
-  var printers = JSON.parse(data || "[]");
+  list.innerHTML =
+    '<div style="padding:20px;font-size:18px;color:#666;">Recherche...</div>';
 
-  if(!printers.length){
-    list.innerHTML = "Pa gen imprimante jwenn.";
-    return;
-  }
+  try{
 
-  list.innerHTML = printers.map(function(p){
-    return '<div onclick="connectPrinter(\'' + p.address + '\', \'' + p.name + '\')" style="padding:14px;border-bottom:1px solid #eee;">' +
-      p.address + ' : ' + p.name +
-    '</div>';
-  }).join("");
-}
+    if(AndroidPrinter && AndroidPrinter.getPairedPrinters){
 
-function connectPrinter(address, name){
-  localStorage.setItem("NBL_PRINTER_ADDRESS", address);
-  localStorage.setItem("NBL_PRINTER_NAME", name);
+      var result = AndroidPrinter.getPairedPrinters();
 
-  if(window.AndroidPrinter && AndroidPrinter.connectPrinter){
-    AndroidPrinter.connectPrinter(address);
-  }
+      var printers = JSON.parse(result || "[]");
 
-  alert("Imprimante connecté: " + name);
-}
+      if(!printers.length){
 
-function testPrinter(){
-  var text = "NUMBER ONE LOTO\nTEST IMPRESSION\n----------------------\nPrinter OK\n\n\n";
+        list.innerHTML =
+          '<div style="padding:20px;font-size:18px;color:red;">Pa gen imprimante jwenn</div>';
 
-  if(window.AndroidPrinter && AndroidPrinter.printTicket){
-    AndroidPrinter.printTicket(text);
-  }else{
-    alert("AndroidPrinter pa konekte.");
+        return;
+      }
+
+      list.innerHTML = "";
+
+      printers.forEach(function(p){
+
+        var item = document.createElement("div");
+
+        item.style.padding = "16px";
+        item.style.borderBottom = "1px solid #eee";
+        item.style.fontSize = "19px";
+        item.style.cursor = "pointer";
+
+        item.innerHTML =
+          '<b>' + p.name + '</b><br>' +
+          '<span style="font-size:14px;color:#666;">' +
+          p.address +
+          '</span>';
+
+        item.onclick = function(){
+
+          localStorage.setItem("NBL_PRINTER_ADDRESS", p.address);
+          localStorage.setItem("NBL_PRINTER_NAME", p.name);
+
+          if(AndroidPrinter.connectPrinter){
+            AndroidPrinter.connectPrinter(p.address);
+          }
+
+          alert("Imprimante konekte : " + p.name);
+
+          closePrinterBox();
+        };
+
+        list.appendChild(item);
+
+      });
+
+    }
+
+  }catch(e){
+
+    list.innerHTML =
+      '<div style="padding:20px;font-size:18px;color:red;">Erreur Bluetooth</div>';
+
+    console.log(e);
   }
 }
 

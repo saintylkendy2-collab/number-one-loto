@@ -3495,21 +3495,41 @@ function submitPrint(){
   }
 
   saveCurrentTicket("PRINT").then(function(ticket){
-   if(!ticket || !ticket.id){
+    if(!ticket || !ticket.id){
 
-  if(ticket && ticket.message){
-    alert(ticket.message);
-  }
+      if(ticket && ticket.message){
+        alert(ticket.message);
+      }
 
-  return;
-}
+      return;
+    }
 
-    window.location.href =
+    var printUrl =
       "/print?ticketId=" + encodeURIComponent(ticket.id) +
       "&sellerId=" + encodeURIComponent(sellerId);
 
-    loadBillets();
-    resetAfterSend();
+    fetch(printUrl)
+      .then(function(r){
+        return r.text();
+      })
+      .then(function(html){
+        var doc = new DOMParser().parseFromString(html, "text/html");
+        var text = doc.body.innerText.trim();
+
+        if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
+          AndroidPrinter.printTicket(text);
+        }else{
+          alert("Printer Android pa disponible");
+        }
+
+        loadBillets();
+        resetAfterSend();
+      })
+      .catch(function(err){
+        console.error(err);
+        alert("Erreur impression");
+      });
+
   }).catch(function(err){
     console.error(err);
     alert("Erreur impression");

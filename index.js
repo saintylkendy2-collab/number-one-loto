@@ -5618,13 +5618,13 @@ body{
 .title{
   text-align:center;
   font-weight:600;
-  font-size:11px;
+  font-size:15px;
   margin:2px 0 5px 0;
 }
 
 .meta{
   margin-bottom:4px;
-  font-size:9.5px;
+  font-size:15px;
   font-weight:400;
   letter-spacing:0.2px;
 }
@@ -5656,7 +5656,7 @@ body{
 
 .total{
   font-weight:600;
-  font-size:10px;
+  font-size:15px;
   margin-top:5px;
 }
 </style>

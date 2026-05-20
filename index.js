@@ -1886,13 +1886,24 @@ display:flex;
 flex-direction:column;
 }
 .topbar{
-height:60px;
-min-height:60px;
+height:56px;
+min-height:56px;
 background:#3452aa;
 color:#fff;
 display:grid;
-grid-template-columns:60px 1fr 150px;
+grid-template-columns:48px minmax(0,1fr) 128px;
 align-items:center;
+overflow:hidden;
+}
+
+.top-left,.top-right{
+min-width:0;
+}
+
+.top-right{
+justify-content:flex-end;
+padding-right:8px;
+gap:6px;
 }
 .top-left,.top-right{
 display:flex;
@@ -1919,6 +1930,37 @@ display:flex;
 flex-direction:column;
 overflow:hidden;
 }
+
+.icon-btn{
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:center;
+min-width:32px;
+height:36px;
+font-size:20px;
+font-weight:800;
+}
+
+.print-btn{
+font-size:16px;
+}
+
+.wa-btn{
+background:#21c45a;
+color:white;
+border-radius:50%;
+width:34px;
+height:34px;
+font-size:13px;
+font-weight:900;
+}
+
+.more-btn{
+font-size:28px;
+line-height:1;
+}
+
 .page{
 flex:1;
 min-height:0;
@@ -2416,9 +2458,9 @@ border-right:1px solid #ddd;
 </div>
 <div class="top-title">${sellerName}</div>
 <div class="top-right">
-<span class="icon-btn" onclick="submitPrint()">🖨️</span>
-<span class="icon-btn" onclick="shareWhatsApp()">🟢</span>
-<span class="icon-btn" onclick="openOptions()">⋮</span>
+<span class="icon-btn print-btn" onclick="submitPrint()">PR</span>
+<span class="icon-btn wa-btn" onclick="shareWhatsApp()">WA</span>
+<span class="icon-btn more-btn" onclick="openOptions()">⋮</span>
 </div>
 </div>
 
@@ -5590,7 +5632,6 @@ const footerMessage =
 <meta charset="UTF-8">
 <title>Print</title>
 <style>
-<style>
 @page{
   size:58mm 152mm;
   margin:0;
@@ -5663,7 +5704,14 @@ body{
 </head>
 <body>
 
-
+${APP_CONFIG.ticketLogo ? `
+<div style="text-align:center;margin-bottom:6px;">
+  <img
+    src="${APP_CONFIG.ticketLogo}"
+    style="width:120px;max-height:120px;object-fit:contain;"
+  >
+</div>
+` : ""}
 
 <div class="title">NUMBER ONE LOTO</div>
 

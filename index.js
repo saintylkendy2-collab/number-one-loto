@@ -5591,14 +5591,15 @@ const footerMessage =
 <title>Print</title>
 <style>
 @page{
-  size:58mm 160mm;
+  size:58mm 155mm;
   margin:0;
 }
 body{
-  width:42mm;
-  margin:0 auto;
-  font-family:monospace;
-  font-size:10px;
+    width:42mm;
+    margin:0 auto;
+    font-family:monospace;
+    font-size:10px;
+    font-weight:400;
 }
 .title{text-align:center;font-weight:700;margin-bottom:4px;}
 .meta{margin-bottom:4px;}

@@ -3488,7 +3488,52 @@ function saveCurrentTicket(channel){
  });
 }
 
+function submitPrint(){
 
+  if(jeux.length === 0){
+    alert("Pa gen jwèt pou enprime.");
+    return;
+  }
+
+  saveCurrentTicket("PRINT").then(function(ticket){
+
+    if(!ticket || !ticket.id){
+      if(ticket && ticket.message){
+        alert(ticket.message);
+      }
+      return;
+    }
+
+    var url =
+      "/print-text?ticketId=" + encodeURIComponent(ticket.id) +
+      "&sellerId=" + encodeURIComponent(sellerId);
+
+    fetch(url)
+      .then(function(r){
+        return r.text();
+      })
+      .then(function(text){
+
+        if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
+          AndroidPrinter.printTicket(text);
+        }else{
+          alert("Printer Android pa disponible");
+        }
+
+        loadBillets();
+        resetAfterSend();
+
+      })
+      .catch(function(err){
+        console.log(err);
+        alert("Erreur impression");
+      });
+
+  }).catch(function(err){
+    console.log(err);
+    alert("Erreur impression");
+  });
+}
 
 function shareWhatsApp(){
   saveCurrentTicket("WHATSAPP").then(function(ticket){

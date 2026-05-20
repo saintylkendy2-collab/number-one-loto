@@ -4954,7 +4954,75 @@ function searchPrinters(){
   });
 }
 
+function checkPrinter(){
 
+  var list = document.getElementById("printerList");
+
+  if(!list){
+    return;
+  }
+
+  list.innerHTML = "Recherche imprimante...";
+
+  try{
+
+    var printers = [];
+
+    if(typeof AndroidPrinter !== "undefined" && AndroidPrinter.getPrinters){
+
+      var data = AndroidPrinter.getPrinters();
+
+      try{
+        printers = JSON.parse(data || "[]");
+      }catch(e){
+        printers = [];
+      }
+
+    }else{
+
+      list.innerHTML = "AndroidPrinter pa disponib.";
+      return;
+    }
+
+    if(!Array.isArray(printers)){
+      printers = [];
+    }
+
+    if(printers.length <= 0){
+      list.innerHTML = "Pa gen imprimante jwenn.";
+      return;
+    }
+
+    list.innerHTML = "";
+
+    printers.forEach(function(p){
+
+      var item = document.createElement("div");
+
+      item.style.padding = "14px";
+      item.style.borderBottom = "1px solid #eee";
+      item.style.fontSize = "17px";
+      item.style.cursor = "pointer";
+
+      item.innerHTML =
+        "<b>" + (p.name || "Printer") + "</b><br>" +
+        "<span style=\"font-size:14px;color:#777;\">" + (p.address || "") + "</span>";
+
+      item.onclick = function(){
+        connectPrinter(p.address, p.name);
+      };
+
+      list.appendChild(item);
+
+    });
+
+  }catch(err){
+
+    console.log(err);
+    list.innerHTML = "Erreur recherche imprimante.";
+
+  }
+}
 
 function connectPrinter(address,name){
 

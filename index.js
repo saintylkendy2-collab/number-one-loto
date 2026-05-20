@@ -5607,7 +5607,7 @@ body{
   font-family:monospace;
   font-size:9.5px;
   font-weight:400;
-  line-height:1;
+  line-height:0.50;
   color:#111;
   -webkit-print-color-adjust:exact;
   print-color-adjust:exact;

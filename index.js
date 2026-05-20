@@ -4954,70 +4954,7 @@ function searchPrinters(){
   });
 }
 
-function checkPrinter(){
 
-  var list = document.getElementById("printerList");
-
-  if(!list){
-    return;
-  }
-
-  list.innerHTML = "Recherche imprimante...";
-
-  try{
-
-    var printers = [];
-
-    if(typeof AndroidPrinter !== "undefined" &&
-       AndroidPrinter.getPrinters){
-
-      var data = AndroidPrinter.getPrinters();
-
-      try{
-        printers = JSON.parse(data || "[]");
-      }catch(e){
-        printers = [];
-      }
-
-    }
-
-    if(!Array.isArray(printers)){
-      printers = [];
-    }
-
-    if(printers.length <= 0){
-
-    printers.push({
-  name:"POS Internal Printer",
-  address:"INNER_PRINTER"
-});
-
-    var html = "";
-
-    for(var i=0;i<printers.length;i++){
-
-      var p = printers[i];
-
-      html +=
-      '<div onclick="connectPrinter(\\'' + p.address + '\\', \\'' + p.name + '\\')" ' +
-      'style="padding:14px;border-bottom:1px solid #eee;font-size:17px;cursor:pointer;">' +
-      p.name +
-      '</div>';
-
-    }
-
-    list.innerHTML = html;
-
-  }catch(err){
-
-    console.log(err);
-
-    list.innerHTML =
-    "Erreur recherche imprimante.";
-
-  }
-
-}
 
 function connectPrinter(address,name){
 

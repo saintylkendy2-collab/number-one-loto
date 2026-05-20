@@ -5591,27 +5591,80 @@ const footerMessage =
 <title>Print</title>
 <style>
 @page{
-  size:58mm 152mm;
+  size:58mm auto;
   margin:0;
 }
+
+*{
+  box-sizing:border-box;
+}
+
 body{
-    width:48mm;
-    margin:0 auto;
-    font-family:Arial,sans-serif;
-    font-size:10px;
-    font-weight:400;
-    line-height:1.35;
+  width:46mm;
+  margin:0 auto;
+  padding:2mm 1mm 4mm 1mm;
+  font-family:"Courier New", monospace;
+  font-size:9.5px;
+  font-weight:300;
+  line-height:1.45;
+  color:#111;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
 }
-.title{text-align:center;font-weight:700;margin-bottom:4px;}
-.meta{margin-bottom:4px;}
-.line{border-top:1px dashed #000;margin:4px 0;}
-.tirage{font-weight:700;margin-top:4px;}
+
+.title{
+  text-align:center;
+  font-weight:600;
+  font-size:11px;
+  margin:2px 0 5px 0;
+}
+
+.meta{
+  margin-bottom:4px;
+  font-size:9.5px;
+  font-weight:300;
+}
+
+.line{
+  border-top:1px dashed #222;
+  margin:5px 0;
+}
+
+.tirage{
+  font-weight:600;
+  font-size:10px;
+  margin:5px 0 4px 0;
+}
+
 .game-row{
-    display:grid;
-    grid-template-columns:1fr 42px 42px;
+  display:grid;
+  grid-template-columns: 24mm 11mm 10mm;
+  column-gap:1mm;
+  font-size:9.5px;
+  font-weight:300;
+  line-height:1.45;
 }
-.col-amt{text-align:right;}
-.total{font-weight:700;margin-top:4px;}
+
+.col-amt{
+  text-align:right;
+}
+
+.total{
+  font-weight:600;
+  font-size:10px;
+  margin-top:5px;
+}
+
+.ticket-logo{
+  text-align:center;
+  margin-bottom:4px;
+}
+
+.ticket-logo img{
+  width:42px;
+  max-height:42px;
+  object-fit:contain;
+}
 </style>
 </head>
 <body>

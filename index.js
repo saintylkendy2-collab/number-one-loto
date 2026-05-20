@@ -5591,23 +5591,24 @@ const footerMessage =
 <title>Print</title>
 <style>
 @page{
-  size:58mm 155mm;
+  size:58mm 150mm;
   margin:0;
 }
 body{
-    width:42mm;
+    width:48mm;
     margin:0 auto;
     font-family:monospace;
     font-size:10px;
     font-weight:400;
+    line-height:1.35;
 }
 .title{text-align:center;font-weight:700;margin-bottom:4px;}
 .meta{margin-bottom:4px;}
 .line{border-top:1px dashed #000;margin:4px 0;}
 .tirage{font-weight:700;margin-top:4px;}
 .game-row{
-  display:grid;
-  grid-template-columns:1fr 30px 40px;
+    display:grid;
+    grid-template-columns:1fr 42px 42px;
 }
 .col-amt{text-align:right;}
 .total{font-weight:700;margin-top:4px;}

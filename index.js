@@ -5594,6 +5594,7 @@ app.get("/print", async (req, res) => {
   try {
     const ticketId = String(req.query.ticketId || "").trim();
     const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
+    const NL = String.fromCharCode(10);
 
     const ticket = await Ticket.findOne({
       $or: [
@@ -5651,22 +5652,21 @@ app.get("/print", async (req, res) => {
     }
 
     function lineGame(type, numero, montant){
-      var left = String(type || "").padEnd(12, " ");
-      var mid = String(numero || "").padStart(6, " ");
-      var right = String(montant || "").padStart(8, " ");
+      var left = String(type || "").padEnd(13, " ");
+      var mid = String(numero || "").padStart(5, " ");
+      var right = String(montant || "").padStart(10, " ");
       return left + mid + right;
     }
 
     let text = "";
 
-    text += "     NUMBER ONE LOTO\n\n";
-    text += "SELLER " + clean(sellerName) + "\n";
-    text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + "\n";
-    text += "DATE " + clean(dateStr) + " " + clean(timeStr) + "\n";
-    text += "------------------------------\n";
+    text += "    NUMBER ONE LOTO" + NL;
+    text += "SELLER " + clean(sellerName) + NL;
+    text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
+    text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
+    text += "------------------------------" + NL;
 
     let currentLot = "";
-
     const gameMap = {};
 
     (ticket.jeux || []).forEach(j => {
@@ -5699,15 +5699,15 @@ app.get("/print", async (req, res) => {
     Object.values(gameMap).forEach(g => {
       if (g.loterie !== currentLot) {
         currentLot = g.loterie;
-        text += "\n" + clean(currentLot || "SANS TIRAGE") + "\n";
-        text += "------------------------------\n";
+        text += NL + clean(currentLot || "SANS TIRAGE") + NL;
+        text += "------------------------------" + NL;
       }
 
       text += lineGame(
         g.type,
         g.numero,
         money(g.montant * g.count)
-      ) + "\n";
+      ) + NL;
     });
 
     const freeGames = (ticket.jeux || []).filter(
@@ -5722,8 +5722,8 @@ app.get("/print", async (req, res) => {
 
         if (loterie !== freeCurrentLot) {
           freeCurrentLot = loterie;
-          text += "\n" + clean(freeCurrentLot || "SANS TIRAGE") + "\n";
-          text += "------------------------------\n";
+          text += NL + clean(freeCurrentLot || "SANS TIRAGE") + NL;
+          text += "------------------------------" + NL;
         }
 
         let typeRaw = String(j.type || "").toUpperCase();
@@ -5736,16 +5736,16 @@ app.get("/print", async (req, res) => {
           type,
           String(j.numero || "").trim(),
           "Gratis"
-        ) + "\n";
+        ) + NL;
       });
     }
 
-    text += "------------------------------\n";
-    text += "TOTAL: " + money(total) + " G\n";
+    text += "------------------------------" + NL;
+    text += "TOTAL: " + money(total) + " G" + NL;
 
     if (footerMessage) {
-      text += "\n";
-      text += clean(footerMessage) + "\n";
+      text += NL;
+      text += clean(footerMessage) + NL;
     }
 
     res.set("Content-Type", "text/html; charset=utf-8");
@@ -5758,11 +5758,16 @@ app.get("/print", async (req, res) => {
       '<title>Print</title>' +
       '<style>' +
       '@page{size:58mm auto;margin:0;}' +
-      'body{width:48mm;margin:0 auto;padding:4px;font-family:monospace;font-size:11px;color:#000;}' +
+      'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}' +
       'pre{white-space:pre-wrap;margin:0;font-family:monospace;}' +
       '</style>' +
       '</head>' +
       '<body>' +
+      (
+        APP_CONFIG.ticketLogo
+        ? '<div style="text-align:center;margin-bottom:2px;"><img src="' + APP_CONFIG.ticketLogo + '" style="width:90px;max-height:70px;object-fit:contain;"></div>'
+        : ''
+      ) +
       '<pre>' + clean(text) + '</pre>' +
       '</body>' +
       '</html>'

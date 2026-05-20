@@ -5642,7 +5642,7 @@ body{
 
 .game-row{
   display:grid;
-  grid-template-columns: 24mm 11mm 10mm;
+  grid-template-columns: 22mm 9mm 11mm;
   column-gap:1mm;
   font-size:9.5px;
   font-weight:400;

@@ -3489,54 +3489,33 @@ function saveCurrentTicket(channel){
 }
 
 function submitPrint(){
-
   if(jeux.length === 0){
     alert("Pa gen jwèt pou enprime.");
     return;
   }
 
   saveCurrentTicket("PRINT").then(function(ticket){
+   if(!ticket || !ticket.id){
 
-    if(!ticket || !ticket.id){
-      if(ticket && ticket.message){
-        alert(ticket.message);
-      }
-      return;
-    }
+  if(ticket && ticket.message){
+    alert(ticket.message);
+  }
 
-    var url =
+  return;
+}
+
+    window.location.href =
       "/print?ticketId=" + encodeURIComponent(ticket.id) +
       "&sellerId=" + encodeURIComponent(sellerId);
 
-    fetch(url)
-      .then(function(r){
-        return r.text();
-      })
-      .then(function(html){
-
-        var doc = new DOMParser().parseFromString(html, "text/html");
-        var text = doc.body.innerText.trim();
-
-        if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
-          AndroidPrinter.printTicket(text);
-        }else{
-          alert("Printer Android pa disponible");
-        }
-
-        loadBillets();
-        resetAfterSend();
-
-      })
-      .catch(function(err){
-        console.log(err);
-        alert("Erreur impression");
-      });
-
+    loadBillets();
+    resetAfterSend();
   }).catch(function(err){
-    console.log(err);
+    console.error(err);
     alert("Erreur impression");
   });
 }
+
 
 function shareWhatsApp(){
   saveCurrentTicket("WHATSAPP").then(function(ticket){

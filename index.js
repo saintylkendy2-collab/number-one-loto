@@ -4890,7 +4890,7 @@ function renderImprimantePage(){
       '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
         '<div style="font-size:20px;font-weight:800;margin-bottom:12px;">Printer disponibles</div>' +
         '<div id="printerList" style="min-height:120px;color:#555;font-size:17px;">Peze bouton rechèch la...</div>' +
-        '<button onclick="searchPrinters()" style="width:100%;height:50px;border:none;border-radius:12px;background:#3452aa;color:#fff;font-size:18px;font-weight:800;margin-top:16px;">Chèche imprimante</button>' +
+        '<button onclick="checkPrinter()" style="width:100%;height:50px;border:none;border-radius:12px;background:#3452aa;color:#fff;font-size:18px;font-weight:800;margin-top:16px;">Chèche imprimante</button>' +
         '<button onclick="testPrinter()" style="width:100%;height:50px;border:none;border-radius:12px;background:#111;color:#fff;font-size:18px;font-weight:800;margin-top:10px;">Tester impression</button>' +
       '</div>' +
     '</div>';
@@ -4954,16 +4954,94 @@ function searchPrinters(){
   });
 }
 
-function connectPrinter(address, name){
+function checkPrinter(){
 
-  localStorage.setItem("NBL_PRINTER_ADDRESS", address || "");
-  localStorage.setItem("NBL_PRINTER_NAME", name || "");
+  var list = document.getElementById("printerList");
 
-  if(typeof AndroidPrinter !== "undefined" && AndroidPrinter.connectPrinter){
-    AndroidPrinter.connectPrinter(address || "");
+  if(!list){
+    return;
   }
 
-  alert("Imprimante konekte : " + name);
+  list.innerHTML = "Recherche imprimante...";
+
+  try{
+
+    var printers = [];
+
+    if(typeof AndroidPrinter !== "undefined" &&
+       AndroidPrinter.getPrinters){
+
+      var data = AndroidPrinter.getPrinters();
+
+      try{
+        printers = JSON.parse(data || "[]");
+      }catch(e){
+        printers = [];
+      }
+
+    }
+
+    if(!Array.isArray(printers)){
+      printers = [];
+    }
+
+    if(printers.length <= 0){
+
+      printers.push({
+        name:"POS Internal Printer",
+        address:"INNER_PRINTER"
+      });
+
+    }
+
+    var html = "";
+
+    for(var i=0;i<printers.length;i++){
+
+      var p = printers[i];
+
+      html +=
+      '<div onclick="connectPrinter(\'' + p.address + '\', \'' + p.name + '\')" ' +
+      'style="padding:14px;border-bottom:1px solid #eee;font-size:17px;cursor:pointer;">' +
+      p.name +
+      '</div>';
+
+    }
+
+    list.innerHTML = html;
+
+  }catch(err){
+
+    console.log(err);
+
+    list.innerHTML =
+    "Erreur recherche imprimante.";
+
+  }
+
+}
+
+function connectPrinter(address,name){
+
+  localStorage.setItem(
+    "NBL_PRINTER_ADDRESS",
+    address
+  );
+
+  localStorage.setItem(
+    "NBL_PRINTER_NAME",
+    name
+  );
+
+  if(typeof AndroidPrinter !== "undefined" &&
+     AndroidPrinter.connectPrinter){
+
+    AndroidPrinter.connectPrinter(address);
+
+  }
+
+  alert("Imprimante connectée : " + name);
+
 }
 
 function testPrinter(){

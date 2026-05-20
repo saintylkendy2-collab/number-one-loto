@@ -5605,7 +5605,7 @@ body{
   margin:0 auto;
   padding:2mm 1mm 4mm 1mm;
   font-family:monospace;
-  font-size:12.5px;
+  font-size:9.5px;
   font-weight:400;
   line-height:1.30;
   color:#111;
@@ -5644,7 +5644,7 @@ body{
   display:grid;
   grid-template-columns: 22mm 9mm 11mm;
   column-gap:1mm;
-  font-size:9.5px;
+  font-size:11px;
   font-weight:400;
   line-height:1.30;
   letter-spacing:0.2px;

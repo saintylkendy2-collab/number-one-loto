@@ -4888,12 +4888,56 @@ function renderImprimantePage(){
     '<div style="padding:14px;">' +
       '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
         '<div style="font-size:20px;font-weight:800;margin-bottom:12px;">Printer disponibles</div>' +
-        '<div style="padding:14px;border-bottom:1px solid #eee;">POS Internal Printer</div>' +
-        '<div style="padding:14px;border-bottom:1px solid #eee;">Bluetooth Printer</div>' +
-        '<div style="padding:14px;border-bottom:1px solid #eee;">LP-BT71</div>' +
-        '<button onclick="submitPrint()" style="width:100%;height:50px;border:none;border-radius:12px;background:#3452aa;color:#fff;font-size:18px;font-weight:800;margin-top:16px;">Tester impression</button>' +
+        '<div id="printerList" style="min-height:120px;color:#555;">Peze bouton rechèch la...</div>' +
+        '<button onclick="searchPrinters()" style="width:100%;height:50px;border:none;border-radius:12px;background:#3452aa;color:#fff;font-size:18px;font-weight:800;margin-top:16px;">Chèche imprimante</button>' +
+        '<button onclick="testPrinter()" style="width:100%;height:50px;border:none;border-radius:12px;background:#111;color:#fff;font-size:18px;font-weight:800;margin-top:10px;">Tester impression</button>' +
       '</div>' +
     '</div>';
+}
+
+function searchPrinters(){
+  var list = document.getElementById("printerList");
+  list.innerHTML = "Recherche...";
+
+  if(!window.AndroidPrinter || !AndroidPrinter.getPrinters){
+    list.innerHTML = "AndroidPrinter pa konekte.";
+    return;
+  }
+
+  var data = AndroidPrinter.getPrinters();
+  var printers = JSON.parse(data || "[]");
+
+  if(!printers.length){
+    list.innerHTML = "Pa gen imprimante jwenn.";
+    return;
+  }
+
+  list.innerHTML = printers.map(function(p){
+    return '<div onclick="connectPrinter(\'' + p.address + '\', \'' + p.name + '\')" style="padding:14px;border-bottom:1px solid #eee;">' +
+      p.address + ' : ' + p.name +
+    '</div>';
+  }).join("");
+}
+
+function connectPrinter(address, name){
+  localStorage.setItem("NBL_PRINTER_ADDRESS", address);
+  localStorage.setItem("NBL_PRINTER_NAME", name);
+
+  if(window.AndroidPrinter && AndroidPrinter.connectPrinter){
+    AndroidPrinter.connectPrinter(address);
+  }
+
+  alert("Imprimante connecté: " + name);
+}
+
+function testPrinter(){
+  var text = "NUMBER ONE LOTO\nTEST IMPRESSION\n----------------------\nPrinter OK\n\n\n";
+
+  if(window.AndroidPrinter && AndroidPrinter.printTicket){
+    AndroidPrinter.printTicket(text);
+  }else{
+    alert("AndroidPrinter pa konekte.");
+  }
 }
 
 /* ===== AJOUTE KALANDRIYE SOU LIS BIYÈ YO SAN CHANJE renderBillets() ===== */

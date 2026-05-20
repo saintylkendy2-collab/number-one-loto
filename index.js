@@ -5741,7 +5741,7 @@ app.get("/print", async (req, res) => {
 
     let text = "";
 
-    text += "      NUMBER ONE LOTO" + NL;
+    text += "         NUMBER ONE LOTO" + NL;
     text += "SELLER " + clean(sellerName) + NL;
     text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
     text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
@@ -5774,8 +5774,8 @@ app.get("/print", async (req, res) => {
       '<title>Print</title>' +
       '<style>' +
       '@page{size:58mm auto;margin:0;}' +
-      'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}' +
-      'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:12px;}' +
+      'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:13px;color:#000;}' +
+'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:13px;line-height:1.25;}' +
       '</style>' +
       '</head>' +
       '<body>' +

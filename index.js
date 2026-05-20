@@ -5592,7 +5592,7 @@ const footerMessage =
 <style>
 <style>
 @page{
-  size:58mm 600mm;
+  size:58mm 1000mm;
   margin:0;
 }
 

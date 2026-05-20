@@ -5595,318 +5595,178 @@ app.get("/print", async (req, res) => {
     const ticketId = String(req.query.ticketId || "").trim();
     const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
 
-   const ticket = await Ticket.findOne({
-  $or: [
-    { id: ticketId },
-    { ticketId: ticketId },
-    { serial: ticketId }
-  ]
-}).lean();
+    const ticket = await Ticket.findOne({
+      $or: [
+        { id: ticketId },
+        { ticketId: ticketId },
+        { serial: ticketId }
+      ]
+    }).lean();
 
-if (!ticket) {
-  return res.status(404).send("Ticket introuvable");
-}
+    if (!ticket) {
+      return res.status(404).send("Ticket introuvable");
+    }
 
-   let vendeur = null;
+    let vendeur = null;
 
-if (sellerId) {
-  vendeur = await Vendor.findOne({ id: sellerId }).lean();
-}
+    if (sellerId) {
+      vendeur = await Vendor.findOne({ id: sellerId }).lean();
+    }
 
-const sellerName = String(
-  (vendeur && (vendeur.nom || vendeur.nombre)) ||
-  ticket.vendeurNom ||
-  ticket.vendeur ||
-  sellerId ||
-  "VENDEUR"
-);
+    const sellerName = String(
+      (vendeur && (vendeur.nom || vendeur.nombre)) ||
+      ticket.vendeurNom ||
+      ticket.vendeur ||
+      sellerId ||
+      "VENDEUR"
+    );
 
     const total = Number(ticket.total || 0);
     const dateStr = ticket.dateLabel || formatDateFR(new Date(ticket.createdAt || Date.now()));
     const timeStr = ticket.timeLabel || formatTimeFR(new Date(ticket.createdAt || Date.now()));
 
-    let lotSeen = {};
-    let loteriesHtml = "";
+    const APP_CONFIG =
+      await AppConfig.findOne({ key:"main" }).lean()
+      || {};
 
-    (ticket.jeux || []).forEach(j => {
-      const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
-      if (!lotSeen[lot]) {
-        lotSeen[lot] = true;
-        loteriesHtml += '<div class="tirage">' + lot + '</div>';
-      }
-    });
+    const sellerConfig = (vendeur && vendeur.config) ? vendeur.config : {};
+
+    const footerMessage =
+      (
+        sellerConfig.usarMensajeTicket &&
+        sellerConfig.mensajeTicket
+      )
+      ? sellerConfig.mensajeTicket
+      : (APP_CONFIG.ticketMessage || "");
+
+    function clean(v){
+      return String(v || "")
+        .replace(/</g, "")
+        .replace(/>/g, "")
+        .replace(/&/g, "and");
+    }
+
+    function money(n){
+      return Number(n || 0).toFixed(2);
+    }
+
+    function lineGame(type, numero, montant){
+      var left = String(type || "").padEnd(12, " ");
+      var mid = String(numero || "").padStart(6, " ");
+      var right = String(montant || "").padStart(8, " ");
+      return left + mid + right;
+    }
+
+    let text = "";
+
+    text += "     NUMBER ONE LOTO\n\n";
+    text += "SELLER " + clean(sellerName) + "\n";
+    text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + "\n";
+    text += "DATE " + clean(dateStr) + " " + clean(timeStr) + "\n";
+    text += "------------------------------\n";
+
+    let currentLot = "";
 
     const gameMap = {};
-    let gamesHtml = "";
 
     (ticket.jeux || []).forEach(j => {
-
-if (j.gratis === true || j.free === true) {
-  return;
-}
+      if (j.gratis === true || j.free === true) return;
 
       let typeRaw = String(j.type || "").toUpperCase();
       let numero = String(j.numero || "").trim();
       let montant = Number(j.montant || 0);
+      let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase();
 
       let type = typeRaw;
       if (typeRaw === "BOR") type = "Borlette";
       else if (typeRaw === "MAR") type = "Mariage";
 
-      let loterie =
-  String(j.loterie || j.loteria || "").trim().toUpperCase();
+      let key = loterie + "|" + type + "|" + numero + "|" + montant;
 
-let key =
-  loterie + "|" + type + "|" + numero + "|" + montant;
-
-   if (!gameMap[key]) {
-
-  gameMap[key] = {
-    type,
-    numero,
-    montant,
-    count: 0,
-    gratis: j.gratis === true,
-    free: j.free === true
-  };
-
-}
+      if (!gameMap[key]) {
+        gameMap[key] = {
+          loterie,
+          type,
+          numero,
+          montant,
+          count: 0
+        };
+      }
 
       gameMap[key].count++;
     });
 
     Object.values(gameMap).forEach(g => {
-      let totalLine =
-  g.gratis || g.free
-    ? "Gratis"
-    : (g.montant * g.count).toFixed(2);
+      if (g.loterie !== currentLot) {
+        currentLot = g.loterie;
+        text += "\n" + clean(currentLot || "SANS TIRAGE") + "\n";
+        text += "------------------------------\n";
+      }
 
-      gamesHtml +=
-        '<div class="game-row">' +
-          '<div class="col-type">' + g.type + '</div>' +
-          '<div class="col-num">' + g.numero + '</div>' +
-          '<div class="col-amt">' + totalLine + '</div>' +
-        '</div>';
+      text += lineGame(
+        g.type,
+        g.numero,
+        money(g.montant * g.count)
+      ) + "\n";
     });
 
     const freeGames = (ticket.jeux || []).filter(
-  j => j.gratis === true || j.free === true
-);
+      j => j.gratis === true || j.free === true
+    );
 
-let freeHtml = "";
+    if (freeGames.length) {
+      let freeCurrentLot = "";
 
-let freeMap = {};
+      freeGames.forEach(j => {
+        let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase();
 
-freeGames.forEach(j => {
+        if (loterie !== freeCurrentLot) {
+          freeCurrentLot = loterie;
+          text += "\n" + clean(freeCurrentLot || "SANS TIRAGE") + "\n";
+          text += "------------------------------\n";
+        }
 
-  let loterie = String(
-    j.loterie || j.loteria || ""
-  ).trim();
+        let typeRaw = String(j.type || "").toUpperCase();
+        let type = typeRaw;
 
-  if (!freeMap[loterie]) {
-    freeMap[loterie] = [];
-  }
+        if (typeRaw === "BOR") type = "Borlette";
+        else if (typeRaw === "MAR") type = "Mariage";
 
-  freeMap[loterie].push(j);
+        text += lineGame(
+          type,
+          String(j.numero || "").trim(),
+          "Gratis"
+        ) + "\n";
+      });
+    }
 
-});
+    text += "------------------------------\n";
+    text += "TOTAL: " + money(total) + " G\n";
 
-Object.keys(freeMap).forEach(loterie => {
-
-  freeHtml +=
-    '<div class="tirage">' + loterie + '</div>';
-
-  freeMap[loterie].forEach(j => {
-
-    let typeRaw = String(j.type || "").toUpperCase();
-
-    let type = typeRaw;
-    if (typeRaw === "BOR") type = "Borlette";
-    else if (typeRaw === "MAR") type = "Mariage";
-
-    let numero = String(j.numero || "").trim();
-
-    freeHtml +=
-      '<div class="game-row">' +
-        '<div class="col-type">' + type + '</div>' +
-        '<div class="col-num">' + numero + '</div>' +
-        '<div class="col-amt">Gratis</div>' +
-      '</div>';
-
-  });
-
-});
+    if (footerMessage) {
+      text += "\n";
+      text += clean(footerMessage) + "\n";
+    }
 
     res.set("Content-Type", "text/html; charset=utf-8");
 
-const APP_CONFIG =
-  await AppConfig.findOne({ key:"main" }).lean()
-  || {};
-
-  const sellerConfig = (vendeur && vendeur.config) ? vendeur.config : {};
-
-const footerMessage =
-(
-  sellerConfig.usarMensajeTicket &&
-  sellerConfig.mensajeTicket
-)
-? sellerConfig.mensajeTicket
-: (APP_CONFIG.ticketMessage || "");
-
-    res.send(`
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Print</title>
-
-<style>
-
-@page{
-  size:58mm auto;
-  margin:0;
-}
-
-body{
-  width:48mm;
-  margin:0 auto;
-  padding:4px;
-  font-family:monospace;
-  font-size:11px;
-  color:#000;
-}
-
-.center{
-  text-align:center;
-}
-
-.bold{
-  font-weight:bold;
-}
-
-.space{
-  height:6px;
-}
-
-.line{
-  border-top:1px dashed #000;
-  margin:6px 0;
-}
-
-.ticket-title{
-  text-align:center;
-  font-size:14px;
-  font-weight:bold;
-  margin-bottom:6px;
-}
-
-.meta{
-  line-height:1.4;
-  margin-bottom:6px;
-}
-
-.tirage{
-  margin-top:8px;
-  margin-bottom:4px;
-  font-weight:bold;
-  font-size:12px;
-}
-
-.game-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin:2px 0;
-  white-space:pre;
-}
-
-.game-left{
-  flex:1;
-}
-
-.game-amount{
-  width:50px;
-  text-align:right;
-}
-
-.total{
-  display:flex;
-  justify-content:space-between;
-  font-weight:bold;
-  font-size:13px;
-  margin-top:8px;
-}
-
-.footer{
-  margin-top:10px;
-  text-align:center;
-  font-size:10px;
-  line-height:1.4;
-}
-
-</style>
-</head>
-
-<body>
-
-${APP_CONFIG.ticketLogo ? `
-<div style="text-align:center;margin-bottom:6px;">
-  <img
-    src="${APP_CONFIG.ticketLogo}"
-    style="width:120px;max-height:120px;object-fit:contain;"
-  >
-</div>
-` : ""}
-
-<div class="title">NUMBER ONE LOTO</div>
-
-<div class="meta">
-SELLER ${sellerName}<br>
-TICKET ${ticket.id || ticket.ticketId || ticket.serial || ticketId}<br>
-DATE ${dateStr} ${timeStr}
-</div>
-
-<div class="line"></div>
-
-${loteriesHtml}
-
-<div class="line"></div>
-
-${gamesHtml}
-
-${freeHtml}
-
-<div class="line"></div>
-
-<div class="total">TOTAL: ${total.toFixed(2)} G</div>
-
-<div
-  style="
-    margin-top:14px;
-    text-align:center;
-    font-size:8px;
-  "
->
-  ${
-(
-sellerConfig &&
-sellerConfig.usarMensajeTicket &&
-sellerConfig.mensajeTicket
-)
-? sellerConfig.mensajeTicket
-: (footerMessage || "")
-}
-</div>
-
-<script>
-setTimeout(function(){
-  window.print();
-}, 300);
-</script>
-
-</body>
-</html>
-    `);
+    res.send(
+      '<!DOCTYPE html>' +
+      '<html>' +
+      '<head>' +
+      '<meta charset="UTF-8">' +
+      '<title>Print</title>' +
+      '<style>' +
+      '@page{size:58mm auto;margin:0;}' +
+      'body{width:48mm;margin:0 auto;padding:4px;font-family:monospace;font-size:11px;color:#000;}' +
+      'pre{white-space:pre-wrap;margin:0;font-family:monospace;}' +
+      '</style>' +
+      '</head>' +
+      '<body>' +
+      '<pre>' + clean(text) + '</pre>' +
+      '</body>' +
+      '</html>'
+    );
 
   } catch (err) {
     console.error("PRINT ERROR:", err);

@@ -5603,10 +5603,10 @@ body{
   width:46mm;
   margin:0 auto;
   padding:2mm 1mm 4mm 1mm;
-  font-family:monospace;
-  font-size:10px;
-  font-weight:500;
-  line-height:1.30;
+  font-family:"Courier New", monospace;
+  font-size:9.5px;
+  font-weight:400;
+  line-height:1.45;
   color:#111;
   -webkit-print-color-adjust:exact;
   print-color-adjust:exact;
@@ -5614,15 +5614,15 @@ body{
 
 .title{
   text-align:center;
-  font-weight:700;
+  font-weight:600;
   font-size:11px;
   margin:2px 0 5px 0;
 }
 
 .meta{
   margin-bottom:4px;
-  font-size:10px;
-  font-weight:500;
+  font-size:9.5px;
+  font-weight:400;
 }
 
 .line{
@@ -5631,18 +5631,18 @@ body{
 }
 
 .tirage{
-  font-weight:700;
+  font-weight:600;
   font-size:10px;
   margin:5px 0 4px 0;
 }
 
 .game-row{
   display:grid;
-  grid-template-columns:22mm 10mm 10mm;
-  column-gap:2mm;
-  font-size:10px;
-  font-weight:500;
-  line-height:1.30;
+  grid-template-columns: 24mm 11mm 10mm;
+  column-gap:1mm;
+  font-size:9.5px;
+  font-weight:400;
+  line-height:1.45;
 }
 
 .col-amt{
@@ -5650,7 +5650,7 @@ body{
 }
 
 .total{
-  font-weight:700;
+  font-weight:600;
   font-size:10px;
   margin-top:5px;
 }

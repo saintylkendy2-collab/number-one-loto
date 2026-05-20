@@ -5759,26 +5759,94 @@ const footerMessage =
 <head>
 <meta charset="UTF-8">
 <title>Print</title>
+
 <style>
-@page{ size:58mm auto; margin:0; }
+
+@page{
+  size:58mm auto;
+  margin:0;
+}
+
 body{
-  width:42mm;
+  width:48mm;
   margin:0 auto;
+  padding:4px;
   font-family:monospace;
-  font-size:10px;
+  font-size:11px;
+  color:#000;
 }
-.title{text-align:center;font-weight:700;margin-bottom:4px;}
-.meta{margin-bottom:4px;}
-.line{border-top:1px dashed #000;margin:4px 0;}
-.tirage{font-weight:700;margin-top:4px;}
+
+.center{
+  text-align:center;
+}
+
+.bold{
+  font-weight:bold;
+}
+
+.space{
+  height:6px;
+}
+
+.line{
+  border-top:1px dashed #000;
+  margin:6px 0;
+}
+
+.ticket-title{
+  text-align:center;
+  font-size:14px;
+  font-weight:bold;
+  margin-bottom:6px;
+}
+
+.meta{
+  line-height:1.4;
+  margin-bottom:6px;
+}
+
+.tirage{
+  margin-top:8px;
+  margin-bottom:4px;
+  font-weight:bold;
+  font-size:12px;
+}
+
 .game-row{
-  display:grid;
-  grid-template-columns:1fr 30px 40px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:2px 0;
+  white-space:pre;
 }
-.col-amt{text-align:right;}
-.total{font-weight:700;margin-top:4px;}
+
+.game-left{
+  flex:1;
+}
+
+.game-amount{
+  width:50px;
+  text-align:right;
+}
+
+.total{
+  display:flex;
+  justify-content:space-between;
+  font-weight:bold;
+  font-size:13px;
+  margin-top:8px;
+}
+
+.footer{
+  margin-top:10px;
+  text-align:center;
+  font-size:10px;
+  line-height:1.4;
+}
+
 </style>
 </head>
+
 <body>
 
 ${APP_CONFIG.ticketLogo ? `

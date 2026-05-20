@@ -5591,7 +5591,7 @@ const footerMessage =
 <title>Print</title>
 <style>
 @page{
-  size:58mm 200mm;
+  size:58mm 180mm;
   margin:0;
 }
 body{

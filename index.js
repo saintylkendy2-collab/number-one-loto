@@ -5590,6 +5590,7 @@ const footerMessage =
 <meta charset="UTF-8">
 <title>Print</title>
 <style>
+<style>
 @page{
   size:58mm auto;
   margin:0;
@@ -5610,6 +5611,8 @@ body{
   color:#111;
   -webkit-print-color-adjust:exact;
   print-color-adjust:exact;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:none;
 }
 
 .title{
@@ -5623,6 +5626,7 @@ body{
   margin-bottom:4px;
   font-size:9.5px;
   font-weight:400;
+  letter-spacing:0.2px;
 }
 
 .line{
@@ -5643,6 +5647,7 @@ body{
   font-size:9.5px;
   font-weight:400;
   line-height:1.45;
+  letter-spacing:0.2px;
 }
 
 .col-amt{
@@ -5654,29 +5659,11 @@ body{
   font-size:10px;
   margin-top:5px;
 }
-
-.ticket-logo{
-  text-align:center;
-  margin-bottom:4px;
-}
-
-.ticket-logo img{
-  width:42px;
-  max-height:42px;
-  object-fit:contain;
-}
 </style>
 </head>
 <body>
 
-${APP_CONFIG.ticketLogo ? `
-<div style="text-align:center;margin-bottom:6px;">
-  <img
-    src="${APP_CONFIG.ticketLogo}"
-    style="width:120px;max-height:120px;object-fit:contain;"
-  >
-</div>
-` : ""}
+
 
 <div class="title">NUMBER ONE LOTO</div>
 

@@ -5605,7 +5605,7 @@ body{
   margin:0 auto;
   padding:2mm 1mm 4mm 1mm;
   font-family:monospace;
-  font-size:9.5px;
+  font-size:10.5px;
   font-weight:400;
   line-height:1.30;
   color:#111;

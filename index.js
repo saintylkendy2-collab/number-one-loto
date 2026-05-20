@@ -5001,7 +5001,7 @@ function checkPrinter(){
       var p = printers[i];
 
       html +=
-      '<div onclick="connectPrinter(\'' + p.address + '\', \'' + p.name + '\')" ' +
+      '<div onclick="connectPrinter(\\'' + p.address + '\\', \\'' + p.name + '\\')" ' +
       'style="padding:14px;border-bottom:1px solid #eee;font-size:17px;cursor:pointer;">' +
       p.name +
       '</div>';

@@ -5468,43 +5468,62 @@ function closeVendorDrawer(){
 }
 
 (function(){
-  var pad = document.getElementById("keypad");
+  var pad = document.querySelector(".keypad");
   if(!pad) return;
 
-  var locked = false;
+  var lastRealAction = 0;
 
-  function runKey(el){
-    if(!el || !el.classList.contains("key")) return;
+  var oldPress = window.press;
+  var oldBack = window.backspaceKey;
+  var oldEnter = window.handleEnter;
 
-    var k = el.getAttribute("data-key");
-    var action = el.getAttribute("data-action");
+  window.press = function(v){
+    lastRealAction = Date.now();
+    return oldPress(v);
+  };
 
-    if(action === "backspace"){
-      backspaceKey();
+  window.backspaceKey = function(){
+    lastRealAction = Date.now();
+    return oldBack();
+  };
+
+  window.handleEnter = function(){
+    lastRealAction = Date.now();
+    return oldEnter();
+  };
+
+  function runFromKey(el){
+    if(!el) return;
+
+    var txt = (el.textContent || "").trim();
+
+    if(el.classList.contains("enter") || txt === "ENTER"){
+      oldEnter();
       return;
     }
 
-    if(action === "enter"){
-      handleEnter();
+    if(txt === "⌫" || txt.indexOf("⌫") >= 0){
+      oldBack();
       return;
     }
 
-    if(k !== null){
-      press(k);
+    if(txt){
+      oldPress(txt);
     }
   }
 
-  pad.addEventListener("pointerdown", function(e){
+  pad.addEventListener("touchend", function(e){
     var el = e.target.closest(".key");
     if(!el) return;
 
     e.preventDefault();
 
-    if(locked) return;
-    locked = true;
-    setTimeout(function(){ locked = false; }, 120);
+    if(Date.now() - lastRealAction < 180){
+      return;
+    }
 
-    runKey(el);
+    lastRealAction = Date.now();
+    runFromKey(el);
   }, {passive:false});
 })();
 

@@ -4987,13 +4987,6 @@ function checkPrinter(){
 
     if(printers.length <= 0){
 
-      printers.push({
-        name:"POS Internal Printer",
-        address:"INNER_PRINTER"
-      });
-
-    }
-
     var html = "";
 
     for(var i=0;i<printers.length;i++){

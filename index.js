@@ -5624,7 +5624,7 @@ body{
 
 .meta{
   margin-bottom:4px;
-  font-size:15px;
+  font-size:11px;
   font-weight:400;
   letter-spacing:0.2px;
 }
@@ -5636,7 +5636,7 @@ body{
 
 .tirage{
   font-weight:600;
-  font-size:10px;
+  font-size:16px;
   margin:5px 0 4px 0;
 }
 
@@ -5644,7 +5644,7 @@ body{
   display:grid;
   grid-template-columns: 22mm 9mm 11mm;
   column-gap:1mm;
-  font-size:15px;
+  font-size:13px;
   font-weight:400;
   line-height:1.30;
   letter-spacing:0.2px;
@@ -5656,7 +5656,7 @@ body{
 
 .total{
   font-weight:600;
-  font-size:15px;
+  font-size:17px;
   margin-top:5px;
 }
 </style>

@@ -5005,8 +5005,8 @@ function checkPrinter(){
       item.style.cursor = "pointer";
 
       item.innerHTML =
-        "<b>" + (p.name || "Printer") + "</b><br>" +
-        "<span style=\"font-size:14px;color:#777;\">" + (p.address || "") + "</span>";
+  "<b>" + (p.name || "Printer") + "</b><br>" +
+  "<span style='font-size:14px;color:#777;'>" + (p.address || "") + "</span>";
 
       item.onclick = function(){
         connectPrinter(p.address, p.name);

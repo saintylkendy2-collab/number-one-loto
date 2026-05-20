@@ -2155,6 +2155,17 @@ color:#000;
 font-size:22px;
 font-weight:700;
 }
+
+.keypad{
+position:relative;
+z-index:50;
+pointer-events:auto;
+}
+
+.key{
+pointer-events:auto;
+}
+
 .bottom-nav{
 height:54px;
 min-height:54px;
@@ -5455,6 +5466,48 @@ function closeVendorDrawer(){
   document.getElementById("sideMenu").classList.remove("open");
   document.getElementById("drawerOverlay").classList.remove("show");
 }
+
+(function(){
+  var pad = document.getElementById("keypad");
+  if(!pad) return;
+
+  var locked = false;
+
+  function runKey(el){
+    if(!el || !el.classList.contains("key")) return;
+
+    var k = el.getAttribute("data-key");
+    var action = el.getAttribute("data-action");
+
+    if(action === "backspace"){
+      backspaceKey();
+      return;
+    }
+
+    if(action === "enter"){
+      handleEnter();
+      return;
+    }
+
+    if(k !== null){
+      press(k);
+    }
+  }
+
+  pad.addEventListener("pointerdown", function(e){
+    var el = e.target.closest(".key");
+    if(!el) return;
+
+    e.preventDefault();
+
+    if(locked) return;
+    locked = true;
+    setTimeout(function(){ locked = false; }, 120);
+
+    runKey(el);
+  }, {passive:false});
+})();
+
 
 </script>
 </body>

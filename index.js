@@ -1886,24 +1886,13 @@ display:flex;
 flex-direction:column;
 }
 .topbar{
-height:56px;
-min-height:56px;
+height:60px;
+min-height:60px;
 background:#3452aa;
 color:#fff;
 display:grid;
-grid-template-columns:48px minmax(0,1fr) 128px;
+grid-template-columns:60px 1fr 150px;
 align-items:center;
-overflow:hidden;
-}
-
-.top-left,.top-right{
-min-width:0;
-}
-
-.top-right{
-justify-content:flex-end;
-padding-right:8px;
-gap:6px;
 }
 .top-left,.top-right{
 display:flex;
@@ -1930,37 +1919,6 @@ display:flex;
 flex-direction:column;
 overflow:hidden;
 }
-
-.icon-btn{
-cursor:pointer;
-display:flex;
-align-items:center;
-justify-content:center;
-min-width:32px;
-height:36px;
-font-size:20px;
-font-weight:800;
-}
-
-.print-btn{
-font-size:16px;
-}
-
-.wa-btn{
-background:#21c45a;
-color:white;
-border-radius:50%;
-width:34px;
-height:34px;
-font-size:13px;
-font-weight:900;
-}
-
-.more-btn{
-font-size:28px;
-line-height:1;
-}
-
 .page{
 flex:1;
 min-height:0;
@@ -2155,17 +2113,6 @@ color:#000;
 font-size:22px;
 font-weight:700;
 }
-
-.keypad{
-position:relative;
-z-index:50;
-pointer-events:auto;
-}
-
-.key{
-pointer-events:auto;
-}
-
 .bottom-nav{
 height:54px;
 min-height:54px;
@@ -2469,9 +2416,9 @@ border-right:1px solid #ddd;
 </div>
 <div class="top-title">${sellerName}</div>
 <div class="top-right">
-<span class="icon-btn print-btn" onclick="submitPrint()">PR</span>
-<span class="icon-btn wa-btn" onclick="shareWhatsApp()">WA</span>
-<span class="icon-btn more-btn" onclick="openOptions()">⋮</span>
+<span class="icon-btn" onclick="submitPrint()">🖨️</span>
+<span class="icon-btn" onclick="shareWhatsApp()">🟢</span>
+<span class="icon-btn" onclick="openOptions()">⋮</span>
 </div>
 </div>
 
@@ -3542,48 +3489,27 @@ function saveCurrentTicket(channel){
 }
 
 function submitPrint(){
-
   if(jeux.length === 0){
     alert("Pa gen jwèt pou enprime.");
     return;
   }
 
   saveCurrentTicket("PRINT").then(function(ticket){
+   if(!ticket || !ticket.id){
 
-    if(!ticket || !ticket.id){
+  if(ticket && ticket.message){
+    alert(ticket.message);
+  }
 
-      if(ticket && ticket.message){
-        alert(ticket.message);
-      }
+  return;
+}
 
-      return;
-    }
-
-    var printUrl =
-      location.origin +
+    window.location.href =
       "/print?ticketId=" + encodeURIComponent(ticket.id) +
       "&sellerId=" + encodeURIComponent(sellerId);
 
-    var printerType =
-      localStorage.getItem("NBL_PRINTER") || "POS_INTERNAL";
-
-    // POS / APK printer
-    if(window.AndroidPrinter && AndroidPrinter.printUrl){
-
-      AndroidPrinter.printUrl(
-        printUrl,
-        printerType
-      );
-
-    }else{
-
-      // fallback navigateur
-      window.open(printUrl, "_blank");
-    }
-
     loadBillets();
     resetAfterSend();
-
   }).catch(function(err){
     console.error(err);
     alert("Erreur impression");
@@ -5467,8 +5393,6 @@ function closeVendorDrawer(){
   document.getElementById("drawerOverlay").classList.remove("show");
 }
 
-
-
 </script>
 </body>
 </html>
@@ -5645,74 +5569,23 @@ const footerMessage =
 <meta charset="UTF-8">
 <title>Print</title>
 <style>
-@page{
-  size:58mm 152mm;
-  margin:0;
-}
-
-*{
-  box-sizing:border-box;
-}
-
+@page{ size:58mm auto; margin:0; }
 body{
-  width:46mm;
+  width:42mm;
   margin:0 auto;
-  padding:2mm 1mm 4mm 1mm;
   font-family:monospace;
-  font-size:9.5px;
-  font-weight:400;
-  line-height:1.30;
-  color:#111;
-  -webkit-print-color-adjust:exact;
-  print-color-adjust:exact;
-  text-rendering:optimizeLegibility;
-  
+  font-size:10px;
 }
-
-.title{
-  text-align:center;
-  font-weight:600;
-  font-size:17px;
-  margin:2px 0 5px 0;
-}
-
-.meta{
-  margin-bottom:4px;
-  font-size:11px;
-  font-weight:400;
-  letter-spacing:0.2px;
-}
-
-.line{
-  border-top:1px dashed #222;
-  margin:5px 0;
-}
-
-.tirage{
-  font-weight:600;
-  font-size:14px;
-  margin:5px 0 4px 0;
-}
-
+.title{text-align:center;font-weight:700;margin-bottom:4px;}
+.meta{margin-bottom:4px;}
+.line{border-top:1px dashed #000;margin:4px 0;}
+.tirage{font-weight:700;margin-top:4px;}
 .game-row{
   display:grid;
-  grid-template-columns: 22mm 9mm 11mm;
-  column-gap:1mm;
-  font-size:13px;
-  font-weight:400;
-  line-height:1.30;
-  letter-spacing:0.2px;
+  grid-template-columns:1fr 30px 40px;
 }
-
-.col-amt{
-  text-align:right;
-}
-
-.total{
-  font-weight:600;
-  font-size:15px;
-  margin-top:5px;
-}
+.col-amt{text-align:right;}
+.total{font-weight:700;margin-top:4px;}
 </style>
 </head>
 <body>

@@ -5592,7 +5592,7 @@ const footerMessage =
 <style>
 <style>
 @page{
-  size:58mm 152mm;
+  size:58mm auto;
   margin:0;
 }
 
@@ -5607,14 +5607,14 @@ body{
   font-family:monospace;
   font-size:9.5px;
   font-weight:400;
-  line-height:1.45;
+  line-height:1.30;
   color:#111;
   -webkit-print-color-adjust:exact;
   print-color-adjust:exact;
   text-rendering:optimizeLegibility;
   
 }
-
+  
 .title{
   text-align:center;
   font-weight:600;

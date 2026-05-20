@@ -5614,7 +5614,7 @@ body{
   text-rendering:optimizeLegibility;
   
 }
-  
+
 .title{
   text-align:center;
   font-weight:600;
@@ -5646,7 +5646,7 @@ body{
   column-gap:1mm;
   font-size:9.5px;
   font-weight:400;
-  line-height:1.45;
+  line-height:1.30;
   letter-spacing:0.2px;
 }
 

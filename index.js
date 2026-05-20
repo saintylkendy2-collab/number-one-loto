@@ -5652,25 +5652,30 @@ app.get("/print", async (req, res) => {
     }
 
     function lineGame(type, numero, montant){
-      var left = String(type || "").padEnd(13, " ");
-      var mid = String(numero || "").padStart(5, " ");
+      var left = String(type || "").padEnd(11, " ");
+      var mid = String(numero || "").padStart(8, " ");
       var right = String(montant || "").padStart(10, " ");
       return left + mid + right;
     }
 
-    let text = "";
+    let lotSeen = {};
+    let loteriesText = "";
 
-    text += "    NUMBER ONE LOTO" + NL;
-    text += "SELLER " + clean(sellerName) + NL;
-    text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
-    text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
-    text += "------------------------------" + NL;
+    (ticket.jeux || []).forEach(function(j){
+      const lot = String(j.loterie || j.loteria || "").trim().toUpperCase() || "SANS TIRAGE";
 
-    let currentLot = "";
+      if (!lotSeen[lot]) {
+        lotSeen[lot] = true;
+        loteriesText += clean(lot) + NL;
+      }
+    });
+
     const gameMap = {};
 
-    (ticket.jeux || []).forEach(j => {
-      if (j.gratis === true || j.free === true) return;
+    (ticket.jeux || []).forEach(function(j){
+      if (j.gratis === true || j.free === true) {
+        return;
+      }
 
       let typeRaw = String(j.type || "").toUpperCase();
       let numero = String(j.numero || "").trim();
@@ -5685,59 +5690,70 @@ app.get("/print", async (req, res) => {
 
       if (!gameMap[key]) {
         gameMap[key] = {
-          loterie,
-          type,
-          numero,
-          montant,
-          count: 0
+          type: type,
+          numero: numero,
+          montant: montant,
+          count: 0,
+          gratis: j.gratis === true,
+          free: j.free === true
         };
       }
 
       gameMap[key].count++;
     });
 
-    Object.values(gameMap).forEach(g => {
-      if (g.loterie !== currentLot) {
-        currentLot = g.loterie;
-        text += NL + clean(currentLot || "SANS TIRAGE") + NL;
-        text += "------------------------------" + NL;
-      }
+    let gamesText = "";
 
-      text += lineGame(
+    Object.values(gameMap).forEach(function(g){
+      let totalLine =
+        g.gratis || g.free
+          ? "Gratis"
+          : money(g.montant * g.count);
+
+      gamesText += lineGame(
         g.type,
         g.numero,
-        money(g.montant * g.count)
+        totalLine
       ) + NL;
     });
 
-    const freeGames = (ticket.jeux || []).filter(
-      j => j.gratis === true || j.free === true
-    );
+    const freeGames = (ticket.jeux || []).filter(function(j){
+      return j.gratis === true || j.free === true;
+    });
 
-    if (freeGames.length) {
-      let freeCurrentLot = "";
+    let freeText = "";
 
-      freeGames.forEach(j => {
-        let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase();
+    freeGames.forEach(function(j){
+      let typeRaw = String(j.type || "").toUpperCase();
 
-        if (loterie !== freeCurrentLot) {
-          freeCurrentLot = loterie;
-          text += NL + clean(freeCurrentLot || "SANS TIRAGE") + NL;
-          text += "------------------------------" + NL;
-        }
+      let type = typeRaw;
+      if (typeRaw === "BOR") type = "Borlette";
+      else if (typeRaw === "MAR") type = "Mariage";
 
-        let typeRaw = String(j.type || "").toUpperCase();
-        let type = typeRaw;
+      let numero = String(j.numero || "").trim();
 
-        if (typeRaw === "BOR") type = "Borlette";
-        else if (typeRaw === "MAR") type = "Mariage";
+      freeText += lineGame(
+        type,
+        numero,
+        "Gratis"
+      ) + NL;
+    });
 
-        text += lineGame(
-          type,
-          String(j.numero || "").trim(),
-          "Gratis"
-        ) + NL;
-      });
+    let text = "";
+
+    text += "      NUMBER ONE LOTO" + NL;
+    text += "SELLER " + clean(sellerName) + NL;
+    text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
+    text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
+    text += "------------------------------" + NL;
+
+    text += loteriesText;
+    text += "------------------------------" + NL;
+
+    text += gamesText;
+
+    if (freeText) {
+      text += freeText;
     }
 
     text += "------------------------------" + NL;
@@ -5759,15 +5775,10 @@ app.get("/print", async (req, res) => {
       '<style>' +
       '@page{size:58mm auto;margin:0;}' +
       'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}' +
-      'pre{white-space:pre-wrap;margin:0;font-family:monospace;}' +
+      'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:12px;}' +
       '</style>' +
       '</head>' +
       '<body>' +
-      (
-        APP_CONFIG.ticketLogo
-        ? '<div style="text-align:center;margin-bottom:2px;"><img src="' + APP_CONFIG.ticketLogo + '" style="width:90px;max-height:70px;object-fit:contain;"></div>'
-        : ''
-      ) +
       '<pre>' + clean(text) + '</pre>' +
       '</body>' +
       '</html>'

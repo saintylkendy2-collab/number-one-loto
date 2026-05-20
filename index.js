@@ -3506,46 +3506,45 @@ function submitPrint(){
       return;
     }
 
-    ticket.vendeurConfig = {
-      usarMensajeTicket: true,
-      mensajeTicket:
-        (sellerConfig && sellerConfig.mensajeTicket)
-        ? sellerConfig.mensajeTicket
-        : ""
-    };
+    var url =
+      "/print?ticketId=" + encodeURIComponent(ticket.id) +
+      "&sellerId=" + encodeURIComponent(sellerId);
 
-    var text = buildPrintableTextFromTicket(ticket);
+    fetch(url)
+      .then(function(r){
+        return r.text();
+      })
+      .then(function(html){
 
-    try{
+        var text = html
+          .replace(/<script[\s\S]*?<\/script>/gi, "")
+          .replace(/<style[\s\S]*?<\/style>/gi, "")
+          .replace(/<br\s*\/?>/gi, "\n")
+          .replace(/<\/div>/gi, "\n")
+          .replace(/<[^>]+>/g, "")
+          .replace(/&nbsp;/g, " ")
+          .replace(/&amp;/g, "&")
+          .replace(/\n\s+\n/g, "\n")
+          .trim();
 
-      if(
-        window.AndroidPrinter &&
-        typeof AndroidPrinter.printTicket === "function"
-      ){
+        if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
+          AndroidPrinter.printTicket(text);
+        }else{
+          alert("Printer Android pa disponible");
+        }
 
-        AndroidPrinter.printTicket(text);
+        loadBillets();
+        resetAfterSend();
 
-      } else {
-
-        alert("Printer Android pa disponible");
-
-      }
-
-    }catch(e){
-
-      console.error(e);
-      alert("Erreur impression");
-
-    }
-
-    loadBillets();
-    resetAfterSend();
+      })
+      .catch(function(err){
+        console.log(err);
+        alert("Erreur impression");
+      });
 
   }).catch(function(err){
-
-    console.error(err);
+    console.log(err);
     alert("Erreur impression");
-
   });
 }
 

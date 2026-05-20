@@ -5541,7 +5541,7 @@ app.get("/print", async (req, res) => {
 
 <style>
 @page{
-  size:58mm 300mm;
+  size:58mm 120mm;
   margin:0;
 }
 

@@ -5644,7 +5644,7 @@ body{
   display:grid;
   grid-template-columns: 22mm 9mm 11mm;
   column-gap:1mm;
-  font-size:11px;
+  font-size:15px;
   font-weight:400;
   line-height:1.30;
   letter-spacing:0.2px;

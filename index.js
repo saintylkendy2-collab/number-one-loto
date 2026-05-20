@@ -4966,20 +4966,6 @@ function connectPrinter(address, name){
   alert("Imprimante konekte : " + name);
 }
 
-function testPrinter(){
-
-  var text = "";
-  text += "NUMBER ONE LOTO\n";
-  text += "TEST IMPRESSION\n";
-  text += "----------------------\n";
-  text += "Printer OK\n\n\n";
-
-  if(typeof AndroidPrinter !== "undefined" && AndroidPrinter.printTicket){
-    AndroidPrinter.printTicket(text);
-  }else{
-    alert("AndroidPrinter pa konekte.");
-  }
-}
 
 /* ===== AJOUTE KALANDRIYE SOU LIS BIYÈ YO SAN CHANJE renderBillets() ===== */
 (function(){

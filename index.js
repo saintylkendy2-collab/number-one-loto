@@ -2467,9 +2467,9 @@ border-right:1px solid #ddd;
 </div>
 <div class="top-title">${sellerName}</div>
 <div class="top-right">
-<span class="icon-btn" onclick="submitPrint()">🖨️</span>
-<span class="icon-btn" onclick="shareWhatsApp()">🟢</span>
-<span class="icon-btn" onclick="openOptions()">⋮</span>
+<span class="icon-btn print-btn" onclick="submitPrint()">PR</span>
+<span class="icon-btn wa-btn" onclick="shareWhatsApp()">WA</span>
+<span class="icon-btn more-btn" onclick="openOptions()">⋮</span>
 </div>
 </div>
 

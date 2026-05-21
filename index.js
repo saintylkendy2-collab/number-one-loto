@@ -2175,9 +2175,23 @@ align-items:center;
 text-align:center;
 font-size:15px;
 }
+
+padding-bottom:4px;
+position:relative;
+z-index:20000;
+}
+
 .nav-item{
 cursor:pointer;
 padding:4px 2px;
+}
+
+.bottom-nav *{
+pointer-events:auto !important;
+}
+
+.keypad{
+z-index:1 !important;
 }
 .nav-item.active{
 color:#7a6bf2;

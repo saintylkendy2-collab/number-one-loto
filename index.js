@@ -4150,60 +4150,24 @@ if(!loterieHtml){
     '</div>';
 }
 
-  box.innerHTML =
-  '<div style="height:100%;display:flex;flex-direction:column;background:#f5f5f5;">' +
-
-    '<div style="height:58px;min-height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;">' +
-      '<button id="rapportBackBtn" type="button" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">←</button>' +
-      '<div style="font-size:22px;font-weight:700;">Rapports</div>' +
-      '<div style="display:flex;gap:18px;align-items:center;">' +
-        '<button id="rapportPrintBtn" type="button" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">🖨️</button>' +
-        '<button id="rapportRefreshBtn" type="button" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;">↻</button>' +
-      '</div>' +
-    '</div>' +
-
-    '<div style="padding:14px;overflow:auto;flex:1;">' +
-
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">' +
-        '<input id="rapportDateStart" type="date" value="' + startValue + '" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
-        '<input id="rapportDateEnd" type="date" value="' + endValue + '" style="width:100%;border:none;border-bottom:1px solid #999;background:transparent;padding:10px 0;font-size:18px;outline:none;">' +
-      '</div>' +
-
-      '<div style="background:#fff;padding:18px 16px;margin-bottom:18px;">' +
-  '<div style="display:grid;grid-template-columns:1fr 1fr;row-gap:8px;font-size:18px;line-height:1.5;">' +
-    '<div style="text-align:center;font-weight:700;">Ventes</div><div style="text-align:center;font-weight:700;">' + Number(vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
-    '<div style="text-align:center;font-weight:700;">Prix</div><div style="text-align:center;font-weight:700;">' + Number(prime || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
-    '<div style="text-align:center;font-weight:700;">Commission</div><div style="text-align:center;font-weight:700;">' + Number(commission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
-    '<div style="text-align:center;font-weight:700;">Résultat</div><div style="text-align:center;font-weight:700;">' + Number(resultat || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>' +
-  '</div>' +
-'</div>' +
-
-      '<div style="background:#fff;padding:18px 16px;margin-bottom:18px;text-align:center;">' +
-        '<div style="font-size:22px;font-weight:700;margin-bottom:18px;">RESUMEN POR DÍA</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:14px;">' +
-          '<div>VENTE</div>' +
-          '<div>PRIME</div>' +
-          '<div>BALANCE</div>' +
-        '</div>' +
-        daysHtml +
-      '</div>' +
-
-      '<div style="background:#fff;padding:18px 16px;text-align:center;">' +
-        '<div style="font-size:22px;font-weight:700;margin-bottom:18px;">RESUMEN POR LOTERÍA</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:18px;margin-bottom:14px;">' +
-          '<div>VENTE</div>' +
-          '<div>PRIME</div>' +
-          '<div>BALANCE</div>' +
-        '</div>' +
-        loterieHtml +
-      '</div>' +
-
-    '</div>' +
-  '</div>';
-
-var backBtn = document.getElementById("rapportBackBtn");
+  var backBtn = document.getElementById("rapportBackBtn");
 var refreshBtn = document.getElementById("rapportRefreshBtn");
 var printBtn = document.getElementById("rapportPrintBtn");
+
+function fm(v){
+  return Number(v || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function right(v, n){
+  v = String(v || "");
+  while(v.length < n){
+    v = " " + v;
+  }
+  return v;
+}
 
 if(backBtn){
   backBtn.onclick = function(){
@@ -4240,10 +4204,10 @@ if(printBtn){
     text += "   " + startValue + " / " + endValue + NL;
     text += "     [ " + printDate + " " + printTime + " ]" + NL;
     text += "------------------------------" + NL;
-    text += "| Ventes     " + String(totalVente || "0.00").padStart(12, " ") + " |" + NL;
-    text += "| Prix       " + String(totalPrix || "0.00").padStart(12, " ") + " |" + NL;
-    text += "| Commission " + String(totalCommission || "0.00").padStart(12, " ") + " |" + NL;
-    text += "| Balance    " + String(totalResultat || "0.00").padStart(12, " ") + " |" + NL;
+    text += "| Ventes     " + right(fm(vente), 12) + " |" + NL;
+    text += "| Prix       " + right(fm(prime), 12) + " |" + NL;
+    text += "| Commission " + right(fm(commission), 12) + " |" + NL;
+    text += "| Balance    " + right(fm(resultat), 12) + " |" + NL;
     text += "------------------------------" + NL;
 
     if(window.AndroidPrinter && AndroidPrinter.printTicket){

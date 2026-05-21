@@ -4206,21 +4206,6 @@ var backBtn = document.getElementById("rapportBackBtn");
 var refreshBtn = document.getElementById("rapportRefreshBtn");
 var printBtn = document.getElementById("rapportPrintBtn");
 
-function fm(v){
-  return Number(v || 0).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
-
-function right(v, n){
-  v = String(v || "");
-  while(v.length < n){
-    v = " " + v;
-  }
-  return v;
-}
-
 if(backBtn){
   backBtn.onclick = function(){
     switchPage("billetsPage", document.getElementById("nav-billets"));
@@ -4236,6 +4221,8 @@ if(refreshBtn){
 if(printBtn){
   printBtn.onclick = function(){
 
+    var NL = String.fromCharCode(10);
+
     var now = new Date();
 
     var printDate =
@@ -4247,7 +4234,12 @@ if(printBtn){
       String(now.getHours()).padStart(2, "0") + ":" +
       String(now.getMinutes()).padStart(2, "0");
 
-    var NL = String.fromCharCode(10);
+    function fm(v){
+      return Number(v || 0).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
 
     var text = "";
     text += "       NUMBER ONE LOTO" + NL;
@@ -4256,10 +4248,10 @@ if(printBtn){
     text += "   " + startValue + " / " + endValue + NL;
     text += "     [ " + printDate + " " + printTime + " ]" + NL;
     text += "------------------------------" + NL;
-    text += "| Ventes     " + right(fm(vente), 12) + " |" + NL;
-    text += "| Prix       " + right(fm(prime), 12) + " |" + NL;
-    text += "| Commission " + right(fm(commission), 12) + " |" + NL;
-    text += "| Balance    " + right(fm(resultat), 12) + " |" + NL;
+    text += "Ventes:     " + fm(vente) + NL;
+    text += "Prix:       " + fm(prime) + NL;
+    text += "Commission: " + fm(commission) + NL;
+    text += "Balance:    " + fm(resultat) + NL;
     text += "------------------------------" + NL;
 
     if(window.AndroidPrinter && AndroidPrinter.printTicket){

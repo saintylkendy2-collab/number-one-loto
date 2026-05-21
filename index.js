@@ -4219,36 +4219,55 @@ if(!loterieHtml){
     });
   }
 
-  if(printBtn){
-  printBtn.addEventListener("click", function(){
+if(printBtn){
+
+  var newPrintBtn = printBtn.cloneNode(true);
+  printBtn.parentNode.replaceChild(newPrintBtn, printBtn);
+  printBtn = newPrintBtn;
+
+  printBtn.onclick = function(){
+
     var now = new Date();
 
-    window.open(
+    var printDate =
+      String(now.getDate()).padStart(2, "0") + "/" +
+      String(now.getMonth() + 1).padStart(2, "0") + "/" +
+      now.getFullYear();
+
+    var printTime =
+      String(now.getHours()).padStart(2, "0") + ":" +
+      String(now.getMinutes()).padStart(2, "0");
+
+    var url =
       "/print-report?sellerId=" + encodeURIComponent(sellerId) +
       "&start=" + encodeURIComponent(startValue) +
       "&end=" + encodeURIComponent(endValue) +
-      "&date=" + encodeURIComponent(now.toLocaleDateString("fr-FR")) +
-      "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
-        hour: "2-digit",
-        minute: "2-digit"
-      })),
-      "_blank"
-    );
-  });
+      "&date=" + encodeURIComponent(printDate) +
+      "&time=" + encodeURIComponent(printTime);
+
+    fetch(url)
+      .then(function(r){
+        return r.text();
+      })
+      .then(function(html){
+        var doc = new DOMParser().parseFromString(html, "text/html");
+        var text = doc.body.innerText.trim();
+
+        if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
+          AndroidPrinter.printTicket(text);
+        }else{
+          alert("Printer Android pa disponible");
+        }
+      })
+      .catch(function(err){
+        console.error(err);
+        alert("Erreur impression rapport");
+      });
+
+  };
+
 }
 
-  if(startInput){
-    startInput.addEventListener("change", function(){
-      renderRapports();
-    });
-  }
-
-  if(endInput){
-    endInput.addEventListener("change", function(){
-      renderRapports();
-    });
-  }
-}
 
 function updateTicketStatus(id, status, premio){
  fetch("/api/ticket-status", {
@@ -5860,10 +5879,10 @@ app.get("/print-report", async (req, res) => {
     }
 
     function row(label, value) {
-      var left = "| " + String(label || "").padEnd(12, " ");
-      var right = String(value || "").padStart(12, " ") + " |";
-      return left + right;
-    }
+  var left = "| " + String(label || "").padEnd(10, " ");
+  var right = String(value || "").padStart(10, " ") + " |";
+  return left + right;
+}
 
     const vendeur = await Vendor.findOne({ id: sellerId }).lean();
 
@@ -5925,8 +5944,8 @@ app.get("/print-report", async (req, res) => {
       '<title>Rapport</title>' +
       '<style>' +
       '@page{size:58mm auto;margin:0;}' +
-      'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}' +
-      'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:12px;}' +
+      'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:10px;color:#000;}' +
+'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:10px;}' +
       '</style>' +
       '</head>' +
       '<body>' +

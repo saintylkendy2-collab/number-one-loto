@@ -3676,11 +3676,28 @@ function rePrintTicket(ticketId){
     return;
   }
 
-  window.open(
+  var printUrl =
     "/print?ticketId=" + encodeURIComponent(ticketId) +
-    "&sellerId=" + encodeURIComponent(sellerId),
-    "_blank"
-  );
+    "&sellerId=" + encodeURIComponent(sellerId);
+
+  fetch(printUrl)
+    .then(function(r){
+      return r.text();
+    })
+    .then(function(html){
+      var doc = new DOMParser().parseFromString(html, "text/html");
+      var text = doc.body.innerText.trim();
+
+      if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
+        AndroidPrinter.printTicket(text);
+      }else{
+        alert("Printer Android pa disponible");
+      }
+    })
+    .catch(function(err){
+      console.error(err);
+      alert("Erreur impression");
+    });
 }
 
 

@@ -4245,8 +4245,18 @@ if(printBtn){
         return r.text();
       })
       .then(function(html){
-        var doc = new DOMParser().parseFromString(html, "text/html");
-        var text = doc.body.innerText.trim();
+        var startTag = "<pre>";
+var endTag = "</pre>";
+var a = html.indexOf(startTag);
+var b = html.indexOf(endTag);
+
+var text = "";
+
+if(a >= 0 && b > a){
+  text = html.substring(a + startTag.length, b).trim();
+}else{
+  text = html.trim();
+}
 
         if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
           AndroidPrinter.printTicket(text);

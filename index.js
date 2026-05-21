@@ -4201,26 +4201,26 @@ if(!loterieHtml){
     '</div>' +
   '</div>';
 
-    var backBtn = document.getElementById("rapportBackBtn");
-  var refreshBtn = document.getElementById("rapportRefreshBtn");
-  var printBtn = document.getElementById("rapportPrintBtn");
-  var startInput = document.getElementById("rapportDateStart");
-  var endInput = document.getElementById("rapportDateEnd");
+var backBtn = document.getElementById("rapportBackBtn");
+var refreshBtn = document.getElementById("rapportRefreshBtn");
+var printBtn = document.getElementById("rapportPrintBtn");
+var startInput = document.getElementById("rapportDateStart");
+var endInput = document.getElementById("rapportDateEnd");
 
-  if(backBtn){
-    backBtn.addEventListener("click", function(){
-      switchPage("billetsPage", document.getElementById("nav-billets"));
-    });
-  }
+if(backBtn){
+  backBtn.addEventListener("click", function(){
+    switchPage("billetsPage", document.getElementById("nav-billets"));
+  });
+}
 
-  if(refreshBtn){
-    refreshBtn.addEventListener("click", function(){
-      loadBillets();
-    });
-  }
+if(refreshBtn){
+  refreshBtn.addEventListener("click", function(){
+    loadBillets();
+  });
+}
 
-
- printBtn.onclick = function(){
+if(printBtn){
+  printBtn.onclick = function(){
 
     var now = new Date();
 
@@ -4246,17 +4246,17 @@ if(!loterieHtml){
       })
       .then(function(html){
         var startTag = "<pre>";
-var endTag = "</pre>";
-var a = html.indexOf(startTag);
-var b = html.indexOf(endTag);
+        var endTag = "</pre>";
+        var a = html.indexOf(startTag);
+        var b = html.indexOf(endTag);
 
-var text = "";
+        var text = "";
 
-if(a >= 0 && b > a){
-  text = html.substring(a + startTag.length, b).trim();
-}else{
-  text = html.trim();
-}
+        if(a >= 0 && b > a){
+          text = html.substring(a + startTag.length, b).trim();
+        }else{
+          text = html.trim();
+        }
 
         if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
           AndroidPrinter.printTicket(text);

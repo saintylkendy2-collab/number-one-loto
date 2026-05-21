@@ -1734,10 +1734,10 @@ app.post("/api/ticket-status", async (req, res) => {
       const createdAt = new Date(ticket.createdAt || Date.now()).getTime();
       const diffMinutes = (Date.now() - createdAt) / 60000;
 
-      if (diffMinutes > 20) {
+      if (diffMinutes > 10) {
         return res.json({
           ok: false,
-          message: "Ou pa ka anile ticket sa ankò. 20 minit yo pase."
+          message: "Ou pa ka anile ticket sa ankò. 10 minit yo pase."
         });
       }
 
@@ -1913,6 +1913,14 @@ min-width:0;
 justify-content:flex-end;
 padding-right:8px;
 gap:6px;
+}
+.top-left,.top-right{
+display:flex;
+align-items:center;
+justify-content:center;
+gap:12px;
+font-size:24px;
+user-select:none;
 }
 .top-title{
 text-align:center;

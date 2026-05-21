@@ -5671,8 +5671,10 @@ app.get("/print", async (req, res) => {
     });
 
     const gameMap = {};
+    let gamesText = "";
 
     (ticket.jeux || []).forEach(function(j){
+
       if (j.gratis === true || j.free === true) {
         return;
       }
@@ -5693,27 +5695,18 @@ app.get("/print", async (req, res) => {
           type: type,
           numero: numero,
           montant: montant,
-          count: 0,
-          gratis: j.gratis === true,
-          free: j.free === true
+          count: 0
         };
       }
 
       gameMap[key].count++;
     });
 
-    let gamesText = "";
-
     Object.values(gameMap).forEach(function(g){
-      let totalLine =
-        g.gratis || g.free
-          ? "Gratis"
-          : money(g.montant * g.count);
-
       gamesText += lineGame(
         g.type,
         g.numero,
-        totalLine
+        money(g.montant * g.count)
       ) + NL;
     });
 
@@ -5721,27 +5714,47 @@ app.get("/print", async (req, res) => {
       return j.gratis === true || j.free === true;
     });
 
+    let freeMap = {};
     let freeText = "";
 
     freeGames.forEach(function(j){
-      let typeRaw = String(j.type || "").toUpperCase();
+      let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase() || "SANS TIRAGE";
 
-      let type = typeRaw;
-      if (typeRaw === "BOR") type = "Borlette";
-      else if (typeRaw === "MAR") type = "Mariage";
+      if (!freeMap[loterie]) {
+        freeMap[loterie] = [];
+      }
 
-      let numero = String(j.numero || "").trim();
+      freeMap[loterie].push(j);
+    });
 
-      freeText += lineGame(
-        type,
-        numero,
-        "Gratis"
-      ) + NL;
+    Object.keys(freeMap).forEach(function(loterie){
+
+      freeText += NL + clean(loterie) + NL;
+      freeText += "------------------------------" + NL;
+
+      freeMap[loterie].forEach(function(j){
+
+        let typeRaw = String(j.type || "").toUpperCase();
+
+        let type = typeRaw;
+        if (typeRaw === "BOR") type = "Borlette";
+        else if (typeRaw === "MAR") type = "Mariage";
+
+        let numero = String(j.numero || "").trim();
+
+        freeText += lineGame(
+          type,
+          numero,
+          "Gratis"
+        ) + NL;
+
+      });
+
     });
 
     let text = "";
 
-    text += "         NUMBER ONE LOTO" + NL;
+    text += "       NUMBER ONE LOTO" + NL;
     text += "SELLER " + clean(sellerName) + NL;
     text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
     text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
@@ -5774,8 +5787,8 @@ app.get("/print", async (req, res) => {
       '<title>Print</title>' +
       '<style>' +
       '@page{size:58mm auto;margin:0;}' +
-      'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:17px;color:#000;}' +
-'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:17px;line-height:1.25;}' +
+      'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}' +
+      'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:12px;}' +
       '</style>' +
       '</head>' +
       '<body>' +

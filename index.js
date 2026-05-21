@@ -4201,7 +4201,7 @@ if(!loterieHtml){
     '</div>' +
   '</div>';
 
-  var backBtn = document.getElementById("rapportBackBtn");
+    var backBtn = document.getElementById("rapportBackBtn");
   var refreshBtn = document.getElementById("rapportRefreshBtn");
   var printBtn = document.getElementById("rapportPrintBtn");
   var startInput = document.getElementById("rapportDateStart");
@@ -4218,6 +4218,37 @@ if(!loterieHtml){
       loadBillets();
     });
   }
+
+  if(printBtn){
+  printBtn.addEventListener("click", function(){
+    var now = new Date();
+
+    window.open(
+      "/print-report?sellerId=" + encodeURIComponent(sellerId) +
+      "&start=" + encodeURIComponent(startValue) +
+      "&end=" + encodeURIComponent(endValue) +
+      "&date=" + encodeURIComponent(now.toLocaleDateString("fr-FR")) +
+      "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      })),
+      "_blank"
+    );
+  });
+}
+
+  if(startInput){
+    startInput.addEventListener("change", function(){
+      renderRapports();
+    });
+  }
+
+  if(endInput){
+    endInput.addEventListener("change", function(){
+      renderRapports();
+    });
+  }
+}
 
 
 
@@ -5781,7 +5812,137 @@ app.get("/print", async (req, res) => {
 });
 
 
+app.get("/print-report", async (req, res) => {
+  try {
+    const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
+    const start = String(req.query.start || "").trim();
+    const end = String(req.query.end || "").trim();
 
+    const printDate = String(req.query.date || "").trim();
+    const printTime = String(req.query.time || "").trim();
+
+    function money(v) {
+      if (v === null || v === undefined) return 0;
+      const n = Number(String(v).replace(/,/g, "").trim());
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function formatFRDateInput(iso) {
+      if (!iso) return "";
+      const p = String(iso).split("-");
+      if (p.length !== 3) return iso;
+      return p[2] + "/" + p[1] + "/" + p[0];
+    }
+
+    function ticketDay(t) {
+      if (t.dateLabel) {
+        const p = String(t.dateLabel).split("/");
+        if (p.length === 3) {
+          return p[2] + "-" + p[1].padStart(2, "0") + "-" + p[0].padStart(2, "0");
+        }
+      }
+
+      const d = new Date(t.createdAt || Date.now());
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+    }
+
+    const vendeur = await Vendor.findOne({ id: sellerId }).lean();
+
+    const sellerName = String(
+      vendeur?.nom || vendeur?.nombre || sellerId || "SELLER"
+    );
+
+    const tickets = await Ticket.find({ vendeur: sellerId }).lean();
+
+    let vente = 0;
+    let prix = 0;
+
+    tickets.forEach(t => {
+      const d = ticketDay(t);
+      if (start && d < start) return;
+      if (end && d > end) return;
+
+      const st = normalizeStatus(t.status);
+      if (st === "ANILE") return;
+
+      vente += money(t.total);
+
+      if (st === "GANYE") {
+        prix += money(t.premio);
+      }
+    });
+
+    const rate = money(
+      vendeur?.comision?.general ??
+      vendeur?.comisionGeneral ??
+      vendeur?.com_general ??
+      0
+    );
+
+    const commission = (vente * rate) / 100;
+    const resultat = vente - prix - commission;
+
+    res.set("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Rapport</title>
+<style>
+@page{ size:58mm auto; margin:0; }
+html,body{ margin:0; padding:0; background:#fff; }
+body{
+  width:42mm;
+  margin:0 auto;
+  padding:1mm;
+  font-family:monospace;
+  font-size:9px;
+  color:#000;
+  line-height:1.2;
+}
+.title{ text-align:center; font-size:10px; font-weight:700; margin-bottom:3px; }
+.center{text-align:center;}
+.line{ border-top:1px dashed #000; margin:4px 0; }
+.row{ display:grid; grid-template-columns:1fr auto; gap:4px; margin:3px 0; }
+.boxline{ border-top:1px dashed #000; border-bottom:1px dashed #000; padding:4px 0; }
+</style>
+</head>
+<body>
+  <div class="title">NUMBER ONE LOTO</div>
+  <div class="center">RAPPORT</div>
+  <div class="center">${sellerName}</div>
+  <div class="center">${formatFRDateInput(start)} / ${formatFRDateInput(end)}</div>
+  <div class="center">[ ${printDate} ${printTime} ]</div>
+
+  <div class="line"></div>
+
+ <div class="boxline">
+  <div class="row"><span>| Ventes</span><b>${Number(vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Prix</span><b>${Number(prix || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Commission</span><b>${Number(commission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Balance</span><b>${Number(resultat || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+</div>
+
+<script>
+setTimeout(function(){
+  try{ window.print(); }catch(e){}
+},300);
+</script>
+</body>
+</html>
+    `);
+
+  } catch (err) {
+    console.error("Erreur print-report:", err);
+    res.status(500).send("Erreur rapport");
+  }
+});
 
 app.get("/api/reportes/tickets", async (req, res) => {
   try {

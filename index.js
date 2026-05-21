@@ -4201,54 +4201,70 @@ if(!loterieHtml){
     '</div>' +
   '</div>';
 
-  var backBtn = document.getElementById("rapportBackBtn");
-  var refreshBtn = document.getElementById("rapportRefreshBtn");
-  var printBtn = document.getElementById("rapportPrintBtn");
-  var startInput = document.getElementById("rapportDateStart");
-  var endInput = document.getElementById("rapportDateEnd");
 
-  if(backBtn){
-    backBtn.addEventListener("click", function(){
-      switchPage("billetsPage", document.getElementById("nav-billets"));
-    });
-  }
+var backBtn = document.getElementById("rapportBackBtn");
+var refreshBtn = document.getElementById("rapportRefreshBtn");
+var printBtn = document.getElementById("rapportPrintBtn");
 
-  if(refreshBtn){
-    refreshBtn.addEventListener("click", function(){
-      loadBillets();
-    });
-  }
+if(backBtn){
+  backBtn.onclick = function(){
+    switchPage("billetsPage", document.getElementById("nav-billets"));
+  };
+}
 
-  if(printBtn){
-  printBtn.addEventListener("click", function(){
+if(refreshBtn){
+  refreshBtn.onclick = function(){
+    loadBillets();
+  };
+}
+
+if(printBtn){
+  printBtn.onclick = function(){
+
+    var NL = String.fromCharCode(10);
+
     var now = new Date();
 
-    window.open(
-      "/print-report?sellerId=" + encodeURIComponent(sellerId) +
-      "&start=" + encodeURIComponent(startValue) +
-      "&end=" + encodeURIComponent(endValue) +
-      "&date=" + encodeURIComponent(now.toLocaleDateString("fr-FR")) +
-      "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
-        hour: "2-digit",
-        minute: "2-digit"
-      })),
-      "_blank"
-    );
-  });
+    var printDate =
+      String(now.getDate()).padStart(2, "0") + "/" +
+      String(now.getMonth() + 1).padStart(2, "0") + "/" +
+      now.getFullYear();
+
+    var printTime =
+      String(now.getHours()).padStart(2, "0") + ":" +
+      String(now.getMinutes()).padStart(2, "0");
+
+    function fm(v){
+      return Number(v || 0).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    var text = "";
+    text += "       NUMBER ONE LOTO" + NL;
+    text += "            RAPPORT" + NL;
+    text += "            " + sellerName + NL;
+    text += "   " + startValue + " / " + endValue + NL;
+    text += "     [ " + printDate + " " + printTime + " ]" + NL;
+    text += "------------------------------" + NL;
+    text += "Ventes:     " + fm(vente) + NL;
+    text += "Prix:       " + fm(prime) + NL;
+    text += "Commission: " + fm(commission) + NL;
+    text += "Balance:    " + fm(resultat) + NL;
+    text += "------------------------------" + NL;
+
+    if(window.AndroidPrinter && AndroidPrinter.printTicket){
+      AndroidPrinter.printTicket(text);
+    }else{
+      alert("Printer Android pa disponible");
+    }
+
+  };
 }
 
-  if(startInput){
-    startInput.addEventListener("change", function(){
-      renderRapports();
-    });
-  }
 
-  if(endInput){
-    endInput.addEventListener("change", function(){
-      renderRapports();
-    });
-  }
-}
+
 
 
 
@@ -5815,21 +5831,14 @@ app.get("/print-report", async (req, res) => {
     const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
     const start = String(req.query.start || "").trim();
     const end = String(req.query.end || "").trim();
+
     const printDate = String(req.query.date || "").trim();
     const printTime = String(req.query.time || "").trim();
-    const NL = String.fromCharCode(10);
 
     function money(v) {
       if (v === null || v === undefined) return 0;
       const n = Number(String(v).replace(/,/g, "").trim());
       return Number.isFinite(n) ? n : 0;
-    }
-
-    function formatMoney(v) {
-      return Number(v || 0).toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
     }
 
     function formatFRDateInput(iso) {
@@ -5851,19 +5860,6 @@ app.get("/print-report", async (req, res) => {
       return d.getFullYear() + "-" +
         String(d.getMonth() + 1).padStart(2, "0") + "-" +
         String(d.getDate()).padStart(2, "0");
-    }
-
-    function clean(v) {
-      return String(v || "")
-        .replace(/</g, "")
-        .replace(/>/g, "")
-        .replace(/&/g, "and");
-    }
-
-    function row(label, value) {
-      var left = "| " + String(label || "").padEnd(12, " ");
-      var right = String(value || "").padStart(12, " ") + " |";
-      return left + right;
     }
 
     const vendeur = await Vendor.findOne({ id: sellerId }).lean();
@@ -5902,39 +5898,59 @@ app.get("/print-report", async (req, res) => {
     const commission = (vente * rate) / 100;
     const resultat = vente - prix - commission;
 
-    let text = "";
-
-    text += "       NUMBER ONE LOTO" + NL;
-    text += "            RAPPORT" + NL;
-    text += "            " + clean(sellerName) + NL;
-    text += "   " + formatFRDateInput(start) + " / " + formatFRDateInput(end) + NL;
-    text += "     [ " + clean(printDate) + " " + clean(printTime) + " ]" + NL;
-    text += "------------------------------" + NL;
-    text += row("Ventes", formatMoney(vente)) + NL;
-    text += row("Prix", formatMoney(prix)) + NL;
-    text += row("Commission", formatMoney(commission)) + NL;
-    text += row("Balance", formatMoney(resultat)) + NL;
-    text += "------------------------------" + NL;
-
     res.set("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Rapport</title>
+<style>
+@page{ size:58mm auto; margin:0; }
+html,body{ margin:0; padding:0; background:#fff; }
+body{
+  width:42mm;
+  margin:0 auto;
+  padding:1mm;
+  font-family:monospace;
+  font-size:9px;
+  color:#000;
+  line-height:1.2;
+}
+.title{ text-align:center; font-size:10px; font-weight:700; margin-bottom:3px; }
+.center{text-align:center;}
+.line{ border-top:1px dashed #000; margin:4px 0; }
+.row{ display:grid; grid-template-columns:1fr auto; gap:4px; margin:3px 0; }
+.boxline{ border-top:1px dashed #000; border-bottom:1px dashed #000; padding:4px 0; }
+</style>
+</head>
+<body>
+  <div class="title">NUMBER ONE LOTO</div>
+  <div class="center">RAPPORT</div>
+  <div class="center">${sellerName}</div>
+  <div class="center">${formatFRDateInput(start)} / ${formatFRDateInput(end)}</div>
+  <div class="center">[ ${printDate} ${printTime} ]</div>
 
-    res.send(
-      '<!DOCTYPE html>' +
-      '<html>' +
-      '<head>' +
-      '<meta charset="UTF-8">' +
-      '<title>Rapport</title>' +
-      '<style>' +
-      '@page{size:58mm auto;margin:0;}' +
-      'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}' +
-      'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:12px;}' +
-      '</style>' +
-      '</head>' +
-      '<body>' +
-      '<pre>' + clean(text) + '</pre>' +
-      '</body>' +
-      '</html>'
-    );
+  <div class="line"></div>
+
+ <div class="boxline">
+  <div class="row"><span>| Ventes</span><b>${Number(vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Prix</span><b>${Number(prix || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Commission</span><b>${Number(commission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Balance</span><b>${Number(resultat || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+</div>
+
+<script>
+setTimeout(function(){
+  try{ window.print(); }catch(e){}
+},300);
+</script>
+</body>
+</html>
+    `);
 
   } catch (err) {
     console.error("Erreur print-report:", err);

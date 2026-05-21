@@ -2467,16 +2467,28 @@ border-right:1px solid #ddd;
 </div>
 <div class="top-title">${sellerName}</div>
 <div class="top-right">
-<span class="icon-btn print-btn" onclick="submitPrint()">PR</span>
 
-<span class="icon-btn wa-btn" onclick="shareWhatsApp()">
-<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32" fill="currentColor">
-<path d="M19.11 17.2c-.29-.14-1.7-.84-1.96-.93-.26-.1-.45-.14-.64.14-.19.29-.74.93-.91 1.12-.17.19-.33.22-.62.07-.29-.14-1.21-.45-2.3-1.44-.85-.76-1.42-1.69-1.59-1.98-.17-.29-.02-.45.12-.6.13-.13.29-.33.43-.5.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.5-.07-.14-.64-1.55-.88-2.12-.23-.55-.47-.48-.64-.49h-.55c-.19 0-.5.07-.76.36-.26.29-1 1-.1 2.43.9 1.43 2.57 3.5 6.2 4.91.86.37 1.53.59 2.06.75.87.28 1.66.24 2.29.15.7-.1 1.7-.69 1.94-1.36.24-.67.24-1.24.17-1.36-.07-.12-.26-.19-.55-.33z"/>
-<path d="M16 3C8.82 3 3 8.82 3 16c0 2.54.74 4.91 2 6.91L3 29l6.28-1.95A12.94 12.94 0 0 0 16 29c7.18 0 13-5.82 13-13S23.18 3 16 3zm0 23.5c-2.06 0-4-.6-5.64-1.63l-.4-.25-3.73 1.16 1.22-3.64-.26-.42A10.42 10.42 0 0 1 5.5 16C5.5 10.2 10.2 5.5 16 5.5S26.5 10.2 26.5 16 21.8 26.5 16 26.5z"/>
+<span class="icon-btn" onclick="submitPrint()">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+viewBox="0 0 24 24" fill="none" stroke="currentColor"
+stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+<polyline points="6 9 6 2 18 2 18 9"></polyline>
+<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+<rect x="6" y="14" width="12" height="8"></rect>
 </svg>
 </span>
 
-<span class="icon-btn more-btn" onclick="openOptions()">⋮</span>
+<span class="icon-btn" onclick="shareWhatsApp()">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+viewBox="0 0 32 32" fill="none" stroke="currentColor"
+stroke-width="2.2">
+<path d="M16 3C8.82 3 3 8.82 3 16c0 2.54.74 4.91 2 6.91L3 29l6.28-1.95A12.94 12.94 0 0 0 16 29c7.18 0 13-5.82 13-13S23.18 3 16 3z"/>
+<path d="M11.5 10.5c-.4-.9-.8-.9-1.1-.9h-.9c-.3 0-.8.1-1.2.5-.4.4-1.5 1.5-1.5 3.6s1.5 4.2 1.7 4.5c.2.3 2.9 4.6 7.2 6.2 3.5 1.4 4.3 1.1 5.1 1 .8-.1 2.5-1 2.8-2 .4-1 .4-1.8.3-2-.1-.2-.4-.3-.9-.6-.5-.2-2.6-1.3-3-1.4-.4-.2-.7-.2-1 .2-.3.4-1.1 1.4-1.4 1.7-.3.3-.5.3-.9.1-.5-.2-1.9-.7-3.5-2.1-1.3-1.2-2.2-2.6-2.4-3-.3-.5 0-.7.2-1 .2-.2.5-.5.7-.8.2-.3.3-.5.5-.8.2-.3.1-.6 0-.8-.1-.2-.9-2.3-1.3-3.2z"/>
+</svg>
+</span>
+
+<span class="icon-btn" onclick="openOptions()">⋮</span>
+
 </div>
 </div>
 

@@ -4218,47 +4218,41 @@ if(refreshBtn){
 }
 
 if(printBtn){
+  printBtn.onclick = function(){
 
-  printBtn.onclick = async function(){
+    var now = new Date();
 
-    try{
+    var printDate =
+      String(now.getDate()).padStart(2, "0") + "/" +
+      String(now.getMonth() + 1).padStart(2, "0") + "/" +
+      now.getFullYear();
 
-      var now = new Date();
+    var printTime =
+      String(now.getHours()).padStart(2, "0") + ":" +
+      String(now.getMinutes()).padStart(2, "0");
 
-      var printDate =
-        String(now.getDate()).padStart(2, "0") + "/" +
-        String(now.getMonth() + 1).padStart(2, "0") + "/" +
-        now.getFullYear();
+    var NL = String.fromCharCode(10);
 
-      var printTime =
-        String(now.getHours()).padStart(2, "0") + ":" +
-        String(now.getMinutes()).padStart(2, "0");
+    var text = "";
+    text += "       NUMBER ONE LOTO" + NL;
+    text += "            RAPPORT" + NL;
+    text += "            " + sellerName + NL;
+    text += "   " + startValue + " / " + endValue + NL;
+    text += "     [ " + printDate + " " + printTime + " ]" + NL;
+    text += "------------------------------" + NL;
+    text += "| Ventes     " + String(totalVente || "0.00").padStart(12, " ") + " |" + NL;
+    text += "| Prix       " + String(totalPrix || "0.00").padStart(12, " ") + " |" + NL;
+    text += "| Commission " + String(totalCommission || "0.00").padStart(12, " ") + " |" + NL;
+    text += "| Balance    " + String(totalResultat || "0.00").padStart(12, " ") + " |" + NL;
+    text += "------------------------------" + NL;
 
-      var url =
-        "/print-report?sellerId=" + encodeURIComponent(sellerId) +
-        "&start=" + encodeURIComponent(startValue) +
-        "&end=" + encodeURIComponent(endValue) +
-        "&date=" + encodeURIComponent(printDate) +
-        "&time=" + encodeURIComponent(printTime);
-
-      var r = await fetch(url);
-      var html = await r.text();
-
-      var text = html
-        .replace(/[\s\S]*<pre>/i, "")
-        .replace(/<\/pre>[\s\S]*/i, "")
-        .trim();
-
-      if(window.AndroidPrinter){
-        AndroidPrinter.printTicket(text);
-      }
-
-    }catch(err){
-      console.error(err);
+    if(window.AndroidPrinter && AndroidPrinter.printTicket){
+      AndroidPrinter.printTicket(text);
+    }else{
+      alert("Printer Android pa disponible");
     }
 
   };
-
 }
 
 

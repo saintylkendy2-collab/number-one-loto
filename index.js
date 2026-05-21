@@ -4201,70 +4201,54 @@ if(!loterieHtml){
     '</div>' +
   '</div>';
 
+  var backBtn = document.getElementById("rapportBackBtn");
+  var refreshBtn = document.getElementById("rapportRefreshBtn");
+  var printBtn = document.getElementById("rapportPrintBtn");
+  var startInput = document.getElementById("rapportDateStart");
+  var endInput = document.getElementById("rapportDateEnd");
 
-var backBtn = document.getElementById("rapportBackBtn");
-var refreshBtn = document.getElementById("rapportRefreshBtn");
-var printBtn = document.getElementById("rapportPrintBtn");
+  if(backBtn){
+    backBtn.addEventListener("click", function(){
+      switchPage("billetsPage", document.getElementById("nav-billets"));
+    });
+  }
 
-if(backBtn){
-  backBtn.onclick = function(){
-    switchPage("billetsPage", document.getElementById("nav-billets"));
-  };
-}
+  if(refreshBtn){
+    refreshBtn.addEventListener("click", function(){
+      loadBillets();
+    });
+  }
 
-if(refreshBtn){
-  refreshBtn.onclick = function(){
-    loadBillets();
-  };
-}
-
-if(printBtn){
-  printBtn.onclick = function(){
-
-    var NL = String.fromCharCode(10);
-
+  if(printBtn){
+  printBtn.addEventListener("click", function(){
     var now = new Date();
 
-    var printDate =
-      String(now.getDate()).padStart(2, "0") + "/" +
-      String(now.getMonth() + 1).padStart(2, "0") + "/" +
-      now.getFullYear();
-
-    var printTime =
-      String(now.getHours()).padStart(2, "0") + ":" +
-      String(now.getMinutes()).padStart(2, "0");
-
-    function fm(v){
-      return Number(v || 0).toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-    }
-
-    var text = "";
-    text += "       NUMBER ONE LOTO" + NL;
-    text += "            RAPPORT" + NL;
-    text += "            " + sellerName + NL;
-    text += "   " + startValue + " / " + endValue + NL;
-    text += "     [ " + printDate + " " + printTime + " ]" + NL;
-    text += "------------------------------" + NL;
-    text += "Ventes:     " + fm(vente) + NL;
-    text += "Prix:       " + fm(prime) + NL;
-    text += "Commission: " + fm(commission) + NL;
-    text += "Balance:    " + fm(resultat) + NL;
-    text += "------------------------------" + NL;
-
-    if(window.AndroidPrinter && AndroidPrinter.printTicket){
-      AndroidPrinter.printTicket(text);
-    }else{
-      alert("Printer Android pa disponible");
-    }
-
-  };
+    window.open(
+      "/print-report?sellerId=" + encodeURIComponent(sellerId) +
+      "&start=" + encodeURIComponent(startValue) +
+      "&end=" + encodeURIComponent(endValue) +
+      "&date=" + encodeURIComponent(now.toLocaleDateString("fr-FR")) +
+      "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      })),
+      "_blank"
+    );
+  });
 }
 
+  if(startInput){
+    startInput.addEventListener("change", function(){
+      renderRapports();
+    });
+  }
 
-
+  if(endInput){
+    endInput.addEventListener("change", function(){
+      renderRapports();
+    });
+  }
+}
 
 
 

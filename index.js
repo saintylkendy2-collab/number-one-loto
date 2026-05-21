@@ -4220,11 +4220,6 @@ if(!loterieHtml){
   }
 
 if(printBtn){
-
-  var newPrintBtn = printBtn.cloneNode(true);
-  printBtn.parentNode.replaceChild(newPrintBtn, printBtn);
-  printBtn = newPrintBtn;
-
   printBtn.onclick = function(){
 
     var now = new Date();
@@ -4265,7 +4260,6 @@ if(printBtn){
       });
 
   };
-
 }
 
 

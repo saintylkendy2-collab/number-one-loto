@@ -1734,10 +1734,10 @@ app.post("/api/ticket-status", async (req, res) => {
       const createdAt = new Date(ticket.createdAt || Date.now()).getTime();
       const diffMinutes = (Date.now() - createdAt) / 60000;
 
-      if (diffMinutes > 10) {
+      if (diffMinutes > 20) {
         return res.json({
           ok: false,
-          message: "Ou pa ka anile ticket sa ankò. 10 minit yo pase."
+          message: "Ou pa ka anile ticket sa ankò. 20 minit yo pase."
         });
       }
 
@@ -4271,9 +4271,14 @@ function updateTicketStatus(id, status, premio){
    premio: premio || 0
  })
  }).then(function(res){
- return res.json();
- }).then(function(){
-   fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
+  return res.json();
+}).then(function(data){
+  if(data && data.ok === false){
+    alert(data.message || "Erreur");
+    return;
+  }
+
+  fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
    .then(function(res){ return res.json(); })
    .then(function(rows){
      savedTickets = Array.isArray(rows) ? rows : [];

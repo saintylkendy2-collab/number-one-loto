@@ -4219,58 +4219,7 @@ if(!loterieHtml){
     });
   }
 
-if(printBtn){
-  printBtn.onclick = function(){
 
-    var now = new Date();
-
-    var printDate =
-      String(now.getDate()).padStart(2, "0") + "/" +
-      String(now.getMonth() + 1).padStart(2, "0") + "/" +
-      now.getFullYear();
-
-    var printTime =
-      String(now.getHours()).padStart(2, "0") + ":" +
-      String(now.getMinutes()).padStart(2, "0");
-
-    var url =
-      "/print-report?sellerId=" + encodeURIComponent(sellerId) +
-      "&start=" + encodeURIComponent(startValue) +
-      "&end=" + encodeURIComponent(endValue) +
-      "&date=" + encodeURIComponent(printDate) +
-      "&time=" + encodeURIComponent(printTime);
-
-    fetch(url)
-      .then(function(r){
-        return r.text();
-      })
-      .then(function(html){
-        var startTag = "<pre>";
-var endTag = "</pre>";
-var a = html.indexOf(startTag);
-var b = html.indexOf(endTag);
-
-var text = "";
-
-if(a >= 0 && b > a){
-  text = html.substring(a + startTag.length, b).trim();
-}else{
-  text = html.trim();
-}
-
-        if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
-          AndroidPrinter.printTicket(text);
-        }else{
-          alert("Printer Android pa disponible");
-        }
-      })
-      .catch(function(err){
-        console.error(err);
-        alert("Erreur impression rapport");
-      });
-
-  };
-}
 
 
 function updateTicketStatus(id, status, premio){

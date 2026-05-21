@@ -4204,72 +4204,61 @@ if(!loterieHtml){
 var backBtn = document.getElementById("rapportBackBtn");
 var refreshBtn = document.getElementById("rapportRefreshBtn");
 var printBtn = document.getElementById("rapportPrintBtn");
-var startInput = document.getElementById("rapportDateStart");
-var endInput = document.getElementById("rapportDateEnd");
 
 if(backBtn){
-  backBtn.addEventListener("click", function(){
+  backBtn.onclick = function(){
     switchPage("billetsPage", document.getElementById("nav-billets"));
-  });
+  };
 }
 
 if(refreshBtn){
-  refreshBtn.addEventListener("click", function(){
+  refreshBtn.onclick = function(){
     loadBillets();
-  });
+  };
 }
 
 if(printBtn){
-  printBtn.onclick = function(){
 
-    var now = new Date();
+  printBtn.onclick = async function(){
 
-    var printDate =
-      String(now.getDate()).padStart(2, "0") + "/" +
-      String(now.getMonth() + 1).padStart(2, "0") + "/" +
-      now.getFullYear();
+    try{
 
-    var printTime =
-      String(now.getHours()).padStart(2, "0") + ":" +
-      String(now.getMinutes()).padStart(2, "0");
+      var now = new Date();
 
-    var url =
-      "/print-report?sellerId=" + encodeURIComponent(sellerId) +
-      "&start=" + encodeURIComponent(startValue) +
-      "&end=" + encodeURIComponent(endValue) +
-      "&date=" + encodeURIComponent(printDate) +
-      "&time=" + encodeURIComponent(printTime);
+      var printDate =
+        String(now.getDate()).padStart(2, "0") + "/" +
+        String(now.getMonth() + 1).padStart(2, "0") + "/" +
+        now.getFullYear();
 
-    fetch(url)
-      .then(function(r){
-        return r.text();
-      })
-      .then(function(html){
-        var startTag = "<pre>";
-        var endTag = "</pre>";
-        var a = html.indexOf(startTag);
-        var b = html.indexOf(endTag);
+      var printTime =
+        String(now.getHours()).padStart(2, "0") + ":" +
+        String(now.getMinutes()).padStart(2, "0");
 
-        var text = "";
+      var url =
+        "/print-report?sellerId=" + encodeURIComponent(sellerId) +
+        "&start=" + encodeURIComponent(startValue) +
+        "&end=" + encodeURIComponent(endValue) +
+        "&date=" + encodeURIComponent(printDate) +
+        "&time=" + encodeURIComponent(printTime);
 
-        if(a >= 0 && b > a){
-          text = html.substring(a + startTag.length, b).trim();
-        }else{
-          text = html.trim();
-        }
+      var r = await fetch(url);
+      var html = await r.text();
 
-        if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
-          AndroidPrinter.printTicket(text);
-        }else{
-          alert("Printer Android pa disponible");
-        }
-      })
-      .catch(function(err){
-        console.error(err);
-        alert("Erreur impression rapport");
-      });
+      var text = html
+        .replace(/[\s\S]*<pre>/i, "")
+        .replace(/<\/pre>[\s\S]*/i, "")
+        .trim();
+
+      if(window.AndroidPrinter){
+        AndroidPrinter.printTicket(text);
+      }
+
+    }catch(err){
+      console.error(err);
+    }
 
   };
+
 }
 
 

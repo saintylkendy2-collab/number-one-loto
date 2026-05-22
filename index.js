@@ -4303,7 +4303,7 @@ if(!loterieHtml){
  if(printBtn){
   printBtn.addEventListener("click", function(){
     var now = new Date();
-    var NL = "\n";
+    var NL = "\\n";
 
     function fm(v){
       return Number(v || 0).toLocaleString("en-US", {

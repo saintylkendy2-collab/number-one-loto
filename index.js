@@ -1728,6 +1728,25 @@ app.post("/api/ticket-status", async (req, res) => {
     const currentStatus = normalizeStatus(ticket.status);
 
     if (status === "ANILE") {
+
+const allLoterias = await Loteria.find().lean();
+const lotMap = {};
+allLoterias.forEach(l => {
+  lotMap[String(l.name || "").trim().toUpperCase()] = l;
+});
+
+for (const j of (ticket.jeux || [])) {
+  const lotKey = String(j.loterie || "").trim().toUpperCase();
+  const lot = lotMap[lotKey];
+
+  if (!isLoteriaOpenServer(lot)) {
+    return res.json({
+      ok: false,
+      message: "Ou pa ka anile ticket sa. Lotri sa fèmen: " + lotKey
+    });
+  }
+}
+
       const createdAt = new Date(ticket.createdAt || Date.now()).getTime();
       const diffMinutes = (Date.now() - createdAt) / 60000;
 

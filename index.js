@@ -1,4 +1,5 @@
 
+
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -59,6 +60,8 @@ mongoose.connection.once("open", async () => {
       ]
     });
 
+    console.log("✅ Tickets id null supprimés");
+
   } catch (err) {
     console.error("Erreur nettoyage tickets null:", err.message);
   }
@@ -66,6 +69,7 @@ mongoose.connection.once("open", async () => {
 });
 
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
+console.log("INDEX VENDEURS_FILE =", VENDEURS_FILE);
 
 const TICKETS_FILE = path.join(__dirname, "tickets.json");
 
@@ -764,8 +768,8 @@ if (credit <= 0) {
 
     if (blocked) {
       return res.json({ ok:false, message:
-  "❌ " + j.loterie + "\n" +
-type + " " + j.numero + "\n\n" +
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
   "Nimewo sa bloke.\n" +
   "Ou pa ka vann jwèt sa."});
     }
@@ -813,7 +817,17 @@ if (special) {
 
     const reste = limit - dejaVendu;
 
-  if (reste <= 0) {
+    console.log("LIMIT DEBUG:", {
+  sellerId,
+  type,
+  numero,
+  loterie,
+  limit,
+  dejaVendu,
+  reste
+});
+
+    if (reste <= 0) {
       return res.json({ ok:false, message:
   "❌ " + loterie + "\n" +
   type + " " + numero + "\n\n" +
@@ -822,7 +836,8 @@ if (special) {
   "Rès disponib: 0.00\n\n" +
   "Limit nimewo sa fini."});
     }
-if (Number(j.montant || 0) > reste) {
+
+    if (montant > reste) {
       return res.json({
         ok:false,
         message:
@@ -831,11 +846,10 @@ if (Number(j.montant || 0) > reste) {
   "Limit: " + limit.toFixed(2) + "\n" +
   "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
   "Rès disponib: " + reste.toFixed(2) + "\n\n" +
-  "Ou te mande: " + Number(j.montant || 0).toFixed(2) + "\n" +
+  "Ou te mande: " + montant.toFixed(2) + "\n" +
   "Ou ka vann sèlman: " + reste.toFixed(2)
       });
     }
-
 
     res.json({ ok:true });
 
@@ -877,6 +891,7 @@ async function loadLimites(){
           : []
       };
 
+      console.log("✅ LIMITES CHARGÉS");
     }
 
   }catch(err){
@@ -911,6 +926,9 @@ await Limites.findOneAndUpdate(
     new:true
   }
 );
+
+
+    console.log("✅ LIMITES SAUVEGARDÉS MONGO");
 
     res.json({
       ok:true
@@ -1372,8 +1390,8 @@ for (const j of safeJeux) {
     return res.status(403).json({
       ok:false,
       message:
-  "❌ " + j.loterie + "\n" +
-type + " " + j.numero + "\n\n" +
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
   "Nimewo sa bloke.\n" +
   "Ou pa ka vann jwèt sa."
     });
@@ -1419,26 +1437,29 @@ if (special) {
 
     const reste = limit - dejaVendu;
 
-  if (reste <= 0) {
-      return res.json({ ok:false, message:
- "❌ " + j.loterie + "\n" +
-type + " " + j.numero + "\n\n" +
+    if (reste <= 0) {
+      return res.status(403).json({
+        ok:false,
+        message:
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
   "Limit: " + limit.toFixed(2) + "\n" +
   "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
   "Rès disponib: 0.00\n\n" +
-  "Limit nimewo sa fini."});
+  "Limit nimewo sa fini."
+      });
     }
 
     if (Number(j.montant || 0) > reste) {
-      return res.json({
+      return res.status(403).json({
         ok:false,
         message:
- "❌ " + j.loterie + "\n" +
-type + " " + j.numero + "\n\n" +
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
   "Limit: " + limit.toFixed(2) + "\n" +
   "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
   "Rès disponib: " + reste.toFixed(2) + "\n\n" +
-  "Ou te mande: " + Number(j.montant || 0).toFixed(2) + "\n" +
+  "Ou te mande: " + montant.toFixed(2) + "\n" +
   "Ou ka vann sèlman: " + reste.toFixed(2)
       });
     }
@@ -1460,25 +1481,6 @@ if (credit <= 0) {
   });
 }
 
-const totalTicket = safeJeux.reduce(
-  (s, j) => s + Number(j.montant || 0),
-  0
-);
-
-const balance = Number(vendor.balance || 0);
-
-if (
-  credit > 0 &&
-  (
-    totalTicket > credit ||
-    (balance + totalTicket) > credit
-  )
-) {
-  return res.status(403).json({
-    ok:false,
-    message:"OU PA GEN KREDI"
-  });
-}
 
 const grupo = await Grupo.findOne({
   nombre: vendor.zona || vendor.groupe
@@ -1540,17 +1542,8 @@ lotRows.forEach(l => {
 });
 
 function minutesNowServer(){
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/New_York",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false
-  }).formatToParts(new Date());
-
-  const h = Number(parts.find(p => p.type === "hour").value);
-  const m = Number(parts.find(p => p.type === "minute").value);
-
-  return h * 60 + m;
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
 }
 
 function minutesFromTimeServer(t){
@@ -1624,7 +1617,6 @@ const finalJeux = jeux
 
       vendeur: sellerId,
       vendeurNom: sellerName,
-      vendeurConfig: vendor.config || {},
 
       createdAt: now,
       createdAtLabel: clientDateLabel && clientTimeLabel
@@ -1649,6 +1641,8 @@ const finalJeux = jeux
     });
 
     const obj = ticket.toObject();
+
+    console.log("✅ Ticket créé:", ticketId, "ANATAN");
 
     return res.json({
       ok: true,
@@ -1892,24 +1886,13 @@ display:flex;
 flex-direction:column;
 }
 .topbar{
-height:56px;
-min-height:56px;
+height:60px;
+min-height:60px;
 background:#3452aa;
 color:#fff;
 display:grid;
-grid-template-columns:48px minmax(0,1fr) 128px;
+grid-template-columns:60px 1fr 150px;
 align-items:center;
-overflow:hidden;
-}
-
-.top-left,.top-right{
-min-width:0;
-}
-
-.top-right{
-justify-content:flex-end;
-padding-right:8px;
-gap:6px;
 }
 .top-left,.top-right{
 display:flex;
@@ -1936,37 +1919,6 @@ display:flex;
 flex-direction:column;
 overflow:hidden;
 }
-
-.icon-btn{
-cursor:pointer;
-display:flex;
-align-items:center;
-justify-content:center;
-min-width:32px;
-height:36px;
-font-size:20px;
-font-weight:800;
-}
-
-.print-btn{
-font-size:16px;
-}
-
-.wa-btn{
-background:#21c45a;
-color:white;
-border-radius:50%;
-width:34px;
-height:34px;
-font-size:13px;
-font-weight:900;
-}
-
-.more-btn{
-font-size:28px;
-line-height:1;
-}
-
 .page{
 flex:1;
 min-height:0;
@@ -2172,23 +2124,9 @@ align-items:center;
 text-align:center;
 font-size:15px;
 }
-
-padding-bottom:4px;
-position:relative;
-z-index:20000;
-}
-
 .nav-item{
 cursor:pointer;
 padding:4px 2px;
-}
-
-.bottom-nav *{
-pointer-events:auto !important;
-}
-
-.keypad{
-z-index:1 !important;
 }
 .nav-item.active{
 color:#7a6bf2;
@@ -2478,28 +2416,9 @@ border-right:1px solid #ddd;
 </div>
 <div class="top-title">${sellerName}</div>
 <div class="top-right">
-
-<span class="icon-btn" onclick="submitPrint()">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-viewBox="0 0 24 24" fill="none" stroke="currentColor"
-stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-<polyline points="6 9 6 2 18 2 18 9"></polyline>
-<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-<rect x="6" y="14" width="12" height="8"></rect>
-</svg>
-</span>
-
-<span class="icon-btn" onclick="shareWhatsApp()">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-viewBox="0 0 32 32" fill="none" stroke="currentColor"
-stroke-width="2.2">
-<path d="M16 3C8.82 3 3 8.82 3 16c0 2.54.74 4.91 2 6.91L3 29l6.28-1.95A12.94 12.94 0 0 0 16 29c7.18 0 13-5.82 13-13S23.18 3 16 3z"/>
-<path d="M11.5 10.5c-.4-.9-.8-.9-1.1-.9h-.9c-.3 0-.8.1-1.2.5-.4.4-1.5 1.5-1.5 3.6s1.5 4.2 1.7 4.5c.2.3 2.9 4.6 7.2 6.2 3.5 1.4 4.3 1.1 5.1 1 .8-.1 2.5-1 2.8-2 .4-1 .4-1.8.3-2-.1-.2-.4-.3-.9-.6-.5-.2-2.6-1.3-3-1.4-.4-.2-.7-.2-1 .2-.3.4-1.1 1.4-1.4 1.7-.3.3-.5.3-.9.1-.5-.2-1.9-.7-3.5-2.1-1.3-1.2-2.2-2.6-2.4-3-.3-.5 0-.7.2-1 .2-.2.5-.5.7-.8.2-.3.3-.5.5-.8.2-.3.1-.6 0-.8-.1-.2-.9-2.3-1.3-3.2z"/>
-</svg>
-</span>
-
+<span class="icon-btn" onclick="submitPrint()">🖨️</span>
+<span class="icon-btn" onclick="shareWhatsApp()">🟢</span>
 <span class="icon-btn" onclick="openOptions()">⋮</span>
-
 </div>
 </div>
 
@@ -2641,7 +2560,6 @@ stroke-width="2.2">
 <script>
 var sellerId = ${JSON.stringify(sellerId)};
 var sellerName = ${JSON.stringify(sellerName)};
-var sellerConfig = ${JSON.stringify(vendeur?.config || {})};
 
 var activeField = "numero";
 var numero = "";
@@ -3286,6 +3204,27 @@ async function addGame(){
     return;
   }
 
+  for (const lot of selectedLoteries) {
+    for (const entry of entries) {
+      const check = await fetch("/api/check-limit-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sellerId: sellerId,
+          type: entry.type,
+          numero: entry.numero,
+          loterie: lot,
+          montant: parseFloat(montant) || 0
+        })
+      }).then(r => r.json());
+
+      if(!check.ok){
+        alert(check.message || "Limit pa valid");
+        return;
+      }
+    }
+  }
+
   selectedLoteries.forEach(function(lot){
     entries.forEach(function(entry){
       mergeOrPushGame({
@@ -3405,117 +3344,22 @@ function buildPayloadGames(){
  });
 }
 
-
 function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
-  function fit(v, n){
-    v = String(v || "");
-
-    while(v.length < n){
-      v += " ";
-    }
-
-    return v;
-  }
-
-  function formatType(typeRaw){
-    typeRaw = String(typeRaw || "").toUpperCase();
-
-    if(typeRaw === "BOR") return "Borlette";
-    if(typeRaw === "MAR") return "Mariage";
-
-    return typeRaw;
-  }
-
-  var sellerConfig =
-(
-  ticket &&
-  ticket.vendeurConfig
-)
-? ticket.vendeurConfig
-: {};
-
   var lines = [];
-  var groups = {};
-  var order = [];
-
-  lines.push("NUMBER ONE LOTO");
-  lines.push("SELLER " + String(ticket.vendeurNom || ticket.vendeur || ""));
-  lines.push("TICKET");
-  lines.push(String(ticket.id || ticket.ticketId || ticket.serial || ""));
-  lines.push(
-    "DATE " +
-    String(
-      ticket.createdAtLabel ||
-      ((ticket.dateLabel || "") + " " + (ticket.timeLabel || ""))
-    ).trim()
-  );
-
-  lines.push("");
 
   ticket.jeux.forEach(function(j){
-
-    var lot = String(
-      j.loterie || j.loteria || "SANS TIRAGE"
-    ).trim();
-
-    if(!groups[lot]){
-      groups[lot] = [];
-      order.push(lot);
-    }
-
-    groups[lot].push({
-      type: formatType(j.type),
-      numero: String(j.numero || "").trim(),
-      montant: Number(j.montant || 0),
-      gratis: j.gratis === true || j.free === true
-    });
-
+    lines.push(
+      String(j.type || "") + " " +
+      String(j.numero || "") + " " +
+      Number(j.montant || 0).toFixed(2) +
+      " - " +
+      String(j.loterie || "")
+    );
   });
 
-  order.forEach(function(lot){
-
-    lines.push(lot);
-    lines.push("");
-
-    groups[lot].forEach(function(g){
-
-      lines.push(
-        fit(g.type, 10) +
-        fit(g.numero, 8) +
-        (g.gratis ? "Gratis" : g.montant.toFixed(2))
-      );
-
-    });
-
-    lines.push("");
-
-  });
-
-  lines.push(
-    "TOTAL: " +
-    Number(ticket.total || 0).toFixed(2) +
-    " G"
-  );
-
- var footerMessage =
-(
-  sellerConfig &&
-  sellerConfig.usarMensajeTicket &&
-  sellerConfig.mensajeTicket
-)
-? sellerConfig.mensajeTicket
-: "";
-
-if(footerMessage){
-  lines.push("");
-  lines.push(String(footerMessage));
-}
-
- var code = String.fromCharCode(96) + String.fromCharCode(96) + String.fromCharCode(96);
-return code + "\\n" + lines.join("\\n") + "\\n" + code;
-
+  return lines.join("\\n");
 }
 
 
@@ -3577,69 +3421,42 @@ function submitPrint(){
 
   saveCurrentTicket("PRINT").then(function(ticket){
     if(!ticket || !ticket.id){
-
-      if(ticket && ticket.message){
-        alert(ticket.message);
-      }
-
+      alert("Ticket pa kreye oubyen ID pa vini.");
       return;
     }
 
-    var printUrl =
+    window.location.href =
       "/print?ticketId=" + encodeURIComponent(ticket.id) +
       "&sellerId=" + encodeURIComponent(sellerId);
 
-    fetch(printUrl)
-      .then(function(r){
-        return r.text();
-      })
-      .then(function(html){
-        var doc = new DOMParser().parseFromString(html, "text/html");
-        var text = doc.body.innerText.trim();
-
-        if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
-          AndroidPrinter.printTicket(text);
-        }else{
-          alert("Printer Android pa disponible");
-        }
-
-        loadBillets();
-        resetAfterSend();
-      })
-      .catch(function(err){
-        console.error(err);
-        alert("Erreur impression");
-      });
-
+    loadBillets();
+    resetAfterSend();
   }).catch(function(err){
     console.error(err);
     alert("Erreur impression");
   });
 }
 
-
 function shareWhatsApp(){
-  saveCurrentTicket("WHATSAPP").then(function(ticket){
-    if(!ticket) return;
+  var waWin = window.open("", "_blank");
 
-   ticket.vendeurConfig = {
-  usarMensajeTicket: true,
-  mensajeTicket:
-    (sellerConfig && sellerConfig.mensajeTicket)
-    ? sellerConfig.mensajeTicket
-    : ""
-};
+  saveCurrentTicket("WHATSAPP").then(function(ticket){
+    if(!ticket){
+      if(waWin) waWin.close();
+      return;
+    }
 
     var text = buildPrintableTextFromTicket(ticket);
     var url = "https://wa.me/?text=" + encodeURIComponent(text);
 
-    window.location.href = url;
+    if(waWin){
+      waWin.location.href = url;
+    }
 
     loadBillets();
     resetAfterSend();
-
-  }).catch(function(err){
-
+  }).catch(function(){
+    if(waWin) waWin.close();
     alert("Erreur WhatsApp");
   });
 }
@@ -3757,28 +3574,11 @@ function rePrintTicket(ticketId){
     return;
   }
 
-  var printUrl =
+  window.open(
     "/print?ticketId=" + encodeURIComponent(ticketId) +
-    "&sellerId=" + encodeURIComponent(sellerId);
-
-  fetch(printUrl)
-    .then(function(r){
-      return r.text();
-    })
-    .then(function(html){
-      var doc = new DOMParser().parseFromString(html, "text/html");
-      var text = doc.body.innerText.trim();
-
-      if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
-        AndroidPrinter.printTicket(text);
-      }else{
-        alert("Printer Android pa disponible");
-      }
-    })
-    .catch(function(err){
-      console.error(err);
-      alert("Erreur impression");
-    });
+    "&sellerId=" + encodeURIComponent(sellerId),
+    "_blank"
+  );
 }
 
 
@@ -4331,8 +4131,6 @@ if(!loterieHtml){
   }
 }
 
-
-
 function updateTicketStatus(id, status, premio){
  fetch("/api/ticket-status", {
  method: "POST",
@@ -4343,14 +4141,9 @@ function updateTicketStatus(id, status, premio){
    premio: premio || 0
  })
  }).then(function(res){
-  return res.json();
-}).then(function(data){
-  if(data && data.ok === false){
-    alert(data.message || "Erreur");
-    return;
-  }
-
-  fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
+ return res.json();
+ }).then(function(){
+   fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
    .then(function(res){ return res.json(); })
    .then(function(rows){
      savedTickets = Array.isArray(rows) ? rows : [];
@@ -4687,7 +4480,7 @@ setInterval(function(){
   if(currentPageName === "billetsPage" || currentPageName === "balancePage" || currentPageName === "rapportsPage"){
     loadBillets();
   }
-}, 10000);
+}, 3000);
 
 window.addEventListener("focus", function(){
   loadBillets();
@@ -4973,7 +4766,6 @@ function renderParametrePage(){
 }
 
 function renderImprimantePage(){
-
   var box = document.getElementById("imprimanteWrap");
   if(!box) return;
 
@@ -4982,181 +4774,12 @@ function renderImprimantePage(){
     '<div style="padding:14px;">' +
       '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
         '<div style="font-size:20px;font-weight:800;margin-bottom:12px;">Printer disponibles</div>' +
-        '<div id="printerList" style="min-height:120px;color:#555;font-size:17px;">Peze bouton rechèch la...</div>' +
-        '<button onclick="checkPrinter()" style="width:100%;height:50px;border:none;border-radius:12px;background:#3452aa;color:#fff;font-size:18px;font-weight:800;margin-top:16px;">Chèche imprimante</button>' +
-        '<button onclick="testPrinter()" style="width:100%;height:50px;border:none;border-radius:12px;background:#111;color:#fff;font-size:18px;font-weight:800;margin-top:10px;">Tester impression</button>' +
+        '<div style="padding:14px;border-bottom:1px solid #eee;">POS Internal Printer</div>' +
+        '<div style="padding:14px;border-bottom:1px solid #eee;">Bluetooth Printer</div>' +
+        '<div style="padding:14px;border-bottom:1px solid #eee;">LP-BT71</div>' +
+        '<button onclick="submitPrint()" style="width:100%;height:50px;border:none;border-radius:12px;background:#3452aa;color:#fff;font-size:18px;font-weight:800;margin-top:16px;">Tester impression</button>' +
       '</div>' +
     '</div>';
-}
-
-function searchPrinters(){
-
-  var list = document.getElementById("printerList");
-  if(!list) return;
-
-  list.innerHTML = "Recherche...";
-
-  if(typeof AndroidPrinter === "undefined"){
-    list.innerHTML = "AndroidPrinter pa konekte nan APK la.";
-    return;
-  }
-
-  var data = "[]";
-
-  if(AndroidPrinter.getPairedPrinters){
-    data = AndroidPrinter.getPairedPrinters();
-  }else if(AndroidPrinter.getPrinters){
-    data = AndroidPrinter.getPrinters();
-  }else{
-    list.innerHTML = "Fonksyon rechèch printer la pa nan APK la.";
-    return;
-  }
-
-  var printers = [];
-
-  try{
-    printers = JSON.parse(data || "[]");
-  }catch(e){
-    printers = [];
-  }
-
-  if(!printers.length){
-    list.innerHTML = "Pa gen imprimante jwenn.";
-    return;
-  }
-
-  list.innerHTML = "";
-
-  printers.forEach(function(p){
-
-    var item = document.createElement("div");
-
-    item.style.padding = "14px";
-    item.style.borderBottom = "1px solid #eee";
-    item.style.fontSize = "17px";
-
-    item.innerHTML =
-      '<b>' + (p.name || "Printer") + '</b><br>' +
-      '<span style="font-size:14px;color:#777;">' + (p.address || "") + '</span>';
-
-    item.onclick = function(){
-      connectPrinter(p.address, p.name);
-    };
-
-    list.appendChild(item);
-  });
-}
-
-function checkPrinter(){
-
-  var list = document.getElementById("printerList");
-
-  if(!list){
-    return;
-  }
-
-  list.innerHTML = "Recherche imprimante...";
-
-  try{
-
-    var printers = [];
-
-    if(typeof AndroidPrinter !== "undefined" && AndroidPrinter.getPrinters){
-
-      var data = AndroidPrinter.getPrinters();
-
-      try{
-        printers = JSON.parse(data || "[]");
-      }catch(e){
-        printers = [];
-      }
-
-    }else{
-
-      list.innerHTML = "AndroidPrinter pa disponib.";
-      return;
-    }
-
-    if(!Array.isArray(printers)){
-      printers = [];
-    }
-
-    if(printers.length <= 0){
-      list.innerHTML = "Pa gen imprimante jwenn.";
-      return;
-    }
-
-    list.innerHTML = "";
-
-    printers.forEach(function(p){
-
-      var item = document.createElement("div");
-
-      item.style.padding = "14px";
-      item.style.borderBottom = "1px solid #eee";
-      item.style.fontSize = "17px";
-      item.style.cursor = "pointer";
-
-      item.innerHTML =
-  "<b>" + (p.name || "Printer") + "</b><br>" +
-  "<span style='font-size:14px;color:#777;'>" + (p.address || "") + "</span>";
-
-      item.onclick = function(){
-        connectPrinter(p.address, p.name);
-      };
-
-      list.appendChild(item);
-
-    });
-
-  }catch(err){
-
-    console.log(err);
-    list.innerHTML = "Erreur recherche imprimante.";
-
-  }
-}
-
-function connectPrinter(address,name){
-
-  localStorage.setItem(
-    "NBL_PRINTER_ADDRESS",
-    address
-  );
-
-  localStorage.setItem(
-    "NBL_PRINTER_NAME",
-    name
-  );
-
-  if(typeof AndroidPrinter !== "undefined" &&
-     AndroidPrinter.connectPrinter){
-
-    AndroidPrinter.connectPrinter(address);
-
-  }
-
-  alert("Imprimante connectée : " + name);
-
-}
-
-function testPrinter(){
-
-  var text = "";
-
-  text += "NUMBER ONE LOTO\\n";
-  text += "TEST IMPRESSION\\n";
-  text += "----------------------\\n";
-  text += "Printer OK\\n\\n\\n";
-
-  if(typeof AndroidPrinter !== "undefined" && AndroidPrinter.printTicket){
-
-    AndroidPrinter.printTicket(text);
-
-  }else{
-
-    alert("AndroidPrinter pa konekte.");
-  }
 }
 
 /* ===== AJOUTE KALANDRIYE SOU LIS BIYÈ YO SAN CHANJE renderBillets() ===== */
@@ -5699,196 +5322,233 @@ app.get("/print", async (req, res) => {
   try {
     const ticketId = String(req.query.ticketId || "").trim();
     const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
-    const NL = String.fromCharCode(10);
 
-    const ticket = await Ticket.findOne({
-      $or: [
-        { id: ticketId },
-        { ticketId: ticketId },
-        { serial: ticketId }
-      ]
-    }).lean();
+   const ticket = await Ticket.findOne({
+  $or: [
+    { id: ticketId },
+    { ticketId: ticketId },
+    { serial: ticketId }
+  ]
+}).lean();
 
-    if (!ticket) {
-      return res.status(404).send("Ticket introuvable");
-    }
+if (!ticket) {
+  return res.status(404).send("Ticket introuvable");
+}
 
-    let vendeur = null;
+   let vendeur = null;
 
-    if (sellerId) {
-      vendeur = await Vendor.findOne({ id: sellerId }).lean();
-    }
+if (sellerId) {
+  vendeur = await Vendor.findOne({ id: sellerId }).lean();
+}
 
-    const sellerName = String(
-      (vendeur && (vendeur.nom || vendeur.nombre)) ||
-      ticket.vendeurNom ||
-      ticket.vendeur ||
-      sellerId ||
-      "VENDEUR"
-    );
+const sellerName = String(
+  (vendeur && (vendeur.nom || vendeur.nombre)) ||
+  ticket.vendeurNom ||
+  ticket.vendeur ||
+  sellerId ||
+  "VENDEUR"
+);
 
     const total = Number(ticket.total || 0);
     const dateStr = ticket.dateLabel || formatDateFR(new Date(ticket.createdAt || Date.now()));
     const timeStr = ticket.timeLabel || formatTimeFR(new Date(ticket.createdAt || Date.now()));
 
-    const APP_CONFIG =
-      await AppConfig.findOne({ key:"main" }).lean()
-      || {};
-
-    const sellerConfig = (vendeur && vendeur.config) ? vendeur.config : {};
-
-    const footerMessage =
-      (
-        sellerConfig.usarMensajeTicket &&
-        sellerConfig.mensajeTicket
-      )
-      ? sellerConfig.mensajeTicket
-      : (APP_CONFIG.ticketMessage || "");
-
-    function clean(v){
-      return String(v || "")
-        .replace(/</g, "")
-        .replace(/>/g, "")
-        .replace(/&/g, "and");
-    }
-
-    function money(n){
-      return Number(n || 0).toFixed(2);
-    }
-
-    function lineGame(type, numero, montant){
-      var left = String(type || "").padEnd(11, " ");
-      var mid = String(numero || "").padStart(8, " ");
-      var right = String(montant || "").padStart(10, " ");
-      return left + mid + right;
-    }
-
     let lotSeen = {};
-    let loteriesText = "";
+    let loteriesHtml = "";
 
-    (ticket.jeux || []).forEach(function(j){
-      const lot = String(j.loterie || j.loteria || "").trim().toUpperCase() || "SANS TIRAGE";
-
+    (ticket.jeux || []).forEach(j => {
+      const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
       if (!lotSeen[lot]) {
         lotSeen[lot] = true;
-        loteriesText += clean(lot) + NL;
+        loteriesHtml += '<div class="tirage">' + lot + '</div>';
       }
     });
 
     const gameMap = {};
+    let gamesHtml = "";
 
-    (ticket.jeux || []).forEach(function(j){
-      if (j.gratis === true || j.free === true) {
-        return;
-      }
+    (ticket.jeux || []).forEach(j => {
+
+if (j.gratis === true || j.free === true) {
+  return;
+}
 
       let typeRaw = String(j.type || "").toUpperCase();
       let numero = String(j.numero || "").trim();
       let montant = Number(j.montant || 0);
-      let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase();
 
       let type = typeRaw;
       if (typeRaw === "BOR") type = "Borlette";
       else if (typeRaw === "MAR") type = "Mariage";
 
-      let key = loterie + "|" + type + "|" + numero + "|" + montant;
+      let loterie =
+  String(j.loterie || j.loteria || "").trim().toUpperCase();
 
-      if (!gameMap[key]) {
-        gameMap[key] = {
-          loterie: loterie,
-          type: type,
-          numero: numero,
-          montant: montant,
-          count: 0
-        };
-      }
+let key =
+  loterie + "|" + type + "|" + numero + "|" + montant;
+
+   if (!gameMap[key]) {
+
+  gameMap[key] = {
+    type,
+    numero,
+    montant,
+    count: 0,
+    gratis: j.gratis === true,
+    free: j.free === true
+  };
+
+}
 
       gameMap[key].count++;
     });
 
-    const freeGames = (ticket.jeux || []).filter(function(j){
-      return j.gratis === true || j.free === true;
+    Object.values(gameMap).forEach(g => {
+      let totalLine =
+  g.gratis || g.free
+    ? "Gratis"
+    : (g.montant * g.count).toFixed(2);
+
+      gamesHtml +=
+        '<div class="game-row">' +
+          '<div class="col-type">' + g.type + '</div>' +
+          '<div class="col-num">' + g.numero + '</div>' +
+          '<div class="col-amt">' + totalLine + '</div>' +
+        '</div>';
     });
 
-    let freeMap = {};
+    const freeGames = (ticket.jeux || []).filter(
+  j => j.gratis === true || j.free === true
+);
 
-    freeGames.forEach(function(j){
-      let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase() || "SANS TIRAGE";
+let freeHtml = "";
 
-      if (!freeMap[loterie]) {
-        freeMap[loterie] = [];
-      }
+let freeMap = {};
 
-      freeMap[loterie].push(j);
-    });
+freeGames.forEach(j => {
 
-    let text = "";
+  let loterie = String(
+    j.loterie || j.loteria || ""
+  ).trim();
 
-    text += "       NUMBER ONE LOTO" + NL;
-    text += "SELLER " + clean(sellerName) + NL;
-    text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
-    text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
-    text += "------------------------------" + NL;
+  if (!freeMap[loterie]) {
+    freeMap[loterie] = [];
+  }
 
-    text += loteriesText;
-    text += "------------------------------" + NL;
+  freeMap[loterie].push(j);
 
-    Object.values(gameMap).forEach(function(g){
-      text += lineGame(
-        g.type,
-        g.numero,
-        money(g.montant * g.count)
-      ) + NL;
-    });
+});
 
-    Object.keys(freeMap).forEach(function(loterie){
-      text += "------------------------------" + NL;
-      text += clean(loterie) + NL;
+Object.keys(freeMap).forEach(loterie => {
 
-      freeMap[loterie].forEach(function(j){
-        let typeRaw = String(j.type || "").toUpperCase();
+  freeHtml +=
+    '<div class="tirage">' + loterie + '</div>';
 
-        let type = typeRaw;
-        if (typeRaw === "BOR") type = "Borlette";
-        else if (typeRaw === "MAR") type = "Mariage";
+  freeMap[loterie].forEach(j => {
 
-        let numero = String(j.numero || "").trim();
+    let typeRaw = String(j.type || "").toUpperCase();
 
-        text += lineGame(
-          type,
-          numero,
-          "Gratis"
-        ) + NL;
-      });
-    });
+    let type = typeRaw;
+    if (typeRaw === "BOR") type = "Borlette";
+    else if (typeRaw === "MAR") type = "Mariage";
 
-    text += "------------------------------" + NL;
-    text += "TOTAL: " + money(total) + " G" + NL;
+    let numero = String(j.numero || "").trim();
 
-    if (footerMessage) {
-      text += NL;
-      text += clean(footerMessage) + NL;
-    }
+    freeHtml +=
+      '<div class="game-row">' +
+        '<div class="col-type">' + type + '</div>' +
+        '<div class="col-num">' + numero + '</div>' +
+        '<div class="col-amt">Gratis</div>' +
+      '</div>';
+
+  });
+
+});
 
     res.set("Content-Type", "text/html; charset=utf-8");
 
-    res.send(
-      '<!DOCTYPE html>' +
-      '<html>' +
-      '<head>' +
-      '<meta charset="UTF-8">' +
-      '<title>Print</title>' +
-      '<style>' +
-      '@page{size:58mm auto;margin:0;}' +
-      'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}' +
-      'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:12px;}' +
-      '</style>' +
-      '</head>' +
-      '<body>' +
-      '<pre>' + clean(text) + '</pre>' +
-      '</body>' +
-      '</html>'
-    );
+const APP_CONFIG =
+  await AppConfig.findOne({ key:"main" }).lean()
+  || {};
+
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Print</title>
+<style>
+@page{ size:58mm auto; margin:0; }
+body{
+  width:42mm;
+  margin:0 auto;
+  font-family:monospace;
+  font-size:10px;
+}
+.title{text-align:center;font-weight:700;margin-bottom:4px;}
+.meta{margin-bottom:4px;}
+.line{border-top:1px dashed #000;margin:4px 0;}
+.tirage{font-weight:700;margin-top:4px;}
+.game-row{
+  display:grid;
+  grid-template-columns:1fr 30px 40px;
+}
+.col-amt{text-align:right;}
+.total{font-weight:700;margin-top:4px;}
+</style>
+</head>
+<body>
+
+${APP_CONFIG.ticketLogo ? `
+<div style="text-align:center;margin-bottom:6px;">
+  <img
+    src="${APP_CONFIG.ticketLogo}"
+    style="width:120px;max-height:120px;object-fit:contain;"
+  >
+</div>
+` : ""}
+
+<div class="title">NUMBER ONE LOTO</div>
+
+<div class="meta">
+SELLER ${sellerName}<br>
+TICKET ${ticket.id || ticket.ticketId || ticket.serial || ticketId}<br>
+DATE ${dateStr} ${timeStr}
+</div>
+
+<div class="line"></div>
+
+${loteriesHtml}
+
+<div class="line"></div>
+
+${gamesHtml}
+
+${freeHtml}
+
+<div class="line"></div>
+
+<div class="total">TOTAL: ${total.toFixed(2)} G</div>
+
+<div
+  style="
+    margin-top:14px;
+    text-align:center;
+    font-size:8px;
+  "
+>
+  ${APP_CONFIG.ticketMessage || ""}
+</div>
+
+<script>
+setTimeout(function(){
+  window.print();
+}, 300);
+</script>
+
+</body>
+</html>
+    `);
 
   } catch (err) {
     console.error("PRINT ERROR:", err);
@@ -5901,21 +5561,14 @@ app.get("/print-report", async (req, res) => {
     const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
     const start = String(req.query.start || "").trim();
     const end = String(req.query.end || "").trim();
+
     const printDate = String(req.query.date || "").trim();
     const printTime = String(req.query.time || "").trim();
-    const NL = String.fromCharCode(10);
 
     function money(v) {
       if (v === null || v === undefined) return 0;
       const n = Number(String(v).replace(/,/g, "").trim());
       return Number.isFinite(n) ? n : 0;
-    }
-
-    function formatMoney(v) {
-      return Number(v || 0).toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
     }
 
     function formatFRDateInput(iso) {
@@ -5937,19 +5590,6 @@ app.get("/print-report", async (req, res) => {
       return d.getFullYear() + "-" +
         String(d.getMonth() + 1).padStart(2, "0") + "-" +
         String(d.getDate()).padStart(2, "0");
-    }
-
-    function clean(v) {
-      return String(v || "")
-        .replace(/</g, "")
-        .replace(/>/g, "")
-        .replace(/&/g, "and");
-    }
-
-    function row(label, value) {
-      var left = "| " + String(label || "").padEnd(12, " ");
-      var right = String(value || "").padStart(12, " ") + " |";
-      return left + right;
     }
 
     const vendeur = await Vendor.findOne({ id: sellerId }).lean();
@@ -5988,45 +5628,66 @@ app.get("/print-report", async (req, res) => {
     const commission = (vente * rate) / 100;
     const resultat = vente - prix - commission;
 
-    let text = "";
-
-    text += "       NUMBER ONE LOTO" + NL;
-    text += "            RAPPORT" + NL;
-    text += "            " + clean(sellerName) + NL;
-    text += "   " + formatFRDateInput(start) + " / " + formatFRDateInput(end) + NL;
-    text += "     [ " + clean(printDate) + " " + clean(printTime) + " ]" + NL;
-    text += "------------------------------" + NL;
-    text += row("Ventes", formatMoney(vente)) + NL;
-    text += row("Prix", formatMoney(prix)) + NL;
-    text += row("Commission", formatMoney(commission)) + NL;
-    text += row("Balance", formatMoney(resultat)) + NL;
-    text += "------------------------------" + NL;
-
     res.set("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Rapport</title>
+<style>
+@page{ size:58mm auto; margin:0; }
+html,body{ margin:0; padding:0; background:#fff; }
+body{
+  width:42mm;
+  margin:0 auto;
+  padding:1mm;
+  font-family:monospace;
+  font-size:9px;
+  color:#000;
+  line-height:1.2;
+}
+.title{ text-align:center; font-size:10px; font-weight:700; margin-bottom:3px; }
+.center{text-align:center;}
+.line{ border-top:1px dashed #000; margin:4px 0; }
+.row{ display:grid; grid-template-columns:1fr auto; gap:4px; margin:3px 0; }
+.boxline{ border-top:1px dashed #000; border-bottom:1px dashed #000; padding:4px 0; }
+</style>
+</head>
+<body>
+  <div class="title">NUMBER ONE LOTO</div>
+  <div class="center">RAPPORT</div>
+  <div class="center">${sellerName}</div>
+  <div class="center">${formatFRDateInput(start)} / ${formatFRDateInput(end)}</div>
+  <div class="center">[ ${printDate} ${printTime} ]</div>
 
-    res.send(
-      '<!DOCTYPE html>' +
-      '<html>' +
-      '<head>' +
-      '<meta charset="UTF-8">' +
-      '<title>Rapport</title>' +
-      '<style>' +
-      '@page{size:58mm auto;margin:0;}' +
-      'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}' +
-      'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:12px;}' +
-      '</style>' +
-      '</head>' +
-      '<body>' +
-      '<pre>' + clean(text) + '</pre>' +
-      '</body>' +
-      '</html>'
-    );
+  <div class="line"></div>
+
+ <div class="boxline">
+  <div class="row"><span>| Ventes</span><b>${Number(vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Prix</span><b>${Number(prix || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Commission</span><b>${Number(commission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Balance</span><b>${Number(resultat || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+</div>
+
+<script>
+setTimeout(function(){
+  try{ window.print(); }catch(e){}
+},300);
+</script>
+</body>
+</html>
+    `);
 
   } catch (err) {
     console.error("Erreur print-report:", err);
     res.status(500).send("Erreur rapport");
   }
 });
+
 
 
 app.get("/api/reportes/tickets", async (req, res) => {

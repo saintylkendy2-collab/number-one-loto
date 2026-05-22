@@ -4301,22 +4301,35 @@ if(!loterieHtml){
   }
 
   if(printBtn){
-  printBtn.addEventListener("click", function(){
-    var now = new Date();
+printBtn.addEventListener("click", function(){
+  var now = new Date();
 
-    window.open(
-      "/print-report?sellerId=" + encodeURIComponent(sellerId) +
-      "&start=" + encodeURIComponent(startValue) +
-      "&end=" + encodeURIComponent(endValue) +
-      "&date=" + encodeURIComponent(now.toLocaleDateString("fr-FR")) +
-      "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
-        hour: "2-digit",
-        minute: "2-digit"
-      })),
-      "_blank"
-    );
+  fetch(
+    "/print-report?sellerId=" + encodeURIComponent(sellerId) +
+    "&start=" + encodeURIComponent(startValue) +
+    "&end=" + encodeURIComponent(endValue) +
+    "&date=" + encodeURIComponent(now.toLocaleDateString("fr-FR")) +
+    "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit"
+    }))
+  )
+  .then(function(r){ return r.text(); })
+  .then(function(html){
+    var div = document.createElement("div");
+    div.innerHTML = html;
+    var text = (div.innerText || div.textContent || "").trim();
+
+    if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
+      AndroidPrinter.printTicket(text);
+    }else{
+      alert(text);
+    }
+  })
+  .catch(function(){
+    alert("Erreur impression rapport");
   });
-}
+});
 
   if(startInput){
     startInput.addEventListener("change", function(){

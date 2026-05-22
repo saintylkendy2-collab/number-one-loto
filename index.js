@@ -4638,14 +4638,24 @@ function copyTicketById(){
     if(activeField === "montant"){
 
 if(window.autoMarriageMode){
+  if(!montant.trim()){
+    alert("Mete montan an");
+    return;
+  }
+
   window.autoMarriageMode = false;
-  autoMarriageExecute();
+  finishAutoMarriage();
   return;
 }
 
 if(window.autoLoto4Mode){
+  if(!montant.trim()){
+    alert("Mete montan an");
+    return;
+  }
+
   window.autoLoto4Mode = false;
-  autoLoto4Execute();
+  finishAutoLoto4();
   return;
 }
 

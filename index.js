@@ -4300,36 +4300,47 @@ if(!loterieHtml){
     });
   }
 
-  if(printBtn){
-printBtn.addEventListener("click", function(){
-  var now = new Date();
+ if(printBtn){
+  printBtn.addEventListener("click", function(){
 
-  fetch(
-    "/print-report?sellerId=" + encodeURIComponent(sellerId) +
-    "&start=" + encodeURIComponent(startValue) +
-    "&end=" + encodeURIComponent(endValue) +
-    "&date=" + encodeURIComponent(now.toLocaleDateString("fr-FR")) +
-    "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit"
-    }))
-  )
-  .then(function(r){ return r.text(); })
-  .then(function(html){
-    var div = document.createElement("div");
-    div.innerHTML = html;
-    var text = (div.innerText || div.textContent || "").trim();
+    var now = new Date();
 
-    if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
-      AndroidPrinter.printTicket(text);
-    }else{
-      alert(text);
+    var url =
+      "/print-report?sellerId=" + encodeURIComponent(sellerId) +
+      "&start=" + encodeURIComponent(startValue) +
+      "&end=" + encodeURIComponent(endValue) +
+      "&date=" + encodeURIComponent(now.toLocaleDateString("fr-FR")) +
+      "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      }));
+
+    if(window.AndroidPrinter){
+
+      fetch(url)
+      .then(r => r.text())
+      .then(text => {
+
+        text = text
+          .replace(/<[^>]*>/g, "")
+          .replace(/&nbsp;/g, " ")
+          .trim();
+
+        AndroidPrinter.printTicket(text);
+
+      })
+      .catch(() => {
+        alert("Erreur impression rapport");
+      });
+
+    } else {
+
+      window.open(url, "_blank");
+
     }
-  })
-  .catch(function(){
-    alert("Erreur impression rapport");
+
   });
-});
+}
 
   if(startInput){
     startInput.addEventListener("change", function(){

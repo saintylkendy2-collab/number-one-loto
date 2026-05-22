@@ -1707,6 +1707,42 @@ app.get("/api/vendor/sorteos", async (req, res) => {
   }
 });
 
+function timeToMinutes(t){
+  var p = String(t || "").split(":");
+  if(p.length < 2) return null;
+  var h = Number(p[0]);
+  var m = Number(p[1]);
+  if(!Number.isFinite(h) || !Number.isFinite(m)) return null;
+  return h * 60 + m;
+}
+
+function getDayKey(d){
+  return ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][d.getDay()];
+}
+
+function isLoteriaOpenServer(lot){
+  if(!lot) return true;
+
+  if(String(lot.estatus || "").toUpperCase() !== "ACTIVO"){
+    return false;
+  }
+
+  var now = new Date();
+  var dayKey = getDayKey(now);
+
+  var closeTime =
+    lot.closeDays && lot.closeDays[dayKey]
+      ? lot.closeDays[dayKey]
+      : lot.closeTime;
+
+  var closeMin = timeToMinutes(closeTime);
+  if(closeMin === null) return true;
+
+  var nowMin = now.getHours() * 60 + now.getMinutes();
+
+  return nowMin < closeMin;
+}
+
 app.post("/api/ticket-status", async (req, res) => {
   try {
     const ticketId = String(req.body.id || "").trim();

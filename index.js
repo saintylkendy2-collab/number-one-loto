@@ -6025,7 +6025,7 @@ app.get("/print-report", async (req, res) => {
     text += row("Ventes", formatMoney(vente)) + NL;
     text += row("Prix", formatMoney(prix)) + NL;
     text += row("Commission", formatMoney(commission)) + NL;
-    text += row("Balance", formatMoney(resultat)) + NL;
+    text += row("Résultat", formatMoney(resultat)) + NL;
     text += "------------------------------" + NL;
 
 if (String(req.query.raw || "") === "1") {

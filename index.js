@@ -4331,7 +4331,7 @@ if(!loterieHtml){
     text += row("Ventes", fm(vente)) + NL;
     text += row("Prix", fm(prime)) + NL;
     text += row("Commission", fm(commission)) + NL;
-    text += row("Résultat", fm(resultat)) + NL;
+    text += row("Resultat", fm(resultat)) + NL;
     text += "------------------------------" + NL;
 
     if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){

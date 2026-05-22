@@ -3305,8 +3305,97 @@ return;
  updateFields();
 }
 
-const autoMarriageExecute = autoMarriage;
-const autoLoto4Execute = autoLoto4;
+function finishAutoMarriage(){
+ var counts = getAutoSourceBalls();
+ var nums = Object.keys(counts);
+
+ var groups = [];
+ var used = {};
+
+ nums.forEach(function(n){
+   if(used[n]) return;
+   var r = reverse2(n);
+
+   if(nums.includes(r) && r !== n){
+     groups.push([n, r]);
+     used[n] = true;
+     used[r] = true;
+   } else {
+     groups.push([n]);
+     used[n] = true;
+   }
+ });
+
+ var results = [];
+
+ for(var i=0;i<groups.length;i++){
+   for(var j=i+1;j<groups.length;j++){
+     groups[i].forEach(function(a){
+       groups[j].forEach(function(b){
+         if(a === b) return;
+         if(a === reverse2(b)) return;
+         results.push(a + "*" + b);
+       });
+     });
+   }
+ }
+
+ results.forEach(function(numeroAuto){
+   selectedLoteries.forEach(function(lot){
+     mergeOrPushGame({
+       type: "MAR",
+       numero: numeroAuto,
+       loterie: lot,
+       montant: parseFloat(montant) || 0
+     });
+   });
+ });
+
+ montant = "";
+ cursorMontant = 0;
+ activeField = "numero";
+
+ renderJeux();
+ updateFields();
+}
+
+function finishAutoLoto4(){
+ var counts = getAutoSourceBalls();
+ var nums = Object.keys(counts);
+
+ var results = {};
+
+ for(var i=0;i<nums.length;i++){
+   for(var j=i+1;j<nums.length;j++){
+     var a = nums[i];
+     var b = nums[j];
+
+     if(a === b) continue;
+     if(a === reverse2(b)) continue;
+
+     results[a + b] = true;
+     results[b + a] = true;
+   }
+ }
+
+ Object.keys(results).forEach(function(numeroAuto){
+   selectedLoteries.forEach(function(lot){
+     mergeOrPushGame({
+       type: "L41",
+       numero: numeroAuto,
+       loterie: lot,
+       montant: parseFloat(montant) || 0
+     });
+   });
+ });
+
+ montant = "";
+ cursorMontant = 0;
+ activeField = "numero";
+
+ renderJeux();
+ updateFields();
+}
 
 async function addGame(){
   if(!numero.trim()) return;

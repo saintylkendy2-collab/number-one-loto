@@ -4313,7 +4313,9 @@ if(!loterieHtml){
       "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
         hour: "2-digit",
         minute: "2-digit"
-      }));
+        })) +
+  "&raw=1"
+)
 
     if(window.AndroidPrinter){
 
@@ -6026,25 +6028,30 @@ app.get("/print-report", async (req, res) => {
     text += row("Balance", formatMoney(resultat)) + NL;
     text += "------------------------------" + NL;
 
-    res.set("Content-Type", "text/html; charset=utf-8");
+if (String(req.query.raw || "") === "1") {
+  res.set("Content-Type", "text/plain; charset=utf-8");
+  return res.send(text);
+}
 
-    res.send(
-      '<!DOCTYPE html>' +
-      '<html>' +
-      '<head>' +
-      '<meta charset="UTF-8">' +
-      '<title>Rapport</title>' +
-      '<style>' +
-      '@page{size:58mm auto;margin:0;}' +
-      'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}' +
-      'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:12px;}' +
-      '</style>' +
-      '</head>' +
-      '<body>' +
-      '<pre>' + clean(text) + '</pre>' +
-      '</body>' +
-      '</html>'
-    );
+res.set("Content-Type", "text/html; charset=utf-8");
+
+res.send(
+  '<!DOCTYPE html>' +
+  '<html>' +
+  '<head>' +
+  '<meta charset="UTF-8">' +
+  '<title>Rapport</title>' +
+  '<style>' +
+  '@page{size:58mm auto;margin:0;}' +
+  'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}' +
+  'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:12px;}' +
+  '</style>' +
+  '</head>' +
+  '<body>' +
+  '<pre>' + clean(text) + '</pre>' +
+  '</body>' +
+  '</html>'
+);
 
   } catch (err) {
     console.error("Erreur print-report:", err);

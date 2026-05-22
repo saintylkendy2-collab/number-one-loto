@@ -4302,45 +4302,43 @@ if(!loterieHtml){
 
  if(printBtn){
   printBtn.addEventListener("click", function(){
-
     var now = new Date();
+    var NL = "\n";
 
-    var url =
-      "/print-report?sellerId=" + encodeURIComponent(sellerId) +
-      "&start=" + encodeURIComponent(startValue) +
-      "&end=" + encodeURIComponent(endValue) +
-      "&date=" + encodeURIComponent(now.toLocaleDateString("fr-FR")) +
-          "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
-        hour: "2-digit",
-        minute: "2-digit"
-      })) +
-      "&raw=1";
- 
-
-    if(window.AndroidPrinter){
-
-      fetch(url)
-      .then(r => r.text())
-      .then(text => {
-
-        text = text
-          .replace(/<[^>]*>/g, "")
-          .replace(/&nbsp;/g, " ")
-          .trim();
-
-        AndroidPrinter.printTicket(text);
-
-      })
-      .catch(() => {
-        alert("Erreur impression rapport");
+    function fm(v){
+      return Number(v || 0).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
       });
-
-    } else {
-
-      window.open(url, "_blank");
-
     }
 
+    function row(label, value){
+      var left = "| " + String(label || "").padEnd(12, " ");
+      var right = String(value || "").padStart(12, " ") + " |";
+      return left + right;
+    }
+
+    var text = "";
+    text += "       NUMBER ONE LOTO" + NL;
+    text += "            RAPPORT" + NL;
+    text += "            " + sellerName + NL;
+    text += "   " + toFr(startValue) + " / " + toFr(endValue) + NL;
+    text += "     [ " + now.toLocaleDateString("fr-FR") + " " + now.toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit"
+    }) + " ]" + NL;
+    text += "------------------------------" + NL;
+    text += row("Ventes", fm(vente)) + NL;
+    text += row("Prix", fm(prime)) + NL;
+    text += row("Commission", fm(commission)) + NL;
+    text += row("Résultat", fm(resultat)) + NL;
+    text += "------------------------------" + NL;
+
+    if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
+      AndroidPrinter.printTicket(text);
+    }else{
+      alert(text);
+    }
   });
 }
 

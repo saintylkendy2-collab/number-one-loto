@@ -4310,10 +4310,11 @@ if(!loterieHtml){
       "&start=" + encodeURIComponent(startValue) +
       "&end=" + encodeURIComponent(endValue) +
       "&date=" + encodeURIComponent(now.toLocaleDateString("fr-FR")) +
-      "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
+          "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
         hour: "2-digit",
         minute: "2-digit"
-       }))  
+      })) +
+      "&raw=1";
  
 
     if(window.AndroidPrinter){

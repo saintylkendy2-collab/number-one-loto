@@ -764,8 +764,8 @@ if (credit <= 0) {
 
     if (blocked) {
       return res.json({ ok:false, message:
-  "❌ " + loterie + "\n" +
-  type + " " + numero + "\n\n" +
+  "❌ " + j.loterie + "\n" +
+type + " " + j.numero + "\n\n" +
   "Nimewo sa bloke.\n" +
   "Ou pa ka vann jwèt sa."});
     }
@@ -814,31 +814,29 @@ if (special) {
     const reste = limit - dejaVendu;
 
   if (reste <= 0) {
-  return res.status(403).json({
-    ok:false,
-    message:
-"❌ " + j.loterie + "\n" +
-type + " " + j.numero + "\n\n" +
-"Limit: " + limit.toFixed(2) + "\n" +
-"Deja vann: " + dejaVendu.toFixed(2) + "\n" +
-"Rès disponib: 0.00\n\n" +
-"Limit nimewo sa fini."
-  });
-}
+      return res.json({ ok:false, message:
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
+  "Limit: " + limit.toFixed(2) + "\n" +
+  "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
+  "Rès disponib: 0.00\n\n" +
+  "Limit nimewo sa fini."});
+    }
 
-if (Number(j.montant || 0) > reste) {
-  return res.status(403).json({
-    ok:false,
-    message:
-"❌ " + j.loterie + "\n" +
-type + " " + j.numero + "\n\n" +
-"Limit: " + limit.toFixed(2) + "\n" +
-"Deja vann: " + dejaVendu.toFixed(2) + "\n" +
-"Rès disponib: " + reste.toFixed(2) + "\n\n" +
-"Ou te mande: " + Number(j.montant || 0).toFixed(2) + "\n" +
-"Ou ka vann sèlman: " + reste.toFixed(2)
-  });
-}
+    if (montant > reste) {
+      return res.json({
+        ok:false,
+        message:
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
+  "Limit: " + limit.toFixed(2) + "\n" +
+  "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
+  "Rès disponib: " + reste.toFixed(2) + "\n\n" +
+  "Ou te mande: " + Number(j.montant || 0).toFixed(2) + "\n" +
+  "Ou ka vann sèlman: " + reste.toFixed(2)
+      });
+    }
+
 
     res.json({ ok:true });
 
@@ -1375,8 +1373,8 @@ for (const j of safeJeux) {
     return res.status(403).json({
       ok:false,
       message:
-  "❌ " + loterie + "\n" +
-  type + " " + numero + "\n\n" +
+  "❌ " + j.loterie + "\n" +
+type + " " + j.numero + "\n\n" +
   "Nimewo sa bloke.\n" +
   "Ou pa ka vann jwèt sa."
     });
@@ -1423,31 +1421,28 @@ if (special) {
     const reste = limit - dejaVendu;
 
   if (reste <= 0) {
-  return res.status(403).json({
-    ok:false,
-    message:
-"❌ " + j.loterie + "\n" +
+      return res.json({ ok:false, message:
+ "❌ " + j.loterie + "\n" +
 type + " " + j.numero + "\n\n" +
-"Limit: " + limit.toFixed(2) + "\n" +
-"Deja vann: " + dejaVendu.toFixed(2) + "\n" +
-"Rès disponib: 0.00\n\n" +
-"Limit nimewo sa fini."
-  });
-}
+  "Limit: " + limit.toFixed(2) + "\n" +
+  "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
+  "Rès disponib: 0.00\n\n" +
+  "Limit nimewo sa fini."});
+    }
 
-if (Number(j.montant || 0) > reste) {
-  return res.status(403).json({
-    ok:false,
-    message:
-"❌ " + j.loterie + "\n" +
+    if (montant > reste) {
+      return res.json({
+        ok:false,
+        message:
+ "❌ " + j.loterie + "\n" +
 type + " " + j.numero + "\n\n" +
-"Limit: " + limit.toFixed(2) + "\n" +
-"Deja vann: " + dejaVendu.toFixed(2) + "\n" +
-"Rès disponib: " + reste.toFixed(2) + "\n\n" +
-"Ou te mande: " + Number(j.montant || 0).toFixed(2) + "\n" +
-"Ou ka vann sèlman: " + reste.toFixed(2)
-  });
-}
+  "Limit: " + limit.toFixed(2) + "\n" +
+  "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
+  "Rès disponib: " + reste.toFixed(2) + "\n\n" +
+  "Ou te mande: " + Number(j.montant || 0).toFixed(2) + "\n" +
+  "Ou ka vann sèlman: " + reste.toFixed(2)
+      });
+    }
   }
 }
 

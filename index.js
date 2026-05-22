@@ -3179,10 +3179,16 @@ function autoMarriage(){
    return;
  }
 
- if(!montant.trim()){
-   alert("Mete montan an");
-   return;
- }
+ window.autoMarriageMode = true;
+
+closeOptions();
+document.getElementById("overlay").classList.remove("show");
+
+activeField = "montant";
+cursorMontant = montant.length;
+updateFields();
+
+return;
 
  // 🔥 1. Fè gwoup (12/21, 34/43, etc)
  var groups = [];
@@ -3256,10 +3262,16 @@ function autoLoto4(){
    return;
  }
 
- if(!montant.trim()){
-   alert("Mete montan an");
-   return;
- }
+ window.autoLoto4Mode = true;
+
+closeOptions();
+document.getElementById("overlay").classList.remove("show");
+
+activeField = "montant";
+cursorMontant = montant.length;
+updateFields();
+
+return;
 
  var results = {};
 
@@ -3292,6 +3304,9 @@ function autoLoto4(){
  renderJeux();
  updateFields();
 }
+
+const autoMarriageExecute = autoMarriage;
+const autoLoto4Execute = autoLoto4;
 
 async function addGame(){
   if(!numero.trim()) return;
@@ -4532,6 +4547,19 @@ function copyTicketById(){
     }
 
     if(activeField === "montant"){
+
+if(window.autoMarriageMode){
+  window.autoMarriageMode = false;
+  autoMarriageExecute();
+  return;
+}
+
+if(window.autoLoto4Mode){
+  window.autoLoto4Mode = false;
+  autoLoto4Execute();
+  return;
+}
+
       if(!montant.trim()) return;
 
       if(autoBoulPeMode){

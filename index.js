@@ -4313,9 +4313,8 @@ if(!loterieHtml){
       "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
         hour: "2-digit",
         minute: "2-digit"
-        })) +
-  "&raw=1"
-)
+       }))  
+ 
 
     if(window.AndroidPrinter){
 

@@ -1933,6 +1933,15 @@ router.post("/api/sorteos/save", async (req, res) => {
 
 res.json({ ok: true, date: date });
 
+fetch("https://number-one-loto-2.onrender.com/api/sorteos-sync", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    date: date,
+    rows: rows
+  })
+}).catch(err => console.error("Erreur sync NBL2:", err.message));
+
 runCheckTickets(
   date,
   rows.map(r => String(r.loteria || "").trim().toUpperCase())

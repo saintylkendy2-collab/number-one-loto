@@ -504,13 +504,7 @@ router.get("/api/reportes/ventas", async (req, res) => {
     const end = String(req.query.end || "").trim();
 
     const vendorsArr = await Vendor.find().lean();
- const ticketQuery = {};
-
-if(start && end && start === end){
-  ticketQuery.dateLabel = toFRDate(start);
-}
-
-const tickets = await Ticket.find(ticketQuery).lean();
+    const tickets = await Ticket.find().lean();
 
     const vendeurs = {};
     vendorsArr.forEach(v => {
@@ -533,6 +527,18 @@ const tickets = await Ticket.find(ticketQuery).lean();
         String(d.getMonth() + 1).padStart(2, "0") + "-" +
         String(d.getDate()).padStart(2, "0");
     }
+
+    const sorteosArr = await Sorteo.find().lean();
+
+const sorteosMap = {};
+
+sorteosArr.forEach(s => {
+  const key =
+    String(s.date || "").trim() + "_" +
+    String(s.loteria || "").trim().toUpperCase();
+
+  sorteosMap[key] = s;
+});
 
     for (const t of tickets) {
       const d = ticketDay(t);
@@ -569,13 +575,13 @@ const tickets = await Ticket.find(ticketQuery).lean();
         let realPremio = 0;
 
         for (const j of t.jeux || []) {
-          const tirage = await Sorteo.findOne({
-            date: String(t.dateLabel || "").trim(),
-            loteria: {
-              $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
-              $options: "i"
-            }
-          }).lean();
+         const tirage = await Sorteo.findOne({
+  date: String(t.dateLabel || "").trim(),
+  loteria: {
+    $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+    $options: "i"
+  }
+}).lean();
 
           if (tirage) {
             realPremio += getGainAdmin(j, tirage, vendorConfig);
@@ -885,13 +891,7 @@ router.get("/ventas-document", async (req, res) => {
       "&end=" + encodeURIComponent(end);
 
     const vendorsArr = await Vendor.find().lean();
- const ticketQuery = {};
-
-if(start && end && start === end){
-  ticketQuery.dateLabel = toFRDate(start);
-}
-
-const tickets = await Ticket.find(ticketQuery).lean();
+    const tickets = await Ticket.find().lean();
 
     const vendeurs = {};
     vendorsArr.forEach(v => {

@@ -2188,8 +2188,10 @@ router.get("/master/vendors", async (req, res) => {
     await AppConfig.findOne({ key: "main" }).lean()
     || {};
 
-  const logoUrl =
-    appConfig.ticketLogo || "";
+ const logoUrl =
+  appConfig.ticketLogo ||
+  appConfig.logo ||
+  "";
 
   res.send(`
 <!DOCTYPE html>
@@ -2923,8 +2925,9 @@ tbody tr:nth-child(even){background:#313652;}
          style="cursor:pointer;">
 
       <img class="side-menu-logo-img"
-           src="${logoUrl}"
-           alt="logo">
+     src="${logoUrl}"
+     alt="logo"
+     onerror="this.style.display='none'">
 
       <div class="side-menu-logo">
         NUMBER ONE LOTO

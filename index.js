@@ -3777,14 +3777,22 @@ function saveCurrentTicket(channel){
  });
 }
 
+let submittingPrint = false;
+
 function submitPrint(){
+
+  if(submittingPrint) return;
+
   if(jeux.length === 0){
     alert("Pa gen jwèt pou enprime.");
     return;
   }
 
+  submittingPrint = true;
+
   saveCurrentTicket("PRINT").then(function(ticket){
     if(!ticket || !ticket.id){
+      submittingPrint = false;
 
       if(ticket && ticket.message){
         alert(ticket.message);
@@ -3817,9 +3825,15 @@ function submitPrint(){
       .catch(function(err){
         console.error(err);
         alert("Erreur impression");
+      })
+      .finally(function(){
+        setTimeout(function(){
+          submittingPrint = false;
+        }, 1500);
       });
 
   }).catch(function(err){
+    submittingPrint = false;
     console.error(err);
     alert("Erreur impression");
   });

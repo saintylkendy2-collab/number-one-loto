@@ -528,18 +528,6 @@ router.get("/api/reportes/ventas", async (req, res) => {
         String(d.getDate()).padStart(2, "0");
     }
 
-    const sorteosArr = await Sorteo.find().lean();
-
-const sorteosMap = {};
-
-sorteosArr.forEach(s => {
-  const key =
-    String(s.date || "").trim() + "_" +
-    String(s.loteria || "").trim().toUpperCase();
-
-  sorteosMap[key] = s;
-});
-
     for (const t of tickets) {
       const d = ticketDay(t);
 
@@ -575,13 +563,13 @@ sorteosArr.forEach(s => {
         let realPremio = 0;
 
         for (const j of t.jeux || []) {
-         const tirage = await Sorteo.findOne({
-  date: String(t.dateLabel || "").trim(),
-  loteria: {
-    $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
-    $options: "i"
-  }
-}).lean();
+          const tirage = await Sorteo.findOne({
+            date: String(t.dateLabel || "").trim(),
+            loteria: {
+              $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+              $options: "i"
+            }
+          }).lean();
 
           if (tirage) {
             realPremio += getGainAdmin(j, tirage, vendorConfig);
@@ -6996,9 +6984,15 @@ function loginMaster() {
     appPage.classList.remove("hidden");
     appPage.style.display = "block";
 
-    loadVendorsFromServer();
-    loadVentasReport();
-    loadBalanceReport();
+   loadVendorsFromServer();
+
+setTimeout(function(){
+  loadVentasReport();
+}, 300);
+
+setTimeout(function(){
+  loadBalanceReport();
+}, 700);
 
     goPage("ventas");
   } else {

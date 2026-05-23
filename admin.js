@@ -504,10 +504,10 @@ router.get("/api/reportes/ventas", async (req, res) => {
     const end = String(req.query.end || "").trim();
 
     const vendorsArr = await Vendor.find().lean();
-    let ticketQuery = {};
+ const ticketQuery = {};
 
 if(start && end && start === end){
-  ticketQuery.dateLabel = formatFRDateInput(start);
+  ticketQuery.dateLabel = toFRDate(start);
 }
 
 const tickets = await Ticket.find(ticketQuery).lean();
@@ -885,10 +885,10 @@ router.get("/ventas-document", async (req, res) => {
       "&end=" + encodeURIComponent(end);
 
     const vendorsArr = await Vendor.find().lean();
-    let ticketQuery = {};
+ const ticketQuery = {};
 
 if(start && end && start === end){
-  ticketQuery.dateLabel = formatFRDateInput(start);
+  ticketQuery.dateLabel = toFRDate(start);
 }
 
 const tickets = await Ticket.find(ticketQuery).lean();

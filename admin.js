@@ -1933,15 +1933,6 @@ router.post("/api/sorteos/save", async (req, res) => {
 
 res.json({ ok: true, date: date });
 
-fetch("https://number-one-loto-2.onrender.com/api/sorteos-delete-sync", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    date,
-    loteria
-  })
-}).catch(err => console.error(err));
-
 fetch("https://number-one-loto-2.onrender.com/api/sorteos-sync", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -1986,6 +1977,16 @@ router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
     const loteria = String(req.params.loteria || "").trim().toUpperCase();
 
    await Sorteo.deleteOne({ date, loteria });
+
+
+fetch("https://number-one-loto-2.onrender.com/api/sorteos-delete-sync", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    date,
+    loteria
+  })
+}).catch(err => console.error(err));
 
 await runCheckTickets(date, [loteria]);
 

@@ -664,17 +664,35 @@ function getGain(j, tirage, config){
   // =========================
   // MARIAGE
   // =========================
-  else if(type === "MAR"){
-    const combos = [
-      r2 + "*" + r3,
-      r2 + "*" + r4,
-      r3 + "*" + r4
-    ];
+ else if(type === "MAR"){
+  const isGratis =
+    j.gratis === true ||
+    j.free === true ||
+    Number(j.montant || 0) === 0;
 
-    if(combos.includes(num)){
-      pay = payout(config, "premios.mariage", 1000);
+  const parts = String(num)
+    .replace("-", "x")
+    .replace("*", "x")
+    .split("x")
+    .map(x => pad2(x));
+
+  const played = parts.join("");
+
+  const wins = [
+    r2 + r3,
+    r2 + r4,
+    r3 + r4
+  ];
+
+  if(wins.includes(played)){
+    if(isGratis){
+      return Number(j.payoutGratis || 0);
     }
+
+    pay = payout(config, "premios.mariage", 1000);
+    return montant * pay;
   }
+}
 
   // =========================
   // LOTO 3
@@ -1219,13 +1237,21 @@ function isWinningGame(j, result){
   }
 
   // MAR
-  if(type === "MAR"){
-    return [
-      r2 + "*" + r3,
-      r2 + "*" + r4,
-      r3 + "*" + r4
-    ].includes(played);
-  }
+ if(type === "MAR"){
+  const parts = String(played)
+    .replace("-", "x")
+    .replace("*", "x")
+    .split("x")
+    .map(x => pad2(x));
+
+  const p = parts.join("");
+
+  return [
+    r2 + r3,
+    r2 + r4,
+    r3 + r4
+  ].includes(p);
+}
 
   return false;
 }

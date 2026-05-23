@@ -5992,11 +5992,14 @@ async function submitBalanceAction(){
       return;
     }
 
-    closeBalanceModal();
-    await loadVendorsFromServer();
-    await loadVentasReport();
-    await loadBalanceReport();
-    alert("Balance mis à jour");
+   closeBalanceModal();
+
+await loadVendorsFromServer();
+await loadBalanceReport();
+
+loadVentasReport();
+
+alert("Balance mis à jour");
   }catch(err){
     console.error(err);
     alert("Erreur balance");
@@ -6135,12 +6138,13 @@ async function deleteMovimiento(vendorId, movimientoId){
       return;
     }
 
-    await loadVendorsFromServer();
-    await loadVentasReport();
-    await loadBalanceReport();
-    renderTransactionsTable();
+   await loadVendorsFromServer();
+await loadBalanceReport();
 
-    alert("Transaction supprimée ✔");
+loadVentasReport();
+renderTransactionsTable();
+
+alert("Transaction supprimée ✔");
   }catch(err){
     console.error(err);
     alert("Erreur delete transaction");

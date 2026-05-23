@@ -504,7 +504,13 @@ router.get("/api/reportes/ventas", async (req, res) => {
     const end = String(req.query.end || "").trim();
 
     const vendorsArr = await Vendor.find().lean();
-    const tickets = await Ticket.find().lean();
+    let ticketQuery = {};
+
+if(start && end && start === end){
+  ticketQuery.dateLabel = formatFRDateInput(start);
+}
+
+const tickets = await Ticket.find(ticketQuery).lean();
 
     const vendeurs = {};
     vendorsArr.forEach(v => {
@@ -879,7 +885,13 @@ router.get("/ventas-document", async (req, res) => {
       "&end=" + encodeURIComponent(end);
 
     const vendorsArr = await Vendor.find().lean();
-    const tickets = await Ticket.find().lean();
+    let ticketQuery = {};
+
+if(start && end && start === end){
+  ticketQuery.dateLabel = formatFRDateInput(start);
+}
+
+const tickets = await Ticket.find(ticketQuery).lean();
 
     const vendeurs = {};
     vendorsArr.forEach(v => {
@@ -5992,14 +6004,11 @@ async function submitBalanceAction(){
       return;
     }
 
-   closeBalanceModal();
-
-await loadVendorsFromServer();
-await loadBalanceReport();
-
-loadVentasReport();
-
-alert("Balance mis à jour");
+    closeBalanceModal();
+    await loadVendorsFromServer();
+    await loadVentasReport();
+    await loadBalanceReport();
+    alert("Balance mis à jour");
   }catch(err){
     console.error(err);
     alert("Erreur balance");
@@ -6138,13 +6147,12 @@ async function deleteMovimiento(vendorId, movimientoId){
       return;
     }
 
-   await loadVendorsFromServer();
-await loadBalanceReport();
+    await loadVendorsFromServer();
+    await loadVentasReport();
+    await loadBalanceReport();
+    renderTransactionsTable();
 
-loadVentasReport();
-renderTransactionsTable();
-
-alert("Transaction supprimée ✔");
+    alert("Transaction supprimée ✔");
   }catch(err){
     console.error(err);
     alert("Erreur delete transaction");

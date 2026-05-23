@@ -50,6 +50,9 @@ mongoose.connection.once("open", async () => {
 
     await Ticket.collection.dropIndex("id_1").catch(() => {});
     await Ticket.collection.createIndex({ id: 1 }, { unique: true, sparse: true });
+    await Ticket.collection.createIndex({ vendeur: 1, createdAt: -1 });
+    await Ticket.collection.createIndex({ dateLabel: 1, vendeur: 1, status: 1 });
+    await Sorteo.collection.createIndex({ date: 1, loteria: 1 });
 
     await Ticket.deleteMany({
       $or: [

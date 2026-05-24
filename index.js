@@ -682,10 +682,10 @@ function getGain(j, tirage, config){
   const played = parts.join("");
 
   const wins = [
-    r2 + r3,
-    r2 + r4,
-    r3 + r4
-  ];
+  r2 + r3, r3 + r2,
+  r2 + r4, r4 + r2,
+  r3 + r4, r4 + r3
+];
 
   if(wins.includes(played)){
     if(isGratis){
@@ -1049,12 +1049,12 @@ const vendorConfig = vendor || {};
       }
 
       if (type === "MAR") {
-        return [
-          r2 + "*" + r3,
-          r2 + "*" + r4,
-          r3 + "*" + r4
-        ].includes(played);
-      }
+  return [
+    r2 + "*" + r3, r3 + "*" + r2,
+    r2 + "*" + r4, r4 + "*" + r2,
+    r3 + "*" + r4, r4 + "*" + r3
+  ].includes(played);
+}
 
       return false;
     }
@@ -1250,10 +1250,10 @@ function isWinningGame(j, result){
   const p = parts.join("");
 
   return [
-    r2 + r3,
-    r2 + r4,
-    r3 + r4
-  ].includes(p);
+  r2 + r3, r3 + r2,
+  r2 + r4, r4 + r2,
+  r3 + r4, r4 + r3
+].includes(p);
 }
 
   return false;

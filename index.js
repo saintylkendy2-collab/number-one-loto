@@ -6136,13 +6136,24 @@ app.get("/print", async (req, res) => {
     text += loteriesText;
     text += "------------------------------" + NL;
 
-    Object.values(gameMap).forEach(function(g){
-      text += lineGame(
-        g.type,
-        g.numero,
-        money(g.montant * g.count)
-      ) + NL;
-    });
+    const gameRows = Object.values(gameMap);
+
+let lastLoterie = "";
+
+gameRows.forEach(function(g){
+
+  if (g.loterie && g.loterie !== lastLoterie) {
+    text += clean(g.loterie) + NL;
+    lastLoterie = g.loterie;
+  }
+
+  text += lineGame(
+    g.type,
+    g.numero,
+    money(g.montant * g.count)
+  ) + NL;
+
+});
 
     Object.keys(freeMap).forEach(function(loterie){
       text += "------------------------------" + NL;

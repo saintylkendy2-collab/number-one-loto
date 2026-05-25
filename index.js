@@ -6138,11 +6138,20 @@ app.get("/print", async (req, res) => {
 
     const gameRows = Object.values(gameMap);
 
+const baseMap = {};
+gameRows.forEach(function(g){
+  const base = g.type + "|" + g.numero;
+  if(!baseMap[base]) baseMap[base] = {};
+  baseMap[base][g.montant] = true;
+});
+
 let lastLoterie = "";
 
 gameRows.forEach(function(g){
+  const base = g.type + "|" + g.numero;
+  const needLoterie = Object.keys(baseMap[base]).length > 1;
 
-  if (g.loterie && g.loterie !== lastLoterie) {
+  if(needLoterie && g.loterie !== lastLoterie){
     text += clean(g.loterie) + NL;
     lastLoterie = g.loterie;
   }
@@ -6152,7 +6161,6 @@ gameRows.forEach(function(g){
     g.numero,
     money(g.montant * g.count)
   ) + NL;
-
 });
 
     Object.keys(freeMap).forEach(function(loterie){

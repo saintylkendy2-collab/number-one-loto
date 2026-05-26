@@ -6066,64 +6066,48 @@ app.get("/print", async (req, res) => {
       return left + mid + right;
     }
 
-    let lotSeen = {};
-    let loteriesText = "";
+  const lotMap = {};
 
-    (ticket.jeux || []).forEach(function(j){
-      const lot = String(j.loterie || j.loteria || "").trim().toUpperCase() || "SANS TIRAGE";
+(ticket.jeux || []).forEach(function(j){
+  let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase() || "SANS TIRAGE";
 
-      if (!lotSeen[lot]) {
-        lotSeen[lot] = true;
-        loteriesText += clean(lot) + NL;
-      }
-    });
+  if (!lotMap[loterie]) lotMap[loterie] = [];
 
-    const gameMap = {};
+  let typeRaw = String(j.type || "").toUpperCase();
+  let numero = String(j.numero || "").trim();
+  let montant = Number(j.montant || 0);
 
-    (ticket.jeux || []).forEach(function(j){
-      if (j.gratis === true || j.free === true) {
-        return;
-      }
+  let type = typeRaw;
+  if (typeRaw === "BOR") type = "Borlette";
+  else if (typeRaw === "MAR") type = "Mariage";
+  else if (typeRaw === "L41") type = "Loto4";
 
-      let typeRaw = String(j.type || "").toUpperCase();
-      let numero = String(j.numero || "").trim();
-      let montant = Number(j.montant || 0);
-      let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase();
+  lotMap[loterie].push({
+    type: type,
+    numero: numero,
+    montant: montant,
+    gratis: j.gratis === true || j.free === true
+  });
+});
 
-      let type = typeRaw;
-      if (typeRaw === "BOR") type = "Borlette";
-      else if (typeRaw === "MAR") type = "Mariage";
+let gamesText = "";
 
-      let key = loterie + "|" + type + "|" + numero + "|" + montant;
+Object.keys(lotMap).forEach(function(loterie, index){
+  if (index > 0) {
+    gamesText += "------------------------------" + NL;
+  }
 
-      if (!gameMap[key]) {
-        gameMap[key] = {
-          loterie: loterie,
-          type: type,
-          numero: numero,
-          montant: montant,
-          count: 0
-        };
-      }
+  gamesText += clean(loterie) + NL;
+  gamesText += "------------------------------" + NL;
 
-      gameMap[key].count++;
-    });
-
-    const freeGames = (ticket.jeux || []).filter(function(j){
-      return j.gratis === true || j.free === true;
-    });
-
-    let freeMap = {};
-
-    freeGames.forEach(function(j){
-      let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase() || "SANS TIRAGE";
-
-      if (!freeMap[loterie]) {
-        freeMap[loterie] = [];
-      }
-
-      freeMap[loterie].push(j);
-    });
+  lotMap[loterie].forEach(function(g){
+    gamesText += lineGame(
+      g.type,
+      g.numero,
+      g.gratis ? "Gratis" : money(g.montant)
+    ) + NL;
+  });
+});
 
     let text = "";
 
@@ -6131,9 +6115,6 @@ app.get("/print", async (req, res) => {
     text += "SELLER " + clean(sellerName) + NL;
     text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
     text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
-    text += "------------------------------" + NL;
-
-    text += loteriesText;
     text += "------------------------------" + NL;
 
     const gameRows = Object.values(gameMap);

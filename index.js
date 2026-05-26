@@ -6066,7 +6066,7 @@ app.get("/print", async (req, res) => {
       return left + mid + right;
     }
 
-   const lotMap = {};
+ const lotMap = {};
 
 (ticket.jeux || []).forEach(function(j){
 
@@ -6124,17 +6124,18 @@ Object.keys(lotMap).forEach(function(loterie, index){
 
 });
 
+   let text = "";
 
-    let text = "";
+text += "       NUMBER ONE LOTO" + NL;
+text += "SELLER " + clean(sellerName) + NL;
+text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
+text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
+text += "------------------------------" + NL;
 
-    text += "       NUMBER ONE LOTO" + NL;
-    text += "SELLER " + clean(sellerName) + NL;
-    text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
-    text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
-    text += "------------------------------" + NL;
+text += gamesText;
 
-    text += loteriesText;
-    text += "------------------------------" + NL;
+text += "------------------------------" + NL;
+text += "TOTAL: " + money(total) + " G" + NL;
 
     const gameRows = Object.values(gameMap);
 
@@ -6184,18 +6185,8 @@ gameRows.forEach(function(g){
       });
     });
 
-   let text = "";
-
-text += "       NUMBER ONE LOTO" + NL;
-text += "SELLER " + clean(sellerName) + NL;
-text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
-text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
-text += "------------------------------" + NL;
-
-text += gamesText;
-
-text += "------------------------------" + NL;
-text += "TOTAL: " + money(total) + " G" + NL;
+    text += "------------------------------" + NL;
+    text += "TOTAL: " + money(total) + " G" + NL;
 
     if (footerMessage) {
       text += NL;

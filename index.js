@@ -1479,7 +1479,7 @@ type + " " + j.numero + "\n\n" +
   "Limit nimewo sa fini."});
     }
 
-    if (montant > reste) {
+    if (Number(j.montant || 0) > reste) {
       return res.json({
         ok:false,
         message:

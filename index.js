@@ -1446,11 +1446,12 @@ if (special) {
 }
 
   if (limit > 0) {
-   const tickets = await Ticket.find({
+ const tickets = await Ticket.find({
   status: { $ne: "ANILE" },
+  dateLabel: new Date().toLocaleDateString("fr-FR"),
   "jeux.numero": String(j.numero || "").trim(),
   "jeux.loterie": String(j.loterie || "").trim().toUpperCase()
-}).lean();
+}).lean(); 
 
     let dejaVendu = 0;
 
@@ -1478,7 +1479,7 @@ type + " " + j.numero + "\n\n" +
   "Limit nimewo sa fini."});
     }
 
-    if (Number(j.montant || 0) > reste) {
+    if (montant > reste) {
       return res.json({
         ok:false,
         message:

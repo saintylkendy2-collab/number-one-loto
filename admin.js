@@ -428,14 +428,13 @@ function getGainAdmin(j, tirage, config){
   const r4 = pad2(tirage.r4);
 
   let pay = 0;
+if(type === "BOR"){
+  const played = pad2(num);
 
-  if(type === "BOR"){
-    const played = pad2(num);
-
-    if(played === r2) pay = payout(config, "premios.borlette1", 55);
-    else if(played === r3) pay = payout(config, "premios.borlette2", 20);
-    else if(played === r4) pay = payout(config, "premios.borlette3", 10);
-  }
+  if(played === r2) pay += payout(config, "premios.borlette1", 55);
+  if(played === r3) pay += payout(config, "premios.borlette2", 20);
+  if(played === r4) pay += payout(config, "premios.borlette3", 10);
+}
 
   else if(type === "MAR"){
     const isGratis =

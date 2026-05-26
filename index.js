@@ -6184,8 +6184,18 @@ gameRows.forEach(function(g){
       });
     });
 
-    text += "------------------------------" + NL;
-    text += "TOTAL: " + money(total) + " G" + NL;
+   let text = "";
+
+text += "       NUMBER ONE LOTO" + NL;
+text += "SELLER " + clean(sellerName) + NL;
+text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
+text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
+text += "------------------------------" + NL;
+
+text += gamesText;
+
+text += "------------------------------" + NL;
+text += "TOTAL: " + money(total) + " G" + NL;
 
     if (footerMessage) {
       text += NL;

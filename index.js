@@ -6137,57 +6137,6 @@ text += gamesText;
 text += "------------------------------" + NL;
 text += "TOTAL: " + money(total) + " G" + NL;
 
-    const gameRows = Object.values(gameMap);
-
-const baseMap = {};
-gameRows.forEach(function(g){
-  const base = g.type + "|" + g.numero;
-  if(!baseMap[base]) baseMap[base] = {};
-  baseMap[base][g.montant] = true;
-});
-
-let lastLoterie = "";
-
-gameRows.forEach(function(g){
-  const base = g.type + "|" + g.numero;
-  const needLoterie = Object.keys(baseMap[base]).length > 1;
-
-  if(needLoterie && g.loterie !== lastLoterie){
-    text += clean(g.loterie) + NL;
-    lastLoterie = g.loterie;
-  }
-
-  text += lineGame(
-    g.type,
-    g.numero,
-    money(g.montant * g.count)
-  ) + NL;
-});
-
-    Object.keys(freeMap).forEach(function(loterie){
-      text += "------------------------------" + NL;
-      text += clean(loterie) + NL;
-
-      freeMap[loterie].forEach(function(j){
-        let typeRaw = String(j.type || "").toUpperCase();
-
-        let type = typeRaw;
-        if (typeRaw === "BOR") type = "Borlette";
-        else if (typeRaw === "MAR") type = "Mariage";
-
-        let numero = String(j.numero || "").trim();
-
-        text += lineGame(
-          type,
-          numero,
-          "Gratis"
-        ) + NL;
-      });
-    });
-
-    text += "------------------------------" + NL;
-    text += "TOTAL: " + money(total) + " G" + NL;
-
     if (footerMessage) {
       text += NL;
       text += clean(footerMessage) + NL;

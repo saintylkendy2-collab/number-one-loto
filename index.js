@@ -6012,15 +6012,10 @@ app.get("/print", async (req, res) => {
       ]
     }).lean();
 
-    if (!ticket) {
-      return res.status(404).send("Ticket introuvable");
-    }
+    if (!ticket) return res.status(404).send("Ticket introuvable");
 
     let vendeur = null;
-
-    if (sellerId) {
-      vendeur = await Vendor.findOne({ id: sellerId }).lean();
-    }
+    if (sellerId) vendeur = await Vendor.findOne({ id: sellerId }).lean();
 
     const sellerName = String(
       (vendeur && (vendeur.nom || vendeur.nombre)) ||
@@ -6034,25 +6029,16 @@ app.get("/print", async (req, res) => {
     const dateStr = ticket.dateLabel || formatDateFR(new Date(ticket.createdAt || Date.now()));
     const timeStr = ticket.timeLabel || formatTimeFR(new Date(ticket.createdAt || Date.now()));
 
-    const APP_CONFIG =
-      await AppConfig.findOne({ key:"main" }).lean()
-      || {};
-
+    const APP_CONFIG = await AppConfig.findOne({ key:"main" }).lean() || {};
     const sellerConfig = (vendeur && vendeur.config) ? vendeur.config : {};
 
     const footerMessage =
-      (
-        sellerConfig.usarMensajeTicket &&
-        sellerConfig.mensajeTicket
-      )
+      (sellerConfig.usarMensajeTicket && sellerConfig.mensajeTicket)
       ? sellerConfig.mensajeTicket
       : (APP_CONFIG.ticketMessage || "");
 
     function clean(v){
-      return String(v || "")
-        .replace(/</g, "")
-        .replace(/>/g, "")
-        .replace(/&/g, "and");
+      return String(v || "").replace(/</g, "").replace(/>/g, "").replace(/&/g, "and");
     }
 
     function money(n){
@@ -6066,76 +6052,53 @@ app.get("/print", async (req, res) => {
       return left + mid + right;
     }
 
- const lotMap = {};
+    const lotMap = {};
 
-(ticket.jeux || []).forEach(function(j){
+    (ticket.jeux || []).forEach(function(j){
+      let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase() || "SANS TIRAGE";
 
-  let loterie = String(
-    j.loterie || j.loteria || ""
-  ).trim().toUpperCase() || "SANS TIRAGE";
+      if (!lotMap[loterie]) lotMap[loterie] = [];
 
-  if (!lotMap[loterie]) {
-    lotMap[loterie] = [];
-  }
+      let typeRaw = String(j.type || "").toUpperCase();
+      let type = typeRaw;
 
-  let typeRaw = String(j.type || "").toUpperCase();
-  let numero = String(j.numero || "").trim();
-  let montant = Number(j.montant || 0);
+      if (typeRaw === "BOR") type = "Borlette";
+      else if (typeRaw === "MAR") type = "Mariage";
+      else if (typeRaw === "L41") type = "Loto4";
 
-  let type = typeRaw;
+      lotMap[loterie].push({
+        type: type,
+        numero: String(j.numero || "").trim(),
+        montant: Number(j.montant || 0),
+        gratis: j.gratis === true || j.free === true
+      });
+    });
 
-  if (typeRaw === "BOR") type = "Borlette";
-  else if (typeRaw === "MAR") type = "Mariage";
-  else if (typeRaw === "L41") type = "Loto4";
+    let text = "";
 
-  lotMap[loterie].push({
-    type: type,
-    numero: numero,
-    montant: montant,
-    gratis: j.gratis === true || j.free === true
-  });
+    text += "       NUMBER ONE LOTO" + NL;
+    text += "SELLER " + clean(sellerName) + NL;
+    text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
+    text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
+    text += "------------------------------" + NL;
 
-});
+    Object.keys(lotMap).forEach(function(loterie, index){
+      if (index > 0) text += "------------------------------" + NL;
 
-let gamesText = "";
+      text += clean(loterie) + NL;
+      text += "------------------------------" + NL;
 
-Object.keys(lotMap).forEach(function(loterie, index){
+      lotMap[loterie].forEach(function(g){
+        text += lineGame(
+          g.type,
+          g.numero,
+          g.gratis ? "Gratis" : money(g.montant)
+        ) + NL;
+      });
+    });
 
-  if (index > 0) {
-    gamesText += "------------------------------" + NL;
-  }
-
-  gamesText += clean(loterie) + NL;
-  gamesText += "------------------------------" + NL;
-
-  lotMap[loterie].forEach(function(g){
-
-    let value = g.gratis
-      ? "Gratis"
-      : money(g.montant);
-
-    gamesText += lineGame(
-      g.type,
-      g.numero,
-      value
-    ) + NL;
-
-  });
-
-});
-
-   let text = "";
-
-text += "       NUMBER ONE LOTO" + NL;
-text += "SELLER " + clean(sellerName) + NL;
-text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
-text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
-text += "------------------------------" + NL;
-
-text += gamesText;
-
-text += "------------------------------" + NL;
-text += "TOTAL: " + money(total) + " G" + NL;
+    text += "------------------------------" + NL;
+    text += "TOTAL: " + money(total) + " G" + NL;
 
     if (footerMessage) {
       text += NL;
@@ -6145,21 +6108,9 @@ text += "TOTAL: " + money(total) + " G" + NL;
     res.set("Content-Type", "text/html; charset=utf-8");
 
     res.send(
-      '<!DOCTYPE html>' +
-      '<html>' +
-      '<head>' +
-      '<meta charset="UTF-8">' +
-      '<title>Print</title>' +
-      '<style>' +
-      '@page{size:58mm auto;margin:0;}' +
-      'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}' +
-      'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:12px;}' +
-      '</style>' +
-      '</head>' +
-      '<body>' +
-      '<pre>' + clean(text) + '</pre>' +
-      '</body>' +
-      '</html>'
+      '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print</title>' +
+      '<style>@page{size:58mm auto;margin:0;}body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:12px;}</style>' +
+      '</head><body><pre>' + clean(text) + '</pre></body></html>'
     );
 
   } catch (err) {

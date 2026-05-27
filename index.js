@@ -4262,56 +4262,61 @@ function validateLoteries(){
     return;
   }
 
-if(copyMode && selectedTicketToCopy){
-  jeux = [];
-  numero = "";
-  montant = "";
-  cursorNumero = 0;
-  cursorMontant = 0;
-  activeField = "numero";
+  if(copyMode && selectedTicketToCopy){
+    jeux = [];
+    numero = "";
+    montant = "";
+    cursorNumero = 0;
+    cursorMontant = 0;
+    activeField = "numero";
 
-  const baseJeux = [];
-  const seen = {};
+function normLot(v){
+  return String(v || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, " ");
+}
 
-  const isGratisMariage =
-  String(j.type || "").toUpperCase() === "MAR" &&
-  Number(j.montant || 0) <= 0;
+const selectedNorm = selectedLoteries.map(normLot);
 
-if (!isGratisMariage) {
+(selectedTicketToCopy.jeux || []).forEach(function(j){
+  const loterieOriginal = String(j.loterie || j.loteria || "").trim();
+  const loterieNorm = normLot(loterieOriginal);
+
+  if (selectedNorm.indexOf(loterieNorm) < 0) return;
+
+  const typeJ = String(j.type || "").trim().toUpperCase();
+  const montantJ = Number(j.montant || j.monto || j.amount || 0);
+
+  const isFree =
+    j.gratis === true ||
+    j.free === true ||
+    montantJ <= 0;
+
+  if (typeJ === "MAR" && isFree) return;
+
   jeux.push({
     type: j.type,
     numero: j.numero,
-    loterie: j.loterie,
-    montant: Number(j.montant || 0),
-    gratis: j.gratis === true || j.free === true,
-    free: j.gratis === true || j.free === true
+    loterie: loterieOriginal,
+    montant: montantJ
   });
-}
+});
 
-  selectedLoteries.forEach(function(lot){
-    baseJeux.forEach(function(j){
-      jeux.push({
-        type: j.type,
-        numero: j.numero,
-        loterie: lot,
-        montant: j.montant
-      });
-    });
-  });
+    copyMode = false;
+    selectedTicketToCopy = null;
 
-  copyMode = false;
-  selectedTicketToCopy = null;
-
-  renderJeux();
-  updateFields();
-  switchPage("salePage", document.getElementById("nav-billets"));
-  return;
-}
+    renderJeux();
+    updateFields();
+    switchPage("salePage", document.getElementById("nav-billets"));
+    return;
+  }
 
   activeField = "montant";
   cursorMontant = montant.length;
   updateFields();
 }
+
 
 function cleanTicketId(v){
   return String(v || "")

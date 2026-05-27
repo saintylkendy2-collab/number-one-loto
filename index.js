@@ -4273,31 +4273,42 @@ function validateLoteries(){
 
 const oldLoteries = [];
 
-(selectedTicketToCopy.jeux || [])
-  .filter(j => Number(j.montant || j.monto || j.amount || 0) > 0)
-  .forEach(function(j){
-    const oldLot = String(j.loterie || j.loteria || "").trim();
-    if (oldLot && oldLoteries.indexOf(oldLot) < 0) oldLoteries.push(oldLot);
-  });
+(selectedTicketToCopy.jeux || []).forEach(function(j){
+  const montantJ = Number(j.montant || j.monto || j.amount || 0);
 
-const lotMap = {};
-oldLoteries.forEach(function(oldLot, i){
-  lotMap[oldLot] = selectedLoteries[i] || selectedLoteries[0] || oldLot;
+  if (montantJ <= 0) return;
+
+  const oldLot = String(j.loterie || j.loteria || "").trim();
+
+  if (oldLot && oldLoteries.indexOf(oldLot) < 0){
+    oldLoteries.push(oldLot);
+  }
 });
 
-(selectedTicketToCopy.jeux || [])
-  .filter(j => Number(j.montant || j.monto || j.amount || 0) > 0)
-  .forEach(function(j){
-    const oldLot = String(j.loterie || j.loteria || "").trim();
-    const montantJ = Number(j.montant || j.monto || j.amount || 0);
+const lotMap = {};
 
-    jeux.push({
-      type: j.type,
-      numero: j.numero,
-      loterie: lotMap[oldLot] || oldLot,
-      montant: montantJ
-    });
+oldLoteries.forEach(function(oldLot, i){
+  if(selectedLoteries[i]){
+    lotMap[oldLot] = selectedLoteries[i];
+  }
+});
+
+(selectedTicketToCopy.jeux || []).forEach(function(j){
+
+  const montantJ = Number(j.montant || j.monto || j.amount || 0);
+
+  if (montantJ <= 0) return;
+
+  const oldLot = String(j.loterie || j.loteria || "").trim();
+
+  jeux.push({
+    type: j.type,
+    numero: j.numero,
+    loterie: lotMap[oldLot] || oldLot,
+    montant: montantJ
   });
+
+});
 
     copyMode = false;
     selectedTicketToCopy = null;

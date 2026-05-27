@@ -4271,43 +4271,29 @@ function validateLoteries(){
     activeField = "numero";
 
 
-const oldLoteries = [];
+const baseJeux = [];
 
-(selectedTicketToCopy.jeux || []).forEach(function(j){
-  const montantJ = Number(j.montant || j.monto || j.amount || 0);
-
-  if (montantJ <= 0) return;
-
-  const oldLot = String(j.loterie || j.loteria || "").trim();
-
-  if (oldLot && oldLoteries.indexOf(oldLot) < 0){
-    oldLoteries.push(oldLot);
-  }
-});
-
-const lotMap = {};
-
-oldLoteries.forEach(function(oldLot, i){
-  if(selectedLoteries[i]){
-    lotMap[oldLot] = selectedLoteries[i];
-  }
-});
-
-(selectedTicketToCopy.jeux || []).forEach(function(j){
-
-  const montantJ = Number(j.montant || j.monto || j.amount || 0);
-
-  if (montantJ <= 0) return;
-
-  const oldLot = String(j.loterie || j.loteria || "").trim();
-
-  jeux.push({
-    type: j.type,
-    numero: j.numero,
-    loterie: lotMap[oldLot] || oldLot,
-    montant: montantJ
+(selectedTicketToCopy.jeux || [])
+  .filter(function(j){
+    return Number(j.montant || j.monto || j.amount || 0) > 0;
+  })
+  .forEach(function(j){
+    baseJeux.push({
+      type: j.type,
+      numero: j.numero,
+      montant: Number(j.montant || j.monto || j.amount || 0)
+    });
   });
 
+selectedLoteries.forEach(function(lot){
+  baseJeux.forEach(function(j){
+    jeux.push({
+      type: j.type,
+      numero: j.numero,
+      loterie: lot,
+      montant: j.montant
+    });
+  });
 });
 
     copyMode = false;

@@ -4262,53 +4262,52 @@ function validateLoteries(){
     return;
   }
 
-  if(copyMode && selectedTicketToCopy){
-    jeux = [];
-    numero = "";
-    montant = "";
-    cursorNumero = 0;
-    cursorMontant = 0;
-    activeField = "numero";
+if(copyMode && selectedTicketToCopy){
+  jeux = [];
+  numero = "";
+  montant = "";
+  cursorNumero = 0;
+  cursorMontant = 0;
+  activeField = "numero";
 
-const selectedNorm = selectedLoteries.map(function(l){
-  return String(l || "").trim().toUpperCase();
-});
+  const baseJeux = [];
+  const seen = {};
 
-(selectedTicketToCopy.jeux || []).forEach(function(j){
-  const loterieOriginal = String(j.loterie || j.loteria || "").trim();
-  const loterieNorm = loterieOriginal.toUpperCase();
+  (selectedTicketToCopy.jeux || [])
+    .filter(j => Number(j.montant || j.monto || j.amount || 0) > 0)
+    .forEach(function(j){
+      const montantJ = Number(j.montant || j.monto || j.amount || 0);
+      const key = String(j.type || "") + "|" + String(j.numero || "") + "|" + montantJ;
 
-  if (selectedNorm.indexOf(loterieNorm) < 0) return;
+      if(seen[key]) return;
+      seen[key] = true;
 
-  const montantJ = Number(j.montant || j.monto || j.amount || 0);
-  const typeJ = String(j.type || "").toUpperCase();
+      baseJeux.push({
+        type: j.type,
+        numero: j.numero,
+        montant: montantJ
+      });
+    });
 
-  const isGratisMariage =
-    typeJ === "MAR" &&
-    (
-      j.gratis === true ||
-      j.free === true ||
-      montantJ === 0
-    );
-
-  if (isGratisMariage) return;
-
-  jeux.push({
-    type: j.type,
-    numero: j.numero,
-    loterie: loterieOriginal,
-    montant: montantJ
+  selectedLoteries.forEach(function(lot){
+    baseJeux.forEach(function(j){
+      jeux.push({
+        type: j.type,
+        numero: j.numero,
+        loterie: lot,
+        montant: j.montant
+      });
+    });
   });
-});
 
-    copyMode = false;
-    selectedTicketToCopy = null;
+  copyMode = false;
+  selectedTicketToCopy = null;
 
-    renderJeux();
-    updateFields();
-    switchPage("salePage", document.getElementById("nav-billets"));
-    return;
-  }
+  renderJeux();
+  updateFields();
+  switchPage("salePage", document.getElementById("nav-billets"));
+  return;
+}
 
   activeField = "montant";
   cursorMontant = montant.length;

@@ -4277,31 +4277,33 @@ function normLot(v){
     .replace(/\s+/g, " ");
 }
 
-const selectedNorm = selectedLoteries.map(normLot);
+(selectedTicketToCopy.jeux || [])
+  .filter(j => Number(j.montant || j.monto || j.amount || 0) > 0)
+  .forEach(function(j){
 
-(selectedTicketToCopy.jeux || []).forEach(function(j){
-  const loterieOriginal = String(j.loterie || j.loteria || "").trim();
-  const loterieNorm = normLot(loterieOriginal);
+    const typeJ = String(j.type || "").trim().toUpperCase();
+    const montantJ = Number(j.montant || j.monto || j.amount || 0);
 
-  if (selectedNorm.indexOf(loterieNorm) < 0) return;
+    const isGratisMariage =
+      typeJ === "MAR" &&
+      (
+        j.gratis === true ||
+        j.free === true ||
+        montantJ <= 0
+      );
 
-  const typeJ = String(j.type || "").trim().toUpperCase();
-  const montantJ = Number(j.montant || j.monto || j.amount || 0);
+    if (isGratisMariage) return;
 
-  const isFree =
-    j.gratis === true ||
-    j.free === true ||
-    montantJ <= 0;
+    selectedLoteries.forEach(function(lot){
+      jeux.push({
+        type: j.type,
+        numero: j.numero,
+        loterie: lot,
+        montant: montantJ
+      });
+    });
 
-  if (typeJ === "MAR" && isFree) return;
-
-  jeux.push({
-    type: j.type,
-    numero: j.numero,
-    loterie: loterieOriginal,
-    montant: montantJ
   });
-});
 
     copyMode = false;
     selectedTicketToCopy = null;

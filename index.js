@@ -6171,6 +6171,29 @@ if (isTogether) {
   });
 }
 
+const freeGames = (ticket.jeux || []).filter(function(j){
+  return j.gratis === true || j.free === true;
+});
+
+let freeText = "";
+
+freeGames.forEach(function(j){
+  let typeRaw = String(j.type || "").toUpperCase();
+
+  let type = typeRaw;
+  if (typeRaw === "BOR") type = "Borlette";
+  else if (typeRaw === "MAR") type = "Mariage";
+  else if (typeRaw === "L41") type = "Loto4";
+
+  let numero = String(j.numero || "").trim();
+
+  freeText += lineGame(
+    type,
+    numero,
+    "Gratis"
+  ) + NL;
+});
+
 let text = "";
 
 text += "       NUMBER ONE LOTO" + NL;
@@ -6185,6 +6208,11 @@ if (isTogether) {
 }
 
 text += gamesText;
+
+if (freeText) {
+  text += freeText;
+}
+
 
 text += "------------------------------" + NL;
 text += "TOTAL: " + money(total) + " G" + NL;

@@ -4273,10 +4273,10 @@ function validateLoteries(){
 (selectedTicketToCopy.jeux || []).forEach(function(j){
   if (selectedLoteries.indexOf(j.loterie) < 0) return;
 
-  jeux.push({
+ jeux.push({
   type: j.type,
   numero: j.numero,
-  loterie: lot,
+  loterie: j.loterie,
   montant: Number(j.montant || 0),
   gratis: j.gratis === true || j.free === true,
   free: j.gratis === true || j.free === true

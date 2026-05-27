@@ -4272,17 +4272,13 @@ function validateLoteries(){
 
     
 (selectedTicketToCopy.jeux || []).forEach(function(j){
+
   if (selectedLoteries.indexOf(j.loterie) < 0) return;
 
-  const isGratisMariage =
-    String(j.type || "").toUpperCase() === "MAR" &&
-    (
-      j.gratis === true ||
-      j.free === true ||
-      Number(j.montant || 0) === 0
-    );
-
-  if (isGratisMariage) return;
+  // PA mete mariage gratis nan copie LOTERIE
+  if ((j.gratis === true || j.free === true) && String(j.type).toUpperCase() === "MAR") {
+    return;
+  }
 
   jeux.push({
     type: j.type,
@@ -4290,8 +4286,8 @@ function validateLoteries(){
     loterie: j.loterie,
     montant: Number(j.montant || 0)
   });
-});
 
+});
 
     copyMode = false;
     selectedTicketToCopy = null;

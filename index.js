@@ -4270,23 +4270,35 @@ function validateLoteries(){
     cursorMontant = 0;
     activeField = "numero";
 
-    
+const selectedNorm = selectedLoteries.map(function(l){
+  return String(l || "").trim().toUpperCase();
+});
+
 (selectedTicketToCopy.jeux || []).forEach(function(j){
+  const loterieOriginal = String(j.loterie || j.loteria || "").trim();
+  const loterieNorm = loterieOriginal.toUpperCase();
 
-  if (selectedLoteries.indexOf(j.loterie) < 0) return;
+  if (selectedNorm.indexOf(loterieNorm) < 0) return;
 
-  // PA mete mariage gratis nan copie LOTERIE
-  if ((j.gratis === true || j.free === true) && String(j.type).toUpperCase() === "MAR") {
-    return;
-  }
+  const montantJ = Number(j.montant || j.monto || j.amount || 0);
+  const typeJ = String(j.type || "").toUpperCase();
+
+  const isGratisMariage =
+    typeJ === "MAR" &&
+    (
+      j.gratis === true ||
+      j.free === true ||
+      montantJ === 0
+    );
+
+  if (isGratisMariage) return;
 
   jeux.push({
     type: j.type,
     numero: j.numero,
-    loterie: j.loterie,
-    montant: Number(j.montant || 0)
+    loterie: loterieOriginal,
+    montant: montantJ
   });
-
 });
 
     copyMode = false;

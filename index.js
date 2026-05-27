@@ -4270,18 +4270,16 @@ function validateLoteries(){
     cursorMontant = 0;
     activeField = "numero";
 
-(selectedTicketToCopy.jeux || [])
-.filter(j => Number(j.montant || 0) > 0)
-.forEach(function(j){
-      selectedLoteries.forEach(function(lot){
-        jeux.push({
-          type: j.type,
-          numero: j.numero,
-          loterie: lot,
-          montant: Number(j.montant || 0)
-        });
-      });
-    });
+(selectedTicketToCopy.jeux || []).forEach(function(j){
+  if (selectedLoteries.indexOf(j.loterie) < 0) return;
+
+  jeux.push({
+    type: j.type,
+    numero: j.numero,
+    loterie: j.loterie,
+    montant: Number(j.montant || 0)
+  });
+});
 
     copyMode = false;
     selectedTicketToCopy = null;
@@ -6046,34 +6044,133 @@ app.get("/print", async (req, res) => {
       return Number(n || 0).toFixed(2);
     }
 
+  
     function lineGame(type, numero, montant){
       var left = String(type || "").padEnd(11, " ");
       var mid = String(numero || "").padStart(8, " ");
       var right = String(montant || "").padStart(10, " ");
       return left + mid + right;
+}
+
+  const paidRows = [];
+
+(ticket.jeux || []).forEach(function(j){
+  if (j.gratis === true || j.free === true) return;
+
+  let typeRaw = String(j.type || "").toUpperCase();
+  let numero = String(j.numero || "").trim();
+  let montant = Number(j.montant || 0);
+  let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase() || "SANS TIRAGE";
+
+  let type = typeRaw;
+  if (typeRaw === "BOR") type = "Borlette";
+  else if (typeRaw === "MAR") type = "Mariage";
+  else if (typeRaw === "L41") type = "Loto4";
+
+  paidRows.push({ loterie, type, numero, montant });
+});
+
+const loteriesOrder = [];
+paidRows.forEach(function(g){
+  if (!loteriesOrder.includes(g.loterie)) loteriesOrder.push(g.loterie);
+});
+
+let isTogether = false;
+
+if (loteriesOrder.length > 1) {
+  const map = {};
+
+  paidRows.forEach(function(g){
+    if (!map[g.loterie]) map[g.loterie] = [];
+    map[g.loterie].push(g.type + "|" + g.numero + "|" + g.montant);
+  });
+
+  const first = map[loteriesOrder[0]] || [];
+
+  isTogether = loteriesOrder.every(function(lot){
+    const arr = map[lot] || [];
+
+    if (arr.length !== first.length) return false;
+
+    return first.every(function(key){
+      return arr.indexOf(key) >= 0;
+    });
+  });
+}
+
+let loteriesText = "";
+let gamesText = "";
+
+if (isTogether) {
+  loteriesOrder.forEach(function(lot){
+    loteriesText += clean(lot) + NL;
+  });
+
+  const gameMap = {};
+
+  paidRows.forEach(function(g){
+    let key = g.type + "|" + g.numero + "|" + g.montant;
+
+    if (!gameMap[key]) {
+      gameMap[key] = {
+        type: g.type,
+        numero: g.numero,
+        montant: g.montant
+      };
+    }
+  });
+
+  Object.values(gameMap).forEach(function(g){
+    gamesText += lineGame(
+      g.type,
+      g.numero,
+      money(g.montant)
+    ) + NL;
+  });
+
+} else {
+  const lotMap = {};
+
+  paidRows.forEach(function(g){
+    if (!lotMap[g.loterie]) lotMap[g.loterie] = [];
+    lotMap[g.loterie].push(g);
+  });
+
+  Object.keys(lotMap).forEach(function(lot, index){
+    if (index > 0) {
+      gamesText += "------------------------------" + NL;
     }
 
-    const lotMap = {};
+    gamesText += clean(lot) + NL;
+    gamesText += "------------------------------" + NL;
 
-    (ticket.jeux || []).forEach(function(j){
-      let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase() || "SANS TIRAGE";
+    const gameMap = {};
 
-      if (!lotMap[loterie]) lotMap[loterie] = [];
+    lotMap[lot].forEach(function(g){
+      let key = g.type + "|" + g.numero + "|" + g.montant;
 
-      let typeRaw = String(j.type || "").toUpperCase();
-      let type = typeRaw;
+      if (!gameMap[key]) {
+        gameMap[key] = {
+          type: g.type,
+          numero: g.numero,
+          montant: g.montant,
+          count: 0
+        };
+      }
 
-      if (typeRaw === "BOR") type = "Borlette";
-      else if (typeRaw === "MAR") type = "Mariage";
-      else if (typeRaw === "L41") type = "Loto4";
-
-      lotMap[loterie].push({
-        type: type,
-        numero: String(j.numero || "").trim(),
-        montant: Number(j.montant || 0),
-        gratis: j.gratis === true || j.free === true
-      });
+      gameMap[key].count++;
     });
+
+    Object.values(gameMap).forEach(function(g){
+      gamesText += lineGame(
+        g.type,
+        g.numero,
+        money(g.montant * g.count)
+      ) + NL;
+    });
+  });
+}
+
 
     let text = "";
 

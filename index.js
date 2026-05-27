@@ -6171,32 +6171,24 @@ if (isTogether) {
   });
 }
 
+let text = "";
 
-    let text = "";
+text += "       NUMBER ONE LOTO" + NL;
+text += "SELLER " + clean(sellerName) + NL;
+text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
+text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
+text += "------------------------------" + NL;
 
-    text += "       NUMBER ONE LOTO" + NL;
-    text += "SELLER " + clean(sellerName) + NL;
-    text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
-    text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
-    text += "------------------------------" + NL;
+if (isTogether) {
+  text += loteriesText;
+  text += "------------------------------" + NL;
+}
 
-    Object.keys(lotMap).forEach(function(loterie, index){
-      if (index > 0) text += "------------------------------" + NL;
+text += gamesText;
 
-      text += clean(loterie) + NL;
-      text += "------------------------------" + NL;
+text += "------------------------------" + NL;
+text += "TOTAL: " + money(total) + " G" + NL;
 
-      lotMap[loterie].forEach(function(g){
-        text += lineGame(
-          g.type,
-          g.numero,
-          g.gratis ? "Gratis" : money(g.montant)
-        ) + NL;
-      });
-    });
-
-    text += "------------------------------" + NL;
-    text += "TOTAL: " + money(total) + " G" + NL;
 
     if (footerMessage) {
       text += NL;

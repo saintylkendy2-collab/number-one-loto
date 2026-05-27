@@ -4295,15 +4295,29 @@ const deja = {};
   });
 
 
-selectedLoteries.forEach(function(lot){
-  baseJeux.forEach(function(j){
-    jeux.push({
-      type: j.type,
-      numero: j.numero,
-      loterie: lot,
-      montant: j.montant
-    });
+(selectedTicketToCopy.jeux || []).forEach(function(j){
+
+  const montantJ = Number(j.montant || j.monto || j.amount || 0);
+
+  if(montantJ <= 0) return;
+
+  const oldLot = String(j.loterie || j.loteria || "").trim();
+
+  let newLot = oldLot;
+
+  const idx = oldLoteries.indexOf(oldLot);
+
+  if(idx >= 0 && selectedLoteries[idx]){
+    newLot = selectedLoteries[idx];
+  }
+
+  jeux.push({
+    type: j.type,
+    numero: j.numero,
+    loterie: newLot,
+    montant: montantJ
   });
+
 });
 
     copyMode = false;

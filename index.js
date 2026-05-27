@@ -4273,21 +4273,20 @@ if(copyMode && selectedTicketToCopy){
   const baseJeux = [];
   const seen = {};
 
-  (selectedTicketToCopy.jeux || [])
-    .filter(j => Number(j.montant || j.monto || j.amount || 0) > 0)
-    .forEach(function(j){
-      const montantJ = Number(j.montant || j.monto || j.amount || 0);
-      const key = String(j.type || "") + "|" + String(j.numero || "") + "|" + montantJ;
+  const isGratisMariage =
+  String(j.type || "").toUpperCase() === "MAR" &&
+  Number(j.montant || 0) <= 0;
 
-      if(seen[key]) return;
-      seen[key] = true;
-
-      baseJeux.push({
-        type: j.type,
-        numero: j.numero,
-        montant: montantJ
-      });
-    });
+if (!isGratisMariage) {
+  jeux.push({
+    type: j.type,
+    numero: j.numero,
+    loterie: j.loterie,
+    montant: Number(j.montant || 0),
+    gratis: j.gratis === true || j.free === true,
+    free: j.gratis === true || j.free === true
+  });
+}
 
   selectedLoteries.forEach(function(lot){
     baseJeux.forEach(function(j){

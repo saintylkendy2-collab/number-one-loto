@@ -4270,20 +4270,30 @@ function validateLoteries(){
     cursorMontant = 0;
     activeField = "numero";
 
-
 const baseJeux = [];
+const deja = {};
 
 (selectedTicketToCopy.jeux || [])
   .filter(function(j){
     return Number(j.montant || j.monto || j.amount || 0) > 0;
   })
   .forEach(function(j){
+    const type = String(j.type || "").trim().toUpperCase();
+    const numero = String(j.numero || "").trim();
+    const montantJ = Number(j.montant || j.monto || j.amount || 0);
+
+    const key = type + "|" + numero + "|" + montantJ;
+
+    if(deja[key]) return;
+    deja[key] = true;
+
     baseJeux.push({
       type: j.type,
-      numero: j.numero,
-      montant: Number(j.montant || j.monto || j.amount || 0)
+      numero: numero,
+      montant: montantJ
     });
   });
+
 
 selectedLoteries.forEach(function(lot){
   baseJeux.forEach(function(j){

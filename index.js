@@ -6177,22 +6177,41 @@ const freeGames = (ticket.jeux || []).filter(function(j){
 
 let freeText = "";
 
-freeGames.forEach(function(j){
-  let typeRaw = String(j.type || "").toUpperCase();
+if (freeGames.length > 0) {
+  const freeMap = {};
 
-  let type = typeRaw;
-  if (typeRaw === "BOR") type = "Borlette";
-  else if (typeRaw === "MAR") type = "Mariage";
-  else if (typeRaw === "L41") type = "Loto4";
+  freeGames.forEach(function(j){
+    let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase() || "SANS TIRAGE";
 
-  let numero = String(j.numero || "").trim();
+    if (!freeMap[loterie]) freeMap[loterie] = [];
 
-  freeText += lineGame(
-    type,
-    numero,
-    "Gratis"
-  ) + NL;
-});
+    let typeRaw = String(j.type || "").toUpperCase();
+
+    let type = typeRaw;
+    if (typeRaw === "BOR") type = "Borlette";
+    else if (typeRaw === "MAR") type = "Mariage";
+    else if (typeRaw === "L41") type = "Loto4";
+
+    freeMap[loterie].push({
+      type: type,
+      numero: String(j.numero || "").trim()
+    });
+  });
+
+  Object.keys(freeMap).forEach(function(lot){
+    freeText += "------------------------------" + NL;
+    freeText += clean(lot) + NL;
+    freeText += "------------------------------" + NL;
+
+    freeMap[lot].forEach(function(g){
+      freeText += lineGame(
+        g.type,
+        g.numero,
+        "Gratis"
+      ) + NL;
+    });
+  });
+}
 
 let text = "";
 

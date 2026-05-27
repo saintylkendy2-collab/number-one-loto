@@ -4274,11 +4274,13 @@ function validateLoteries(){
   if (selectedLoteries.indexOf(j.loterie) < 0) return;
 
   jeux.push({
-    type: j.type,
-    numero: j.numero,
-    loterie: j.loterie,
-    montant: Number(j.montant || 0)
-  });
+  type: j.type,
+  numero: j.numero,
+  loterie: lot,
+  montant: Number(j.montant || 0),
+  gratis: j.gratis === true || j.free === true,
+  free: j.gratis === true || j.free === true
+});
 });
 
     copyMode = false;

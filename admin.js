@@ -1,4 +1,3 @@
-
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -519,14 +518,23 @@ router.get("/api/reportes/ventas", async (req, res) => {
       return String(date || "").trim() + "||" + String(loteria || "").trim().toUpperCase();
     }
 
+    function isoToFR(value){
+      const x = String(value || "").trim();
+      if(/^\d{4}-\d{2}-\d{2}$/.test(x)){
+        const p = x.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
+      return x;
+    }
+
+    const ticketFind = {};
+    if(start && end && start === end){
+      ticketFind.dateLabel = isoToFR(start);
+    }
+
     const [vendorsArr, tickets] = await Promise.all([
       Vendor.find().lean(),
-      Ticket.find(
-  start && end
-    ? { createdAt: { $gte: new Date(start + "T00:00:00.000Z"), $lte: new Date(end + "T23:59:59.999Z") } }
-    : {},
-  "vendeur dateLabel createdAt status total jeux"
-).lean()
+      Ticket.find(ticketFind, "vendeur dateLabel createdAt status total jeux").lean()
     ]);
 
     const vendeurs = {};
@@ -670,19 +678,20 @@ router.get("/api/reportes/balance", async (req, res) => {
       return String(date || "").trim() + "||" + String(loteria || "").trim().toUpperCase();
     }
 
-const start = String(req.query.start || "").trim();
-const end = String(req.query.end || "").trim();
-
     const selectedDate = date || toISODate(new Date());
+
+    function isoToFR(value){
+      const x = String(value || "").trim();
+      if(/^\d{4}-\d{2}-\d{2}$/.test(x)){
+        const p = x.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
+      return x;
+    }
 
     const [vendorsArr, tickets] = await Promise.all([
       Vendor.find().lean(),
-      Ticket.find(
-  start && end
-    ? { createdAt: { $gte: new Date(start + "T00:00:00.000Z"), $lte: new Date(end + "T23:59:59.999Z") } }
-    : {},
-  "vendeur dateLabel createdAt status total jeux"
-).lean()
+      Ticket.find({ dateLabel: isoToFR(selectedDate) }, "vendeur dateLabel createdAt status total jeux").lean()
     ]);
 
     const vendeurs = {};
@@ -696,7 +705,7 @@ const end = String(req.query.end || "").trim();
 
     for (const t of tickets) {
       const d = ticketDay(t);
-      if (selectedDate && d && d > selectedDate) continue;
+      if (selectedDate && d && d !== selectedDate) continue;
       ticketsUntilDate.push(t);
       if (String(t.status || "").trim().toUpperCase() === "GANYE" && t.dateLabel) {
         sorteoDates.add(String(t.dateLabel || "").trim());
@@ -722,7 +731,7 @@ const end = String(req.query.end || "").trim();
 
       const filteredMovements = movimientos.filter(m => {
         const d = toISODate(m.fecha);
-        if (selectedDate && d && d > selectedDate) return false;
+        if (selectedDate && d && d !== selectedDate) return false;
         return true;
       });
 
@@ -1371,29 +1380,68 @@ function writeTicketsArray(data) {
 
 router.get("/api/reportes/tickets", async (req, res) => {
   try {
-   const date = String(req.query.date || "").trim();
+    const qDate = String(req.query.date || "").trim();
+    const qVendor = String(req.query.vendeur || req.query.vendor || "").trim().toUpperCase();
 
-let query = {};
-if (date) {
-  query.createdAt = {
-    $gte: new Date(date + "T00:00:00.000Z"),
-    $lte: new Date(date + "T23:59:59.999Z")
-  };
-}
+    function isoToFR(value){
+      const x = String(value || "").trim();
+      if(/^\d{4}-\d{2}-\d{2}$/.test(x)){
+        const p = x.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
+      return x;
+    }
 
-const tickets = await Ticket.find(query).sort({ createdAt: -1 }).lean();
+    const find = {};
+    if(qDate) find.dateLabel = isoToFR(qDate);
+    if(qVendor) find.vendeur = qVendor;
 
-  const cleanTickets = tickets.map(t => {
-  const realId = t.id || t.ticketId || t.serial || String(t._id || "");
+    const tickets = await Ticket.find(find)
+      .sort({ createdAt: -1 })
+      .limit(1200)
+      .lean();
 
-  return {
-    ...t,
-    id: realId,
-    ticketId: realId,
-    serial: realId,
-    premioLabel: money(t.premio || 0)
-  };
-});
+    const vendorIds = [...new Set(tickets.map(t => String(t.vendeur || "").trim().toUpperCase()).filter(Boolean))];
+    const vendorsArr = vendorIds.length
+      ? await Vendor.find({ id: { $in: vendorIds } }).lean()
+      : [];
+
+    const vendeurs = {};
+    vendorsArr.forEach(v => {
+      const id = String(v.id || "").trim().toUpperCase();
+      if (id) vendeurs[id] = v;
+    });
+
+    const dates = [...new Set(tickets.map(t => String(t.dateLabel || "").trim()).filter(Boolean))];
+    const sorteos = dates.length ? await Sorteo.find({ date: { $in: dates } }).lean() : [];
+    const sorteoMap = {};
+    sorteos.forEach(s => {
+      sorteoMap[String(s.date || "").trim() + "||" + String(s.loteria || "").trim().toUpperCase()] = s;
+    });
+
+    const cleanTickets = tickets.map(t => {
+      const realId = t.id || t.ticketId || t.serial || String(t._id || "");
+      const vendorId = String(t.vendeur || "").trim().toUpperCase();
+      const vendorConfig = vendeurs[vendorId] || {};
+      let totalGain = 0;
+
+      const jeux = (t.jeux || []).map(j => {
+        const tirage = sorteoMap[String(t.dateLabel || "").trim() + "||" + String(j.loterie || "").trim().toUpperCase()];
+        const gain = tirage ? getGainAdmin(j, tirage, vendorConfig) : 0;
+        totalGain += gain;
+        return { ...j, gain: gain, gainLabel: money(gain) };
+      });
+
+      return {
+        ...t,
+        id: realId,
+        ticketId: realId,
+        serial: realId,
+        jeux: jeux,
+        premio: totalGain,
+        premioLabel: money(totalGain)
+      };
+    });
 
     res.json(cleanTickets);
 
@@ -1402,7 +1450,6 @@ const tickets = await Ticket.find(query).sort({ createdAt: -1 }).lean();
     res.status(500).json([]);
   }
 });
-
 
 router.post("/api/tickets/:id/anile", async (req, res) => {
   try {
@@ -1802,7 +1849,9 @@ async function runCheckTickets(date, loteries = []) {
 
 router.get("/api/sorteos", async (req, res) => {
   try {
-    const rows = await Sorteo.find().lean();
+    const qDate = String(req.query.date || "").trim();
+    const find = qDate ? { date: toFRDate(qDate) } : {};
+    const rows = await Sorteo.find(find).lean();
     const obj = {};
 
     rows.forEach(r => {
@@ -1911,6 +1960,7 @@ router.post("/api/sorteos/save", async (req, res) => {
 
 res.json({ ok: true, date: date });
 
+// Travay lou yo fèt an background pou paj admin nan pa rete ap tann.
 fetch("https://number-one-loto-2.onrender.com/api/sorteos-sync", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -1924,8 +1974,6 @@ runCheckTickets(
   date,
   rows.map(r => String(r.loteria || "").trim().toUpperCase())
 ).catch(err => console.error(err));
-
-    res.json({ ok: true, date: date });
 
   } catch (err) {
     console.error("Erreur save sorteos Mongo:", err);
@@ -1966,9 +2014,10 @@ fetch("https://number-one-loto-2.onrender.com/api/sorteos-delete-sync", {
   })
 }).catch(err => console.error(err));
 
-await runCheckTickets(date, [loteria]);
-
 res.json({ ok: true });
+
+// Re-verifikasyon tickets yo fèt an background pou DELETE a pa pran 2-6 minit.
+runCheckTickets(date, [loteria]).catch(err => console.error(err));
 
 
   } catch (err) {
@@ -4012,8 +4061,9 @@ let ticketsRows = [];
 let ticketsTab = "tickets";
 
 async function loadTicketsReport(){
-  const selectedDate = byId("ticketFilterDate") ? byId("ticketFilterDate").value : todayISO();
-const res = await fetch("/api/reportes/tickets?date=" + encodeURIComponent(selectedDate || todayISO()) + "&reload=" + Date.now());
+  const dateInput = byId("ticketFilterDate");
+  const date = (dateInput && dateInput.value) ? dateInput.value : todayISO();
+  const res = await fetch("/api/reportes/tickets?date=" + encodeURIComponent(date) + "&reload=" + Date.now());
   const data = await res.json();
   ticketsRows = Array.isArray(data) ? data : [];
   renderTicketsReport();
@@ -4087,7 +4137,7 @@ function renderTicketsReport(){
     '<input class="filter-input" id="ticketFilterId" oninput="renderTicketsReport()" value="' + oldId + '">' +
 
     '<label>Fecha</label>' +
-    '<input type="date" class="filter-input" id="ticketFilterDate" onchange="renderTicketsReport()" value="' + oldDate + '">' +
+    '<input type="date" class="filter-input" id="ticketFilterDate" onchange="loadTicketsReport()" value="' + oldDate + '">' +
 
     '<label>Vendedor</label>' +
     '<select class="filter-select" id="ticketFilterVendor" onchange="renderTicketsReport()">' +
@@ -4169,7 +4219,8 @@ var sorteosData = {};
 
 async function loadSorteos(){
   try{
-    var res = await fetch("/api/sorteos?reload=" + Date.now());
+    var date = getValue("sorteosDate") || todayISO();
+    var res = await fetch("/api/sorteos?date=" + encodeURIComponent(date) + "&reload=" + Date.now());
     sorteosData = await res.json();
     renderSorteosPage();
   }catch(err){
@@ -6504,8 +6555,8 @@ async function openVentasDetalle(mode){
  
 
   try{
-    const selectedDate = byId("ticketFilterDate") ? byId("ticketFilterDate").value : todayISO();
-const res = await fetch("/api/reportes/tickets?date=" + encodeURIComponent(selectedDate || todayISO()) + "&reload=" + Date.now());
+    const today = todayISO();
+    const res = await fetch("/api/reportes/tickets?date=" + encodeURIComponent(today) + "&reload=" + Date.now());
     const data = await res.json();
     ticketsRows = Array.isArray(data) ? data : [];
   }catch(err){

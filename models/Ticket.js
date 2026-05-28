@@ -33,4 +33,8 @@ const TicketSchema = new mongoose.Schema({
   id: false
 });
 
+TicketSchema.index({ createdAt: -1 });
+TicketSchema.index({ dateLabel: 1 });
+TicketSchema.index({ vendeur: 1 });
+
 module.exports = mongoose.model("Ticket", TicketSchema);

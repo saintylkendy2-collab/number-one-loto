@@ -1381,10 +1381,7 @@ if (date) {
   };
 }
 
-const tickets = await Ticket.find(
-  query,
-  "id ticketId serial vendeur vendeurNom dateLabel timeLabel createdAtLabel createdAt status total premio jeux"
-).sort({ createdAt: -1 }).limit(1000).lean();
+const tickets = await Ticket.find(query).sort({ createdAt: -1 }).lean();
 
   const cleanTickets = tickets.map(t => {
   const realId = t.id || t.ticketId || t.serial || String(t._id || "");

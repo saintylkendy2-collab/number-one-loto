@@ -4550,7 +4550,13 @@ async function deleteSorteo(loteria){
     }
 
     alert("Rezilta supprimée ✔");
-    await loadSorteos();
+    var dateKey = toFRDate(date);
+
+if (sorteosData[dateKey] && sorteosData[dateKey][loteria]) {
+  delete sorteosData[dateKey][loteria];
+}
+
+renderSorteosPage();
 
   }catch(err){
     console.error(err);
@@ -6000,9 +6006,14 @@ async function submitBalanceAction(){
     }
 
     closeBalanceModal();
-    await loadVendorsFromServer();
-    await loadBalanceReport();
-    renderTransactionsTable();
+  const v = vendors.find(x => String(x.id || "").toUpperCase() === String(vendorId || "").toUpperCase());
+
+if (v && Array.isArray(v.movimientos)) {
+  v.movimientos = v.movimientos.filter(m => Number(m.id) !== Number(movimientoId));
+}
+
+renderTransactionsTable();
+loadBalanceReport();
     alert("Balance mis à jour");
   }catch(err){
     console.error(err);

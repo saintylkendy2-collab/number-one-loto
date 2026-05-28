@@ -521,7 +521,12 @@ router.get("/api/reportes/ventas", async (req, res) => {
 
     const [vendorsArr, tickets] = await Promise.all([
       Vendor.find().lean(),
-      Ticket.find({}, "vendeur dateLabel createdAt status total jeux").lean()
+      Ticket.find(
+  start && end
+    ? { createdAt: { $gte: new Date(start + "T00:00:00.000Z"), $lte: new Date(end + "T23:59:59.999Z") } }
+    : {},
+  "vendeur dateLabel createdAt status total jeux"
+).lean()
     ]);
 
     const vendeurs = {};
@@ -1358,7 +1363,17 @@ function writeTicketsArray(data) {
 
 router.get("/api/reportes/tickets", async (req, res) => {
   try {
-    const tickets = await Ticket.find().sort({ createdAt: -1 }).lean();
+    const date = String(req.query.date || "").trim();
+
+let query = {};
+if (date) {
+  query.createdAt = {
+    $gte: new Date(date + "T00:00:00.000Z"),
+    $lte: new Date(date + "T23:59:59.999Z")
+  };
+}
+
+const tickets = await Ticket.find(query).sort({ createdAt: -1 }).lean();
 
     const vendorsArr = await Vendor.find().lean();
     const vendeurs = {};
@@ -4025,7 +4040,8 @@ let ticketsRows = [];
 let ticketsTab = "tickets";
 
 async function loadTicketsReport(){
-  const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
+  const selectedDate = byId("ticketFilterDate") ? byId("ticketFilterDate").value : todayISO();
+const res = await fetch("/api/reportes/tickets?date=" + encodeURIComponent(selectedDate || todayISO()) + "&reload=" + Date.now());
   const data = await res.json();
   ticketsRows = Array.isArray(data) ? data : [];
   renderTicketsReport();
@@ -6516,7 +6532,8 @@ async function openVentasDetalle(mode){
  
 
   try{
-    const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
+    const selectedDate = byId("ticketFilterDate") ? byId("ticketFilterDate").value : todayISO();
+const res = await fetch("/api/reportes/tickets?date=" + encodeURIComponent(selectedDate || todayISO()) + "&reload=" + Date.now());
     const data = await res.json();
     ticketsRows = Array.isArray(data) ? data : [];
   }catch(err){

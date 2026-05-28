@@ -11,6 +11,4 @@ const SorteoSchema = new mongoose.Schema({
   timestamps: true
 });
 
-SorteoSchema.index({ date: 1, loteria: 1 }, { unique: true });
-
 module.exports = mongoose.model("Sorteo", SorteoSchema);

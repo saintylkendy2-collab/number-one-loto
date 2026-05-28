@@ -37,8 +37,8 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-mongoose.connect("mongodb+srv://adminn:Kendy2026@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority&appName=Cluster0")
-.then(async () => {
+mongoose.connect("mongodb+srv://numberone:numberone123@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority")
+.then(async () => {;
   console.log("Mongo connecté");
   await loadLimites();
 })

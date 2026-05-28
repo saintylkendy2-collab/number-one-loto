@@ -1365,63 +1365,72 @@ router.get("/api/reportes/tickets", async (req, res) => {
   try {
     const date = String(req.query.date || "").trim();
 
-let query = {};
-if (date) {
-  query.createdAt = {
-    $gte: new Date(date + "T00:00:00.000Z"),
-    $lte: new Date(date + "T23:59:59.999Z")
-  };
-}
+    let query = {};
+    if (date) {
+      const p = date.split("-");
+      const frDate = p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : date;
 
-const tickets = await Ticket.find(query).sort({ createdAt: -1 }).lean();
+      query = {
+        $or: [
+          { dateLabel: frDate },
+          {
+            createdAt: {
+              $gte: new Date(date + "T00:00:00.000Z"),
+              $lte: new Date(date + "T23:59:59.999Z")
+            }
+          }
+        ]
+      };
+    }
+
+    const tickets = await Ticket.find(query).sort({ createdAt: -1 }).lean();
 
     const vendorsArr = await Vendor.find().lean();
     const vendeurs = {};
-
     vendorsArr.forEach(v => {
       const id = String(v.id || "").trim().toUpperCase();
       if (id) vendeurs[id] = v;
     });
 
-    const cleanTickets = [];
+    const sorteosArr = date
+      ? await Sorteo.find({ date: query.$or[0].dateLabel }).lean()
+      : [];
 
-    for (const t of tickets) {
+    const sorteosMap = {};
+    sorteosArr.forEach(s => {
+      sorteosMap[String(s.loteria || "").trim().toUpperCase()] = s;
+    });
+
+    const cleanTickets = tickets.map(t => {
       const realId = t.id || t.ticketId || t.serial || String(t._id || "");
       const vendorId = String(t.vendeur || "").trim().toUpperCase();
       const vendorConfig = vendeurs[vendorId] || {};
 
       let totalGain = 0;
 
-      const jeux = [];
-      for (const j of t.jeux || []) {
-        const tirage = await Sorteo.findOne({
-          date: String(t.dateLabel || "").trim(),
-          loteria: {
-            $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
-            $options: "i"
-          }
-        }).lean();
-
+      const jeux = (t.jeux || []).map(j => {
+        const key = String(j.loterie || "").trim().toUpperCase();
+        const tirage = sorteosMap[key];
         const gain = tirage ? getGainAdmin(j, tirage, vendorConfig) : 0;
         totalGain += gain;
 
-        jeux.push({
+        return {
           ...j,
-          gain: gain,
+          gain,
           gainLabel: money(gain)
-        });
-      }
+        };
+      });
 
-      cleanTickets.push({
+      return {
         ...t,
         id: realId,
         ticketId: realId,
         serial: realId,
-        jeux: jeux,
+        jeux,
         premio: totalGain,
         premioLabel: money(totalGain)
-      });
-    }
+      };
+    });
 
     res.json(cleanTickets);
 
@@ -4041,11 +4050,18 @@ let ticketsTab = "tickets";
 
 async function loadTicketsReport(){
   const selectedDate = byId("ticketFilterDate") ? byId("ticketFilterDate").value : todayISO();
-const res = await fetch("/api/reportes/tickets?date=" + encodeURIComponent(selectedDate || todayISO()) + "&reload=" + Date.now());
+
+  const res = await fetch(
+    "/api/reportes/tickets?date=" +
+    encodeURIComponent(selectedDate || todayISO()) +
+    "&reload=" + Date.now()
+  );
+
   const data = await res.json();
   ticketsRows = Array.isArray(data) ? data : [];
   renderTicketsReport();
 }
+
 
 window.addEventListener("focus", function(){
   if (currentPage === "tickets") {
@@ -4115,15 +4131,15 @@ function renderTicketsReport(){
     '<input class="filter-input" id="ticketFilterId" oninput="renderTicketsReport()" value="' + oldId + '">' +
 
     '<label>Fecha</label>' +
-    '<input type="date" class="filter-input" id="ticketFilterDate" onchange="renderTicketsReport()" value="' + oldDate + '">' +
+    '<input type="date" class="filter-input" id="ticketFilterDate" onchange="loadTicketsReport()" value="' + oldDate + '">' +
 
     '<label>Vendedor</label>' +
-    '<select class="filter-select" id="ticketFilterVendor" onchange="renderTicketsReport()">' +
+    '<select class="filter-select" id="ticketFilterVendor" onchange="loadTicketsReport()">' +
       vendorOptions +
     '</select>' +
 
     '<label>Estatus</label>' +
-    '<select class="filter-select" id="ticketFilterStatus" onchange="renderTicketsReport()">' +
+    '<select class="filter-select" id="ticketFilterStatus" onchange="loadTicketsReport()">' +
       '<option value="">-</option>' +
       '<option value="ANATAN">AN ATAN</option>' +
       '<option value="GANYE">GANYE</option>' +
@@ -6006,14 +6022,9 @@ async function submitBalanceAction(){
     }
 
     closeBalanceModal();
-  const v = vendors.find(x => String(x.id || "").toUpperCase() === String(vendorId || "").toUpperCase());
-
-if (v && Array.isArray(v.movimientos)) {
-  v.movimientos = v.movimientos.filter(m => Number(m.id) !== Number(movimientoId));
-}
-
+ await loadVendorsFromServer();
+await loadBalanceReport();
 renderTransactionsTable();
-loadBalanceReport();
     alert("Balance mis à jour");
   }catch(err){
     console.error(err);

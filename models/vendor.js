@@ -27,4 +27,8 @@ const VendorSchema = new mongoose.Schema({
   timestamps: true
 });
 
+VendorSchema.index({ id: 1 });
+VendorSchema.index({ zona: 1 });
+VendorSchema.index({ groupe: 1 });
+
 module.exports = mongoose.model("Vendor", VendorSchema);

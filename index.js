@@ -6445,7 +6445,13 @@ res.send(
 
 
 app.get("/api/reportes/tickets", async (req, res) => {
-  return res.json([]);
+  try {
+    const tickets = await Ticket.find().sort({ createdAt: -1 }).lean();
+    res.json(tickets);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json([]);
+  }
 });
 
 

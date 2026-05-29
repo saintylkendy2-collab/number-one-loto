@@ -498,11 +498,232 @@ if(type === "BOR"){
 }
 
 router.get("/api/reportes/ventas", async (req, res) => {
-  return res.json([]);
-})
+  try {
+    const start = String(req.query.start || "").trim();
+    const end = String(req.query.end || start || "").trim();
+
+    const q = {};
+    if (start && end && start === end) {
+      q.dateLabel = start.split("-").reverse().join("/");
+    }
+
+    const [vendorsArr, tickets] = await Promise.all([
+      Vendor.find().lean(),
+      Ticket.find(q, "vendeur dateLabel createdAt status total jeux")
+        .sort({ createdAt: -1 })
+        .limit(2000)
+        .lean()
+    ]);
+
+    const vendeurs = {};
+    vendorsArr.forEach(v => {
+      const id = String(v.id || "").trim().toUpperCase();
+      if (id) vendeurs[id] = v;
+    });
+
+    const map = {};
+
+    for (const t of tickets) {
+      const id = String(t.vendeur || "").trim().toUpperCase();
+      if (!id) continue;
+
+      const vendor = normalizeVendor(vendeurs[id] || {});
+      const status = String(t.status || "").trim().toUpperCase();
+
+      if (!map[id]) {
+        map[id] = {
+          id,
+          nombre: vendor.nombre || vendor.nom || id,
+          zona: vendor.zona || vendor.groupe || "",
+          venta: 0,
+          comision: 0,
+          comisionGrupo: 0,
+          premios: 0,
+          resultado: 0,
+          estatus: vendor.estatus || "Activo"
+        };
+      }
+
+      if (status !== "ANILE") {
+        map[id].venta += parseAmount(t.total);
+      }
+
+      if (status === "GANYE") {
+        map[id].premios += parseAmount(t.premio || 0);
+      }
+    }
+
+    Object.keys(map).forEach(id => {
+      const vendor = normalizeVendor(vendeurs[id] || {});
+
+      const rate = parseAmount(
+        vendor.comision?.general ??
+        vendor.comisionGeneral ??
+        vendor.com_general ??
+        0
+      );
+
+      const rateGrupo = parseAmount(
+        vendor.comision?.zona ??
+        vendor.comisionZona ??
+        vendor.com_zona ??
+        0
+      );
+
+      map[id].comision = (parseAmount(map[id].venta) * rate) / 100;
+      map[id].comisionGrupo = (parseAmount(map[id].venta) * rateGrupo) / 100;
+
+      map[id].resultado =
+        parseAmount(map[id].venta) -
+        parseAmount(map[id].comision) -
+        parseAmount(map[id].premios);
+    });
+
+    res.json(Object.values(map).filter(r => parseAmount(r.venta) > 0));
+
+  } catch (err) {
+    console.error("Erreur ventas:", err);
+    res.status(500).json([]);
+  }
+});
 
 router.get("/api/reportes/balance", async (req, res) => {
-  return res.json([]);
+  try {
+    const date = String(req.query.date || "").trim();
+
+    function toISODate(value) {
+      if (!value) return "";
+      const s = String(value).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      const p = s.split("/");
+      if (p.length === 3) {
+        return p[2] + "-" + p[1].padStart(2, "0") + "-" + p[0].padStart(2, "0");
+      }
+      const d = new Date(s);
+      if (isNaN(d.getTime())) return "";
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+    }
+
+    function movementEffect(m) {
+      const tipo = String(m.tipo || "").toLowerCase();
+      const monto = parseAmount(m.monto);
+      return tipo === "cobro" ? monto : -monto;
+    }
+
+    function ticketDay(t) {
+      if (t.dateLabel) return toISODate(t.dateLabel);
+      const d = new Date(t.createdAt || Date.now());
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+    }
+
+    function sorteoKey(date, loteria) {
+      return String(date || "").trim() + "||" + String(loteria || "").trim().toUpperCase();
+    }
+
+    const selectedDate = date || toISODate(new Date());
+
+    const [vendorsArr, tickets] = await Promise.all([
+      Vendor.find().lean(),
+      Ticket.find({}, "vendeur dateLabel createdAt status total jeux").lean()
+    ]);
+
+    const vendeurs = {};
+    vendorsArr.forEach(v => {
+      const id = String(v.id || "").trim().toUpperCase();
+      if (id) vendeurs[id] = v;
+    });
+
+    const ticketsUntilDate = [];
+    const sorteoDates = new Set();
+
+    for (const t of tickets) {
+      const d = ticketDay(t);
+      if (selectedDate && d && d > selectedDate) continue;
+      ticketsUntilDate.push(t);
+      if (String(t.status || "").trim().toUpperCase() === "GANYE" && t.dateLabel) {
+        sorteoDates.add(String(t.dateLabel || "").trim());
+      }
+    }
+
+    const sorteoMap = {};
+    if (sorteoDates.size) {
+      const sorteos = await Sorteo.find({ date: { $in: Array.from(sorteoDates) } }).lean();
+      sorteos.forEach(s => {
+        sorteoMap[sorteoKey(s.date, s.loteria)] = s;
+      });
+    }
+
+    const map = {};
+
+    Object.keys(vendeurs).forEach((id) => {
+      const vendor = normalizeVendor(vendeurs[id] || {});
+      const movimientos = Array.isArray(vendor.movimientos) ? vendor.movimientos : [];
+
+      const allMovementsTotal = movimientos.reduce((s, m) => s + movementEffect(m), 0);
+      const baseBalance = parseAmount(vendor.balance) - allMovementsTotal;
+
+      const filteredMovements = movimientos.filter(m => {
+        const d = toISODate(m.fecha);
+        if (selectedDate && d && d > selectedDate) return false;
+        return true;
+      });
+
+      const movementsUntilDate = filteredMovements.reduce((s, m) => s + movementEffect(m), 0);
+
+      map[id] = {
+        id,
+        nombre: vendor.nombre || vendor.nom || id,
+        zona: vendor.zona || vendor.groupe || "",
+        balance: baseBalance + movementsUntilDate,
+        estatus: vendor.estatus || "Activo",
+        collectionsLivrees: filteredMovements
+          .filter(m => String(m.tipo || "").toLowerCase() !== "cobro")
+          .map(m => ({ fecha: toISODate(m.fecha), monto: parseAmount(m.monto), tipo: String(m.tipo || "") })),
+        paiementsRecus: filteredMovements
+          .filter(m => String(m.tipo || "").toLowerCase() === "cobro")
+          .map(m => ({ fecha: toISODate(m.fecha), monto: parseAmount(m.monto), tipo: String(m.tipo || "") }))
+      };
+    });
+
+    for (const t of ticketsUntilDate) {
+      const id = String(t.vendeur || "").trim().toUpperCase();
+      if (!id) continue;
+
+      if (!map[id]) {
+        map[id] = { id, nombre: id, zona: "", balance: 0, estatus: "Activo", collectionsLivrees: [], paiementsRecus: [] };
+      }
+
+      const vendor = normalizeVendor(vendeurs[id] || {});
+      const rate = getCommissionRate(vendor);
+      const status = String(t.status || "").trim().toUpperCase();
+
+      if (status !== "ANILE") {
+        const venta = parseAmount(t.total);
+        const comision = (venta * rate) / 100;
+        let premios = 0;
+
+        if (status === "GANYE") {
+          const vendorConfig = vendeurs[id] || {};
+          for (const j of t.jeux || []) {
+            const tirage = sorteoMap[sorteoKey(t.dateLabel, j.loterie)];
+            if (tirage) premios += getGainAdmin(j, tirage, vendorConfig);
+          }
+        }
+
+        map[id].balance += venta - comision - premios;
+      }
+    }
+
+    res.json(Object.values(map));
+
+  } catch (err) {
+    console.error("Erreur balance:", err);
+    res.status(500).json([]);
+  }
 });
 
 router.post("/api/vendors", async (req, res) => {
@@ -1096,23 +1317,15 @@ function writeTicketsArray(data) {
 
 router.get("/api/reportes/tickets", async (req, res) => {
   try {
-    const today = new Date();
-    const todayISO =
-      today.getFullYear() + "-" +
-      String(today.getMonth() + 1).padStart(2, "0") + "-" +
-      String(today.getDate()).padStart(2, "0");
-
-    const date = String(req.query.date || todayISO).trim();
+    const date = String(req.query.date || "").trim();
 
     const q = {};
-    const [y,m,d] = date.split("-");
-    q.dateLabel = `${d}/${m}/${y}`;
+    if (date) {
+      const [y,m,d] = date.split("-");
+      q.dateLabel = `${d}/${m}/${y}`;
+    }
 
-    const tickets = await Ticket.find(q)
-      .sort({ createdAt: -1 })
-      .limit(300)
-      .lean();
-
+    const tickets = await Ticket.find(q).sort({ createdAt: -1 }).limit(1200).lean();
     res.json(tickets);
   } catch (err) {
     console.error("Erreur report tickets Mongo:", err.message);
@@ -1652,8 +1865,46 @@ runCheckTickets(
 
 
 
-router.delete("/api/sorteos/:id", async (req, res) => {
-  return res.json({ ok: true });
+router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
+  try {
+    function toFRDate(value) {
+      if (!value) return "";
+
+      const s = String(value).trim();
+
+      // 2026-05-02 → 02/05/2026
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const p = s.split("-");
+        return p[2] + "/" + p[1] + "/" + p[0];
+      }
+
+      return s;
+    }
+
+    const date = toFRDate(req.params.date);
+    const loteria = String(req.params.loteria || "").trim().toUpperCase();
+
+   await Sorteo.deleteOne({ date, loteria });
+
+
+fetch("https://number-one-loto-2.onrender.com/api/sorteos-delete-sync", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    date,
+    loteria
+  })
+}).catch(err => console.error(err));
+
+await runCheckTickets(date, [loteria]);
+
+res.json({ ok: true });
+
+
+  } catch (err) {
+    console.error("Erreur delete sorteos Mongo:", err);
+    res.status(500).json({ ok: false, message: "Erreur delete sorteos" });
+  }
 });
 
 router.get("/api/loterias", async (req, res) => {
@@ -3687,34 +3938,16 @@ function toggleSubmenu(id){
   box.classList.toggle("open");
 }
 
-
-let loadingTicketsReport = false;
+let ticketsRows = [];
+let ticketsTab = "tickets";
 
 async function loadTicketsReport(){
-  if (loadingTicketsReport) return;
-  loadingTicketsReport = true;
-
-  try{
-    const date = getValue("ticketFilterDate") || todayISO();
-
-    const res = await fetch(
-      "/api/reportes/tickets?date=" + encodeURIComponent(date)
-    );
-
-    const data = await res.json();
-    ticketsRows = Array.isArray(data) ? data : [];
-    renderTicketsReport();
-
-  }catch(err){
-    console.error(err);
-    ticketsRows = [];
-    renderTicketsReport();
-
-  }finally{
-    loadingTicketsReport = false;
-  }
+  const date = getValue("ticketFilterDate") || todayISO();
+  const res = await fetch("/api/reportes/tickets?date=" + encodeURIComponent(date) + "&reload=" + Date.now());
+  const data = await res.json();
+  ticketsRows = Array.isArray(data) ? data : [];
+  renderTicketsReport();
 }
-
 
 window.addEventListener("focus", function(){
   if (currentPage === "tickets") {
@@ -4273,7 +4506,7 @@ if(miCuentaPage) miCuentaPage.classList.add("hidden");
 
   if(page === "ventas"){
     showMasterPage("ventasPage");
-  
+    loadVentasReport();
 
   }else if(page === "grupos"){
   if(gruposPage) gruposPage.classList.remove("hidden");
@@ -4308,7 +4541,7 @@ loadLimitesAjustes();
 
   }else if(page === "tickets"){
     if(ticketsPage) ticketsPage.classList.remove("hidden");
-    
+    loadTicketsReport();
 
   }else if(page === "sorteos"){
     if(sorteosPage) sorteosPage.classList.remove("hidden");

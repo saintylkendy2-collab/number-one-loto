@@ -37,6 +37,11 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+app.use((req, res, next) => {
+  console.log("REQ =>", req.method, req.url);
+  next();
+});
+
 mongoose.connect("mongodb+srv://numberone:numberone123@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority")
 .then(async () => {;
   console.log("Mongo connecté");
@@ -52,7 +57,7 @@ mongoose.connection.once("open", async () => {
     await Ticket.collection.createIndex({ id: 1 }, { unique: true, sparse: true });
     await Ticket.collection.createIndex({ vendeur: 1, createdAt: -1 });
     await Ticket.collection.createIndex({ dateLabel: 1, vendeur: 1, status: 1 });
-    await Sorteo.collection.createIndex({ date: 1, loteria: 1 });
+    await Sorteo.collection.createIndex({ date: 1, loteria: 1 }, { unique: true }).catch(() => {});
 
     await Ticket.deleteMany({
       $or: [

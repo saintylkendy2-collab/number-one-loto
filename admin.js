@@ -1358,6 +1358,9 @@ function writeTicketsArray(data) {
 
 router.get("/api/reportes/tickets", async (req, res) => {
   try {
+    console.log("REQ TICKETS QUERY =", req.query);
+    console.time("TICKETS_QUERY");
+
     const date = String(req.query.date || "").trim();
 
     const q = {};
@@ -1367,6 +1370,11 @@ router.get("/api/reportes/tickets", async (req, res) => {
     }
 
     const tickets = await Ticket.find(q).sort({ createdAt: -1 }).limit(1200).lean();
+
+    console.timeEnd("TICKETS_QUERY");
+    console.log("FILTER Q =", q);
+    console.log("TICKETS LOADED =", tickets.length);
+
     res.json(tickets);
   } catch (err) {
     console.error("Erreur report tickets Mongo:", err.message);

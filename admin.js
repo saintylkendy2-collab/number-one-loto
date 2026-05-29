@@ -3,38 +3,13 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 
-const multer = require("multer");
-
 const router = express.Router();
-
-if (!fs.existsSync("./uploads")) {
-  fs.mkdirSync("./uploads");
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "./uploads");
-  },
-
-  filename: function (req, file, cb) {
-
-    const ext = path.extname(file.originalname);
-
-    cb(
-      null,
-      "logo_" + Date.now() + ext
-    );
-  }
-});
-
-const upload = multer({ storage });
 
 const Ticket = require("./models/Ticket");
 const Vendor = require("./models/vendor");
 
 const Sorteo = require("./models/Sorteo");
 const Loteria = require("./models/Loteria");
-const AppConfig = require("./models/AppConfig");
 
 // =============================
 // 📁 FILE PATHS
@@ -42,6 +17,8 @@ const AppConfig = require("./models/AppConfig");
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
 const TICKETS_FILE = path.join(__dirname, "tickets.json");
 const SORTEOS_FILE = path.join(__dirname, "sorteos.json");
+
+console.log("ADMIN VENDEURS_FILE =", VENDEURS_FILE);
 
 // =============================
 // 🔒 ENSURE FILES EXIST
@@ -152,6 +129,8 @@ router.post("/ticket", async (req, res) => {
       tirages,
       jeux: safeJeux
     });
+
+    console.log("✅ Ticket créé:", ticket.id);
 
     res.json({ ok: true, ticket });
 
@@ -416,8 +395,6 @@ function payout(config, key, def){
 }
 
 function getGainAdmin(j, tirage, config){
-  if (!tirage) return 0;
-
   const type = clean(j.type).toUpperCase();
   const num = clean(j.numero);
   const montant = Number(j.montant || 0);
@@ -428,41 +405,17 @@ function getGainAdmin(j, tirage, config){
   const r4 = pad2(tirage.r4);
 
   let pay = 0;
-if(type === "BOR"){
-  const played = pad2(num);
 
-  if(played === r2) pay += payout(config, "premios.borlette1", 55);
-  if(played === r3) pay += payout(config, "premios.borlette2", 20);
-  if(played === r4) pay += payout(config, "premios.borlette3", 10);
-}
+  if(type === "BOR"){
+    const played = pad2(num);
+    if(played === r2) pay = payout(config, "premios.borlette1", 55);
+    else if(played === r3) pay = payout(config, "premios.borlette2", 20);
+    else if(played === r4) pay = payout(config, "premios.borlette3", 10);
+  }
 
   else if(type === "MAR"){
-    const isGratis =
-      j.gratis === true ||
-      j.free === true ||
-      Number(j.montant || 0) === 0;
-
-    const parts = String(num)
-      .replace("-", "x")
-      .replace("*", "x")
-      .split("x")
-      .map(x => pad2(x));
-
-    const played = parts.join("");
-
-    const wins = [
-  r2 + r3, r3 + r2,
-  r2 + r4, r4 + r2,
-  r3 + r4, r4 + r3
-];
-
-    if(wins.includes(played)){
-      if(isGratis){
-        return Number(j.payoutGratis || 0);
-      }
-
+    if([r2+"*"+r3, r2+"*"+r4, r3+"*"+r4].includes(num)){
       pay = payout(config, "premios.mariage", 1000);
-      return montant * pay;
     }
   }
 
@@ -500,20 +453,10 @@ if(type === "BOR"){
 router.get("/api/reportes/ventas", async (req, res) => {
   try {
     const start = String(req.query.start || "").trim();
-    const end = String(req.query.end || start || "").trim();
+    const end = String(req.query.end || "").trim();
 
-    const q = {};
-    if (start && end && start === end) {
-      q.dateLabel = start.split("-").reverse().join("/");
-    }
-
-    const [vendorsArr, tickets] = await Promise.all([
-      Vendor.find().lean(),
-      Ticket.find(q, "vendeur dateLabel createdAt status total jeux")
-        .sort({ createdAt: -1 })
-        .limit(2000)
-        .lean()
-    ]);
+    const vendorsArr = await Vendor.find().lean();
+    const tickets = await Ticket.find().lean();
 
     const vendeurs = {};
     vendorsArr.forEach(v => {
@@ -523,7 +466,26 @@ router.get("/api/reportes/ventas", async (req, res) => {
 
     const map = {};
 
+    function ticketDay(t) {
+      if (t.dateLabel) {
+        const p = String(t.dateLabel).split("/");
+        if (p.length === 3) {
+          return p[2] + "-" + p[1].padStart(2, "0") + "-" + p[0].padStart(2, "0");
+        }
+      }
+
+      const d = new Date(t.createdAt || Date.now());
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+    }
+
     for (const t of tickets) {
+      const d = ticketDay(t);
+
+      if (start && d < start) continue;
+      if (end && d > end) continue;
+
       const id = String(t.vendeur || "").trim().toUpperCase();
       if (!id) continue;
 
@@ -549,7 +511,24 @@ router.get("/api/reportes/ventas", async (req, res) => {
       }
 
       if (status === "GANYE") {
-        map[id].premios += parseAmount(t.premio || 0);
+        const vendorConfig = vendeurs[id] || {};
+        let realPremio = 0;
+
+        for (const j of t.jeux || []) {
+          const tirage = await Sorteo.findOne({
+            date: String(t.dateLabel || "").trim(),
+            loteria: {
+              $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+              $options: "i"
+            }
+          }).lean();
+
+          if (tirage) {
+            realPremio += getGainAdmin(j, tirage, vendorConfig);
+          }
+        }
+
+        map[id].premios += realPremio;
       }
     }
 
@@ -573,13 +552,18 @@ router.get("/api/reportes/ventas", async (req, res) => {
       map[id].comision = (parseAmount(map[id].venta) * rate) / 100;
       map[id].comisionGrupo = (parseAmount(map[id].venta) * rateGrupo) / 100;
 
+      // RESULTADO PA RETIRE COMISION GRUPO
       map[id].resultado =
         parseAmount(map[id].venta) -
         parseAmount(map[id].comision) -
         parseAmount(map[id].premios);
     });
 
-    res.json(Object.values(map).filter(r => parseAmount(r.venta) > 0));
+    const finalRows = Object.values(map).filter(r =>
+  parseAmount(r.venta) > 0
+);
+
+res.json(finalRows);
 
   } catch (err) {
     console.error("Erreur ventas:", err);
@@ -594,13 +578,17 @@ router.get("/api/reportes/balance", async (req, res) => {
     function toISODate(value) {
       if (!value) return "";
       const s = String(value).trim();
+
       if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
       const p = s.split("/");
       if (p.length === 3) {
         return p[2] + "-" + p[1].padStart(2, "0") + "-" + p[0].padStart(2, "0");
       }
+
       const d = new Date(s);
       if (isNaN(d.getTime())) return "";
+
       return d.getFullYear() + "-" +
         String(d.getMonth() + 1).padStart(2, "0") + "-" +
         String(d.getDate()).padStart(2, "0");
@@ -614,22 +602,17 @@ router.get("/api/reportes/balance", async (req, res) => {
 
     function ticketDay(t) {
       if (t.dateLabel) return toISODate(t.dateLabel);
+
       const d = new Date(t.createdAt || Date.now());
       return d.getFullYear() + "-" +
         String(d.getMonth() + 1).padStart(2, "0") + "-" +
         String(d.getDate()).padStart(2, "0");
     }
 
-    function sorteoKey(date, loteria) {
-      return String(date || "").trim() + "||" + String(loteria || "").trim().toUpperCase();
-    }
-
     const selectedDate = date || toISODate(new Date());
 
-    const [vendorsArr, tickets] = await Promise.all([
-      Vendor.find().lean(),
-      Ticket.find({}, "vendeur dateLabel createdAt status total jeux").lean()
-    ]);
+    const vendorsArr = await Vendor.find().lean();
+    const tickets = await Ticket.find().lean();
 
     const vendeurs = {};
     vendorsArr.forEach(v => {
@@ -637,34 +620,23 @@ router.get("/api/reportes/balance", async (req, res) => {
       if (id) vendeurs[id] = v;
     });
 
-    const ticketsUntilDate = [];
-    const sorteoDates = new Set();
-
-    for (const t of tickets) {
-      const d = ticketDay(t);
-      if (selectedDate && d && d > selectedDate) continue;
-      ticketsUntilDate.push(t);
-      if (String(t.status || "").trim().toUpperCase() === "GANYE" && t.dateLabel) {
-        sorteoDates.add(String(t.dateLabel || "").trim());
-      }
-    }
-
-    const sorteoMap = {};
-    if (sorteoDates.size) {
-      const sorteos = await Sorteo.find({ date: { $in: Array.from(sorteoDates) } }).lean();
-      sorteos.forEach(s => {
-        sorteoMap[sorteoKey(s.date, s.loteria)] = s;
-      });
-    }
-
     const map = {};
 
     Object.keys(vendeurs).forEach((id) => {
       const vendor = normalizeVendor(vendeurs[id] || {});
       const movimientos = Array.isArray(vendor.movimientos) ? vendor.movimientos : [];
 
-      const allMovementsTotal = movimientos.reduce((s, m) => s + movementEffect(m), 0);
+      const allMovementsTotal = movimientos.reduce((s, m) => {
+        return s + movementEffect(m);
+      }, 0);
+
       const baseBalance = parseAmount(vendor.balance) - allMovementsTotal;
+
+      const movementsUntilDate = movimientos.reduce((s, m) => {
+        const d = toISODate(m.fecha);
+        if (selectedDate && d && d > selectedDate) return s;
+        return s + movementEffect(m);
+      }, 0);
 
       const filteredMovements = movimientos.filter(m => {
         const d = toISODate(m.fecha);
@@ -672,29 +644,48 @@ router.get("/api/reportes/balance", async (req, res) => {
         return true;
       });
 
-      const movementsUntilDate = filteredMovements.reduce((s, m) => s + movementEffect(m), 0);
-
       map[id] = {
         id,
         nombre: vendor.nombre || vendor.nom || id,
         zona: vendor.zona || vendor.groupe || "",
         balance: baseBalance + movementsUntilDate,
         estatus: vendor.estatus || "Activo",
+
         collectionsLivrees: filteredMovements
           .filter(m => String(m.tipo || "").toLowerCase() !== "cobro")
-          .map(m => ({ fecha: toISODate(m.fecha), monto: parseAmount(m.monto), tipo: String(m.tipo || "") })),
+          .map(m => ({
+            fecha: toISODate(m.fecha),
+            monto: parseAmount(m.monto),
+            tipo: String(m.tipo || "")
+          })),
+
         paiementsRecus: filteredMovements
           .filter(m => String(m.tipo || "").toLowerCase() === "cobro")
-          .map(m => ({ fecha: toISODate(m.fecha), monto: parseAmount(m.monto), tipo: String(m.tipo || "") }))
+          .map(m => ({
+            fecha: toISODate(m.fecha),
+            monto: parseAmount(m.monto),
+            tipo: String(m.tipo || "")
+          }))
       };
     });
 
-    for (const t of ticketsUntilDate) {
+    for (const t of tickets) {
       const id = String(t.vendeur || "").trim().toUpperCase();
       if (!id) continue;
 
+      const d = ticketDay(t);
+      if (selectedDate && d && d > selectedDate) continue;
+
       if (!map[id]) {
-        map[id] = { id, nombre: id, zona: "", balance: 0, estatus: "Activo", collectionsLivrees: [], paiementsRecus: [] };
+        map[id] = {
+          id,
+          nombre: id,
+          zona: "",
+          balance: 0,
+          estatus: "Activo",
+          collectionsLivrees: [],
+          paiementsRecus: []
+        };
       }
 
       const vendor = normalizeVendor(vendeurs[id] || {});
@@ -704,13 +695,24 @@ router.get("/api/reportes/balance", async (req, res) => {
       if (status !== "ANILE") {
         const venta = parseAmount(t.total);
         const comision = (venta * rate) / 100;
+
         let premios = 0;
 
         if (status === "GANYE") {
           const vendorConfig = vendeurs[id] || {};
+
           for (const j of t.jeux || []) {
-            const tirage = sorteoMap[sorteoKey(t.dateLabel, j.loterie)];
-            if (tirage) premios += getGainAdmin(j, tirage, vendorConfig);
+            const tirage = await Sorteo.findOne({
+              date: String(t.dateLabel || "").trim(),
+              loteria: {
+                $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+                $options: "i"
+              }
+            }).lean();
+
+            if (tirage) {
+              premios += getGainAdmin(j, tirage, vendorConfig);
+            }
           }
         }
 
@@ -1212,11 +1214,11 @@ router.delete("/api/vendors/:id/movimientos/:movId", async (req, res) => {
     const removed = vendor.movimientos.splice(index, 1)[0];
 
     // 🔥 REAJISTE BALANCE
-if (removed.tipo === "pago") {
-  vendor.balance -= removed.monto;
-} else {
-  vendor.balance += removed.monto;
-}
+    if (removed.tipo === "cobro") {
+      vendor.balance -= removed.monto;
+    } else {
+      vendor.balance += removed.monto;
+    }
 
     await vendor.save();
 
@@ -1289,14 +1291,11 @@ router.post("/api/vendors/:id/balance-action", async (req, res) => {
     };
 
     // 🔥 AJUSTE BALANCE
-
-if (tipo === "pago") {
-  vendor.balance = parseAmount(vendor.balance) + movement.monto;
-} else if (tipo === "cobro") {
-  vendor.balance = parseAmount(vendor.balance) - movement.monto;
-} else {
-  vendor.balance = parseAmount(vendor.balance) - movement.monto;
-}
+    if (tipo === "cobro") {
+      vendor.balance = parseAmount(vendor.balance) + movement.monto;
+    } else {
+      vendor.balance = parseAmount(vendor.balance) - movement.monto;
+    }
 
     vendor.movimientos.push(movement);
 
@@ -1317,16 +1316,58 @@ function writeTicketsArray(data) {
 
 router.get("/api/reportes/tickets", async (req, res) => {
   try {
-    const date = String(req.query.date || "").trim();
+    const tickets = await Ticket.find().sort({ createdAt: -1 }).lean();
 
-    const q = {};
-    if (date) {
-      const [y,m,d] = date.split("-");
-      q.dateLabel = `${d}/${m}/${y}`;
+    const vendorsArr = await Vendor.find().lean();
+    const vendeurs = {};
+
+    vendorsArr.forEach(v => {
+      const id = String(v.id || "").trim().toUpperCase();
+      if (id) vendeurs[id] = v;
+    });
+
+    const cleanTickets = [];
+
+    for (const t of tickets) {
+      const realId = t.id || t.ticketId || t.serial || String(t._id || "");
+      const vendorId = String(t.vendeur || "").trim().toUpperCase();
+      const vendorConfig = vendeurs[vendorId] || {};
+
+      let totalGain = 0;
+
+      const jeux = [];
+      for (const j of t.jeux || []) {
+        const tirage = await Sorteo.findOne({
+          date: String(t.dateLabel || "").trim(),
+          loteria: {
+            $regex: "^" + String(j.loterie || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$",
+            $options: "i"
+          }
+        }).lean();
+
+        const gain = tirage ? getGainAdmin(j, tirage, vendorConfig) : 0;
+        totalGain += gain;
+
+        jeux.push({
+          ...j,
+          gain: gain,
+          gainLabel: money(gain)
+        });
+      }
+
+      cleanTickets.push({
+        ...t,
+        id: realId,
+        ticketId: realId,
+        serial: realId,
+        jeux: jeux,
+        premio: totalGain,
+        premioLabel: money(totalGain)
+      });
     }
 
-    const tickets = await Ticket.find(q).sort({ createdAt: -1 }).limit(1200).lean();
-    res.json(tickets);
+    res.json(cleanTickets);
+
   } catch (err) {
     console.error("Erreur report tickets Mongo:", err.message);
     res.status(500).json([]);
@@ -1452,7 +1493,7 @@ router.get("/master/ticket/:id", async (req, res) => {
       ".premio-total{" +
       "color:#00ff66;" +
       "font-weight:900;" +
-      "font-size:20px;" +
+      "font-size:30px;" +
       "text-shadow:0 0 10px rgba(0,255,102,0.7)" +
       "}" +
 
@@ -1839,21 +1880,10 @@ router.post("/api/sorteos/save", async (req, res) => {
       );
     }
 
-res.json({ ok: true, date: date });
-
-fetch("https://number-one-loto-2.onrender.com/api/sorteos-sync", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    date: date,
-    rows: rows
-  })
-}).catch(err => console.error("Erreur sync NBL2:", err.message));
-
-runCheckTickets(
+await runCheckTickets(
   date,
   rows.map(r => String(r.loteria || "").trim().toUpperCase())
-).catch(err => console.error(err));
+);
 
     res.json({ ok: true, date: date });
 
@@ -1884,22 +1914,9 @@ router.delete("/api/sorteos/:date/:loteria", async (req, res) => {
     const date = toFRDate(req.params.date);
     const loteria = String(req.params.loteria || "").trim().toUpperCase();
 
-   await Sorteo.deleteOne({ date, loteria });
+    await Sorteo.deleteOne({ date, loteria });
 
-
-fetch("https://number-one-loto-2.onrender.com/api/sorteos-delete-sync", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    date,
-    loteria
-  })
-}).catch(err => console.error(err));
-
-await runCheckTickets(date, [loteria]);
-
-res.json({ ok: true });
-
+    res.json({ ok: true });
 
   } catch (err) {
     console.error("Erreur delete sorteos Mongo:", err);
@@ -2001,125 +2018,7 @@ router.post("/api/loterias/:id", async (req, res) => {
   }
 });
 
-router.get("/api/app-config", async (req, res) => {
-
-  try {
-
-    let config = await AppConfig.findOne({ key: "main" });
-
-    if (!config) {
-      config = await AppConfig.create({
-        key: "main"
-      });
-    }
-
-    res.json({
-      ok: true,
-      config
-    });
-
-  } catch (err) {
-
-    console.error("APP CONFIG GET ERROR:", err);
-
-    res.status(500).json({
-      ok: false
-    });
-
-  }
-
-});
-
-router.post("/api/app-config", async (req, res) => {
-
-  try {
-
-    let config = await AppConfig.findOne({ key: "main" });
-
-    if (!config) {
-      config = await AppConfig.create({
-        key: "main"
-      });
-    }
-
-    config.ticketLogo = String(req.body.ticketLogo || "");
-
-    config.ticketMessage = String(req.body.ticketMessage || "");
-
-    config.mariageGratis = {
-  enabled:
-    req.body.mariageGratis &&
-    req.body.mariageGratis.enabled === true,
-
-  max: 5,
-  stepAmount: 50,
-
-  payout: Number(
-    req.body.mariageGratis &&
-    req.body.mariageGratis.payout
-    ? req.body.mariageGratis.payout
-    : 1000
-  )
-};
-
-    await config.save();
-
-    res.json({
-      ok: true,
-      config
-    });
-
-  } catch (err) {
-
-    console.error("APP CONFIG SAVE ERROR:", err);
-
-    res.status(500).json({
-      ok: false
-    });
-
-  }
-
-});
-
-router.post(
-  "/api/upload-logo",
-  upload.single("logo"),
-  async (req, res) => {
-
-    try {
-
-      const url =
-        "/uploads/" + req.file.filename;
-
-      res.json({
-        ok: true,
-        url
-      });
-
-    } catch (err) {
-
-      console.error(err);
-
-      res.status(500).json({
-        ok: false
-      });
-
-    }
-
-  }
-);
-
-router.get("/master/vendors", async (req, res) => {
-
-  const appConfig =
-    await AppConfig.findOne({ key: "main" }).lean()
-    || {};
-
- const logoUrl =
-  appConfig.ticketLogo ||
-  appConfig.logo ||
-  "";
-
+router.get("/master/vendors", (req, res) => {
   res.send(`
 <!DOCTYPE html>
 <html lang="es">
@@ -2272,8 +2171,8 @@ html,body{
  color:#fff;
 }
 .submenu-item:hover{
- background:rgba(255,255,255,.05);
- color:#eef1f8;
+ background:linear-gradient(90deg,#6d63ff,#7d73ff);
+ color:#fff;
 }
 .app-page{
  min-height:100vh;
@@ -2424,7 +2323,7 @@ tbody tr:nth-child(even){background:#313652;}
 .balance-positive{
  color:#2fbf71;
  font-weight:700;
- font-size:20px;
+ font-size:16px;
  cursor:pointer;
 }
 
@@ -2443,18 +2342,6 @@ tbody tr:nth-child(even){background:#313652;}
  font-weight:700;
  cursor:pointer;
 }
-
-.balance-negative{
-  color:#ff6767;
-  font-weight:800;
-  font-size:20px !important;
-  line-height:1;
-  display:inline-block;
-  cursor:pointer;
-  position:relative;
-  left:-7px;
-}
-
 .page-block{background:transparent;}
 .action-row{
  display:flex;
@@ -2846,26 +2733,11 @@ tbody tr:nth-child(even){background:#313652;}
 
 <div id="sideMenu" class="side-menu">
   <div class="side-menu-header">
-
-    <div class="side-menu-logo-wrap"
-         onclick="openHomeDashboard()"
-         style="cursor:pointer;">
-
-      <img class="side-menu-logo-img"
-     src="${logoUrl}"
-     alt="logo"
-     onerror="this.style.display='none'">
-
-      <div class="side-menu-logo">
-        NUMBER ONE LOTO
-      </div>
-
+    <div class="side-menu-logo-wrap">
+      <img class="side-menu-logo-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/240px-Placeholder_view_vector.svg.png" alt="logo">
+      <div class="side-menu-logo">NUMBER ONE LOTO</div>
     </div>
-
-    <div id="menuCloseBtn"
-         class="side-menu-close"
-         onclick="closeSideMenu()">✕</div>
-
+    <div id="menuCloseBtn" class="side-menu-close" onclick="closeSideMenu()">✕</div>
   </div>
 
   <div class="side-menu-section">AJUSTES</div>
@@ -2877,29 +2749,19 @@ tbody tr:nth-child(even){background:#313652;}
    <div class="submenu-item" onclick="goPage('grupos')">Grupo</div>
   </div>
 
-  <div class="side-menu-item" onclick="openTicketConfigPage()">
-  <span>Ticket Config</span>
-  <span>></span>
-</div>
-
   <div class="side-menu-item" id="menu-limites" onclick="toggleSubmenu('limitesMenu')">
     <span>Límites</span><span>></span>
   </div>
   <div id="limitesMenu" class="submenu-box">
     <div class="submenu-item" onclick="goPage('limites_ajustes')">Ajustes</div>
-    <div class="submenu-item" onclick="openLimitesEstadisticas()">Estadísticas</div>
+    <div class="submenu-item">Estadísticas</div>
   </div>
 
   <div class="side-menu-item" id="menu-loterias" onclick="goPage('loterias')">
   <span>Loterías</span>
 </div>
-   <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
- 
- <div class="side-menu-item"
-     id="menu-cuenta"
-     onclick="openMiCuenta()">
-  <span>Mi Cuenta</span>
-</div>
+  <div class="side-menu-item" id="menu-vendors" onclick="goPage('vendors')"><span>Vendedores</span></div>
+  <div class="side-menu-item" id="menu-cuenta"><span>Mi Cuenta</span></div>
 
   <div class="side-menu-section">MONITOREO</div>
   <div class="side-menu-item" id="menu-tickets" onclick="goPage('tickets')">
@@ -2914,11 +2776,11 @@ tbody tr:nth-child(even){background:#313652;}
     <span>Venta</span><span>></span>
   </div>
   <div id="ventaMenu" class="submenu-box">
-  <div class="submenu-item" id="submenu-ventas" onclick="goPage('ventas')">General</div>
-  <div class="submenu-item" id="submenu-ventas-loteria" onclick="openVentasDetalle('loteria')">Lotería</div>
-  <div class="submenu-item" id="submenu-ventas-jugada" onclick="openVentasDetalle('jugada')">Jugada</div>
-  <div class="submenu-item" id="submenu-ventas-numero" onclick="openVentasDetalle('numero')">Número</div>
-  <div class="submenu-item" id="submenu-ventas-grupo" onclick="goPage('grupo')">Grupo</div>
+  <div class="submenu-item" onclick="goPage('ventas')">General</div>
+ <div class="submenu-item" onclick="openVentasDetalle('loteria')">Lotería</div>
+<div class="submenu-item" onclick="openVentasDetalle('jugada')">Jugada</div>
+<div class="submenu-item" onclick="openVentasDetalle('numero')">Número</div>
+  <div class="submenu-item" onclick="goPage('grupo')">Grupo</div>
 </div>
 
   <div class="side-menu-section">FLUJO DE EFECTIVO</div>
@@ -2934,8 +2796,9 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
 
   <div class="side-menu-section">DESCONECTAR</div>
-<div class="side-menu-item" onclick="window.location='/master/vendors'"><span>Salir</span></div>
+  <div class="side-menu-item"><span>Salir</span></div>
 </div>
+
 <div class="app-page hidden" id="appPage">
   <div class="topbar">
     <div class="top-left">
@@ -3040,8 +2903,6 @@ tbody tr:nth-child(even){background:#313652;}
   </div>
 
   <div id="ventasDetallePage" class="page-block hidden"></div>
-
-  <div id="miCuentaPage" class="page-block hidden"></div>
 
 <div id="gruposPage" class="page-block hidden">
   <div class="page-title">Grupos</div>
@@ -3425,26 +3286,6 @@ tbody tr:nth-child(even){background:#313652;}
         <div class="switch-row"><div id="sw_whatsapp" class="switch"></div><div class="switch-label">Ventas por WhatsApp</div></div>
         <div class="switch-row"><div id="sw_nombre_ticket" class="switch"></div><div class="switch-label">Usar nombre en Ticket</div></div>
 
-<div class="switch-row">
-  <div id="sw_mensaje_ticket" class="switch"></div>
-  <div class="switch-label">Mensaje personal Ticket</div>
-</div>
-
-<textarea
-  id="cfg_mensaje_ticket"
-  placeholder="Mensaje personnel vendeur..."
-  style="
-    width:100%;
-    min-height:70px;
-    margin-top:8px;
-    border-radius:10px;
-    padding:10px;
-    background:#111;
-    color:#fff;
-    border:1px solid #333;
-  "
-></textarea>
-
         <div class="field-group">
           <div class="field-label">Deshabilitar Decimales</div>
           <input id="cfg_decimales" class="field-input" value="0" />
@@ -3784,7 +3625,7 @@ function updateClock(){
   const box = byId("clockBox");
   if(box) box.textContent = h + ":" + m;
 }
-setInterval(updateClock,30000);
+setInterval(updateClock,1000);
 updateClock();
 
 function resetMenuActive(){
@@ -3796,60 +3637,18 @@ function resetMenuActive(){
 function setMenuActive(page){
   resetMenuActive();
 
-  document.querySelectorAll(".submenu-box").forEach(function(box){
-    box.classList.remove("open");
-  });
-
-  if(page === "cuenta"){
-    if(byId("menu-cuenta")) byId("menu-cuenta").classList.add("active");
-  }
-
-  else if(page === "ventas"){
+  if(page === "ventas"){
+    if(byId("menu-venta")) byId("menu-venta").classList.add("active");
     if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
-  }
-
-  else if(page === "ventas_loteria"){
-    if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
-    if(byId("submenu-ventas-loteria")) byId("submenu-ventas-loteria").classList.add("active");
-  }
-
-  else if(page === "ventas_jugada"){
-    if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
-    if(byId("submenu-ventas-jugada")) byId("submenu-ventas-jugada").classList.add("active");
-  }
-
-  else if(page === "ventas_numero"){
-    if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
-    if(byId("submenu-ventas-numero")) byId("submenu-ventas-numero").classList.add("active");
-  }
-
-  else if(page === "grupo" || page === "ventas_grupo"){
-    if(byId("ventaMenu")) byId("ventaMenu").classList.add("open");
-    if(byId("submenu-ventas-grupo")) byId("submenu-ventas-grupo").classList.add("active");
-  }
-
-  else if(page === "vendors" || page === "editor"){
+    if(byId("submenu-ventas")) byId("submenu-ventas").classList.add("active");
+  }else if(page === "vendors" || page === "editor"){
     if(byId("menu-vendors")) byId("menu-vendors").classList.add("active");
-  }
-
-  else if(page === "tickets"){
-    if(byId("menu-tickets")) byId("menu-tickets").classList.add("active");
-  }
-
-  else if(page === "sorteos"){
-    if(byId("menu-sorteos")) byId("menu-sorteos").classList.add("active");
-  }
-
-  else if(page === "loterias"){
-    if(byId("menu-loterias")) byId("menu-loterias").classList.add("active");
-  }
-
-  else if(page === "balance_vendor"){
+  }else if(page === "balance_vendor"){
+    if(byId("menu-balance")) byId("menu-balance").classList.add("active");
     if(byId("balanceMenu")) byId("balanceMenu").classList.add("open");
     if(byId("submenu-balance-vendor")) byId("submenu-balance-vendor").classList.add("active");
   }
 }
-
 
 async function loadVendorsFromServer(){
   try{
@@ -3918,6 +3717,32 @@ async function loadBalanceReport(){
   }
 }
 
+function loginMaster() {
+  const user = byId("username");
+  const pass = byId("password");
+  const loginPage = byId("loginPage");
+  const appPage = byId("appPage");
+
+  if (!user || !pass || !loginPage || !appPage) return;
+
+  const u = user.value.trim();
+  const p = pass.value.trim();
+
+  if (u === "Number" && p === "1234") {
+    loginPage.style.display = "none";
+    appPage.classList.remove("hidden");
+    appPage.style.display = "block";
+
+    loadVendorsFromServer();
+    loadVentasReport();
+    loadBalanceReport();
+
+    goPage("ventas");
+  } else {
+    alert("Login incorrect");
+  }
+}
+
 function openSideMenu(){
   const menu = byId("sideMenu");
   const overlay = byId("menuOverlay");
@@ -3942,8 +3767,7 @@ let ticketsRows = [];
 let ticketsTab = "tickets";
 
 async function loadTicketsReport(){
-  const date = getValue("ticketFilterDate") || todayISO();
-  const res = await fetch("/api/reportes/tickets?date=" + encodeURIComponent(date) + "&reload=" + Date.now());
+  const res = await fetch("/api/reportes/tickets?reload=" + Date.now());
   const data = await res.json();
   ticketsRows = Array.isArray(data) ? data : [];
   renderTicketsReport();
@@ -3977,7 +3801,7 @@ function getStatusIcon(status) {
   status = status.toUpperCase();
 
   if (status.includes("PEDI")) {
-    return '<span style="color:#ff4444;font-weight:900;font-size:24px;">✕</span>';
+    return '<span style="color:#ff4d4d;">✖</span>';
   }
 
   if (status.includes("ANATAN")) {
@@ -3989,7 +3813,7 @@ function getStatusIcon(status) {
   }
 
   if (status.includes("GANYE")) {
-    return '<span style="color:#00ff66;font-weight:900;font-size:24px;">✓</span>';
+    return '<span style="color:#4caf50;">✔</span>';
   }
 
   return status;
@@ -4014,18 +3838,18 @@ function renderTicketsReport(){
 
   filters.innerHTML =
     '<label>ID</label>' +
-    '<input class="filter-input" id="ticketFilterId" oninput="loadTicketsReport()" value="' + oldId + '">' +
+    '<input class="filter-input" id="ticketFilterId" oninput="renderTicketsReport()" value="' + oldId + '">' +
 
     '<label>Fecha</label>' +
-    '<input type="date" class="filter-input" id="ticketFilterDate" onchange="loadTicketsReport()" value="' + oldDate + '">' +
+    '<input type="date" class="filter-input" id="ticketFilterDate" onchange="renderTicketsReport()" value="' + oldDate + '">' +
 
     '<label>Vendedor</label>' +
-    '<select class="filter-select" id="ticketFilterVendor" onchange="loadTicketsReport()">' +
+    '<select class="filter-select" id="ticketFilterVendor" onchange="renderTicketsReport()">' +
       vendorOptions +
     '</select>' +
 
     '<label>Estatus</label>' +
-    '<select class="filter-select" id="ticketFilterStatus" onchange="loadTicketsReport()">' +
+    '<select class="filter-select" id="ticketFilterStatus" onchange="renderTicketsReport()">' +
       '<option value="">-</option>' +
       '<option value="ANATAN">AN ATAN</option>' +
       '<option value="GANYE">GANYE</option>' +
@@ -4324,25 +4148,14 @@ function renderSorteosPage(){
     var btnClass = hasBalls ? "sorteos-delete-btn" : "sorteos-save-btn";
 
     html += ''
-      + '<div style="display:grid;grid-template-columns:minmax(135px,1fr) repeat(4,48px) 44px;gap:6px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.12);overflow-x:auto;">'
-
-+ '<div style="font-size:15px;font-weight:600;line-height:1.15;color:#d7dcef;word-break:break-word;">'
-+ key +
-'</div>'
-
-+ '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:20px;font-weight:700;width:48px;min-width:48px;height:48px;padding:0;border-radius:14px;">'
-
-+ '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:20px;font-weight:700;width:48px;min-width:48px;height:48px;padding:0;border-radius:14px;">'
-
-+ '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r3" value="' + safe(r.r3 || "") + '" style="text-align:center;font-size:20px;font-weight:700;width:48px;min-width:48px;height:48px;padding:0;border-radius:14px;">'
-
-+ '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r4" value="' + safe(r.r4 || "") + '" style="text-align:center;font-size:20px;font-weight:700;width:48px;min-width:48px;height:48px;padding:0;border-radius:14px;">'
-
-+ '<button class="' + btnClass + '" data-loteria="' + key + '" style="width:44px;height:44px;min-width:44px;border:0;border-radius:50%;background:rgba(255,255,255,.08);color:#7b72ff;font-size:22px;display:flex;align-items:center;justify-content:center;">'
-+ btnIcon +
-'</button>'
-
-+ '</div>';
+      + '<div style="display:grid;grid-template-columns:1.2fr .7fr .7fr .7fr .7fr 52px;gap:8px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);">'
+      + '<div style="font-size:16px;color:#d7dcef;">' + key + '</div>'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r1" value="' + safe(r.r1 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r2" value="' + safe(r.r2 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r3" value="' + safe(r.r3 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<input class="field-input sorteos-input" data-loteria="' + key + '" data-field="r4" value="' + safe(r.r4 || "") + '" style="text-align:center;font-size:18px;">'
+      + '<button class="' + btnClass + '" data-loteria="' + key + '" style="width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.05);color:#7b72ff;font-size:24px;">' + btnIcon + '</button>'
+      + '</div>';
   });
 
   box.innerHTML = html;
@@ -4463,12 +4276,6 @@ async function deleteSorteo(loteria){
 async function goPage(page){
   currentPage = page;
 
-  const homeDashboardPage = byId("homeDashboardPage");
-  if(homeDashboardPage){
-    homeDashboardPage.classList.add("hidden");
-    homeDashboardPage.style.display = "none";
-  }
-
   const today = todayISO();
 
   await loadGrupoSelects();
@@ -4481,7 +4288,6 @@ async function goPage(page){
 
   const ventasPage = byId("ventasPage");
   const ticketsPage = byId("ticketsPage");
-  const miCuentaPage = byId("miCuentaPage");
   const gruposPage = byId("gruposPage");
   const vendorsPage = byId("vendorsPage");
   const editorPage = byId("vendorEditorPage");
@@ -4502,7 +4308,16 @@ if(loteriasPage) loteriasPage.classList.add("hidden");
   if(transactionsPage) transactionsPage.classList.add("hidden");
   if(sorteosPage) sorteosPage.classList.add("hidden");
   if(limitesAjustesPage) limitesAjustesPage.classList.add("hidden");
-if(miCuentaPage) miCuentaPage.classList.add("hidden");
+
+ if(ventasPage) ventasPage.classList.add("hidden");
+  if(ticketsPage) ticketsPage.classList.add("hidden");
+  if(gruposPage) gruposPage.classList.add("hidden");
+  if(vendorsPage) vendorsPage.classList.add("hidden");
+  if(editorPage) editorPage.classList.add("hidden");
+  if(balancePage) balancePage.classList.add("hidden");
+  if(transactionsPage) transactionsPage.classList.add("hidden");
+  if(sorteosPage) sorteosPage.classList.add("hidden");
+  if(limitesAjustesPage) limitesAjustesPage.classList.add("hidden");
 
   if(page === "ventas"){
     showMasterPage("ventasPage");
@@ -4567,206 +4382,6 @@ loadLimitesAjustes();
   setMenuActive(page);
   closeSideMenu();
 }
-
-async function openHomeDashboard(){
-
-  hideAllMasterPages();
-
-  await loadTicketsReport();
-
-  let page = byId("homeDashboardPage");
-
-  if(!page){
-    page = document.createElement("div");
-    page.id = "homeDashboardPage";
-    page.className = "page-block";
-
-    const app = byId("appPage");
-    if(app) app.appendChild(page);
-  }
-
-  page.classList.remove("hidden");
-  page.style.display = "block";
-
-  const map = {};
-  let totalVenta = 0;
-  let totalPremios = 0;
-  let totalResultado = 0;
-
-  let evaluados = 0;
-  let pendientes = 0;
-  let ganadores = 0;
-
-const today = todayISO();
-
-ticketsRows.forEach(function(t){
-
-  let d = "";
-
-  if(t.dateLabel){
-    const p = String(t.dateLabel).split("/");
-    if(p.length === 3){
-      d = p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
-    }
-  }
-
-  if(!d && t.createdAt){
-    const dt = new Date(t.createdAt);
-    d =
-      dt.getFullYear() + "-" +
-      String(dt.getMonth() + 1).padStart(2,"0") + "-" +
-      String(dt.getDate()).padStart(2,"0");
-  }
-
-  // ✅ pran sèlman tickets jounen an
-  if(d !== today) return;
-
-  const status = safe(t.status).toUpperCase();
-
-  if(status === "ANILE") return;
-
-  if(status === "ANATAN") pendientes++;
-  else evaluados++;
-
-  if(status === "GANYE") ganadores++;
-
-  (t.jeux || []).forEach(function(j){
-
-    const lot = safe(j.loterie).toUpperCase().trim();
-
-    // ✅ si pa gen loterie, pa montre li
-    if(!lot) return;
-
-    const venta = parseAmount(j.montant || j.monto || j.amount || 0);
-    const premio = parseAmount(j.gain || 0);
-
-    // ✅ si loterie pa vann jodi a, pa monte
-    if(venta <= 0 && premio <= 0) return;
-
-    if(!map[lot]){
-      map[lot] = {
-        loteria: lot,
-        venta: 0,
-        premio: 0,
-        resultado: 0,
-        sorteo: ""
-      };
-    }
-
-    map[lot].venta += venta;
-    map[lot].premio += premio;
-    map[lot].resultado += venta - premio;
-
-    totalVenta += venta;
-    totalPremios += premio;
-    totalResultado += venta - premio;
-  });
-
-});
-
-  const totalComision = ventasRows.reduce(function(a,b){
-    return a + parseAmount(b.comision);
-  },0);
-
-  const rows = Object.values(map).sort(function(a,b){
-    return b.venta - a.venta;
-  });
-
-  page.innerHTML =
-    '<div style="padding:10px 0 28px;">' +
-
-      '<div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:18px;">' +
-        homeCard("Ventas", "HTG " + formatAmount(totalVenta), "#00d2ff", "🎟") +
-        homeCard("Comisión", "HTG " + formatAmount(totalComision), "#7c4dff", "%") +
-        homeCard("Premios", "HTG " + formatAmount(totalPremios), "#ff4d6d", "$") +
-        homeCard("Resultados", "HTG " + formatAmount(totalResultado), totalResultado >= 0 ? "#35d07f" : "#ff9f43", "💵") +
-      '</div>' +
-
-      '<div class="table-card">' +
-        '<div class="table-scroll">' +
-     '<table style="min-width:720px;">' +
-            '<thead>' +
-              '<tr>' +
-                '<th>LOTERIA</th>' +
-                '<th>VENTA</th>' +
-                '<th>PREMIO</th>' +
-                '<th>RESULTADO</th>' +
-                '<th>SORTEO</th>' +
-              '</tr>' +
-            '</thead>' +
-            '<tbody>' +
-
-              rows.map(function(r){
-                const cls = parseAmount(r.resultado) >= 0 ? "result-ok" : "result-bad";
-
-                return '<tr>' +
-                  '<td>● ' + safe(r.loteria).slice(0,12) + '...</td>' +
-                  '<td>' + formatAmount(r.venta) + '</td>' +
-                  '<td>' + formatAmount(r.premio) + '</td>' +
-                  '<td class="' + cls + '">' + formatAmount(r.resultado) + '</td>' +
-                  '<td style="color:#00d2ff;">' + safe(r.sorteo) + '</td>' +
-                '</tr>';
-              }).join("") +
-
-            '</tbody>' +
-            '<tfoot>' +
-  '<tr style="transform:translateX(8px);">' +
-                '<td style="transform:translateX(24px);"><b>TOTAL</b></td>' +
-                '<td><b>' + formatAmount(totalVenta) + '</b></td>' +
-                '<td style="transform:translateX(6px);"><b>' + formatAmount(totalPremios) + '</b></td>' +
-                '<td class="' + (totalResultado >= 0 ? "result-ok" : "result-bad") + '"><b>' + formatAmount(totalResultado) + '</b></td>' +
-                '<td></td>' +
-              '</tr>' +
-            '</tfoot>' +
-          '</table>' +
-        '</div>' +
-      '</div>' +
-
-      '<div class="table-card" style="padding:24px;margin-top:18px;">' +
-        '<div style="font-size:46px;color:#d7dcef;margin-bottom:22px;">' +
-          formatAmount(evaluados + pendientes).replace(".00","") +
-        '</div>' +
-
-        statLine("✅", "Tickets evaluados", evaluados) +
-        statLine("🕒", "Tickets pendientes", pendientes) +
-        statLine("🔴", "Tickets ganadores", ganadores) +
-      '</div>' +
-
-    '</div>';
-
-  closeSideMenu();
-}
-
-function homeCard(title,value,color,icon){
-  return '<div style="' +
-    'background:#2a2f4a;' +
-    'border-radius:14px;' +
-    'padding:20px 22px;' +
-    'border-bottom:4px solid '+color+';' +
-    'position:relative;' +
-  '">' +
-    '<div style="font-size:22px;color:#cfd3ff;margin-bottom:8px;">' + title + '</div>' +
-    '<div style="font-size:30px;font-weight:800;color:'+color+';">' + value + '</div>' +
-    '<div style="' +
-      'position:absolute;right:18px;top:18px;' +
-      'width:58px;height:58px;border-radius:50%;' +
-      'background:rgba(255,255,255,.06);' +
-      'display:flex;align-items:center;justify-content:center;' +
-      'font-size:26px;color:'+color+';' +
-    '">' + icon + '</div>' +
-  '</div>';
-}
-
-function statLine(icon,label,value){
-  return '<div style="display:flex;align-items:center;gap:18px;margin:18px 0;">' +
-    '<div style="width:64px;height:64px;border-radius:10px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:32px;">' + icon + '</div>' +
-    '<div>' +
-      '<div style="font-size:24px;color:#e0e4f5;">' + label + '</div>' +
-      '<div style="font-size:22px;color:#9ea5cb;margin-top:4px;">' + value + '</div>' +
-    '</div>' +
-  '</div>';
-}
-
 
 function renderTransactionsTable(){
 
@@ -5151,10 +4766,6 @@ function renderBalanceTable(){
     return okGrupo && okVendor;
   });
 
-  rows.sort(function(a,b){
-  return parseAmount(b.balance) - parseAmount(a.balance);
-});
-
   tbody.innerHTML = "";
 
   let totalBalance = 0;
@@ -5282,8 +4893,6 @@ function blankVendor(){
       habilitarCuadre:false,
       ventasWhatsapp:false,
       usarNombreTicket:false,
-      usarMensajeTicket:false,
-mensajeTicket:"",
       deshabilitarDecimales:"0",
       deshabilitarTerminales:"0",
       habilitarPrepago:false,
@@ -5395,8 +5004,6 @@ function fillVendorForm(v){
   setSwitchValue("sw_cuadre", !!cfg.habilitarCuadre);
   setSwitchValue("sw_whatsapp", !!cfg.ventasWhatsapp);
   setSwitchValue("sw_nombre_ticket", !!cfg.usarNombreTicket);
-  setSwitchValue("sw_mensaje_ticket", !!cfg.usarMensajeTicket);
-setValue("cfg_mensaje_ticket", cfg.mensajeTicket || "");
   setSwitchValue("sw_prepago", !!cfg.habilitarPrepago);
   setSwitchValue("sw_bono", !!cfg.activarBono);
 
@@ -5476,8 +5083,6 @@ function readVendorForm(){
       habilitarCuadre: getSwitchValue("sw_cuadre"),
       ventasWhatsapp: getSwitchValue("sw_whatsapp"),
       usarNombreTicket: getSwitchValue("sw_nombre_ticket"),
-      usarMensajeTicket: getSwitchValue("sw_mensaje_ticket"),
-mensajeTicket: getValue("cfg_mensaje_ticket", ""),
       deshabilitarDecimales: getValue("cfg_decimales", "0"),
       deshabilitarTerminales: getValue("cfg_terminales", "0"),
       habilitarPrepago: getSwitchValue("sw_prepago"),
@@ -5903,8 +5508,8 @@ async function submitBalanceAction(){
 
     closeBalanceModal();
     await loadVendorsFromServer();
+    await loadVentasReport();
     await loadBalanceReport();
-    renderTransactionsTable();
     alert("Balance mis à jour");
   }catch(err){
     console.error(err);
@@ -6045,6 +5650,7 @@ async function deleteMovimiento(vendorId, movimientoId){
     }
 
     await loadVendorsFromServer();
+    await loadVentasReport();
     await loadBalanceReport();
     renderTransactionsTable();
 
@@ -6395,10 +6001,8 @@ function hideAllMasterPages(){
   [
     "ventasPage",
     "ventasDetallePage",
-    "miCuentaPage",
     "gruposPage",
     "limitesAjustesPage",
-    "limitesEstadisticasPage",
     "balanceVendorPage",
     "ticketsPage",
     "sorteosPage",
@@ -6539,18 +6143,6 @@ async function openVentasDetalle(mode){
   if(numInput){
     numInput.addEventListener("input", renderVentasDetalle);
   }
-
-  if(currentVentasMode === "loteria"){
-  setMenuActive("ventas_loteria");
-}
-
-if(currentVentasMode === "jugada"){
-  setMenuActive("ventas_jugada");
-}
-
-if(currentVentasMode === "numero"){
-  setMenuActive("ventas_numero");
-}
 
   closeSideMenu();
 }
@@ -6752,473 +6344,6 @@ function renderVentasDetalle(){
     '</tr>';
 }
 
-async function openTicketConfigPage(){
-
-  const input = document.createElement("input");
-
-  input.type = "file";
-  input.accept = "image/*";
-
-  input.onchange = async () => {
-
-    const file = input.files[0];
-
-    if(!file) return;
-
-    const formData = new FormData();
-
-    formData.append("logo", file);
-
-    try{
-
-      const uploadRes = await fetch(
-        "/api/upload-logo",
-        {
-          method:"POST",
-          body: formData
-        }
-      );
-
-      const uploadData =
-        await uploadRes.json();
-
-      if(!uploadData.ok){
-        alert("Erreur upload logo");
-        return;
-      }
-
-      const ticketMessage = prompt(
-        "Message ticket",
-        ""
-      );
-
-      const mariageGratis =
-        confirm(
-          "Activer mariage gratis ?"
-        );
-
-    let mariagePayout = 1000;
-
-if(mariageGratis){
-  const p = prompt(
-    "Prix paiement mariage gratis",
-    "1000"
-  );
-
-  mariagePayout = Number(p || 1000);
-}
-
-      const saveRes = await fetch(
-        "/api/app-config",
-        {
-          method:"POST",
-
-          headers:{
-            "Content-Type":
-            "application/json"
-          },
-
-          body: JSON.stringify({
-
-            ticketLogo:
-              uploadData.url,
-
-            ticketMessage:
-              ticketMessage || "",
-
-            mariageGratis:{
-  enabled: mariageGratis,
-  payout: mariagePayout
-}
-
-          })
-        }
-      );
-
-      const saveData =
-        await saveRes.json();
-
-      if(saveData.ok){
-
-        alert(
-          "Configuration sauvegardée"
-        );
-
-      }else{
-
-        alert("Erreur sauvegarde");
-
-      }
-
-    }catch(err){
-
-      console.error(err);
-
-      alert("Erreur système");
-
-    }
-
-  };
-
-  input.click();
-
-}
-
-function getMasterUser(){
-  return localStorage.getItem("masterUsername") || "Number";
-}
-
-function getMasterPass(){
-  return localStorage.getItem("masterPassword") || "1234";
-}
-
-function getSecurityPin(){
-  return localStorage.getItem("securityPin") || "1234";
-}
-
-function loginMaster() {
-  const user = byId("username");
-  const pass = byId("password");
-  const loginPage = byId("loginPage");
-  const appPage = byId("appPage");
-
-  if (!user || !pass || !loginPage || !appPage) return;
-
-  const u = user.value.trim();
-  const p = pass.value.trim();
-
-  if (u === getMasterUser() && p === getMasterPass()) {
-    loginPage.style.display = "none";
-    appPage.classList.remove("hidden");
-    appPage.style.display = "block";
-
-    loadVendorsFromServer();
-    loadVentasReport();
-    loadBalanceReport();
-
-    goPage("ventas");
-  } else {
-    alert("Login incorrect");
-  }
-}
-
-function openMiCuenta(){
-  showMasterPage("miCuentaPage");
-
-byId("miCuentaPage").innerHTML =
-    '<div class="page-title">Mi Cuenta</div>' +
-
-    '<div class="table-card" style="padding:14px;">' +
-
-      '<div class="field-group">' +
-        '<div class="field-label">Nuevo username</div>' +
-        '<input id="newUsername" class="field-input" value="' + getMasterUser() + '">' +
-      '</div>' +
-
-      '<div class="field-group">' +
-        '<div class="field-label">Nuevo password</div>' +
-        '<input id="newPassword" type="password" class="field-input" placeholder="Nuevo password">' +
-      '</div>' +
-
-      '<div class="field-group">' +
-        '<div class="field-label">PIN sécurité actuel</div>' +
-        '<input id="securityPin" type="password" class="field-input" placeholder="PIN actuel obligatoire">' +
-      '</div>' +
-
-      '<button class="login-btn" onclick="saveAccount()">Guardar cuenta</button>' +
-
-      '<hr style="border:0;border-top:1px solid rgba(255,255,255,.12);margin:22px 0;">' +
-
-      '<div class="page-title" style="font-size:20px;">Changer PIN</div>' +
-
-      '<div class="field-group">' +
-        '<div class="field-label">PIN actuel</div>' +
-        '<input id="oldSecurityPin" type="password" class="field-input" placeholder="PIN actuel">' +
-      '</div>' +
-
-      '<div class="field-group">' +
-        '<div class="field-label">Nouveau PIN</div>' +
-        '<input id="newSecurityPin" type="password" class="field-input" placeholder="Nouveau PIN">' +
-      '</div>' +
-
-      '<button class="login-btn" onclick="changeSecurityPin()">Changer PIN</button>' +
-
-    '</div>';
-
-  currentPage = "cuenta";
-  setMenuActive("cuenta");
-  closeSideMenu();
-}
-
-function saveAccount(){
-  const pin = getValue("securityPin").trim();
-
-  if(pin !== getSecurityPin()){
-    alert("PIN incorrect");
-    return;
-  }
-
-  const username = getValue("newUsername").trim();
-  const password = getValue("newPassword").trim();
-
-  if(!username){
-    alert("Username obligatoire");
-    return;
-  }
-
-  localStorage.setItem("masterUsername", username);
-
-  if(password){
-    localStorage.setItem("masterPassword", password);
-  }
-
-  alert("Cuenta guardada ✔");
-}
-
-function changeSecurityPin(){
-  const oldPin = getValue("oldSecurityPin").trim();
-  const newPin = getValue("newSecurityPin").trim();
-
-  if(oldPin !== getSecurityPin()){
-    alert("PIN actuel incorrect");
-    return;
-  }
-
-  if(!newPin){
-    alert("Mete nouveau PIN la");
-    return;
-  }
-
-  localStorage.setItem("securityPin", newPin);
-
-  alert("PIN changé ✔");
-  openMiCuenta();
-}
-
-async function openLimitesEstadisticas(){
-  currentPage = "limites_estadisticas";
-
-  hideAllMasterPages();
-
-  let page = byId("limitesEstadisticasPage");
-
-  if(!page){
-    page = document.createElement("div");
-    page.id = "limitesEstadisticasPage";
-    page.className = "page-block";
-
-    const app = byId("appPage");
-    if(app) app.appendChild(page);
-  }
-
-  page.classList.remove("hidden");
-  page.style.display = "block";
-
-  await loadTicketsReport();
-
-  page.innerHTML =
-    '<div class="page-title">Límites de Ventas</div>' +
-
-
-    '<div class="filters">' +
-
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">' +
-        '<select id="estOrden" class="filter-select" onchange="renderLimitesEstadisticas()">' +
-          '<option value="">- ORDEN -</option>' +
-          '<option value="mayor">Mayor venta</option>' +
-          '<option value="menor">Menor venta</option>' +
-        '</select>' +
-
-        '<select id="estLoteria" class="filter-select" onchange="renderLimitesEstadisticas()">' +
-          '<option value="">- LOTERIA -</option>' +
-        '</select>' +
-      '</div>' +
-
-      '<select id="estVendor" class="filter-select" onchange="renderLimitesEstadisticas()">' +
-        '<option value="">- VENDEDOR -</option>' +
-      '</select>' +
-
-    '</div>' +
-
-    '<div class="table-card" style="padding:14px;margin-top:14px;">' +
-
-      '<div style="display:grid;grid-template-columns:140px 1fr 88px;border:1px solid rgba(255,255,255,.14);border-radius:12px;overflow:hidden;margin-bottom:12px;">' +
-        '<select id="estTipo" onchange="renderLimitesEstadisticas()" style="background:#30344f;color:#d7dcef;border:0;border-right:1px solid rgba(255,255,255,.14);font-size:18px;font-weight:800;padding:0 14px;height:58px;">' +
-          '<option value="BOR">BORLETTE</option>' +
-          '<option value="MAR">MARIAGE</option>' +
-          '<option value="L3">LOTO 3</option>' +
-          '<option value="L41">LOTO 4</option>' +
-          '<option value="L51">LOTO 5</option>' +
-        '</select>' +
-
-        '<input id="estNumero" oninput="renderLimitesEstadisticas()" placeholder="#" style="background:#30344f;color:#d7dcef;border:0;font-size:22px;padding:0 22px;outline:none;height:58px;">' +
-
-        '<button onclick="renderLimitesEstadisticas()" style="background:#30344f;color:#d7dcef;border:0;border-left:1px solid rgba(255,255,255,.14);font-size:30px;">⌕</button>' +
-      '</div>' +
-
-      '<div id="limitesEstadisticasBody"></div>' +
-
-    '</div>';
-
-  fillLimitesEstadisticasFilters();
-  renderLimitesEstadisticas();
-  closeSideMenu();
-}
-
-function fillLimitesEstadisticasFilters(){
-  const lotSel = byId("estLoteria");
-  const venSel = byId("estVendor");
-
-  if(lotSel){
-    lotSel.innerHTML = '<option value="">- LOTERIA -</option>';
-
-    loteriasList.forEach(function(l){
-      if(l === "TODAS") return;
-      lotSel.innerHTML += '<option value="' + safe(l).toUpperCase() + '">' + safe(l) + '</option>';
-    });
-  }
-
-  if(venSel){
-    venSel.innerHTML = '<option value="">- VENDEDOR -</option>';
-
-    vendors.forEach(function(v){
-      venSel.innerHTML +=
-        '<option value="' + safe(v.id).toUpperCase() + '">' +
-          safe(v.nombre || v.nom || v.id) +
-        '</option>';
-    });
-  }
-}
-
-function renderLimitesEstadisticas(){
-  const body = byId("limitesEstadisticasBody");
-  if(!body) return;
-
-  const orden = getValue("estOrden");
-  const loteriaFilter = getValue("estLoteria");
-  const vendorFilter = getValue("estVendor");
-  const tipoFilter = getValue("estTipo") || "BOR";
-  const numeroFilter = getValue("estNumero").trim();
-
-  const map = {};
-  let maxVenta = 0;
-
-  ticketsRows.forEach(function(t){
-
-    let d = "";
-
-    if(t.dateLabel){
-      const p = String(t.dateLabel).split("/");
-      if(p.length === 3){
-        d = p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
-      }
-    }
-
-    if(!d && t.createdAt){
-      const dt = new Date(t.createdAt);
-      d =
-        dt.getFullYear() + "-" +
-        String(dt.getMonth() + 1).padStart(2,"0") + "-" +
-        String(dt.getDate()).padStart(2,"0");
-    }
-
-    if(d !== todayISO()) return;
-
-    const st = String(t.status || "").toUpperCase();
-    if(st === "ANILE") return;
-
-    const vendorId = safe(t.vendeur).toUpperCase();
-
-    if(vendorFilter && vendorId !== vendorFilter) return;
-
-    (t.jeux || []).forEach(function(j){
-      const type = safe(j.type).toUpperCase();
-      const lot = safe(j.loterie).toUpperCase();
-      const numero = safe(j.numero).trim();
-      const montant = parseAmount(j.montant || j.monto || j.amount || 0);
-
-      if(tipoFilter){
-        if(tipoFilter === "L41"){
-          if(!["L41","L42","L43"].includes(type)) return;
-        }else if(tipoFilter === "L51"){
-          if(!["L51","L52","L53"].includes(type)) return;
-        }else{
-          if(type !== tipoFilter) return;
-        }
-      }
-
-      if(loteriaFilter && lot !== loteriaFilter) return;
-      if(numeroFilter && numero !== numeroFilter) return;
-
-      if(!numero) return;
-
-      if(!map[numero]){
-        map[numero] = {
-          numero: numero,
-          venta: 0
-        };
-      }
-
-      map[numero].venta += montant;
-
-      if(map[numero].venta > maxVenta){
-        maxVenta = map[numero].venta;
-      }
-    });
-  });
-
-  let rows = Object.values(map);
-
-  rows.sort(function(a,b){
-    if(orden === "menor") return a.venta - b.venta;
-    return b.venta - a.venta;
-  });
-
-  if(!rows.length){
-    body.innerHTML =
-      '<div class="empty-state">Pa gen estadísticas pou filtè sa yo</div>';
-    return;
-  }
-
-  body.innerHTML = rows.map(function(r){
-    const pct = maxVenta > 0 ? Math.round((r.venta / maxVenta) * 100) : 0;
-
-    const high = pct >= 100;
-    const mid = pct >= 50 && pct < 100;
-
-    const colorBox = high
-      ? 'background:#62364e;color:#ff6767;'
-      : mid
-        ? 'background:#1f5a70;color:#37d7ff;'
-        : 'background:#4a4f69;color:#e5e9f8;';
-
-    return '' +
-      '<div style="display:grid;grid-template-columns:1fr 150px 74px;gap:8px;align-items:center;margin:10px 0;font-size:24px;">' +
-        '<div style="color:#d7dcef;">' + safe(r.numero) + '</div>' +
-
-        '<div style="' +
-          colorBox +
-          'border-radius:10px;' +
-          'padding:10px 12px;' +
-          'text-align:right;' +
-          'font-weight:800;' +
-        '">' +
-          formatAmount(r.venta) +
-        '</div>' +
-
-        '<div style="' +
-          'background:#41465f;' +
-          'border-radius:8px;' +
-          'padding:10px 8px;' +
-          'text-align:center;' +
-          'color:#bfc5da;' +
-          'font-weight:700;' +
-        '">' +
-          pct + '%' +
-        '</div>' +
-      '</div>';
-  }).join("");
-}
 
 </script>
 

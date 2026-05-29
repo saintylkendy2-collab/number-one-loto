@@ -1,4 +1,5 @@
 
+
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -11,34 +12,16 @@ const Sorteo = require("./models/Sorteo");
 const Grupo = require("./models/Grupo");
 const Limites = require("./models/Limites");
 const Loteria = require("./models/Loteria");
-const AppConfig = require("./models/AppConfig");
-const multer = require("multer");
+
 
 
 const app = express();
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  }
-});
-
-const upload = multer({ storage });
-
-app.use(
-  "/uploads",
-  express.static("uploads")
-);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 mongoose.connect("mongodb+srv://numberone:numberone123@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority")
-.then(async () => {;
+.then(async () => {
   console.log("Mongo connecté");
   await loadLimites();
 })
@@ -50,9 +33,6 @@ mongoose.connection.once("open", async () => {
 
     await Ticket.collection.dropIndex("id_1").catch(() => {});
     await Ticket.collection.createIndex({ id: 1 }, { unique: true, sparse: true });
-    await Ticket.collection.createIndex({ vendeur: 1, createdAt: -1 });
-    await Ticket.collection.createIndex({ dateLabel: 1, vendeur: 1, status: 1 });
-    await Sorteo.collection.createIndex({ date: 1, loteria: 1 }, { unique: true }).catch(() => {});
 
     await Ticket.deleteMany({
       $or: [
@@ -62,6 +42,8 @@ mongoose.connection.once("open", async () => {
       ]
     });
 
+    console.log("✅ Tickets id null supprimés");
+
   } catch (err) {
     console.error("Erreur nettoyage tickets null:", err.message);
   }
@@ -69,6 +51,7 @@ mongoose.connection.once("open", async () => {
 });
 
 const VENDEURS_FILE = path.join(__dirname, "vendeurs.json");
+console.log("INDEX VENDEURS_FILE =", VENDEURS_FILE);
 
 const TICKETS_FILE = path.join(__dirname, "tickets.json");
 
@@ -499,26 +482,6 @@ text-align:center;
 <button class="btn" type="submit">CONNECTER</button>
 <div class="note">Entrez votre ID vendeur et votre mot de passe</div>
 </form>
-
-<script>
-
-const form = document.querySelector(".login-box");
-
-const idInput = document.querySelector('input[name="id"]');
-const passInput = document.querySelector('input[name="password"]');
-
-idInput.value = localStorage.getItem("saved_id") || "";
-passInput.value = localStorage.getItem("saved_pass") || "";
-
-form.addEventListener("submit", function () {
-
-    localStorage.setItem("saved_id", idInput.value);
-    localStorage.setItem("saved_pass", passInput.value);
-
-});
-
-</script>
-
 </body>
 </html>
 `);
@@ -648,54 +611,36 @@ function getGain(j, tirage, config){
   // =========================
   // BORLETTE
   // =========================
-   if(type === "BOR"){
-  const played = pad2(num);
+  if(type === "BOR"){
+    const played = pad2(num);
 
-  if(played === r2){
-    pay += payout(config, "premios.borlette1", 55);
-  }
+    if(played === r2){
+      pay = payout(config, "premios.borlette1", 55);
+    }
 
-  if(played === r3){
-    pay += payout(config, "premios.borlette2", 20);
-  }
+    else if(played === r3){
+      pay = payout(config, "premios.borlette2", 20);
+    }
 
-  if(played === r4){
-    pay += payout(config, "premios.borlette3", 10);
+    else if(played === r4){
+      pay = payout(config, "premios.borlette3", 10);
+    }
   }
-}
 
   // =========================
   // MARIAGE
   // =========================
- else if(type === "MAR"){
-  const isGratis =
-    j.gratis === true ||
-    j.free === true ||
-    Number(j.montant || 0) === 0;
+  else if(type === "MAR"){
+    const combos = [
+      r2 + "*" + r3,
+      r2 + "*" + r4,
+      r3 + "*" + r4
+    ];
 
-  const parts = String(num)
-    .replace("-", "x")
-    .replace("*", "x")
-    .split("x")
-    .map(x => pad2(x));
-
-  const played = parts.join("");
-
-  const wins = [
-  r2 + r3, r3 + r2,
-  r2 + r4, r4 + r2,
-  r3 + r4, r4 + r3
-];
-
-  if(wins.includes(played)){
-    if(isGratis){
-      return Number(j.payoutGratis || 0);
+    if(combos.includes(num)){
+      pay = payout(config, "premios.mariage", 1000);
     }
-
-    pay = payout(config, "premios.mariage", 1000);
-    return montant * pay;
   }
-}
 
   // =========================
   // LOTO 3
@@ -805,8 +750,8 @@ if (credit <= 0) {
 
     if (blocked) {
       return res.json({ ok:false, message:
-  "❌ " + j.loterie + "\n" +
-type + " " + j.numero + "\n\n" +
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
   "Nimewo sa bloke.\n" +
   "Ou pa ka vann jwèt sa."});
     }
@@ -834,7 +779,7 @@ if (special) {
 
     const today = new Date().toLocaleDateString("fr-FR");
 
-const tickets = await Ticket.find({
+ const tickets = await Ticket.find({
   status: { $ne:"ANILE" }
 }).lean();
 
@@ -854,7 +799,17 @@ const tickets = await Ticket.find({
 
     const reste = limit - dejaVendu;
 
-  if (reste <= 0) {
+    console.log("LIMIT DEBUG:", {
+  sellerId,
+  type,
+  numero,
+  loterie,
+  limit,
+  dejaVendu,
+  reste
+});
+
+    if (reste <= 0) {
       return res.json({ ok:false, message:
   "❌ " + loterie + "\n" +
   type + " " + numero + "\n\n" +
@@ -863,7 +818,8 @@ const tickets = await Ticket.find({
   "Rès disponib: 0.00\n\n" +
   "Limit nimewo sa fini."});
     }
-if (montant > reste) {
+
+    if (montant > reste) {
       return res.json({
         ok:false,
         message:
@@ -872,11 +828,10 @@ if (montant > reste) {
   "Limit: " + limit.toFixed(2) + "\n" +
   "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
   "Rès disponib: " + reste.toFixed(2) + "\n\n" +
-  "Ou te mande: " + Number(j.montant || 0).toFixed(2) + "\n" +
+  "Ou te mande: " + montant.toFixed(2) + "\n" +
   "Ou ka vann sèlman: " + reste.toFixed(2)
       });
     }
-
 
     res.json({ ok:true });
 
@@ -918,6 +873,7 @@ async function loadLimites(){
           : []
       };
 
+      console.log("✅ LIMITES CHARGÉS");
     }
 
   }catch(err){
@@ -952,6 +908,9 @@ await Limites.findOneAndUpdate(
     new:true
   }
 );
+
+
+    console.log("✅ LIMITES SAUVEGARDÉS MONGO");
 
     res.json({
       ok:true
@@ -1005,7 +964,7 @@ const vendorConfig = vendor || {};
 
     const tickets = await Ticket.find({ vendeur: sellerId })
       .sort({ createdAt: -1 })
-      .limit(500)
+      .limit(100)
       .lean();
 
     const dates = [...new Set(tickets.map(t => String(t.dateLabel || "").trim()).filter(Boolean))];
@@ -1049,12 +1008,12 @@ const vendorConfig = vendor || {};
       }
 
       if (type === "MAR") {
-  return [
-    r2 + "*" + r3, r3 + "*" + r2,
-    r2 + "*" + r4, r4 + "*" + r2,
-    r3 + "*" + r4, r4 + "*" + r3
-  ].includes(played);
-}
+        return [
+          r2 + "*" + r3,
+          r2 + "*" + r4,
+          r3 + "*" + r4
+        ].includes(played);
+      }
 
       return false;
     }
@@ -1240,21 +1199,13 @@ function isWinningGame(j, result){
   }
 
   // MAR
- if(type === "MAR"){
-  const parts = String(played)
-    .replace("-", "x")
-    .replace("*", "x")
-    .split("x")
-    .map(x => pad2(x));
-
-  const p = parts.join("");
-
-  return [
-  r2 + r3, r3 + r2,
-  r2 + r4, r4 + r2,
-  r3 + r4, r4 + r3
-].includes(p);
-}
+  if(type === "MAR"){
+    return [
+      r2 + "*" + r3,
+      r2 + "*" + r4,
+      r3 + "*" + r4
+    ].includes(played);
+  }
 
   return false;
 }
@@ -1279,95 +1230,6 @@ function normGameType(v){
   if (s === "LOTO 5" || s === "L5") return "L51";
 
   return s;
-}
-
-function getFreeMariageCount(total){
-  total = Number(total || 0);
-
-  if(total < 50) return 0;
-
-  return Math.min(
-    5,
-    Math.floor(total / 50)
-  );
-}
-
-function randomFreeMariage(){
-  const a = String(Math.floor(Math.random() * 100)).padStart(2, "0");
-
-  let b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
-
-  while(b === a){
-    b = String(Math.floor(Math.random() * 100)).padStart(2, "0");
-  }
-
-  return a + "x" + b;
-}
-
-function buildFreeMariagesForTicket(tirages, jeux, appConfig, vendor){
-
-  const mg = appConfig.mariageGratis || {};
-  const cfg = vendor?.config || {};
-
-  const vendorBonus =
-    vendor &&
-    (
-      vendor.bono === true ||
-      vendor.bonus === true ||
-      vendor.activarBono === true ||
-      String(vendor.bono) === "true" ||
-      String(vendor.bonus) === "true" ||
-      String(vendor.activarBono) === "true" ||
-      cfg.activarBono === true ||
-      String(cfg.activarBono) === "true"
-    );
-
-  if(!mg.enabled || !vendorBonus){
-    return [];
-  }
-
-  const totalsByLoterie = {};
-
-  (jeux || []).forEach(j => {
-    if(j.gratis === true || j.free === true) return;
-
-    const loterieName =
-      String(j.loterie || j.loteria || "")
-        .trim()
-        .toUpperCase();
-
-    if(!loterieName) return;
-
-    totalsByLoterie[loterieName] =
-      (totalsByLoterie[loterieName] || 0) +
-      Number(j.montant || 0);
-  });
-
-  const gratuits = [];
-
-  Object.keys(totalsByLoterie).forEach(loterieName => {
-
-    const count =
-      getFreeMariageCount(totalsByLoterie[loterieName]);
-
-    for(let i = 0; i < count; i++){
-
-      gratuits.push({
-        type: "MAR",
-        numero: randomFreeMariage(),
-        montant: 0,
-        gratis: true,
-        free: true,
-        payoutGratis: Number(mg.payout || 1000),
-        loterie: loterieName,
-        loteria: loterieName
-      });
-
-    }
-
-  });
-
-  return gratuits;
 }
 
 
@@ -1421,8 +1283,8 @@ for (const j of safeJeux) {
     return res.status(403).json({
       ok:false,
       message:
-  "❌ " + j.loterie + "\n" +
-type + " " + j.numero + "\n\n" +
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
   "Nimewo sa bloke.\n" +
   "Ou pa ka vann jwèt sa."
     });
@@ -1446,12 +1308,11 @@ if (special) {
 }
 
   if (limit > 0) {
- const tickets = await Ticket.find({
-  status: { $ne: "ANILE" },
-  dateLabel: new Date().toLocaleDateString("fr-FR"),
-  "jeux.numero": String(j.numero || "").trim(),
-  "jeux.loterie": String(j.loterie || "").trim().toUpperCase()
-}).lean(); 
+    const tickets = await Ticket.find({
+      status: { $ne: "ANILE" },
+      "jeux.numero": String(j.numero || "").trim(),
+      "jeux.loterie": String(j.loterie || "").trim().toUpperCase()
+    }).lean();
 
     let dejaVendu = 0;
 
@@ -1469,26 +1330,29 @@ if (special) {
 
     const reste = limit - dejaVendu;
 
-  if (reste <= 0) {
-      return res.json({ ok:false, message:
- "❌ " + j.loterie + "\n" +
-type + " " + j.numero + "\n\n" +
+    if (reste <= 0) {
+      return res.status(403).json({
+        ok:false,
+        message:
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
   "Limit: " + limit.toFixed(2) + "\n" +
   "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
   "Rès disponib: 0.00\n\n" +
-  "Limit nimewo sa fini."});
+  "Limit nimewo sa fini."
+      });
     }
 
     if (Number(j.montant || 0) > reste) {
-      return res.json({
+      return res.status(403).json({
         ok:false,
         message:
- "❌ " + j.loterie + "\n" +
-type + " " + j.numero + "\n\n" +
+  "❌ " + loterie + "\n" +
+  type + " " + numero + "\n\n" +
   "Limit: " + limit.toFixed(2) + "\n" +
   "Deja vann: " + dejaVendu.toFixed(2) + "\n" +
   "Rès disponib: " + reste.toFixed(2) + "\n\n" +
-  "Ou te mande: " + Number(j.montant || 0).toFixed(2) + "\n" +
+  "Ou te mande: " + montant.toFixed(2) + "\n" +
   "Ou ka vann sèlman: " + reste.toFixed(2)
       });
     }
@@ -1510,25 +1374,6 @@ if (credit <= 0) {
   });
 }
 
-const totalTicket = safeJeux.reduce(
-  (s, j) => s + Number(j.montant || 0),
-  0
-);
-
-const balance = Number(vendor.balance || 0);
-
-if (
-  credit > 0 &&
-  (
-    totalTicket > credit ||
-    (balance + totalTicket) > credit
-  )
-) {
-  return res.status(403).json({
-    ok:false,
-    message:"OU PA GEN KREDI"
-  });
-}
 
 const grupo = await Grupo.findOne({
   nombre: vendor.zona || vendor.groupe
@@ -1590,17 +1435,8 @@ lotRows.forEach(l => {
 });
 
 function minutesNowServer(){
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/New_York",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false
-  }).formatToParts(new Date());
-
-  const h = Number(parts.find(p => p.type === "hour").value);
-  const m = Number(parts.find(p => p.type === "minute").value);
-
-  return h * 60 + m;
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
 }
 
 function minutesFromTimeServer(t){
@@ -1649,24 +1485,6 @@ for(const j of safeJeux){
       "T" + Date.now().toString() +
       Math.random().toString(36).substring(2, 8).toUpperCase();
 
-      const appConfig =
-  await AppConfig.findOne({ key:"main" }).lean()
-  || {};
-
-const freeMariages =
-  buildFreeMariagesForTicket(
-  tirages,
-  jeux,
-  appConfig,
-  vendor
-)
-
-const finalJeux = jeux
-  .filter(j =>
-    !(j.gratis === true || j.free === true)
-  )
-  .concat(freeMariages);
-
     const ticket = await Ticket.create({
       id: ticketId,
       ticketId: ticketId,
@@ -1674,7 +1492,6 @@ const finalJeux = jeux
 
       vendeur: sellerId,
       vendeurNom: sellerName,
-      vendeurConfig: vendor.config || {},
 
       createdAt: now,
       createdAtLabel: clientDateLabel && clientTimeLabel
@@ -1695,10 +1512,12 @@ const finalJeux = jeux
       channel,
       total,
       tirages,
-      jeux: finalJeux
+      jeux: safeJeux
     });
 
     const obj = ticket.toObject();
+
+    console.log("✅ Ticket créé:", ticketId, "ANATAN");
 
     return res.json({
       ok: true,
@@ -1757,45 +1576,6 @@ app.get("/api/vendor/sorteos", async (req, res) => {
   }
 });
 
-function timeToMinutes(t){
-  var p = String(t || "").split(":");
-  if(p.length < 2) return null;
-  var h = Number(p[0]);
-  var m = Number(p[1]);
-  if(!Number.isFinite(h) || !Number.isFinite(m)) return null;
-  return h * 60 + m;
-}
-
-function getDayKey(d){
-  return ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][d.getDay()];
-}
-
-function isLoteriaOpenServer(lot){
-  if(!lot) return true;
-
-  if(String(lot.estatus || "").toUpperCase() !== "ACTIVO"){
-    return false;
-  }
-
-  var localNow = new Date(new Date().toLocaleString("en-US", {
-    timeZone: "America/New_York"
-  }));
-
-  var dayKey = getDayKey(localNow);
-
-  var closeTime =
-    lot.closeDays && lot.closeDays[dayKey]
-      ? lot.closeDays[dayKey]
-      : lot.closeTime;
-
-  var closeMin = timeToMinutes(closeTime);
-  if(closeMin === null) return true;
-
-  var nowMin = localNow.getHours() * 60 + localNow.getMinutes();
-
-  return nowMin < closeMin;
-}
-
 app.post("/api/ticket-status", async (req, res) => {
   try {
     const ticketId = String(req.body.id || "").trim();
@@ -1817,25 +1597,6 @@ app.post("/api/ticket-status", async (req, res) => {
     const currentStatus = normalizeStatus(ticket.status);
 
     if (status === "ANILE") {
-
-const allLoterias = await Loteria.find().lean();
-const lotMap = {};
-allLoterias.forEach(l => {
-  lotMap[String(l.name || "").trim().toUpperCase()] = l;
-});
-
-for (const j of (ticket.jeux || [])) {
-  const lotKey = String(j.loterie || "").trim().toUpperCase();
-  const lot = lotMap[lotKey];
-
-  if (!isLoteriaOpenServer(lot)) {
-    return res.json({
-      ok: false,
-      message: "Ou pa ka anile ticket sa. Lotri sa fèmen: " + lotKey
-    });
-  }
-}
-
       const createdAt = new Date(ticket.createdAt || Date.now()).getTime();
       const diffMinutes = (Date.now() - createdAt) / 60000;
 
@@ -1893,87 +1654,19 @@ app.get("/api/vendor/loterias", async (req, res) => {
   try {
     const rows = await Loteria.find().sort({ closeTime: 1 }).lean();
 
-    const dayKey = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][new Date().getDay()];
-
-res.json(rows.map(l => {
-  const todayClose = (l.closeDays && l.closeDays[dayKey])
-    ? l.closeDays[dayKey]
-    : l.closeTime;
-
-  return {
-    name: l.name,
-    sub: "",
-    openTime: l.openTime || "00:00",
-    closeTime: todayClose || "23:59",
-    time: todayClose || "23:59",
-    closeDays: l.closeDays || {},
-    estatus: l.estatus || "Activo"
-  };
-}));
+    res.json(rows.map(l => ({
+      name: l.name,
+      sub: "",
+      openTime: l.openTime || "00:00",
+      closeTime: l.closeTime || "23:59",
+      time: l.closeTime || "23:59",
+      estatus: l.estatus || "Activo"
+    })));
   } catch (err) {
     console.error("VENDOR LOTERIAS ERROR:", err);
     res.status(500).json([]);
   }
 });
-
-app.get("/api/vendor/config", async (req, res) => {
-  try {
-    let cfg = await AppConfig.findOne({ key: "main" }).lean();
-
-    if (!cfg) {
-      cfg = await AppConfig.create({ key: "main" });
-      cfg = cfg.toObject();
-    }
-
-    res.json({
-      ok: true,
-      ticketLogo: cfg.ticketLogo || "",
-      ticketMessage: cfg.ticketMessage || "",
-      mariageGratis: cfg.mariageGratis || {
-        enabled: false,
-        max: 5,
-        stepAmount: 50
-      }
-    });
-  } catch (err) {
-    console.error("VENDOR CONFIG ERROR:", err);
-    res.status(500).json({
-      ok: false,
-      ticketLogo: "",
-      ticketMessage: "",
-      mariageGratis: {
-        enabled: false,
-        max: 5,
-        stepAmount: 50
-      }
-    });
-  }
-});
-
-app.post("/api/upload-logo", upload.single("logo"), (req, res) => {
-  if(!req.file){
-    return res.json({ ok:false });
-  }
-
-  res.json({
-    ok:true,
-    url: "/uploads/" + req.file.filename,
-    path: "/uploads/" + req.file.filename
-  });
-});
-
-app.post("/upload-logo", upload.single("logo"), (req, res) => {
-  if(!req.file){
-    return res.json({ ok:false });
-  }
-
-  res.json({
-    ok:true,
-    url: "/uploads/" + req.file.filename,
-    path: "/uploads/" + req.file.filename
-  });
-});
-
 
 app.get("/dashboard", async (req, res) => {
   const sellerId = String(req.query.id || "").trim().toUpperCase();
@@ -2009,24 +1702,13 @@ display:flex;
 flex-direction:column;
 }
 .topbar{
-height:56px;
-min-height:56px;
+height:60px;
+min-height:60px;
 background:#3452aa;
 color:#fff;
 display:grid;
-grid-template-columns:48px minmax(0,1fr) 128px;
+grid-template-columns:60px 1fr 150px;
 align-items:center;
-overflow:hidden;
-}
-
-.top-left,.top-right{
-min-width:0;
-}
-
-.top-right{
-justify-content:flex-end;
-padding-right:8px;
-gap:6px;
 }
 .top-left,.top-right{
 display:flex;
@@ -2053,37 +1735,6 @@ display:flex;
 flex-direction:column;
 overflow:hidden;
 }
-
-.icon-btn{
-cursor:pointer;
-display:flex;
-align-items:center;
-justify-content:center;
-min-width:32px;
-height:36px;
-font-size:20px;
-font-weight:800;
-}
-
-.print-btn{
-font-size:16px;
-}
-
-.wa-btn{
-background:#21c45a;
-color:white;
-border-radius:50%;
-width:34px;
-height:34px;
-font-size:13px;
-font-weight:900;
-}
-
-.more-btn{
-font-size:28px;
-line-height:1;
-}
-
 .page{
 flex:1;
 min-height:0;
@@ -2289,23 +1940,9 @@ align-items:center;
 text-align:center;
 font-size:15px;
 }
-
-padding-bottom:4px;
-position:relative;
-z-index:20000;
-}
-
 .nav-item{
 cursor:pointer;
 padding:4px 2px;
-}
-
-.bottom-nav *{
-pointer-events:auto !important;
-}
-
-.keypad{
-z-index:1 !important;
 }
 .nav-item.active{
 color:#7a6bf2;
@@ -2563,31 +2200,11 @@ border-left:1px solid #ddd;
 border-right:1px solid #ddd;
 }
 }
-
-.overlay{
-  display:none;
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,.35);
-  z-index:10;
-}
-
-.overlay.show{
-  display:block;
-}
-
-#drawer{
-  z-index:20;
-}
-
 </style>
 </head>
 <body>
 <div class="app">
-<div id="overlay" class="overlay" onclick="closeDrawer()"></div>
+<div id="overlay" class="overlay" onclick="goBackToJeuxFromMenu()"></div>
 
 <div class="topbar">
 <div class="top-left">
@@ -2595,28 +2212,9 @@ border-right:1px solid #ddd;
 </div>
 <div class="top-title">${sellerName}</div>
 <div class="top-right">
-
-<span class="icon-btn" onclick="submitPrint()">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-viewBox="0 0 24 24" fill="none" stroke="currentColor"
-stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-<polyline points="6 9 6 2 18 2 18 9"></polyline>
-<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-<rect x="6" y="14" width="12" height="8"></rect>
-</svg>
-</span>
-
-<span class="icon-btn" onclick="shareWhatsApp()">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-viewBox="0 0 32 32" fill="none" stroke="currentColor"
-stroke-width="2.2">
-<path d="M16 3C8.82 3 3 8.82 3 16c0 2.54.74 4.91 2 6.91L3 29l6.28-1.95A12.94 12.94 0 0 0 16 29c7.18 0 13-5.82 13-13S23.18 3 16 3z"/>
-<path d="M11.5 10.5c-.4-.9-.8-.9-1.1-.9h-.9c-.3 0-.8.1-1.2.5-.4.4-1.5 1.5-1.5 3.6s1.5 4.2 1.7 4.5c.2.3 2.9 4.6 7.2 6.2 3.5 1.4 4.3 1.1 5.1 1 .8-.1 2.5-1 2.8-2 .4-1 .4-1.8.3-2-.1-.2-.4-.3-.9-.6-.5-.2-2.6-1.3-3-1.4-.4-.2-.7-.2-1 .2-.3.4-1.1 1.4-1.4 1.7-.3.3-.5.3-.9.1-.5-.2-1.9-.7-3.5-2.1-1.3-1.2-2.2-2.6-2.4-3-.3-.5 0-.7.2-1 .2-.2.5-.5.7-.8.2-.3.3-.5.5-.8.2-.3.1-.6 0-.8-.1-.2-.9-2.3-1.3-3.2z"/>
-</svg>
-</span>
-
+<span class="icon-btn" onclick="submitPrint()">🖨️</span>
+<span class="icon-btn" onclick="shareWhatsApp()">🟢</span>
 <span class="icon-btn" onclick="openOptions()">⋮</span>
-
 </div>
 </div>
 
@@ -2714,6 +2312,7 @@ stroke-width="2.2">
 
 <div id="drawer" class="drawer">
 <div class="drawer-head" style="display:flex;align-items:center;gap:12px;">
+<span onclick="backToJeux()" style="font-size:30px;cursor:pointer;">←</span>
 <span>NUMBER ONE LOTO</span>
 </div>
 <div class="drawer-item" onclick="openDrawerTirages()">Tirages</div>
@@ -2758,7 +2357,6 @@ stroke-width="2.2">
 <script>
 var sellerId = ${JSON.stringify(sellerId)};
 var sellerName = ${JSON.stringify(sellerName)};
-var sellerConfig = ${JSON.stringify(vendeur?.config || {})};
 
 var activeField = "numero";
 var numero = "";
@@ -3277,16 +2875,10 @@ function autoMarriage(){
    return;
  }
 
- window.autoMarriageMode = true;
-
-closeOptions();
-document.getElementById("overlay").classList.remove("show");
-
-activeField = "montant";
-cursorMontant = montant.length;
-updateFields();
-
-return;
+ if(!montant.trim()){
+   alert("Mete montan an");
+   return;
+ }
 
  // 🔥 1. Fè gwoup (12/21, 34/43, etc)
  var groups = [];
@@ -3360,16 +2952,10 @@ function autoLoto4(){
    return;
  }
 
- window.autoLoto4Mode = true;
-
-closeOptions();
-document.getElementById("overlay").classList.remove("show");
-
-activeField = "montant";
-cursorMontant = montant.length;
-updateFields();
-
-return;
+ if(!montant.trim()){
+   alert("Mete montan an");
+   return;
+ }
 
  var results = {};
 
@@ -3403,98 +2989,6 @@ return;
  updateFields();
 }
 
-function finishAutoMarriage(){
- var counts = getAutoSourceBalls();
- var nums = Object.keys(counts);
-
- var groups = [];
- var used = {};
-
- nums.forEach(function(n){
-   if(used[n]) return;
-   var r = reverse2(n);
-
-   if(nums.includes(r) && r !== n){
-     groups.push([n, r]);
-     used[n] = true;
-     used[r] = true;
-   } else {
-     groups.push([n]);
-     used[n] = true;
-   }
- });
-
- var results = [];
-
- for(var i=0;i<groups.length;i++){
-   for(var j=i+1;j<groups.length;j++){
-     groups[i].forEach(function(a){
-       groups[j].forEach(function(b){
-         if(a === b) return;
-         if(a === reverse2(b)) return;
-         results.push(a + "*" + b);
-       });
-     });
-   }
- }
-
- results.forEach(function(numeroAuto){
-   selectedLoteries.forEach(function(lot){
-     mergeOrPushGame({
-       type: "MAR",
-       numero: numeroAuto,
-       loterie: lot,
-       montant: parseFloat(montant) || 0
-     });
-   });
- });
-
- montant = "";
- cursorMontant = 0;
- activeField = "numero";
-
- renderJeux();
- updateFields();
-}
-
-function finishAutoLoto4(){
- var counts = getAutoSourceBalls();
- var nums = Object.keys(counts);
-
- var results = {};
-
- for(var i=0;i<nums.length;i++){
-   for(var j=i+1;j<nums.length;j++){
-     var a = nums[i];
-     var b = nums[j];
-
-     if(a === b) continue;
-     if(a === reverse2(b)) continue;
-
-     results[a + b] = true;
-     results[b + a] = true;
-   }
- }
-
- Object.keys(results).forEach(function(numeroAuto){
-   selectedLoteries.forEach(function(lot){
-     mergeOrPushGame({
-       type: "L41",
-       numero: numeroAuto,
-       loterie: lot,
-       montant: parseFloat(montant) || 0
-     });
-   });
- });
-
- montant = "";
- cursorMontant = 0;
- activeField = "numero";
-
- renderJeux();
- updateFields();
-}
-
 async function addGame(){
   if(!numero.trim()) return;
   if(!montant.trim()) return;
@@ -3505,6 +2999,27 @@ async function addGame(){
   if(!entries){
     alert("Jeu pa valid");
     return;
+  }
+
+  for (const lot of selectedLoteries) {
+    for (const entry of entries) {
+      const check = await fetch("/api/check-limit-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sellerId: sellerId,
+          type: entry.type,
+          numero: entry.numero,
+          loterie: lot,
+          montant: parseFloat(montant) || 0
+        })
+      }).then(r => r.json());
+
+      if(!check.ok){
+        alert(check.message || "Limit pa valid");
+        return;
+      }
+    }
   }
 
   selectedLoteries.forEach(function(lot){
@@ -3561,6 +3076,15 @@ function toggleDrawer(){
 function closeDrawer(){
   goBackToJeuxFromMenu();
 }
+
+document.addEventListener("DOMContentLoaded", function(){
+  var overlay = document.getElementById("overlay");
+  if(overlay){
+    overlay.onclick = function(){
+      goBackToJeuxFromMenu();
+    };
+  }
+});
 
 function renderJeux(){
  var area = document.getElementById("ticketsArea");
@@ -3626,117 +3150,22 @@ function buildPayloadGames(){
  });
 }
 
-
 function buildPrintableTextFromTicket(ticket){
   if(!ticket || !Array.isArray(ticket.jeux)) return "";
 
-  function fit(v, n){
-    v = String(v || "");
-
-    while(v.length < n){
-      v += " ";
-    }
-
-    return v;
-  }
-
-  function formatType(typeRaw){
-    typeRaw = String(typeRaw || "").toUpperCase();
-
-    if(typeRaw === "BOR") return "Borlette";
-    if(typeRaw === "MAR") return "Mariage";
-
-    return typeRaw;
-  }
-
-  var sellerConfig =
-(
-  ticket &&
-  ticket.vendeurConfig
-)
-? ticket.vendeurConfig
-: {};
-
   var lines = [];
-  var groups = {};
-  var order = [];
-
-  lines.push("NUMBER ONE LOTO");
-  lines.push("SELLER " + String(ticket.vendeurNom || ticket.vendeur || ""));
-  lines.push("TICKET");
-  lines.push(String(ticket.id || ticket.ticketId || ticket.serial || ""));
-  lines.push(
-    "DATE " +
-    String(
-      ticket.createdAtLabel ||
-      ((ticket.dateLabel || "") + " " + (ticket.timeLabel || ""))
-    ).trim()
-  );
-
-  lines.push("");
 
   ticket.jeux.forEach(function(j){
-
-    var lot = String(
-      j.loterie || j.loteria || "SANS TIRAGE"
-    ).trim();
-
-    if(!groups[lot]){
-      groups[lot] = [];
-      order.push(lot);
-    }
-
-    groups[lot].push({
-      type: formatType(j.type),
-      numero: String(j.numero || "").trim(),
-      montant: Number(j.montant || 0),
-      gratis: j.gratis === true || j.free === true
-    });
-
+    lines.push(
+      String(j.type || "") + " " +
+      String(j.numero || "") + " " +
+      Number(j.montant || 0).toFixed(2) +
+      " - " +
+      String(j.loterie || "")
+    );
   });
 
-  order.forEach(function(lot){
-
-    lines.push(lot);
-    lines.push("");
-
-    groups[lot].forEach(function(g){
-
-      lines.push(
-        fit(g.type, 10) +
-        fit(g.numero, 8) +
-        (g.gratis ? "Gratis" : g.montant.toFixed(2))
-      );
-
-    });
-
-    lines.push("");
-
-  });
-
-  lines.push(
-    "TOTAL: " +
-    Number(ticket.total || 0).toFixed(2) +
-    " G"
-  );
-
- var footerMessage =
-(
-  sellerConfig &&
-  sellerConfig.usarMensajeTicket &&
-  sellerConfig.mensajeTicket
-)
-? sellerConfig.mensajeTicket
-: "";
-
-if(footerMessage){
-  lines.push("");
-  lines.push(String(footerMessage));
-}
-
- var code = String.fromCharCode(96) + String.fromCharCode(96) + String.fromCharCode(96);
-return code + "\\n" + lines.join("\\n") + "\\n" + code;
-
+  return lines.join("\\n");
 }
 
 
@@ -3790,111 +3219,50 @@ function saveCurrentTicket(channel){
  });
 }
 
-let submittingPrint = false;
-
 function submitPrint(){
-
-  if(submittingPrint) return;
-
   if(jeux.length === 0){
     alert("Pa gen jwèt pou enprime.");
     return;
   }
 
-  submittingPrint = true;
-
   saveCurrentTicket("PRINT").then(function(ticket){
     if(!ticket || !ticket.id){
-      submittingPrint = false;
-
-      if(ticket && ticket.message){
-        alert(ticket.message);
-      }
-
+      alert("Ticket pa kreye oubyen ID pa vini.");
       return;
     }
 
-    var printUrl =
+    window.location.href =
       "/print?ticketId=" + encodeURIComponent(ticket.id) +
       "&sellerId=" + encodeURIComponent(sellerId);
 
-    fetch(printUrl)
-      .then(function(r){
-        return r.text();
-      })
-      .then(function(html){
-        var doc = new DOMParser().parseFromString(html, "text/html");
-        var text = doc.body.innerText.trim();
-
-        if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
-          AndroidPrinter.printTicket(text);
-        }else{
-          alert("Printer Android pa disponible");
-        }
-
-        loadBillets();
-        resetAfterSend();
-      })
-      .catch(function(err){
-        console.error(err);
-        alert("Erreur impression");
-      })
-      .finally(function(){
-        setTimeout(function(){
-          submittingPrint = false;
-        }, 1500);
-      });
-
+    loadBillets();
+    resetAfterSend();
   }).catch(function(err){
-    submittingPrint = false;
     console.error(err);
     alert("Erreur impression");
   });
 }
 
-
-let submittingWhatsApp = false;
-
 function shareWhatsApp(){
-
-  if(submittingWhatsApp) return;
-
-  if(jeux.length === 0){
-    alert("Pa gen jwèt pou voye.");
-    return;
-  }
-
-  submittingWhatsApp = true;
+  var waWin = window.open("", "_blank");
 
   saveCurrentTicket("WHATSAPP").then(function(ticket){
-
     if(!ticket){
-      submittingWhatsApp = false;
+      if(waWin) waWin.close();
       return;
     }
-
-    ticket.vendeurConfig = {
-      usarMensajeTicket: true,
-      mensajeTicket:
-        (sellerConfig && sellerConfig.mensajeTicket)
-        ? sellerConfig.mensajeTicket
-        : ""
-    };
 
     var text = buildPrintableTextFromTicket(ticket);
     var url = "https://wa.me/?text=" + encodeURIComponent(text);
 
-    window.location.href = url;
+    if(waWin){
+      waWin.location.href = url;
+    }
 
     loadBillets();
     resetAfterSend();
-
-    setTimeout(function(){
-      submittingWhatsApp = false;
-    }, 1500);
-
-  }).catch(function(err){
-    submittingWhatsApp = false;
+  }).catch(function(){
+    if(waWin) waWin.close();
     alert("Erreur WhatsApp");
   });
 }
@@ -3912,6 +3280,17 @@ function filterTransactions(list, vendor, start, end){
   });
 }
 
+function toggleDrawer(){
+ document.getElementById("drawer").classList.toggle("open");
+ document.getElementById("overlay").classList.toggle("show");
+ closeOptions();
+}
+
+function closeDrawer(){
+ document.getElementById("drawer").classList.remove("open");
+ document.getElementById("overlay").classList.remove("show");
+}
+
 function openOptions(){
  document.getElementById("drawer").classList.remove("open");
  document.getElementById("optionsSheet").classList.add("open");
@@ -3919,17 +3298,8 @@ function openOptions(){
 }
 
 function closeOptions(){
- var sheet = document.getElementById("optionsSheet");
- var overlay = document.getElementById("overlay");
-
- if(sheet) sheet.classList.remove("open");
-
- var drawerOpen = document.getElementById("drawer")?.classList.contains("open");
- var modalOpen = document.getElementById("loterieModal")?.classList.contains("show");
-
- if(!drawerOpen && !modalOpen && overlay){
-   overlay.classList.remove("show");
- }
+ document.getElementById("optionsSheet").classList.remove("open");
+ document.getElementById("overlay").classList.remove("show");
 }
 
 function deleteAllGames(){
@@ -4012,28 +3382,11 @@ function rePrintTicket(ticketId){
     return;
   }
 
-  var printUrl =
+  window.open(
     "/print?ticketId=" + encodeURIComponent(ticketId) +
-    "&sellerId=" + encodeURIComponent(sellerId);
-
-  fetch(printUrl)
-    .then(function(r){
-      return r.text();
-    })
-    .then(function(html){
-      var doc = new DOMParser().parseFromString(html, "text/html");
-      var text = doc.body.innerText.trim();
-
-      if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
-        AndroidPrinter.printTicket(text);
-      }else{
-        alert("Printer Android pa disponible");
-      }
-    })
-    .catch(function(err){
-      console.error(err);
-      alert("Erreur impression");
-    });
+    "&sellerId=" + encodeURIComponent(sellerId),
+    "_blank"
+  );
 }
 
 
@@ -4060,9 +3413,9 @@ function renderBillets(){
     card.className = "billet-card";
 
     var premioTotal = Number(t.premio || 0);
-    var premioTxt = premioTotal > 0 && t.status !== "ANILE"
-  ? '<div class="billet-meta" style="font-weight:800;color:#157347;">Gain total: ' + fmt(premioTotal) + '</div>'
-  : '';
+    var premioTxt = premioTotal > 0
+      ? '<div class="billet-meta" style="font-weight:800;color:#157347;">Gain total: ' + fmt(premioTotal) + '</div>'
+      : '';
 
    card.innerHTML =
   '<div class="billet-head">' +
@@ -4090,20 +3443,16 @@ function renderBillets(){
 
     if(Array.isArray(t.jeux)){
       t.jeux.forEach(function(j){
+        var gain = Number(j.gain || 0);
 
-  var statusTxt = String(t.status || "").toUpperCase().trim();
-  var isAnile = statusTxt === "ANILE" || statusTxt === "ANULE" || statusTxt === "ANULADO";
-
-  var gain = Number(j.gain || 0);
-
-  var row = document.createElement("div");
+        var row = document.createElement("div");
         row.className = "billet-game";
 
         row.innerHTML =
           '<div>' + j.type + '</div>' +
           '<div>' +
             j.numero + ' - ' + j.loterie +
-            (!isAnile && gain > 0
+            (gain > 0
               ? ' <span style="background:#d1f7de;color:#157347;font-size:12px;font-weight:900;padding:2px 6px;border-radius:8px;margin-left:6px;">+' + fmt(gain) + '</span>'
               : '') +
           '</div>' +
@@ -4197,9 +3546,7 @@ function copyFromTicket(ticket){
   cursorMontant = 0;
   activeField = "numero";
 
- (ticket.jeux || [])
-.filter(j => Number(j.montant || 0) > 0)
-.forEach(function(j){
+  ticket.jeux.forEach(function(j){
     jeux.push({
       type: j.type,
       numero: j.numero,
@@ -4231,9 +3578,7 @@ function copyFromTicketWithMontant(ticket, newMontant){
   cursorMontant = 0;
   activeField = "numero";
 
- (ticket.jeux || [])
-.filter(j => Number(j.montant || 0) > 0)
-.forEach(function(j){
+  ticket.jeux.forEach(function(j){
     jeux.push({
       type: j.type,
       numero: j.numero,
@@ -4270,64 +3615,16 @@ function validateLoteries(){
     cursorMontant = 0;
     activeField = "numero";
 
-const oldLoteries = [];
-
-(selectedTicketToCopy.jeux || []).forEach(function(j){
-
-  const montantJ = Number(j.montant || j.monto || j.amount || 0);
-
-  if(montantJ <= 0) return;
-
-  const typeJ = String(j.type || "").toUpperCase();
-
-  const isGratisMariage =
-    typeJ === "MAR" &&
-    (
-      j.gratis === true ||
-      j.free === true ||
-      montantJ === 0
-    );
-
-  if(isGratisMariage) return;
-
-  const oldLot = String(j.loterie || j.loteria || "").trim();
-
-  if(oldLot && oldLoteries.indexOf(oldLot) < 0){
-    oldLoteries.push(oldLot);
-  }
-
-});
-
-(selectedTicketToCopy.jeux || []).forEach(function(j){
-
-  const montantJ = Number(j.montant || j.monto || j.amount || 0);
-
-  if(montantJ <= 0) return;
-
-  const typeJ = String(j.type || "").toUpperCase();
-
-  const isGratisMariage =
-    typeJ === "MAR" &&
-    (
-      j.gratis === true ||
-      j.free === true ||
-      montantJ === 0
-    );
-
-  if(isGratisMariage) return;
-
-  const oldLot = String(j.loterie || j.loteria || "").trim();
-
-  const idx = oldLoteries.indexOf(oldLot);
-
-  jeux.push({
-    type: j.type,
-    numero: j.numero,
-    loterie: selectedLoteries[idx] || selectedLoteries[0] || oldLot,
-    montant: montantJ
-  });
-
-});
+    selectedTicketToCopy.jeux.forEach(function(j){
+      selectedLoteries.forEach(function(lot){
+        jeux.push({
+          type: j.type,
+          numero: j.numero,
+          loterie: lot,
+          montant: Number(j.montant || 0)
+        });
+      });
+    });
 
     copyMode = false;
     selectedTicketToCopy = null;
@@ -4342,7 +3639,6 @@ const oldLoteries = [];
   cursorMontant = montant.length;
   updateFields();
 }
-
 
 function cleanTicketId(v){
   return String(v || "")
@@ -4392,9 +3688,7 @@ function handleCopyButton(){
     cursorMontant = 0;
     activeField = "numero";
 
-    (found.jeux || [])
-.filter(j => Number(j.montant || 0) > 0)
-.forEach(function(j){
+    found.jeux.forEach(function(j){
       jeux.push({
         type: j.type,
         numero: j.numero,
@@ -4602,45 +3896,21 @@ if(!loterieHtml){
     });
   }
 
- if(printBtn){
+  if(printBtn){
   printBtn.addEventListener("click", function(){
     var now = new Date();
-    var NL = "\\n";
 
-    function fm(v){
-      return Number(v || 0).toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-    }
-
-    function row(label, value){
-      var left = "| " + String(label || "").padEnd(12, " ");
-      var right = String(value || "").padStart(12, " ") + " |";
-      return left + right;
-    }
-
-    var text = "";
-    text += "       NUMBER ONE LOTO" + NL;
-    text += "            RAPPORT" + NL;
-    text += "            " + sellerName + NL;
-    text += "   " + toFr(startValue) + " / " + toFr(endValue) + NL;
-    text += "     [ " + now.toLocaleDateString("fr-FR") + " " + now.toLocaleTimeString("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit"
-    }) + " ]" + NL;
-    text += "------------------------------" + NL;
-    text += row("Ventes", fm(vente)) + NL;
-    text += row("Prix", fm(prime)) + NL;
-    text += row("Commission", fm(commission)) + NL;
-    text += row("Resultat", fm(resultat)) + NL;
-    text += "------------------------------" + NL;
-
-    if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
-      AndroidPrinter.printTicket(text);
-    }else{
-      alert(text);
-    }
+    window.open(
+      "/print-report?sellerId=" + encodeURIComponent(sellerId) +
+      "&start=" + encodeURIComponent(startValue) +
+      "&end=" + encodeURIComponent(endValue) +
+      "&date=" + encodeURIComponent(now.toLocaleDateString("fr-FR")) +
+      "&time=" + encodeURIComponent(now.toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      })),
+      "_blank"
+    );
   });
 }
 
@@ -4657,8 +3927,6 @@ if(!loterieHtml){
   }
 }
 
-
-
 function updateTicketStatus(id, status, premio){
  fetch("/api/ticket-status", {
  method: "POST",
@@ -4669,14 +3937,9 @@ function updateTicketStatus(id, status, premio){
    premio: premio || 0
  })
  }).then(function(res){
-  return res.json();
-}).then(function(data){
-  if(data && data.ok === false){
-    alert(data.message || "Erreur");
-    return;
-  }
-
-  fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
+ return res.json();
+ }).then(function(){
+   fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/tickets")
    .then(function(res){ return res.json(); })
    .then(function(rows){
      savedTickets = Array.isArray(rows) ? rows : [];
@@ -4815,29 +4078,6 @@ function copyTicketById(){
     }
 
     if(activeField === "montant"){
-
-if(window.autoMarriageMode){
-  if(!montant.trim()){
-    alert("Mete montan an");
-    return;
-  }
-
-  window.autoMarriageMode = false;
-  finishAutoMarriage();
-  return;
-}
-
-if(window.autoLoto4Mode){
-  if(!montant.trim()){
-    alert("Mete montan an");
-    return;
-  }
-
-  window.autoLoto4Mode = false;
-  finishAutoLoto4();
-  return;
-}
-
       if(!montant.trim()) return;
 
       if(autoBoulPeMode){
@@ -5036,7 +4276,7 @@ setInterval(function(){
   if(currentPageName === "billetsPage" || currentPageName === "balancePage" || currentPageName === "rapportsPage"){
     loadBillets();
   }
-}, 10000);
+}, 3000);
 
 window.addEventListener("focus", function(){
   loadBillets();
@@ -5322,7 +4562,6 @@ function renderParametrePage(){
 }
 
 function renderImprimantePage(){
-
   var box = document.getElementById("imprimanteWrap");
   if(!box) return;
 
@@ -5331,181 +4570,12 @@ function renderImprimantePage(){
     '<div style="padding:14px;">' +
       '<div style="background:#fff;border-radius:14px;padding:14px;font-size:18px;">' +
         '<div style="font-size:20px;font-weight:800;margin-bottom:12px;">Printer disponibles</div>' +
-        '<div id="printerList" style="min-height:120px;color:#555;font-size:17px;">Peze bouton rechèch la...</div>' +
-        '<button onclick="checkPrinter()" style="width:100%;height:50px;border:none;border-radius:12px;background:#3452aa;color:#fff;font-size:18px;font-weight:800;margin-top:16px;">Chèche imprimante</button>' +
-        '<button onclick="testPrinter()" style="width:100%;height:50px;border:none;border-radius:12px;background:#111;color:#fff;font-size:18px;font-weight:800;margin-top:10px;">Tester impression</button>' +
+        '<div style="padding:14px;border-bottom:1px solid #eee;">POS Internal Printer</div>' +
+        '<div style="padding:14px;border-bottom:1px solid #eee;">Bluetooth Printer</div>' +
+        '<div style="padding:14px;border-bottom:1px solid #eee;">LP-BT71</div>' +
+        '<button onclick="submitPrint()" style="width:100%;height:50px;border:none;border-radius:12px;background:#3452aa;color:#fff;font-size:18px;font-weight:800;margin-top:16px;">Tester impression</button>' +
       '</div>' +
     '</div>';
-}
-
-function searchPrinters(){
-
-  var list = document.getElementById("printerList");
-  if(!list) return;
-
-  list.innerHTML = "Recherche...";
-
-  if(typeof AndroidPrinter === "undefined"){
-    list.innerHTML = "AndroidPrinter pa konekte nan APK la.";
-    return;
-  }
-
-  var data = "[]";
-
-  if(AndroidPrinter.getPairedPrinters){
-    data = AndroidPrinter.getPairedPrinters();
-  }else if(AndroidPrinter.getPrinters){
-    data = AndroidPrinter.getPrinters();
-  }else{
-    list.innerHTML = "Fonksyon rechèch printer la pa nan APK la.";
-    return;
-  }
-
-  var printers = [];
-
-  try{
-    printers = JSON.parse(data || "[]");
-  }catch(e){
-    printers = [];
-  }
-
-  if(!printers.length){
-    list.innerHTML = "Pa gen imprimante jwenn.";
-    return;
-  }
-
-  list.innerHTML = "";
-
-  printers.forEach(function(p){
-
-    var item = document.createElement("div");
-
-    item.style.padding = "14px";
-    item.style.borderBottom = "1px solid #eee";
-    item.style.fontSize = "17px";
-
-    item.innerHTML =
-      '<b>' + (p.name || "Printer") + '</b><br>' +
-      '<span style="font-size:14px;color:#777;">' + (p.address || "") + '</span>';
-
-    item.onclick = function(){
-      connectPrinter(p.address, p.name);
-    };
-
-    list.appendChild(item);
-  });
-}
-
-function checkPrinter(){
-
-  var list = document.getElementById("printerList");
-
-  if(!list){
-    return;
-  }
-
-  list.innerHTML = "Recherche imprimante...";
-
-  try{
-
-    var printers = [];
-
-    if(typeof AndroidPrinter !== "undefined" && AndroidPrinter.getPrinters){
-
-      var data = AndroidPrinter.getPrinters();
-
-      try{
-        printers = JSON.parse(data || "[]");
-      }catch(e){
-        printers = [];
-      }
-
-    }else{
-
-      list.innerHTML = "AndroidPrinter pa disponib.";
-      return;
-    }
-
-    if(!Array.isArray(printers)){
-      printers = [];
-    }
-
-    if(printers.length <= 0){
-      list.innerHTML = "Pa gen imprimante jwenn.";
-      return;
-    }
-
-    list.innerHTML = "";
-
-    printers.forEach(function(p){
-
-      var item = document.createElement("div");
-
-      item.style.padding = "14px";
-      item.style.borderBottom = "1px solid #eee";
-      item.style.fontSize = "17px";
-      item.style.cursor = "pointer";
-
-      item.innerHTML =
-  "<b>" + (p.name || "Printer") + "</b><br>" +
-  "<span style='font-size:14px;color:#777;'>" + (p.address || "") + "</span>";
-
-      item.onclick = function(){
-        connectPrinter(p.address, p.name);
-      };
-
-      list.appendChild(item);
-
-    });
-
-  }catch(err){
-
-    console.log(err);
-    list.innerHTML = "Erreur recherche imprimante.";
-
-  }
-}
-
-function connectPrinter(address,name){
-
-  localStorage.setItem(
-    "NBL_PRINTER_ADDRESS",
-    address
-  );
-
-  localStorage.setItem(
-    "NBL_PRINTER_NAME",
-    name
-  );
-
-  if(typeof AndroidPrinter !== "undefined" &&
-     AndroidPrinter.connectPrinter){
-
-    AndroidPrinter.connectPrinter(address);
-
-  }
-
-  alert("Imprimante connectée : " + name);
-
-}
-
-function testPrinter(){
-
-  var text = "";
-
-  text += "NUMBER ONE LOTO\\n";
-  text += "TEST IMPRESSION\\n";
-  text += "----------------------\\n";
-  text += "Printer OK\\n\\n\\n";
-
-  if(typeof AndroidPrinter !== "undefined" && AndroidPrinter.printTicket){
-
-    AndroidPrinter.printTicket(text);
-
-  }else{
-
-    alert("AndroidPrinter pa konekte.");
-  }
 }
 
 /* ===== AJOUTE KALANDRIYE SOU LIS BIYÈ YO SAN CHANJE renderBillets() ===== */
@@ -5611,7 +4681,7 @@ function testPrinter(){
         br + ar
       ];
 
-      uniqueStrings(combos).forEach(function(num){
+      combos.forEach(function(num){
         selectedLoteries.forEach(function(lot){
           mergeOrPushGame({
             type: "L41",
@@ -5953,9 +5023,7 @@ function nowMinutes(){
 function getLoteriaState(l){
   var now = nowMinutes();
   var open = timeToMinutes(l.openTime || "00:00");
-  var dayKey = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][new Date().getDay()];
-var closeTime = (l.closeDays && l.closeDays[dayKey]) ? l.closeDays[dayKey] : l.closeTime;
-var close = timeToMinutes(closeTime || "23:59");
+  var close = timeToMinutes(l.closeTime || "23:59");
 
   var active = String(l.estatus || "Activo").toLowerCase() === "activo";
 
@@ -6030,16 +5098,6 @@ async function loadVendorLoteries(){
   }
 }
 
-function openVendorDrawer(){
-  document.getElementById("sideMenu").classList.add("open");
-  document.getElementById("drawerOverlay").classList.add("show");
-}
-
-function closeVendorDrawer(){
-  document.getElementById("sideMenu").classList.remove("open");
-  document.getElementById("drawerOverlay").classList.remove("show");
-}
-
 </script>
 </body>
 </html>
@@ -6050,254 +5108,138 @@ app.get("/print", async (req, res) => {
   try {
     const ticketId = String(req.query.ticketId || "").trim();
     const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
-    const NL = String.fromCharCode(10);
 
-    const ticket = await Ticket.findOne({
-      $or: [
-        { id: ticketId },
-        { ticketId: ticketId },
-        { serial: ticketId }
-      ]
-    }).lean();
+   const ticket = await Ticket.findOne({
+  $or: [
+    { id: ticketId },
+    { ticketId: ticketId },
+    { serial: ticketId }
+  ]
+}).lean();
 
-    if (!ticket) return res.status(404).send("Ticket introuvable");
+if (!ticket) {
+  return res.status(404).send("Ticket introuvable");
+}
 
-    let vendeur = null;
-    if (sellerId) vendeur = await Vendor.findOne({ id: sellerId }).lean();
+   let vendeur = null;
 
-    const sellerName = String(
-      (vendeur && (vendeur.nom || vendeur.nombre)) ||
-      ticket.vendeurNom ||
-      ticket.vendeur ||
-      sellerId ||
-      "VENDEUR"
-    );
+if (sellerId) {
+  vendeur = await Vendor.findOne({ id: sellerId }).lean();
+}
+
+const sellerName = String(
+  (vendeur && (vendeur.nom || vendeur.nombre)) ||
+  ticket.vendeurNom ||
+  ticket.vendeur ||
+  sellerId ||
+  "VENDEUR"
+);
 
     const total = Number(ticket.total || 0);
     const dateStr = ticket.dateLabel || formatDateFR(new Date(ticket.createdAt || Date.now()));
     const timeStr = ticket.timeLabel || formatTimeFR(new Date(ticket.createdAt || Date.now()));
 
-    const APP_CONFIG = await AppConfig.findOne({ key:"main" }).lean() || {};
-    const sellerConfig = (vendeur && vendeur.config) ? vendeur.config : {};
+    let lotSeen = {};
+    let loteriesHtml = "";
 
-    const footerMessage =
-      (sellerConfig.usarMensajeTicket && sellerConfig.mensajeTicket)
-      ? sellerConfig.mensajeTicket
-      : (APP_CONFIG.ticketMessage || "");
-
-    function clean(v){
-      return String(v || "").replace(/</g, "").replace(/>/g, "").replace(/&/g, "and");
-    }
-
-    function money(n){
-      return Number(n || 0).toFixed(2);
-    }
-
-  
-    function lineGame(type, numero, montant){
-      var left = String(type || "").padEnd(11, " ");
-      var mid = String(numero || "").padStart(8, " ");
-      var right = String(montant || "").padStart(10, " ");
-      return left + mid + right;
-}
-
-  const paidRows = [];
-
-(ticket.jeux || []).forEach(function(j){
-  if (j.gratis === true || j.free === true) return;
-
-  let typeRaw = String(j.type || "").toUpperCase();
-  let numero = String(j.numero || "").trim();
-  let montant = Number(j.montant || 0);
-  let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase() || "SANS TIRAGE";
-
-  let type = typeRaw;
-  if (typeRaw === "BOR") type = "Borlette";
-  else if (typeRaw === "MAR") type = "Mariage";
-  else if (typeRaw === "L41") type = "Loto4";
-
-  paidRows.push({ loterie, type, numero, montant });
-});
-
-const loteriesOrder = [];
-paidRows.forEach(function(g){
-  if (!loteriesOrder.includes(g.loterie)) loteriesOrder.push(g.loterie);
-});
-
-let isTogether = false;
-
-if (loteriesOrder.length > 1) {
-  const map = {};
-
-  paidRows.forEach(function(g){
-    if (!map[g.loterie]) map[g.loterie] = [];
-    map[g.loterie].push(g.type + "|" + g.numero + "|" + g.montant);
-  });
-
-  const first = map[loteriesOrder[0]] || [];
-
-  isTogether = loteriesOrder.every(function(lot){
-    const arr = map[lot] || [];
-
-    if (arr.length !== first.length) return false;
-
-    return first.every(function(key){
-      return arr.indexOf(key) >= 0;
+    (ticket.jeux || []).forEach(j => {
+      const lot = String(j.loterie || "").trim() || "SANS TIRAGE";
+      if (!lotSeen[lot]) {
+        lotSeen[lot] = true;
+        loteriesHtml += '<div class="tirage">' + lot + '</div>';
+      }
     });
-  });
-}
-
-let loteriesText = "";
-let gamesText = "";
-
-if (isTogether) {
-  loteriesOrder.forEach(function(lot){
-    loteriesText += clean(lot) + NL;
-  });
-
-  const gameMap = {};
-
-  paidRows.forEach(function(g){
-    let key = g.type + "|" + g.numero + "|" + g.montant;
-
-    if (!gameMap[key]) {
-      gameMap[key] = {
-        type: g.type,
-        numero: g.numero,
-        montant: g.montant
-      };
-    }
-  });
-
-  Object.values(gameMap).forEach(function(g){
-    gamesText += lineGame(
-      g.type,
-      g.numero,
-      money(g.montant)
-    ) + NL;
-  });
-
-} else {
-  const lotMap = {};
-
-  paidRows.forEach(function(g){
-    if (!lotMap[g.loterie]) lotMap[g.loterie] = [];
-    lotMap[g.loterie].push(g);
-  });
-
-  Object.keys(lotMap).forEach(function(lot, index){
-    if (index > 0) {
-      gamesText += "------------------------------" + NL;
-    }
-
-    gamesText += clean(lot) + NL;
-    gamesText += "------------------------------" + NL;
 
     const gameMap = {};
+    let gamesHtml = "";
 
-    lotMap[lot].forEach(function(g){
-      let key = g.type + "|" + g.numero + "|" + g.montant;
+    (ticket.jeux || []).forEach(j => {
+      let typeRaw = String(j.type || "").toUpperCase();
+      let numero = String(j.numero || "").trim();
+      let montant = Number(j.montant || 0);
+
+      let type = typeRaw;
+      if (typeRaw === "BOR") type = "Borlette";
+      else if (typeRaw === "MAR") type = "Mariage";
+
+      let key = type + "|" + numero + "|" + montant;
 
       if (!gameMap[key]) {
-        gameMap[key] = {
-          type: g.type,
-          numero: g.numero,
-          montant: g.montant,
-          count: 0
-        };
+        gameMap[key] = { type, numero, montant, count: 0 };
       }
 
       gameMap[key].count++;
     });
 
-    Object.values(gameMap).forEach(function(g){
-      gamesText += lineGame(
-        g.type,
-        g.numero,
-        money(g.montant * g.count)
-      ) + NL;
+    Object.values(gameMap).forEach(g => {
+      let totalLine = (g.montant * g.count).toFixed(2);
+
+      gamesHtml +=
+        '<div class="game-row">' +
+          '<div class="col-type">' + g.type + '</div>' +
+          '<div class="col-num">' + g.numero + '</div>' +
+          '<div class="col-amt">' + totalLine + '</div>' +
+        '</div>';
     });
-  });
-}
-
-const freeGames = (ticket.jeux || []).filter(function(j){
-  return j.gratis === true || j.free === true;
-});
-
-let freeText = "";
-
-if (freeGames.length > 0) {
-  const freeMap = {};
-
-  freeGames.forEach(function(j){
-    let loterie = String(j.loterie || j.loteria || "").trim().toUpperCase() || "SANS TIRAGE";
-
-    if (!freeMap[loterie]) freeMap[loterie] = [];
-
-    let typeRaw = String(j.type || "").toUpperCase();
-
-    let type = typeRaw;
-    if (typeRaw === "BOR") type = "Borlette";
-    else if (typeRaw === "MAR") type = "Mariage";
-    else if (typeRaw === "L41") type = "Loto4";
-
-    freeMap[loterie].push({
-      type: type,
-      numero: String(j.numero || "").trim()
-    });
-  });
-
-  Object.keys(freeMap).forEach(function(lot){
-    freeText += "------------------------------" + NL;
-    freeText += clean(lot) + NL;
-    freeText += "------------------------------" + NL;
-
-    freeMap[lot].forEach(function(g){
-      freeText += lineGame(
-        g.type,
-        g.numero,
-        "Gratis"
-      ) + NL;
-    });
-  });
-}
-
-let text = "";
-
-text += "       NUMBER ONE LOTO" + NL;
-text += "SELLER " + clean(sellerName) + NL;
-text += "TICKET " + clean(ticket.id || ticket.ticketId || ticket.serial || ticketId) + NL;
-text += "DATE " + clean(dateStr) + " " + clean(timeStr) + NL;
-text += "------------------------------" + NL;
-
-if (isTogether) {
-  text += loteriesText;
-  text += "------------------------------" + NL;
-}
-
-text += gamesText;
-
-if (freeText) {
-  text += freeText;
-}
-
-
-text += "------------------------------" + NL;
-text += "TOTAL: " + money(total) + " G" + NL;
-
-
-    if (footerMessage) {
-      text += NL;
-      text += clean(footerMessage) + NL;
-    }
 
     res.set("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Print</title>
+<style>
+@page{ size:58mm auto; margin:0; }
+body{
+  width:42mm;
+  margin:0 auto;
+  font-family:monospace;
+  font-size:10px;
+}
+.title{text-align:center;font-weight:700;margin-bottom:4px;}
+.meta{margin-bottom:4px;}
+.line{border-top:1px dashed #000;margin:4px 0;}
+.tirage{font-weight:700;margin-top:4px;}
+.game-row{
+  display:grid;
+  grid-template-columns:1fr 30px 40px;
+}
+.col-amt{text-align:right;}
+.total{font-weight:700;margin-top:4px;}
+</style>
+</head>
+<body>
 
-    res.send(
-      '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print</title>' +
-      '<style>@page{size:58mm auto;margin:0;}body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:12px;}</style>' +
-      '</head><body><pre>' + clean(text) + '</pre></body></html>'
-    );
+<div class="title">NUMBER ONE LOTO</div>
+
+<div class="meta">
+SELLER ${sellerName}<br>
+TICKET ${ticket.id || ticket.ticketId || ticket.serial || ticketId}<br>
+DATE ${dateStr} ${timeStr}
+</div>
+
+<div class="line"></div>
+
+${loteriesHtml}
+
+<div class="line"></div>
+
+${gamesHtml}
+
+<div class="line"></div>
+
+<div class="total">TOTAL: ${total.toFixed(2)} G</div>
+
+<script>
+setTimeout(function(){
+  window.print();
+}, 300);
+</script>
+
+</body>
+</html>
+    `);
 
   } catch (err) {
     console.error("PRINT ERROR:", err);
@@ -6310,21 +5252,14 @@ app.get("/print-report", async (req, res) => {
     const sellerId = String(req.query.sellerId || "").trim().toUpperCase();
     const start = String(req.query.start || "").trim();
     const end = String(req.query.end || "").trim();
+
     const printDate = String(req.query.date || "").trim();
     const printTime = String(req.query.time || "").trim();
-    const NL = String.fromCharCode(10);
 
     function money(v) {
       if (v === null || v === undefined) return 0;
       const n = Number(String(v).replace(/,/g, "").trim());
       return Number.isFinite(n) ? n : 0;
-    }
-
-    function formatMoney(v) {
-      return Number(v || 0).toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
     }
 
     function formatFRDateInput(iso) {
@@ -6346,19 +5281,6 @@ app.get("/print-report", async (req, res) => {
       return d.getFullYear() + "-" +
         String(d.getMonth() + 1).padStart(2, "0") + "-" +
         String(d.getDate()).padStart(2, "0");
-    }
-
-    function clean(v) {
-      return String(v || "")
-        .replace(/</g, "")
-        .replace(/>/g, "")
-        .replace(/&/g, "and");
-    }
-
-    function row(label, value) {
-      var left = "| " + String(label || "").padEnd(12, " ");
-      var right = String(value || "").padStart(12, " ") + " |";
-      return left + right;
     }
 
     const vendeur = await Vendor.findOne({ id: sellerId }).lean();
@@ -6397,52 +5319,65 @@ app.get("/print-report", async (req, res) => {
     const commission = (vente * rate) / 100;
     const resultat = vente - prix - commission;
 
-    let text = "";
-
-    text += "       NUMBER ONE LOTO" + NL;
-    text += "            RAPPORT" + NL;
-    text += "            " + clean(sellerName) + NL;
-    text += "   " + formatFRDateInput(start) + " / " + formatFRDateInput(end) + NL;
-    text += "     [ " + clean(printDate) + " " + clean(printTime) + " ]" + NL;
-    text += "------------------------------" + NL;
-    text += row("Ventes", formatMoney(vente)) + NL;
-    text += row("Prix", formatMoney(prix)) + NL;
-    text += row("Commission", formatMoney(commission)) + NL;
-    text += row("Résultat", formatMoney(resultat)) + NL;
-    text += "------------------------------" + NL;
-
-if (String(req.query.raw || "") === "1") {
-  res.set("Content-Type", "text/plain; charset=utf-8");
-  return res.send(text);
+    res.set("Content-Type", "text/html; charset=utf-8");
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Rapport</title>
+<style>
+@page{ size:58mm auto; margin:0; }
+html,body{ margin:0; padding:0; background:#fff; }
+body{
+  width:42mm;
+  margin:0 auto;
+  padding:1mm;
+  font-family:monospace;
+  font-size:9px;
+  color:#000;
+  line-height:1.2;
 }
+.title{ text-align:center; font-size:10px; font-weight:700; margin-bottom:3px; }
+.center{text-align:center;}
+.line{ border-top:1px dashed #000; margin:4px 0; }
+.row{ display:grid; grid-template-columns:1fr auto; gap:4px; margin:3px 0; }
+.boxline{ border-top:1px dashed #000; border-bottom:1px dashed #000; padding:4px 0; }
+</style>
+</head>
+<body>
+  <div class="title">NUMBER ONE LOTO</div>
+  <div class="center">RAPPORT</div>
+  <div class="center">${sellerName}</div>
+  <div class="center">${formatFRDateInput(start)} / ${formatFRDateInput(end)}</div>
+  <div class="center">[ ${printDate} ${printTime} ]</div>
 
-res.set("Content-Type", "text/html; charset=utf-8");
+  <div class="line"></div>
 
-res.send(
-  '<!DOCTYPE html>' +
-  '<html>' +
-  '<head>' +
-  '<meta charset="UTF-8">' +
-  '<title>Rapport</title>' +
-  '<style>' +
-  '@page{size:58mm auto;margin:0;}' +
-  'body{width:48mm;margin:0 auto;padding:3px;font-family:monospace;font-size:12px;color:#000;}' +
-  'pre{white-space:pre-wrap;margin:0;font-family:monospace;font-size:12px;}' +
-  '</style>' +
-  '</head>' +
-  '<body>' +
-  '<pre>' + clean(text) + '</pre>' +
-  '</body>' +
-  '</html>'
-);
+ <div class="boxline">
+  <div class="row"><span>| Ventes</span><b>${Number(vente || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Prix</span><b>${Number(prix || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Commission</span><b>${Number(commission || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+
+  <div class="row"><span>| Balance</span><b>${Number(resultat || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})} |</b></div>
+</div>
+
+<script>
+setTimeout(function(){
+  try{ window.print(); }catch(e){}
+},300);
+</script>
+</body>
+</html>
+    `);
 
   } catch (err) {
     console.error("Erreur print-report:", err);
     res.status(500).send("Erreur rapport");
   }
 });
-
-
 
 app.get("/api/reportes/tickets", async (req, res) => {
   try {
@@ -6453,7 +5388,6 @@ app.get("/api/reportes/tickets", async (req, res) => {
     res.status(500).json([]);
   }
 });
-
 
 app.get("/tickets/:vendeur", async (req, res) => {
   try {

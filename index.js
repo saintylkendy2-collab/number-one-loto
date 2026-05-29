@@ -37,41 +37,12 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use((req, res, next) => {
-  const start = Date.now();
-
-  res.on("finish", () => {
-    console.log(
-      "REQ =>",
-      req.method,
-      req.url,
-      "STATUS:",
-      res.statusCode,
-      "TIME:",
-      Date.now() - start,
-      "ms"
-    );
-  });
-
-  next();
-});
-
 mongoose.connect("mongodb+srv://numberone:numberone123@cluster0.yzqmfuc.mongodb.net/loto?retryWrites=true&w=majority")
 .then(async () => {;
   console.log("Mongo connecté");
   await loadLimites();
 })
 .catch(err => console.error("Mongo erreur:", err.message));
-
-setInterval(async () => {
-  try {
-    console.time("PING_MONGO");
-    await mongoose.connection.db.admin().ping();
-    console.timeEnd("PING_MONGO");
-  } catch (e) {
-    console.log("PING ERROR:", e.message);
-  }
-}, 10000);
 
 mongoose.connection.once("open", async () => {
 
@@ -6474,13 +6445,7 @@ res.send(
 
 
 app.get("/api/reportes/tickets", async (req, res) => {
-  try {
-    const tickets = await Ticket.find().sort({ createdAt: -1 }).lean();
-    res.json(tickets);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json([]);
-  }
+  return res.json([]);
 });
 
 

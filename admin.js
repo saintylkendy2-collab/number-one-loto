@@ -630,7 +630,13 @@ router.get("/api/reportes/ventas", async (req, res) => {
 
 router.get("/api/reportes/balance", async (req, res) => {
   try {
-    const date = String(req.query.date || "").trim();
+    const today = new Date();
+const todayISO =
+  today.getFullYear() + "-" +
+  String(today.getMonth() + 1).padStart(2, "0") + "-" +
+  String(today.getDate()).padStart(2, "0");
+
+const date = String(req.query.date || todayISO).trim();
 
     function toISODate(value) {
       if (!value) return "";
@@ -1361,7 +1367,13 @@ router.get("/api/reportes/tickets", async (req, res) => {
     console.log("REQ TICKETS QUERY =", req.query);
     console.time("TICKETS_QUERY");
 
-    const date = String(req.query.date || "").trim();
+    const today = new Date();
+const todayISO =
+  today.getFullYear() + "-" +
+  String(today.getMonth() + 1).padStart(2, "0") + "-" +
+  String(today.getDate()).padStart(2, "0");
+
+const date = String(req.query.date || todayISO).trim();
 
     const q = {};
     if (date) {

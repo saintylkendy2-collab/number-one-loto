@@ -38,7 +38,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use((req, res, next) => {
-  console.log("REQ =>", req.method, req.url);
+  const start = Date.now();
+
+  res.on("finish", () => {
+    console.log(
+      "REQ =>",
+      req.method,
+      req.url,
+      "STATUS:",
+      res.statusCode,
+      "TIME:",
+      Date.now() - start,
+      "ms"
+    );
+  });
+
   next();
 });
 
@@ -48,6 +62,16 @@ mongoose.connect("mongodb+srv://numberone:numberone123@cluster0.yzqmfuc.mongodb.
   await loadLimites();
 })
 .catch(err => console.error("Mongo erreur:", err.message));
+
+setInterval(async () => {
+  try {
+    console.time("PING_MONGO");
+    await mongoose.connection.db.admin().ping();
+    console.timeEnd("PING_MONGO");
+  } catch (e) {
+    console.log("PING ERROR:", e.message);
+  }
+}, 10000);
 
 mongoose.connection.once("open", async () => {
 

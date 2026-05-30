@@ -781,7 +781,23 @@ router.get("/ventas-document", async (req, res) => {
       "&end=" + encodeURIComponent(end);
 
     const vendorsArr = await Vendor.find().lean();
-    const tickets = await Ticket.find().lean();
+   const q = {};
+
+if(start || end){
+  q.dateLabel = {};
+  if(start){
+    const p = start.split("-");
+    q.dateLabel.$gte = `${p[2]}/${p[1]}/${p[0]}`;
+  }
+  if(end){
+    const p = end.split("-");
+    q.dateLabel.$lte = `${p[2]}/${p[1]}/${p[0]}`;
+  }
+}
+
+const tickets = await Ticket.find(q)
+  .select("vendeur vendeurNom total premio status dateLabel")
+  .lean();
 
     const vendeurs = {};
     vendorsArr.forEach(v => {
@@ -905,6 +921,23 @@ router.get("/ventas-document", async (req, res) => {
         </tr>
       `;
     }).join("");
+
+    let titleZone = "TOUTES";
+
+if (vendorFilter) {
+  const v = vendorsArr.find(x =>
+    String(x.id || "").trim().toUpperCase() === vendorFilter.toUpperCase()
+  );
+
+  titleZone =
+    v?.nombre ||
+    v?.nom ||
+    v?.name ||
+    vendorFilter;
+}
+else if (zonaFilter) {
+  titleZone = "SANTAJ " + zonaFilter;
+}
 
     res.send(`
 <!DOCTYPE html>
@@ -1031,7 +1064,7 @@ tfoot td{
   <h1>NUMBER ONE - Rapport Ventas</h1>
 
   <div class="info">
-    <div><strong>Zone :</strong> ${zonaFilter || "TOUTES"}</div>
+    <div><strong>Zone :</strong> ${titleZone}</div>
     <div><strong>Periode :</strong> ${toFRDate(start)} - ${toFRDate(end)}</div>
   </div>
 

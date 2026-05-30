@@ -52,6 +52,7 @@ mongoose.connection.once("open", async () => {
     await Ticket.collection.createIndex({ id: 1 }, { unique: true, sparse: true });
     await Ticket.collection.createIndex({ vendeur: 1, createdAt: -1 });
     await Ticket.collection.createIndex({ dateLabel: 1, vendeur: 1, status: 1 });
+    await Ticket.collection.createIndex({ dateLabel: 1, _id: -1 }).catch(() => {});
     await Sorteo.collection.createIndex({ date: 1, loteria: 1 }, { unique: true }).catch(() => {});
 
     await Ticket.deleteMany({
@@ -6446,13 +6447,32 @@ res.send(
 
 app.get("/api/reportes/tickets", async (req, res) => {
   try {
-    const tickets = await Ticket.find().sort({ createdAt: -1 }).lean();
+    const date = String(req.query.date || "").trim();
+
+    function isoToDMY(v){
+      const m = String(v || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(m) return m[3] + "/" + m[2] + "/" + m[1];
+      return v;
+    }
+
+    const q = {};
+    if(date){
+      q.dateLabel = isoToDMY(date);
+    }
+
+    const tickets = await Ticket.find(q)
+      .select("id ticketId serial vendeur vendeurNom createdAt createdAtLabel dateLabel timeLabel status premio total")
+      .sort({ _id: -1 })
+      .limit(500)
+      .lean();
+
     res.json(tickets);
   } catch (err) {
-    console.error(err);
+    console.error("Erreur /api/reportes/tickets index:", err.message);
     res.status(500).json([]);
   }
 });
+
 
 
 app.get("/tickets/:vendeur", async (req, res) => {

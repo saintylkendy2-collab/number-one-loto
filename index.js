@@ -6444,7 +6444,6 @@ res.send(
 });
 
 
-
 app.get("/api/reportes/tickets", async (req, res) => {
   try {
     const date = String(req.query.date || "").trim();
@@ -6460,11 +6459,11 @@ app.get("/api/reportes/tickets", async (req, res) => {
       q.dateLabel = isoToDMY(date);
     }
 
-    const tickets = await Ticket.find(q)
-      .select("id ticketId serial vendeur vendeurNom createdAt createdAtLabel dateLabel timeLabel status premio total")
-      .sort({ _id: -1 })
-      .limit(500)
-      .lean();
+   const tickets = await Ticket.find(q)
+  .select("id ticketId serial vendeur vendeurNom createdAt createdAtLabel dateLabel timeLabel status premio total jeux.type")
+  .sort({ _id: -1 })
+  .limit(1000)
+  .lean();
 
     res.json(tickets);
   } catch (err) {

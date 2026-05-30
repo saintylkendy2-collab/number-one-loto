@@ -6462,7 +6462,7 @@ app.get("/api/reportes/tickets", async (req, res) => {
    const tickets = await Ticket.find(q)
   .select("id ticketId serial vendeur vendeurNom createdAt createdAtLabel dateLabel timeLabel status premio total jeux.type")
   .sort({ _id: -1 })
-  .limit(1000)
+  .limit(5000)
   .lean();
 
     res.json(tickets);

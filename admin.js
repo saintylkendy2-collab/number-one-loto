@@ -594,18 +594,28 @@ router.get("/api/reportes/ventas", async (req, res) => {
   }
 });
 
+
 router.get("/api/reportes/balance", async (req, res) => {
-  console.time("BALANCE_REPORT");
   try {
     const date = String(req.query.date || "").trim();
 
-    function toFRDate(value){
-      const s = String(value || "").trim();
-      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-        const p = s.split("-");
-        return p[2] + "/" + p[1] + "/" + p[0];
+    function toISODate(value) {
+      if (!value) return "";
+      const s = String(value).trim();
+
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+      const p = s.split("/");
+      if (p.length === 3) {
+        return p[2] + "-" + p[1].padStart(2, "0") + "-" + p[0].padStart(2, "0");
       }
-      return s;
+
+      const d = new Date(s);
+      if (isNaN(d.getTime())) return "";
+
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
     }
 
     function movementEffect(m) {
@@ -614,69 +624,159 @@ router.get("/api/reportes/balance", async (req, res) => {
       return tipo === "cobro" ? monto : -monto;
     }
 
-    const selectedFR = toFRDate(date || new Date().toLocaleDateString("fr-FR"));
+    function ticketDay(t) {
+      if (t.dateLabel) return toISODate(t.dateLabel);
 
-    const [vendorsArr, tickets] = await Promise.all([
-      Vendor.find().lean(),
-      Ticket.find(selectedFR ? { dateLabel: selectedFR } : {})
-        .select("vendeur dateLabel status total premio")
-        .lean()
-    ]);
+      const d = new Date(t.createdAt || Date.now());
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+    }
+
+    function sorteoKey(date, loteria) {
+      return String(date || "").trim() + "||" + String(loteria || "").trim().toUpperCase();
+    }
+
+    const selectedDate = date || toISODate(new Date());
+
+   const [vendorsArr, ticketAgg] = await Promise.all([
+  Vendor.find().lean(),
+
+  Ticket.aggregate([
+    {
+      $project: {
+        vendeur: 1,
+        status: 1,
+        total: 1,
+        premio: 1,
+        isoDate: {
+          $concat: [
+            { $substr: ["$dateLabel", 6, 4] },
+            "-",
+            { $substr: ["$dateLabel", 3, 2] },
+            "-",
+            { $substr: ["$dateLabel", 0, 2] }
+          ]
+        }
+      }
+    },
+    {
+      $match: {
+        isoDate: { $lte: selectedDate }
+      }
+    },
+    {
+      $group: {
+        _id: "$vendeur",
+        tickets: {
+          $push: {
+            status: "$status",
+            total: "$total",
+            premio: "$premio"
+          }
+        }
+      }
+    }
+  ])
+]);
+
+    const vendeurs = {};
+    vendorsArr.forEach(v => {
+      const id = String(v.id || "").trim().toUpperCase();
+      if (id) vendeurs[id] = v;
+    });
+
+
 
     const map = {};
 
-    vendorsArr.forEach(v => {
-      const vendor = normalizeVendor(v || {});
-      const id = String(v.id || "").trim().toUpperCase();
-      if (!id) return;
-
+    Object.keys(vendeurs).forEach((id) => {
+      const vendor = normalizeVendor(vendeurs[id] || {});
       const movimientos = Array.isArray(vendor.movimientos) ? vendor.movimientos : [];
+
+      const allMovementsTotal = movimientos.reduce((s, m) => {
+        return s + movementEffect(m);
+      }, 0);
+
+      const baseBalance = parseAmount(vendor.balance) - allMovementsTotal;
+
+      const movementsUntilDate = movimientos.reduce((s, m) => {
+        const d = toISODate(m.fecha);
+        if (selectedDate && d && d > selectedDate) return s;
+        return s + movementEffect(m);
+      }, 0);
+
       const filteredMovements = movimientos.filter(m => {
-        if (!selectedFR) return true;
-        return String(m.fecha || "").trim() === selectedFR || String(m.fecha || "").trim() === date;
+        const d = toISODate(m.fecha);
+        if (selectedDate && d && d > selectedDate) return false;
+        return true;
       });
-      const movementsTotal = filteredMovements.reduce((s, m) => s + movementEffect(m), 0);
 
       map[id] = {
         id,
         nombre: vendor.nombre || vendor.nom || id,
         zona: vendor.zona || vendor.groupe || "",
-        balance: parseAmount(vendor.balance),
+        balance: baseBalance + movementsUntilDate,
         estatus: vendor.estatus || "Activo",
+
         collectionsLivrees: filteredMovements
           .filter(m => String(m.tipo || "").toLowerCase() !== "cobro")
-          .map(m => ({ fecha: m.fecha || selectedFR, monto: parseAmount(m.monto), tipo: String(m.tipo || "") })),
+          .map(m => ({
+            fecha: toISODate(m.fecha),
+            monto: parseAmount(m.monto),
+            tipo: String(m.tipo || "")
+          })),
+
         paiementsRecus: filteredMovements
           .filter(m => String(m.tipo || "").toLowerCase() === "cobro")
-          .map(m => ({ fecha: m.fecha || selectedFR, monto: parseAmount(m.monto), tipo: String(m.tipo || "") }))
+          .map(m => ({
+            fecha: toISODate(m.fecha),
+            monto: parseAmount(m.monto),
+            tipo: String(m.tipo || "")
+          }))
       };
     });
 
-    for (const t of tickets) {
-      const id = String(t.vendeur || "").trim().toUpperCase();
-      if (!id) continue;
-      if (!map[id]) map[id] = { id, nombre: id, zona: "", balance: 0, estatus: "Activo", collectionsLivrees: [], paiementsRecus: [] };
+ for (const group of ticketAgg) {
+  const id = String(group._id || "").trim().toUpperCase();
+  if (!id) continue;
 
-      const vendor = normalizeVendor(vendorsArr.find(v => String(v.id || "").trim().toUpperCase() === id) || {});
-      const rate = getCommissionRate(vendor);
-      const status = String(t.status || "").trim().toUpperCase();
+  if (!map[id]) {
+    map[id] = {
+      id,
+      nombre: id,
+      zona: "",
+      balance: 0,
+      estatus: "Activo",
+      collectionsLivrees: [],
+      paiementsRecus: []
+    };
+  }
 
-      if (status !== "ANILE") {
-        const venta = parseAmount(t.total);
-        const comision = (venta * rate) / 100;
-        const premios = status === "GANYE" ? parseAmount(t.premio) : 0;
-        map[id].balance += venta - comision - premios;
-      }
+  const vendor = normalizeVendor(vendeurs[id] || {});
+  const rate = getCommissionRate(vendor);
+
+  for (const t of group.tickets || []) {
+    const status = String(t.status || "").trim().toUpperCase();
+
+    if (status !== "ANILE") {
+      const venta = parseAmount(t.total);
+      const comision = (venta * rate) / 100;
+      const premios = status === "GANYE" ? parseAmount(t.premio) : 0;
+
+      map[id].balance += venta - comision - premios;
     }
+  }
+}
 
     res.json(Object.values(map));
+
   } catch (err) {
     console.error("Erreur balance:", err);
     res.status(500).json([]);
-  } finally {
-    console.timeEnd("BALANCE_REPORT");
   }
 });
+
 
 router.post("/api/vendors", async (req, res) => {
   try {
@@ -5947,7 +6047,7 @@ async function submitBalanceAction(){
       return;
     }
 
-   closeBalanceModal();
+closeBalanceModal();
 
 vendors = vendors.map(v => {
   if (String(v.id || "").trim() === String(currentBalanceVendorId || "").trim()) {

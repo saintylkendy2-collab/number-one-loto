@@ -641,7 +641,7 @@ router.get("/api/reportes/balance", async (req, res) => {
         id,
         nombre: vendor.nombre || vendor.nom || id,
         zona: vendor.zona || vendor.groupe || "",
-        balance: parseAmount(vendor.balance) + movementsTotal,
+        balance: parseAmount(vendor.balance),
         estatus: vendor.estatus || "Activo",
         collectionsLivrees: filteredMovements
           .filter(m => String(m.tipo || "").toLowerCase() !== "cobro")
@@ -5947,11 +5947,29 @@ async function submitBalanceAction(){
       return;
     }
 
-    closeBalanceModal();
-    await loadVendorsFromServer();
-    await loadBalanceReport();
-    renderTransactionsTable();
-    alert("Balance mis à jour");
+   closeBalanceModal();
+
+vendors = vendors.map(v => {
+  if (String(v.id || "").trim() === String(currentBalanceVendorId || "").trim()) {
+    const oldBal = parseAmount(v.balance);
+    const m = parseAmount(monto);
+
+    return {
+      ...v,
+      balance:
+        currentBalanceAction === "debitar"
+          ? oldBal - m
+          : oldBal + m
+    };
+  }
+  return v;
+});
+
+renderVendorTable();
+await loadBalanceReport();
+renderTransactionsTable();
+
+alert("Balance mis à jour");
   }catch(err){
     console.error(err);
     alert("Erreur balance");

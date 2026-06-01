@@ -6352,7 +6352,7 @@ var end = byId("fechaFin") ? byId("fechaFin").value : "";
     titleZone = "SANTAJ " + zonaText;
   }
 
-  var w = window;
+var w = window;
 
   w.document.open();
   w.document.write("<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Rapport Ventas</title>");
@@ -6370,7 +6370,7 @@ var end = byId("fechaFin") ? byId("fechaFin").value : "";
   w.document.write("@media print{.top-actions{display:none;}body{padding:20px;}}");
   w.document.write("</style></head><body>");
 
-  w.document.write("<div class='top-actions'><button onclick='location.href=\\"/master/vendors\\"'>Retour</button> <button onclick='window.print()'>Imprimer / PDF</button></div>");
+  w.document.write("<div class='top-actions'><button onclick='window.close()'>Retour</button> <button onclick='window.print()'>Imprimer / PDF</button></div>");
   w.document.write("<h1>NUMBER ONE - Rapport Ventas</h1>");
   w.document.write("<div class='info'>");
   w.document.write("<div><strong>Zone :</strong> " + titleZone + "</div>");

@@ -868,37 +868,7 @@ router.put("/api/vendors/:id", async (req, res) => {
 
 
 router.get("/ventas-document", async (req, res) => {
-  try {
- const start = String(req.query.start || "").trim();
-const end = String(req.query.end || "").trim();
-const zonaFilter = String(req.query.zona || "").trim();
-const vendorFilter = String(req.query.vendor || "").trim();
-const comisionFilter = String(req.query.comision || "").trim();
-const type = String(req.query.type || "").trim();
-const tableHtml = "";
-
-    const query =
-      "/api/reportes/ventas?start=" + encodeURIComponent(start) +
-      "&end=" + encodeURIComponent(end);
-
-
-
-    let titleZone = "TOUTES";
-
-if (vendorFilter) {
-  titleZone = "";
-
-  const vv = (tableHtml.match(/<td[^>]*>\s*1\)\s*([^<]+)/i) || [])[1];
-
-  titleZone = vv ? vv.trim() : vendorFilter;
-}
-else if (zonaFilter) {
-  titleZone = "SANTAJ " + zonaFilter;
-}
-
-
-
-    res.send(`
+  res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -906,116 +876,34 @@ else if (zonaFilter) {
 <title>Rapport Ventas</title>
 
 <style>
-body{
-  font-family: Arial, Helvetica, sans-serif;
-  margin:0;
-  background:#f2f2f2;
-  color:#000;
-}
-
-.paper{
-  background:#fff;
-  max-width:1200px;
-  margin:0 auto;
-  padding:45px;
-  min-height:100vh;
-  box-sizing:border-box;
-}
-
-.top-actions{
-  display:flex;
-  justify-content:flex-end;
-  margin-bottom:25px;
-}
-
-.top-actions button{
-  background:#111;
-  color:#fff;
-  border:none;
-  border-radius:10px;
-  padding:14px 22px;
-  font-size:16px;
-}
-
-h1{
-  font-size:38px;
-  margin:0 0 18px 0;
-}
-
-.info{
-  font-size:24px;
-  margin-bottom:35px;
-  line-height:1.35;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:22px;
-}
-
-th, td{
-  border:2px solid #333;
-  padding:14px 12px;
-}
-
-th{
-  background:#dcdcdc;
-  text-align:left;
-}
-
-td:nth-child(n+2),
-th:nth-child(n+2){
-  text-align:right;
-}
-
-tfoot td{
-  font-weight:900;
-  background:#eee;
-}
-
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f2f2f2;color:#000;}
+.paper{background:#fff;max-width:1200px;margin:0 auto;padding:45px;min-height:100vh;box-sizing:border-box;}
+.top-actions{display:flex;justify-content:flex-end;margin-bottom:25px;}
+.top-actions button{background:#111;color:#fff;border:none;border-radius:10px;padding:14px 22px;font-size:16px;}
+h1{font-size:38px;margin:0 0 18px 0;}
+.info{font-size:24px;margin-bottom:35px;line-height:1.35;}
+table{width:100%;border-collapse:collapse;font-size:22px;}
+th,td{border:2px solid #333;padding:14px 12px;}
+th{background:#dcdcdc;text-align:left;}
+td:nth-child(n+2),th:nth-child(n+2){text-align:right;}
+tfoot td{font-weight:900;background:#eee;}
 @media(max-width:800px){
-  .paper{
-    padding:22px;
-  }
-
-  h1{
-    font-size:28px;
-  }
-
-  .info{
-    font-size:18px;
-  }
-
-  table{
-    font-size:14px;
-  }
-
-  th, td{
-    padding:9px 7px;
-  }
+.paper{padding:22px;}
+h1{font-size:28px;}
+.info{font-size:18px;}
+table{font-size:14px;}
+th,td{padding:9px 7px;}
 }
-
 @media print{
-  body{
-    background:#fff;
-  }
-
-  .paper{
-    max-width:100%;
-    padding:20px;
-  }
-
-  .top-actions{
-    display:none;
-  }
+body{background:#fff;}
+.paper{max-width:100%;padding:20px;}
+.top-actions{display:none;}
 }
 </style>
 </head>
 
 <body>
 <div class="paper">
-
   <div class="top-actions">
     <button onclick="window.print()">Imprimer / PDF</button>
   </div>
@@ -1023,21 +911,46 @@ tfoot td{
   <h1>NUMBER ONE - Rapport Ventas</h1>
 
   <div class="info">
-    <div><strong>Zone :</strong> ${titleZone}</div>
-    <div><strong>Periode :</strong> ${toFRDate(start)} - ${toFRDate(end)}</div>
+    <div><strong>Zone :</strong> <span id="docZone">TOUTES</span></div>
+    <div><strong>Periode :</strong> <span id="docPeriod">-</span></div>
   </div>
 
-  ${tableHtml}
-
+  <div id="docTable"></div>
 </div>
+
+<script>
+function frDate(v){
+  var s = String(v || "").trim();
+  var m = s.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+  if(m) return m[3] + "/" + m[2] + "/" + m[1];
+  return s;
+}
+
+var raw = localStorage.getItem("ventasDocumentData");
+var data = raw ? JSON.parse(raw) : {};
+
+var titleZone = "TOUTES";
+
+if(data.vendor){
+  var tmp = document.createElement("div");
+  tmp.innerHTML = data.tableHtml || "";
+  var firstTd = tmp.querySelector("tbody tr td");
+  if(firstTd){
+    titleZone = firstTd.textContent.replace(/^\\s*\\d+\\)\\s*/, "").trim();
+  }else{
+    titleZone = data.vendor;
+  }
+}else if(data.zona){
+  titleZone = "SANTAJ " + data.zona;
+}
+
+document.getElementById("docZone").textContent = titleZone;
+document.getElementById("docPeriod").textContent = frDate(data.start) + " - " + frDate(data.end);
+document.getElementById("docTable").innerHTML = data.tableHtml || "";
+</script>
 </body>
 </html>
-    `);
-
-  } catch(err){
-    console.error("VENTAS DOCUMENT ERROR:", err);
-    res.status(500).send("Erreur rapport ventas");
-  }
+  `);
 });
 
 router.delete("/api/vendors/:id", async (req, res) => {
@@ -6157,16 +6070,24 @@ function openVentasDocument(type){
   var vendor = getValue("ventasVendorFilter");
   var comision = getValue("ventasComisionFilter");
 
-  window.open(
-    "/ventas-document?type=" + encodeURIComponent(type) +
-    "&start=" + encodeURIComponent(start) +
-    "&end=" + encodeURIComponent(end) +
-    "&zona=" + encodeURIComponent(zona) +
-    "&vendor=" + encodeURIComponent(vendor) +
-    "&comision=" + encodeURIComponent(comision),
-    "_blank"
-  );
+  var table = document.getElementById("ventasTable");
+  var tableHtml = table ? table.outerHTML : "";
+
+  var data = {
+    start: start,
+    end: end,
+    zona: zona,
+    vendor: vendor,
+    comision: comision,
+    type: type,
+    tableHtml: tableHtml
+  };
+
+  localStorage.setItem("ventasDocumentData", JSON.stringify(data));
+
+  window.open("/ventas-document?type=" + encodeURIComponent(type), "_blank");
 }
+
 
 function printVentas(){
   openVentasDocument("print");

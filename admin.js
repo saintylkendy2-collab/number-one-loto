@@ -6320,15 +6320,15 @@ function openVentasDocument(type){
   var table = document.getElementById("ventasTable");
   if(!table) return alert("Table Ventas pa jwenn");
 
- var start = byId("fechaInicio") ? frDate(byId("fechaInicio").value) : "";
-var end = byId("fechaFin") ? frDate(byId("fechaFin").value) : "";
+var start = byId("fechaInicio") ? byId("fechaInicio").value : "";
+var end = byId("fechaFin") ? byId("fechaFin").value : "";
 
-  function frDate(v){
-    var s = String(v || "").trim();
-    var m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if(m) return m[3] + "/" + m[2] + "/" + m[1];
-    return s;
-  }
+ function frDate(v){
+  var s = String(v || "").trim();
+  var m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m) return m[3] + "/" + m[2] + "/" + m[1];
+  return s;
+}
 
   var zonaSelect = byId("ventasZonaFilter");
   var vendorSelect = byId("ventasVendorFilter");
@@ -6371,11 +6371,11 @@ var end = byId("fechaFin") ? frDate(byId("fechaFin").value) : "";
   w.document.write("@media print{.top-actions{display:none;}body{padding:20px;}}");
   w.document.write("</style></head><body>");
 
-  w.document.write("<div class='top-actions'><button onclick='window.print()'>Imprimer / PDF</button></div>");
+  w.document.write("<div class='top-actions'><button onclick='history.back()'>Retour</button> <button onclick='window.print()'>Imprimer / PDF</button></div>");
   w.document.write("<h1>NUMBER ONE - Rapport Ventas</h1>");
   w.document.write("<div class='info'>");
   w.document.write("<div><strong>Zone :</strong> " + titleZone + "</div>");
- w.document.write("<div><strong>Periode :</strong> " + start + " - " + end + "</div>");
+ w.document.write("<div><strong>Periode :</strong> " + frDate(start) + " - " + frDate(end) + "</div>");
   w.document.write("</div>");
   w.document.write(table.outerHTML);
 

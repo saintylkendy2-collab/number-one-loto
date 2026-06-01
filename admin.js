@@ -6149,6 +6149,7 @@ document.addEventListener("click", function(){
   }
 });
 
+
 function openVentasDocument(type){
   var start = getValue("fechaInicio") || todayISO();
   var end = getValue("fechaFin") || start;
@@ -6156,33 +6157,15 @@ function openVentasDocument(type){
   var vendor = getValue("ventasVendorFilter");
   var comision = getValue("ventasComisionFilter");
 
-  var table = document.getElementById("ventasTable");
-  var tableHtml = table ? table.outerHTML : "";
-
-  var form = document.createElement("form");
-  form.method = "POST";
-  form.action = "/ventas-document";
-  form.target = "_blank";
-
-  function add(name, value){
-    var input = document.createElement("input");
-    input.type = "hidden";
-    input.name = name;
-    input.value = value || "";
-    form.appendChild(input);
-  }
-
-  add("type", type);
-  add("start", start);
-  add("end", end);
-  add("zona", zona);
-  add("vendor", vendor);
-  add("comision", comision);
-  add("tableHtml", tableHtml);
-
-  document.body.appendChild(form);
-  form.submit();
-  form.remove();
+  window.open(
+    "/ventas-document?type=" + encodeURIComponent(type) +
+    "&start=" + encodeURIComponent(start) +
+    "&end=" + encodeURIComponent(end) +
+    "&zona=" + encodeURIComponent(zona) +
+    "&vendor=" + encodeURIComponent(vendor) +
+    "&comision=" + encodeURIComponent(comision),
+    "_blank"
+  );
 }
 
 function printVentas(){

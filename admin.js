@@ -866,6 +866,7 @@ router.put("/api/vendors/:id", async (req, res) => {
   }
 });
 
+
 router.get("/ventas-document", (req, res) => {
   res.send(`
 <!DOCTYPE html>

@@ -3750,46 +3750,7 @@ tbody tr:nth-child(even){background:#313652;}
 
 <script>
 
-(function(){
-  if (window.__numberOneLoaderInstalled) return;
-  window.__numberOneLoaderInstalled = true;
 
-  var activeRequests = 0;
-  var timer = null;
-  function ensureLoader(){
-    var el = document.getElementById("globalLoader");
-    if (el) return el;
-    el = document.createElement("div");
-    el.id = "globalLoader";
-    el.innerHTML = '<div class="global-loader-box"><div class="global-spinner"></div><div>Tanpri tann... sistèm nan ap travay</div></div>';
-    document.body.appendChild(el);
-    var css = document.createElement("style");
-    css.textContent = '#globalLoader{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:999999;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif}.global-loader-box{background:#252a44;border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:22px 26px;text-align:center;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.3)}.global-spinner{width:42px;height:42px;border:5px solid rgba(255,255,255,.25);border-top-color:#8b7cff;border-radius:50%;margin:0 auto 12px;animation:globalSpin 1s linear infinite}@keyframes globalSpin{to{transform:rotate(360deg)}}button.loading-btn{opacity:.65;pointer-events:none}';
-    document.head.appendChild(css);
-    return el;
-  }
-  function showLoader(){
-    activeRequests++;
-    clearTimeout(timer);
-    timer = setTimeout(function(){
-      var el = ensureLoader();
-      el.style.display = "flex";
-    }, 350);
-  }
-  function hideLoader(){
-    activeRequests = Math.max(0, activeRequests - 1);
-    if (activeRequests === 0) {
-      clearTimeout(timer);
-      var el = document.getElementById("globalLoader");
-      if (el) el.style.display = "none";
-    }
-  }
-  var originalFetch = window.fetch;
-  window.fetch = function(){
-    showLoader();
-    return originalFetch.apply(this, arguments).finally(hideLoader);
-  };
-})();
 
 let currentPage = "ventas";
 let currentVendorIndex = null;
@@ -6047,29 +6008,12 @@ async function submitBalanceAction(){
       return;
     }
 
+
 closeBalanceModal();
-
-vendors = vendors.map(v => {
-  if (String(v.id || "").trim() === String(currentBalanceVendorId || "").trim()) {
-    const oldBal = parseAmount(v.balance);
-    const m = parseAmount(monto);
-
-    return {
-      ...v,
-      balance:
-        currentBalanceAction === "debitar"
-          ? oldBal - m
-          : oldBal + m
-    };
-  }
-  return v;
-});
-
-renderVendorTable();
-await loadBalanceReport();
-renderTransactionsTable();
-
-alert("Balance mis à jour");
+    await loadVendorsFromServer();
+    await loadBalanceReport();
+    renderTransactionsTable();
+    alert("Balance mis à jour");
   }catch(err){
     console.error(err);
     alert("Erreur balance");
@@ -6373,21 +6317,84 @@ document.addEventListener("click", function(){
 });
 
 function openVentasDocument(type){
-  var start = getValue("fechaInicio") || todayISO();
-  var end = getValue("fechaFin") || start;
-  var zona = getValue("ventasZonaFilter");
-  var vendor = getValue("ventasVendorFilter");
-  var comision = getValue("ventasComisionFilter");
+  var table = document.getElementById("ventasTable");
+  if(!table) return alert("Table Ventas pa jwenn");
 
-  window.open(
-    "/ventas-document?type=" + encodeURIComponent(type) +
-    "&start=" + encodeURIComponent(start) +
-    "&end=" + encodeURIComponent(end) +
-    "&zona=" + encodeURIComponent(zona) +
-    "&vendor=" + encodeURIComponent(vendor) +
-    "&comision=" + encodeURIComponent(comision),
-    "_blank"
-  );
+ var start = byId("fechaInicio") ? frDate(byId("fechaInicio").value) : "";
+var end = byId("fechaFin") ? frDate(byId("fechaFin").value) : "";
+
+  function frDate(v){
+    var s = String(v || "").trim();
+    var m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(m) return m[3] + "/" + m[2] + "/" + m[1];
+    return s;
+  }
+
+  var zonaSelect = byId("ventasZonaFilter");
+  var vendorSelect = byId("ventasVendorFilter");
+
+  var zonaText = zonaSelect && zonaSelect.selectedOptions && zonaSelect.selectedOptions[0]
+    ? zonaSelect.selectedOptions[0].text
+    : "";
+
+  var vendorText = vendorSelect && vendorSelect.selectedOptions && vendorSelect.selectedOptions[0]
+    ? vendorSelect.selectedOptions[0].text
+    : "";
+
+  zonaText = String(zonaText || "").trim();
+  vendorText = String(vendorText || "").trim();
+
+  var titleZone = "TOUTES";
+
+  if(vendorText && vendorText !== "- VENDEDOR -"){
+    titleZone = vendorText;
+  }else if(zonaText && zonaText !== "- GRUPO -"){
+    titleZone = "SANTAJ " + zonaText;
+  }
+
+  var w = window.open("", "_blank");
+  if(!w) return alert("Popup bloke");
+
+  w.document.open();
+  w.document.write("<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Rapport Ventas</title>");
+  w.document.write("<style>");
+  w.document.write("body{font-family:Arial;margin:0;background:#fff;color:#000;padding:35px;}");
+  w.document.write(".top-actions{text-align:right;margin-bottom:20px;}");
+  w.document.write("button{background:#111;color:#fff;border:0;border-radius:8px;padding:12px 18px;font-size:16px;}");
+  w.document.write("h1{font-size:34px;margin-bottom:25px;}");
+  w.document.write(".info{font-size:22px;margin-bottom:30px;line-height:1.4;}");
+  w.document.write("table{width:100%;border-collapse:collapse;font-size:18px;}");
+  w.document.write("th,td{border:2px solid #333;padding:12px;text-align:right;}");
+  w.document.write("th:first-child,td:first-child{text-align:left;}");
+  w.document.write("th{background:#ddd;}");
+  w.document.write("tfoot td{font-weight:bold;background:#eee;}");
+  w.document.write("@media print{.top-actions{display:none;}body{padding:20px;}}");
+  w.document.write("</style></head><body>");
+
+  w.document.write("<div class='top-actions'><button onclick='window.print()'>Imprimer / PDF</button></div>");
+  w.document.write("<h1>NUMBER ONE - Rapport Ventas</h1>");
+  w.document.write("<div class='info'>");
+  w.document.write("<div><strong>Zone :</strong> " + titleZone + "</div>");
+ w.document.write("<div><strong>Periode :</strong> " + start + " - " + end + "</div>");
+  w.document.write("</div>");
+  w.document.write(table.outerHTML);
+
+  w.document.write("</body></html>");
+  w.document.close();
+
+  if(type === "print" || type === "pdf"){
+    setTimeout(function(){
+      w.print();
+    }, 300);
+  }
+
+  if(type === "excel"){
+    var blob = new Blob([w.document.documentElement.outerHTML], { type: "application/vnd.ms-excel" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "rapport-ventas.xls";
+    a.click();
+  }
 }
 
 function printVentas(){

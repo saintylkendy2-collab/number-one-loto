@@ -867,37 +867,15 @@ router.put("/api/vendors/:id", async (req, res) => {
 });
 
 
-router.get("/ventas-document", (req, res) => {
-  res.send(`
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Rapport Ventas</title>
-</head>
-<body>
-<script>
-  if (window.opener) {
-    window.close();
-  } else {
-    history.back();
-  }
-</script>
-</body>
-</html>
-  `);
-});
-
-
-router.post("/ventas-document", async (req, res) => {
+router.get("/ventas-document", async (req, res) => {
   try {
-    const start = String(req.body.start || "").trim();
-const end = String(req.body.end || "").trim();
-const zonaFilter = String(req.body.zona || "").trim();
-const vendorFilter = String(req.body.vendor || "").trim();
-const comisionFilter = String(req.body.comision || "").trim();
-const type = String(req.body.type || "").trim();
-const tableHtml = String(req.body.tableHtml || "");
+ const start = String(req.query.start || "").trim();
+const end = String(req.query.end || "").trim();
+const zonaFilter = String(req.query.zona || "").trim();
+const vendorFilter = String(req.query.vendor || "").trim();
+const comisionFilter = String(req.query.comision || "").trim();
+const type = String(req.query.type || "").trim();
+const tableHtml = "";
 
     const query =
       "/api/reportes/ventas?start=" + encodeURIComponent(start) +

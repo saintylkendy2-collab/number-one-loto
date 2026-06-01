@@ -866,178 +866,32 @@ router.put("/api/vendors/:id", async (req, res) => {
   }
 });
 
-router.get("/ventas-document", async (req, res) => {
+router.post("/ventas-document", async (req, res) => {
   try {
-    const start = String(req.query.start || "").trim();
-    const end = String(req.query.end || "").trim();
-    const zonaFilter = String(req.query.zona || "").trim();
-    const vendorFilter = String(req.query.vendor || "").trim();
-    const comisionFilter = String(req.query.comision || "").trim();
-
-    const type = String(req.query.type || "").trim();
+    const start = String(req.body.start || "").trim();
+const end = String(req.body.end || "").trim();
+const zonaFilter = String(req.body.zona || "").trim();
+const vendorFilter = String(req.body.vendor || "").trim();
+const comisionFilter = String(req.body.comision || "").trim();
+const type = String(req.body.type || "").trim();
+const tableHtml = String(req.body.tableHtml || "");
 
     const query =
       "/api/reportes/ventas?start=" + encodeURIComponent(start) +
       "&end=" + encodeURIComponent(end);
 
-    const vendorsArr = await Vendor.find().lean();
-   const q = {};
 
-if(start || end){
-  q.dateLabel = {};
-  if(start){
-    const p = start.split("-");
-    q.dateLabel.$gte = `${p[2]}/${p[1]}/${p[0]}`;
-  }
-  if(end){
-    const p = end.split("-");
-    q.dateLabel.$lte = `${p[2]}/${p[1]}/${p[0]}`;
-  }
-}
-
-const tickets = await Ticket.find(q)
-  .select("vendeur vendeurNom total premio status dateLabel")
-  .lean();
-
-    const vendeurs = {};
-    vendorsArr.forEach(v => {
-      const id = String(v.id || "").trim().toUpperCase();
-      if(id) vendeurs[id] = v;
-    });
-
-    function money(v){
-      return Number(v || 0).toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-    }
-
-    function toFRDate(iso){
-      if(!iso) return "";
-      const p = String(iso).split("-");
-      if(p.length !== 3) return iso;
-      return p[2] + "/" + p[1] + "/" + p[0];
-    }
-
-    function ticketDay(t){
-      if(t.dateLabel){
-        const p = String(t.dateLabel).split("/");
-        if(p.length === 3){
-          return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
-        }
-      }
-
-      const d = new Date(t.createdAt || Date.now());
-      return d.getFullYear() + "-" +
-        String(d.getMonth() + 1).padStart(2,"0") + "-" +
-        String(d.getDate()).padStart(2,"0");
-    }
-
-    const map = {};
-
-    for(const t of tickets){
-      const d = ticketDay(t);
-      if(start && d < start) continue;
-      if(end && d > end) continue;
-
-      const id = String(t.vendeur || "").trim().toUpperCase();
-      if(!id) continue;
-
-      const vendor = vendeurs[id] || {};
-      const zona = String(vendor.zona || vendor.groupe || "").trim();
-
-      if(zonaFilter && zona !== zonaFilter) continue;
-      if(vendorFilter && id !== vendorFilter) continue;
-
-      const status = String(t.status || "").trim().toUpperCase();
-      if(status === "ANILE") continue;
-
-      const rate = parseAmount(
-        vendor?.comision?.general ??
-        vendor?.comisionGeneral ??
-        vendor?.com_general ??
-        0
-      );
-
-      const rateGrupo = parseAmount(
-        vendor?.comision?.zona ??
-        vendor?.comisionZona ??
-        vendor?.com_zona ??
-        0
-      );
-
-      if(comisionFilter && Number(comisionFilter) !== Number(rate)) continue;
-
-      if(!map[id]){
-        map[id] = {
-          id,
-          nombre: vendor.nombre || vendor.nom || t.vendeurNom || id,
-          zona,
-          venta: 0,
-          comisionGrupo: 0,
-          comision: 0,
-          premios: 0,
-          resultado: 0,
-          rate,
-          rateGrupo
-        };
-      }
-
-      map[id].venta += parseAmount(t.total);
-
-      if(status === "GANYE"){
-        map[id].premios += parseAmount(t.premio);
-      }
-    }
-
-    const rows = Object.values(map).map(r => {
-      r.comisionGrupo = zonaFilter ? (r.venta * r.rateGrupo) / 100 : 0;
-      r.comision = (r.venta * r.rate) / 100;
-      r.resultado = r.venta - r.comision - r.premios;
-      return r;
-    }).sort((a,b) => b.resultado - a.resultado);
-
-    let totalVenta = 0;
-    let totalComisionGrupo = 0;
-    let totalComision = 0;
-    let totalPremios = 0;
-    let totalResultado = 0;
-
-    const rowsHtml = rows.map((r, i) => {
-      totalVenta += r.venta;
-      totalComisionGrupo += r.comisionGrupo;
-      totalComision += r.comision;
-      totalPremios += r.premios;
-      totalResultado += r.resultado;
-
-      return `
-        <tr>
-          <td>${i + 1}) ${r.nombre}</td>
-          <td>${money(r.venta)}</td>
-          <td>${money(r.comisionGrupo)}</td>
-          <td>${money(r.comision)}</td>
-          <td>${money(r.premios)}</td>
-          <td>${money(r.resultado)}</td>
-        </tr>
-      `;
-    }).join("");
 
     let titleZone = "TOUTES";
 
 if (vendorFilter) {
-  const v = vendorsArr.find(x =>
-    String(x.id || "").trim().toUpperCase() === vendorFilter.toUpperCase()
-  );
-
-  titleZone =
-    v?.nombre ||
-    v?.nom ||
-    v?.name ||
-    vendorFilter;
+  titleZone = vendorFilter;
 }
 else if (zonaFilter) {
   titleZone = "SANTAJ " + zonaFilter;
 }
+
+
 
     res.send(`
 <!DOCTYPE html>
@@ -1168,33 +1022,7 @@ tfoot td{
     <div><strong>Periode :</strong> ${toFRDate(start)} - ${toFRDate(end)}</div>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Vendeur</th>
-        <th>Vente</th>
-        <th>Comisión Grupo</th>
-        <th>Comisión</th>
-        <th>Premios</th>
-        <th>Resultado</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      ${rowsHtml || `<tr><td colspan="6">Pa gen done pou filtè sa yo</td></tr>`}
-    </tbody>
-
-    <tfoot>
-      <tr>
-        <td>TOTAL</td>
-        <td>${money(totalVenta)}</td>
-        <td>${money(totalComisionGrupo)}</td>
-        <td>${money(totalComision)}</td>
-        <td>${money(totalPremios)}</td>
-        <td>${money(totalResultado)}</td>
-      </tr>
-    </tfoot>
-  </table>
+  ${tableHtml}
 
 </div>
 </body>
@@ -6317,83 +6145,39 @@ document.addEventListener("click", function(){
 });
 
 function openVentasDocument(type){
+  var start = getValue("fechaInicio") || todayISO();
+  var end = getValue("fechaFin") || start;
+  var zona = getValue("ventasZonaFilter");
+  var vendor = getValue("ventasVendorFilter");
+  var comision = getValue("ventasComisionFilter");
+
   var table = document.getElementById("ventasTable");
-  if(!table) return alert("Table Ventas pa jwenn");
+  var tableHtml = table ? table.outerHTML : "";
 
-function frDate(v){
-  var s = String(v || "").trim();
-  var m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if(m) return m[3] + "/" + m[2] + "/" + m[1];
-  return s;
-}
+  var form = document.createElement("form");
+  form.method = "POST";
+  form.action = "/ventas-document";
+  form.target = "_blank";
 
-var start = byId("fechaInicio") ? byId("fechaInicio").value : "";
-var end = byId("fechaFin") ? byId("fechaFin").value : "";
-
-  var zonaSelect = byId("ventasZonaFilter");
-  var vendorSelect = byId("ventasVendorFilter");
-
-  var zonaText = zonaSelect && zonaSelect.selectedOptions && zonaSelect.selectedOptions[0]
-    ? zonaSelect.selectedOptions[0].text
-    : "";
-
-  var vendorText = vendorSelect && vendorSelect.selectedOptions && vendorSelect.selectedOptions[0]
-    ? vendorSelect.selectedOptions[0].text
-    : "";
-
-  zonaText = String(zonaText || "").trim();
-  vendorText = String(vendorText || "").trim();
-
-  var titleZone = "TOUTES";
-
-  if(vendorText && vendorText !== "- VENDEDOR -"){
-    titleZone = vendorText;
-  }else if(zonaText && zonaText !== "- GRUPO -"){
-    titleZone = "SANTAJ " + zonaText;
+  function add(name, value){
+    var input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value || "";
+    form.appendChild(input);
   }
 
-var w = window;
+  add("type", type);
+  add("start", start);
+  add("end", end);
+  add("zona", zona);
+  add("vendor", vendor);
+  add("comision", comision);
+  add("tableHtml", tableHtml);
 
-  w.document.open();
-  w.document.write("<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Rapport Ventas</title>");
-  w.document.write("<style>");
-  w.document.write("body{font-family:Arial;margin:0;background:#fff;color:#000;padding:35px;}");
-  w.document.write(".top-actions{text-align:right;margin-bottom:20px;}");
-  w.document.write("button{background:#111;color:#fff;border:0;border-radius:8px;padding:12px 18px;font-size:16px;}");
-  w.document.write("h1{font-size:34px;margin-bottom:25px;}");
-  w.document.write(".info{font-size:22px;margin-bottom:30px;line-height:1.4;}");
-  w.document.write("table{width:100%;border-collapse:collapse;font-size:18px;}");
-  w.document.write("th,td{border:2px solid #333;padding:12px;text-align:right;}");
-  w.document.write("th:first-child,td:first-child{text-align:left;}");
-  w.document.write("th{background:#ddd;}");
-  w.document.write("tfoot td{font-weight:bold;background:#eee;}");
-  w.document.write("@media print{.top-actions{display:none;}body{padding:20px;}}");
-  w.document.write("</style></head><body>");
-
-  w.document.write("<div class='top-actions'><button onclick='window.close()'>Retour</button> <button onclick='window.print()'>Imprimer / PDF</button></div>");
-  w.document.write("<h1>NUMBER ONE - Rapport Ventas</h1>");
-  w.document.write("<div class='info'>");
-  w.document.write("<div><strong>Zone :</strong> " + titleZone + "</div>");
- w.document.write("<div><strong>Periode :</strong> " + frDate(start) + " - " + frDate(end) + "</div>");
-  w.document.write("</div>");
-  w.document.write(table.outerHTML);
-
-  w.document.write("</body></html>");
-  w.document.close();
-
-  if(type === "print" || type === "pdf"){
-    setTimeout(function(){
-      w.print();
-    }, 300);
-  }
-
-  if(type === "excel"){
-    var blob = new Blob([w.document.documentElement.outerHTML], { type: "application/vnd.ms-excel" });
-    var a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "rapport-ventas.xls";
-    a.click();
-  }
+  document.body.appendChild(form);
+  form.submit();
+  form.remove();
 }
 
 function printVentas(){

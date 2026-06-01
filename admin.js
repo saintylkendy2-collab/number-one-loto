@@ -866,8 +866,29 @@ router.put("/api/vendors/:id", async (req, res) => {
   }
 });
 
+router.get("/ventas-document", (req, res) => {
+  res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Rapport Ventas</title>
+</head>
+<body>
+<script>
+  if (window.opener) {
+    window.close();
+  } else {
+    history.back();
+  }
+</script>
+</body>
+</html>
+  `);
+});
 
-router.get("/ventas-document", async (req, res) => {
+
+router.post("/ventas-document", async (req, res) => {
   try {
     const start = String(req.body.start || "").trim();
 const end = String(req.body.end || "").trim();

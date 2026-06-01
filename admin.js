@@ -866,11 +866,8 @@ router.put("/api/vendors/:id", async (req, res) => {
   }
 });
 
-router.get("/ventas-document", (req, res) => {
-  res.redirect("/master/vendors");
-});
 
-router.post("/ventas-document", async (req, res) => {
+router.get("/ventas-document", async (req, res) => {
   try {
     const start = String(req.body.start || "").trim();
 const end = String(req.body.end || "").trim();

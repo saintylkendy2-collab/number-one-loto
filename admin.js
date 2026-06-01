@@ -6320,15 +6320,15 @@ function openVentasDocument(type){
   var table = document.getElementById("ventasTable");
   if(!table) return alert("Table Ventas pa jwenn");
 
-var start = byId("fechaInicio") ? byId("fechaInicio").value : "";
-var end = byId("fechaFin") ? byId("fechaFin").value : "";
-
- function frDate(v){
+function frDate(v){
   var s = String(v || "").trim();
   var m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if(m) return m[3] + "/" + m[2] + "/" + m[1];
   return s;
 }
+
+var start = byId("fechaInicio") ? byId("fechaInicio").value : "";
+var end = byId("fechaFin") ? byId("fechaFin").value : "";
 
   var zonaSelect = byId("ventasZonaFilter");
   var vendorSelect = byId("ventasVendorFilter");
@@ -6352,8 +6352,7 @@ var end = byId("fechaFin") ? byId("fechaFin").value : "";
     titleZone = "SANTAJ " + zonaText;
   }
 
-  var w = window.open("", "_blank");
-  if(!w) return alert("Popup bloke");
+  var w = window;
 
   w.document.open();
   w.document.write("<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Rapport Ventas</title>");
@@ -6371,7 +6370,7 @@ var end = byId("fechaFin") ? byId("fechaFin").value : "";
   w.document.write("@media print{.top-actions{display:none;}body{padding:20px;}}");
   w.document.write("</style></head><body>");
 
-  w.document.write("<div class='top-actions'><button onclick='history.back()'>Retour</button> <button onclick='window.print()'>Imprimer / PDF</button></div>");
+  w.document.write("<div class='top-actions'><button onclick='location.href=\\"/master/vendors\\"'>Retour</button> <button onclick='window.print()'>Imprimer / PDF</button></div>");
   w.document.write("<h1>NUMBER ONE - Rapport Ventas</h1>");
   w.document.write("<div class='info'>");
   w.document.write("<div><strong>Zone :</strong> " + titleZone + "</div>");

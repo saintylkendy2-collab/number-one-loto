@@ -885,7 +885,11 @@ const tableHtml = String(req.body.tableHtml || "");
     let titleZone = "TOUTES";
 
 if (vendorFilter) {
-  titleZone = vendorFilter;
+  titleZone = "";
+
+  const vv = (tableHtml.match(/<td[^>]*>\s*1\)\s*([^<]+)/i) || [])[1];
+
+  titleZone = vv ? vv.trim() : vendorFilter;
 }
 else if (zonaFilter) {
   titleZone = "SANTAJ " + zonaFilter;

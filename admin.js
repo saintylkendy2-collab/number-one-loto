@@ -1462,17 +1462,23 @@ async function runCheckTickets(date, loteries = []) {
       return;
     }
 
-   const tickets = await Ticket.find({
+ const tickets = await Ticket.find({
   status: { $ne: "ANILE" },
   dateLabel: cleanDate,
-  tirages: { $in: lots }
+  $or: [
+    { tirages: { $in: lots } },
+    { "jeux.loterie": { $in: lots } }
+  ]
 }).lean();
 
 const allLots = [...new Set(
-  tickets.flatMap(t =>
-    (t.tirages || []).map(l => String(l || "").trim().toUpperCase())
-  ).filter(Boolean)
-)];
+  tickets.flatMap(t => [
+    ...(t.tirages || []),
+    ...(t.jeux || []).map(j => j.loterie)
+  ])
+  .map(l => String(l || "").trim().toUpperCase())
+  .filter(Boolean)
+)]; 
 
 const [vendorsArr, sorteos] = await Promise.all([
   Vendor.find().lean(),
@@ -3245,7 +3251,7 @@ tbody tr:nth-child(even){background:#313652;}
         </div>
         <div class="field-group">
           <div class="field-label">Balance actual</div>
-          <input id="vd_balance" class="field-input" value="0" />
+          
         </div>
       </div>
 

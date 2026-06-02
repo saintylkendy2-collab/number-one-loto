@@ -1,4 +1,3 @@
-
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -554,10 +553,14 @@ app.post("/login", async (req, res) => {
 
     if (activeConn) {
       const sameDevice =
-        String(activeConn.userAgent || "") === String(connRow.userAgent || "") &&
-        String(activeConn.place || "") === String(connRow.place || "") &&
-        String(activeConn.marca || "") === String(connRow.marca || "") &&
-        String(activeConn.modelo || "") === String(connRow.modelo || "");
+  (
+    String(activeConn.vinculado || "") &&
+    String(activeConn.vinculado || "") === String(connRow.vinculado || "")
+  ) ||
+  (
+    String(activeConn.userAgent || "") === String(connRow.userAgent || "") &&
+    String(activeConn.modelo || "") === String(connRow.modelo || "")
+  );
 
       if (sameDevice) {
         activeConn.last = connRow.last;
@@ -1516,15 +1519,7 @@ const totalTicket = safeJeux.reduce(
   0
 );
 
-const balance = Number(vendor.balance || 0);
-
-if (
-  credit > 0 &&
-  (
-    totalTicket > credit ||
-    (balance + totalTicket) > credit
-  )
-) {
+if (credit > 0 && totalTicket > credit) {
   return res.status(403).json({
     ok:false,
     message:"OU PA GEN KREDI"

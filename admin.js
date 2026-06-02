@@ -4760,7 +4760,17 @@ function fillVentasVendorSelect(){
   el.innerHTML = "";
   el.appendChild(makeOption("","- VENDEDOR -"));
 
-  vendors.forEach(v=>{
+ vendors
+  .slice()
+  .sort((a,b)=>
+    String(a.nombre || a.nom || a.id)
+      .localeCompare(
+        String(b.nombre || b.nom || b.id),
+        undefined,
+        { sensitivity:"base" }
+      )
+  )
+  .forEach(v=>{
     el.appendChild(makeOption(v.id, v.nombre || v.nom || v.id));
   });
 

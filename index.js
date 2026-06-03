@@ -271,9 +271,11 @@ function buildConnectionRow(req, vendeur) {
   const ua = req.headers["user-agent"] || "";
   const device = detectDeviceInfo(ua);
   const now = new Date();
+  const deviceKey = String(req.body.deviceKey || req.headers["x-device-key"] || "").trim();
 
   return {
-    id: "DEV-" + Date.now(),
+    id: deviceKey || ("DEV-" + Date.now()),
+    deviceKey: deviceKey,
     marca: device.marca,
     modelo: device.modelo,
     version: device.version,
@@ -492,31 +494,45 @@ text-align:center;
 </head>
 <body>
 <form class="login-box" method="POST" action="/login">
-<div class="title">NUMBER ONE LOTO</div>
+<div class="title">NUMBER ONE LOTO 2</div>
 <div class="sub">Connexion vendeur</div>
 <input class="input" type="text" name="id" placeholder="Identifiant" autocomplete="username" required>
 <input class="input" type="password" name="password" placeholder="Mot de passe" autocomplete="current-password" required>
+<input type="hidden" name="deviceKey" id="deviceKey">
 <button class="btn" type="submit">CONNECTER</button>
 <div class="note">Entrez votre ID vendeur et votre mot de passe</div>
 </form>
 
 <script>
-
 const form = document.querySelector(".login-box");
-
 const idInput = document.querySelector('input[name="id"]');
 const passInput = document.querySelector('input[name="password"]');
+const deviceKeyInput = document.getElementById("deviceKey");
+
+let deviceKey = localStorage.getItem("device_key");
+if (!deviceKey) {
+  deviceKey = "DEVKEY-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+  localStorage.setItem("device_key", deviceKey);
+}
+deviceKeyInput.value = deviceKey;
 
 idInput.value = localStorage.getItem("saved_id") || "";
 passInput.value = localStorage.getItem("saved_pass") || "";
 
+if (
+  localStorage.getItem("saved_id") &&
+  localStorage.getItem("saved_pass") &&
+  localStorage.getItem("manual_logout") !== "1"
+) {
+  window.location.replace("/dashboard?id=" + encodeURIComponent(localStorage.getItem("saved_id")));
+}
+
 form.addEventListener("submit", function () {
-
-    localStorage.setItem("saved_id", idInput.value);
-    localStorage.setItem("saved_pass", passInput.value);
-
+  localStorage.setItem("saved_id", idInput.value);
+  localStorage.setItem("saved_pass", passInput.value);
+  localStorage.removeItem("manual_logout");
+  deviceKeyInput.value = localStorage.getItem("device_key") || deviceKey;
 });
-
 </script>
 
 </body>
@@ -552,11 +568,11 @@ app.post("/login", async (req, res) => {
     const activeConn = vendeur.conexiones.find(c => c && c.st === true);
 
     if (activeConn) {
-      const sameDevice =
-  (
-    String(activeConn.vinculado || "") &&
-    String(activeConn.vinculado || "") === String(connRow.vinculado || "")
-  ) ||
+          const sameDevice =
+ (
+  String(activeConn.deviceKey || "") &&
+  String(activeConn.deviceKey || "") === String(connRow.deviceKey || "")
+) ||
   (
     String(activeConn.userAgent || "") === String(connRow.userAgent || "") &&
     String(activeConn.modelo || "") === String(connRow.modelo || "")
@@ -2717,7 +2733,7 @@ stroke-width="2.2">
 <div class="drawer-item" onclick="openDrawerParametre()">Paramètre</div>
 <div class="drawer-item" onclick="openDrawerImprimante()">Imprimante</div>
 <div class="drawer-item" onclick="openDrawerUpdate()">Update</div>
-<div class="drawer-item" onclick="window.location='/logout?id=${encodeURIComponent(sellerId)}'">Sortir</div>
+<div class="drawer-item" onclick="localStorage.setItem('manual_logout','1'); window.location='/logout?id=${encodeURIComponent(sellerId)}'">Sortir</div>
 </div>
 
 <div id="optionsSheet" class="options-sheet">
@@ -6035,6 +6051,29 @@ function closeVendorDrawer(){
   document.getElementById("sideMenu").classList.remove("open");
   document.getElementById("drawerOverlay").classList.remove("show");
 }
+
+
+// BLOKE FLECH ANDROID SOU DASHBOARD
+(function(){
+  try {
+    history.replaceState({page:"dashboard"}, "", location.href);
+    history.pushState({page:"dashboard-lock"}, "", location.href);
+
+    window.addEventListener("popstate", function(){
+      history.pushState({page:"dashboard-lock"}, "", location.href);
+
+      if (typeof closeDrawer === "function") {
+        closeDrawer();
+      }
+
+      if (typeof document.getElementById === "function") {
+        var overlay = document.getElementById("drawerOverlay");
+        if (overlay) overlay.classList.remove("show");
+      }
+    });
+  } catch(e) {}
+})();
+
 
 </script>
 </body>

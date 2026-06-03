@@ -3251,7 +3251,7 @@ tbody tr:nth-child(even){background:#313652;}
         </div>
         <div class="field-group">
           <div class="field-label">Balance actual</div>
-          
+          <input id="vd_balance" class="field-input" value="0" />
         </div>
       </div>
 
@@ -4760,17 +4760,7 @@ function fillVentasVendorSelect(){
   el.innerHTML = "";
   el.appendChild(makeOption("","- VENDEDOR -"));
 
- vendors
-  .slice()
-  .sort((a,b)=>
-    String(a.nombre || a.nom || a.id)
-      .localeCompare(
-        String(b.nombre || b.nom || b.id),
-        undefined,
-        { sensitivity:"base" }
-      )
-  )
-  .forEach(v=>{
+  vendors.forEach(v=>{
     el.appendChild(makeOption(v.id, v.nombre || v.nom || v.id));
   });
 

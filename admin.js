@@ -5214,17 +5214,17 @@ mensajeTicket:"",
   };
 }
 
-function openNewVendor(){
+async function openNewVendor(){
   currentVendorIndex = null;
+  await goPage("editor");
   fillVendorForm(blankVendor());
-  goPage("editor");
   showVendorTab("datos");
 }
 
-function openVendorByIndex(index){
+async function openVendorByIndex(index){
   currentVendorIndex = index;
+  await goPage("editor");
   fillVendorForm(vendors[index]);
-  goPage("editor");
   showVendorTab("datos");
 }
 
@@ -5330,8 +5330,8 @@ function readVendorForm(){
     direccion: getValue("vd_direccion").trim(),
     estatus: getValue("vd_estatus", "Activo"),
     sexo: getValue("vd_sexo", "-"),
-    zona: getValue("vd_zona").trim(),
-    groupe: getValue("vd_zona").trim(),
+zona: getValue("vd_zona").trim(),
+groupe: getValue("vd_zona").trim(),
     venta: parseAmount(getValue("vd_venta", "0")),
     premiosMonto: parseAmount(getValue("vd_premiosMonto", "0")),
     balance: parseAmount(getValue("vd_balance", "0")),

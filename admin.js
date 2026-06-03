@@ -3251,7 +3251,7 @@ tbody tr:nth-child(even){background:#313652;}
         </div>
         <div class="field-group">
           <div class="field-label">Balance actual</div>
-          <input id="vd_balance" class="field-input" value="0" />
+          
         </div>
       </div>
 

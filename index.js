@@ -1521,6 +1521,23 @@ if (!vendor) {
   return res.status(404).json({ ok:false, message:"Vandè pa jwenn" });
 }
 
+if (String(vendor.estatus || "").trim().toLowerCase() === "bloqueado") {
+  return res.status(403).json({
+    ok: false,
+    message: "Vandè sa bloke"
+  });
+}
+
+const conns = Array.isArray(vendor.conexiones) ? vendor.conexiones : [];
+const hasBlockedConnection = conns.some(c => c && c.st === false);
+
+if (hasBlockedConnection) {
+  return res.status(403).json({
+    ok: false,
+    message: "Vandè sa bloke"
+  });
+}
+
 const credit = Number(vendor?.config?.credito || vendor?.credito || 0);
 
 if (credit <= 0) {

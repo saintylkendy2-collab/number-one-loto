@@ -1059,6 +1059,44 @@ if (removed.tipo === "pago") {
   }
 });
 
+
+router.post("/api/vendors/:id/connections/:index/block", async (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim().toUpperCase();
+    const index = Number(req.params.index);
+
+    const vendor = await Vendor.findOne({ id });
+
+    if (!vendor) {
+      return res.status(404).json({ ok:false, message:"Vendeur introuvable" });
+    }
+
+    if (!Array.isArray(vendor.conexiones)) vendor.conexiones = [];
+
+    if (!vendor.conexiones[index]) {
+      return res.status(404).json({ ok:false, message:"Connexion introuvable" });
+    }
+
+    vendor.conexiones[index].co = false;
+    vendor.conexiones[index].on = false;
+    vendor.conexiones[index].st = false;
+    vendor.conexiones[index].last = new Date().toLocaleString("fr-FR");
+
+    // BLOKE VANT
+    vendor.bloqueVente = true;
+
+    vendor.markModified("conexiones");
+    await vendor.save();
+
+    res.json({ ok:true });
+
+  } catch (err) {
+    console.error("Erreur blocage connexion:", err);
+    res.status(500).json({ ok:false, message:"Erreur blocage connexion" });
+  }
+});
+
+
 router.delete("/api/vendors/:id/connections/:index", async (req, res) => {
   try {
     const id = String(req.params.id || "").trim().toUpperCase();

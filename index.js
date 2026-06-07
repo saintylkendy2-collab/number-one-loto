@@ -4299,64 +4299,18 @@ function validateLoteries(){
     cursorMontant = 0;
     activeField = "numero";
 
-const oldLoteries = [];
-
-(selectedTicketToCopy.jeux || []).forEach(function(j){
-
-  const montantJ = Number(j.montant || j.monto || j.amount || 0);
-
-  if(montantJ <= 0) return;
-
-  const typeJ = String(j.type || "").toUpperCase();
-
-  const isGratisMariage =
-    typeJ === "MAR" &&
-    (
-      j.gratis === true ||
-      j.free === true ||
-      montantJ === 0
-    );
-
-  if(isGratisMariage) return;
-
-  const oldLot = String(j.loterie || j.loteria || "").trim();
-
-  if(oldLot && oldLoteries.indexOf(oldLot) < 0){
-    oldLoteries.push(oldLot);
-  }
-
-});
-
-(selectedTicketToCopy.jeux || []).forEach(function(j){
-
-  const montantJ = Number(j.montant || j.monto || j.amount || 0);
-
-  if(montantJ <= 0) return;
-
-  const typeJ = String(j.type || "").toUpperCase();
-
-  const isGratisMariage =
-    typeJ === "MAR" &&
-    (
-      j.gratis === true ||
-      j.free === true ||
-      montantJ === 0
-    );
-
-  if(isGratisMariage) return;
-
-  const oldLot = String(j.loterie || j.loteria || "").trim();
-
-  const idx = oldLoteries.indexOf(oldLot);
-
-  jeux.push({
-    type: j.type,
-    numero: j.numero,
-    loterie: selectedLoteries[idx] || selectedLoteries[0] || oldLot,
-    montant: montantJ
-  });
-
-});
+(selectedTicketToCopy.jeux || [])
+.filter(j => Number(j.montant || 0) > 0)
+.forEach(function(j){
+      selectedLoteries.forEach(function(lot){
+        jeux.push({
+          type: j.type,
+          numero: j.numero,
+          loterie: lot,
+          montant: Number(j.montant || 0)
+        });
+      });
+    });
 
     copyMode = false;
     selectedTicketToCopy = null;
@@ -4371,7 +4325,6 @@ const oldLoteries = [];
   cursorMontant = montant.length;
   updateFields();
 }
-
 
 function cleanTicketId(v){
   return String(v || "")
@@ -4445,6 +4398,8 @@ function handleCopyButton(){
     alert("Erreur lecture ticket");
   });
 }
+
+
 
 function renderRapports(){
   var box = document.getElementById("rapportsPage");

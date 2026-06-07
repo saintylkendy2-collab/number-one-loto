@@ -1399,6 +1399,18 @@ app.post("/api/tickets", async (req, res) => {
     const jeux = Array.isArray(req.body.jeux) ? req.body.jeux : [];
     const channel = String(req.body.channel || "MANUEL").trim().toUpperCase();
 
+    const clientRequestId = String(req.body.clientRequestId || "").trim();
+
+if(clientRequestId){
+  const oldTicket = await Ticket.findOne({ clientRequestId }).lean();
+  if(oldTicket){
+    return res.json({
+      ok: true,
+      ticket: oldTicket
+    });
+  }
+}
+
     const clientCreatedAt = String(req.body.clientCreatedAt || "");
     const clientDateLabel = String(req.body.clientDateLabel || "");
     const clientTimeLabel = String(req.body.clientTimeLabel || "");
@@ -1700,7 +1712,8 @@ const finalJeux = jeux
       id: ticketId,
       ticketId: ticketId,
       serial: ticketId,
-
+clientRequestId,
+      
       vendeur: sellerId,
       vendeurNom: sellerName,
       vendeurConfig: vendor.config || {},
@@ -3768,6 +3781,8 @@ return code + "\\n" + lines.join("\\n") + "\\n" + code;
 
 }
 
+let sendingTicket = false;
+let currentTicketRequestId = "";
 
 function resetAfterSend(){
  jeux = [];
@@ -3781,6 +3796,9 @@ function resetAfterSend(){
 
  renderJeux();
  updateFields();
+
+ currentTicketRequestId = "";
+sendingTicket = false;
 }
 
 function saveCurrentTicket(channel){
@@ -3789,31 +3807,45 @@ function saveCurrentTicket(channel){
    return Promise.resolve(null);
  }
 
+ if(sendingTicket){
+   return Promise.resolve(null);
+ }
+
+ sendingTicket = true;
+
+ if(!currentTicketRequestId){
+   currentTicketRequestId =
+     sellerId + "-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+ }
+
  return fetch("/api/tickets", {
    method: "POST",
    headers: { "Content-Type": "application/json" },
    body: JSON.stringify({
-  sellerId: sellerId,
-  sellerName: sellerName,
-  jeux: buildPayloadGames(),
-  channel: channel || "MANUEL",
-  clientCreatedAt: new Date().toISOString(),
-  clientDateLabel: new Date().toLocaleDateString("fr-FR"),
-  clientTimeLabel: new Date().toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  })
-})
+     sellerId: sellerId,
+     sellerName: sellerName,
+     jeux: buildPayloadGames(),
+     channel: channel || "MANUEL",
+     clientRequestId: currentTicketRequestId,
+     clientCreatedAt: new Date().toISOString(),
+     clientDateLabel: new Date().toLocaleDateString("fr-FR"),
+     clientTimeLabel: new Date().toLocaleTimeString("fr-FR", {
+       hour: "2-digit",
+       minute: "2-digit",
+       second: "2-digit"
+     })
+   })
  }).then(function(res){
    return res.json();
  }).then(function(data){
    if(!data.ok){
+     sendingTicket = false;
      alert(data.message || "Erreur save ticket");
      return null;
    }
    return data.ticket;
  }).catch(function(){
+   sendingTicket = false;
    alert("Erreur save ticket");
    return null;
  });

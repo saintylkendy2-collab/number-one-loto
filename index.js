@@ -1422,45 +1422,6 @@ app.post("/api/tickets", async (req, res) => {
       return res.status(400).json({ ok: false, message: "Jwèt yo pa valid" });
     }
 
-
-const limites = limitesAjustes || {};
-const bloques = Array.isArray(limites.bloqueoNumeros)
-  ? limites.bloqueoNumeros
-  : [];
-
-const todayLabel = clientDateLabel || new Date().toLocaleDateString("fr-FR");
-
-const lotNamesLimit = [...new Set(
-  safeJeux.map(j => String(j.loterie || "").trim().toUpperCase())
-)];
-
-const numNamesLimit = [...new Set(
-  safeJeux.map(j => String(j.numero || "").trim())
-)];
-
-const oldTicketsLimit = await Ticket.find({
-  status: { $ne: "ANILE" },
-  dateLabel: todayLabel,
-  "jeux.loterie": { $in: lotNamesLimit },
-  "jeux.numero": { $in: numNamesLimit }
-}).select("jeux").lean();
-
-const dejaMap = {};
-
-oldTicketsLimit.forEach(t => {
-  (t.jeux || []).forEach(old => {
-    const typeOld = normGameType(old.type);
-    const numOld = String(old.numero || "").trim();
-    const lotOld = String(old.loterie || "").trim().toUpperCase();
-
-    const key = typeOld + "|" + numOld + "|" + lotOld;
-
-    dejaMap[key] = (dejaMap[key] || 0) + Number(old.montant || 0);
-  });
-});
-
-const currentMap = {};
-
 const limites = limitesAjustes || {};
 const bloques = Array.isArray(limites.bloqueoNumeros)
   ? limites.bloqueoNumeros
@@ -1575,6 +1536,7 @@ for (const j of safeJeux) {
     }
   }
 }
+
 
     const vendor = await Vendor.findOne({ id: sellerId }).lean();
 
@@ -3933,7 +3895,7 @@ function submitPrint(){
       .finally(function(){
         setTimeout(function(){
           submittingPrint = false;
-           hideTicketLoading();
+          hideTicketLoading();
         }, 1500);
       });
 
@@ -6135,7 +6097,6 @@ function hideTicketLoading(){
 
 
 </script>
-</body>
 
 <div id="loadingTicket" style="
   display:none;
@@ -6155,6 +6116,7 @@ function hideTicketLoading(){
   TIKÈ A AP FÈT
 </div>
 
+</body>
 </html>
 `);
 });

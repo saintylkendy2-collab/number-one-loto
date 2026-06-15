@@ -1023,10 +1023,9 @@ app.get("/api/vendor/:id/tickets", async (req, res) => {
 const vendor = await Vendor.findOne({ id: sellerId }).lean();
 const vendorConfig = vendor || {};
 
-    const tickets = await Ticket.find({ vendeur: sellerId })
-      .sort({ createdAt: -1 })
-      .limit(500)
-      .lean();
+  const tickets = await Ticket.find({ vendeur: sellerId })
+  .sort({ createdAt: -1 })
+  .lean();
 
     const dates = [...new Set(tickets.map(t => String(t.dateLabel || "").trim()).filter(Boolean))];
 
@@ -4743,7 +4742,9 @@ function renderRapports(){
   var endValue = oldEnd ? oldEnd.value : todayStr;
 
   var filtered = savedTickets.filter(function(t){
-    var d = toIsoDay(t.createdAt || new Date());
+    var d = t.dateLabel
+  ? t.dateLabel.split("/").reverse().join("-")
+  : toIsoDay(t.createdAt || new Date());
     return d >= startValue && d <= endValue;
   });
 
@@ -4759,7 +4760,9 @@ function renderRapports(){
 
     var total = Number(t.total || 0);
     var premio = st === "GANYE" ? Number(t.premio || 0) : 0;
-    var dayKey = toIsoDay(t.createdAt || new Date());
+    var dayKey = t.dateLabel
+  ? t.dateLabel.split("/").reverse().join("-")
+  : toIsoDay(t.createdAt || new Date());
 
     vente += total;
     prime += premio;

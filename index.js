@@ -6913,15 +6913,7 @@ app.get("/api/reportes/tickets", async (req, res) => {
 
 
 
-app.get("/tickets/:vendeur", async (req, res) => {
-  try {
-    const vendeurId = String(req.params.vendeur || "").trim().toUpperCase();
-    const tickets = await Ticket.find({ vendeur: vendeurId }).sort({ createdAt: -1 }).lean();
-    res.json(tickets);
-  } catch (err) {
-    res.status(500).json([]);
-  }
-});
+
 
 const adminRoutes = require("./admin");
 app.use(adminRoutes);

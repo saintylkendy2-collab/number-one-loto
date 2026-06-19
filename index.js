@@ -4756,7 +4756,7 @@ function renderRapports(){
   var oldStart = document.getElementById("rapportDateStart");
   var oldEnd = document.getElementById("rapportDateEnd");
 
- var startValue = oldStart ? oldStart.value : todayISO();
+  var startValue = oldStart ? oldStart.value : todayISO();
 var endValue = oldEnd ? oldEnd.value : todayISO();
 
   fetch("/api/vendor/" + encodeURIComponent(sellerId) + "/rapport?start=" + encodeURIComponent(startValue) + "&end=" + encodeURIComponent(endValue) + "&ts=" + Date.now(), {
@@ -4804,7 +4804,10 @@ var endValue = oldEnd ? oldEnd.value : todayISO();
         '<div style="height:58px;min-height:58px;background:#2f49d1;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;">' +
           '<button id="rapportBackBtn" type="button" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">←</button>' +
           '<div style="font-size:22px;font-weight:700;">Rapports</div>' +
-          '<button id="rapportRefreshBtn" type="button" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;">↻</button>' +
+          '<div style="display:flex;gap:18px;align-items:center;">' +
+            '<button id="rapportPrintBtn" type="button" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">🖨️</button>' +
+            '<button id="rapportRefreshBtn" type="button" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;">↻</button>' +
+          '</div>' +
         '</div>' +
 
         '<div style="padding:14px;overflow:auto;flex:1;">' +
@@ -4843,12 +4846,45 @@ var endValue = oldEnd ? oldEnd.value : todayISO();
     document.getElementById("rapportBackBtn").onclick = function(){
       switchPage("billetsPage", document.getElementById("nav-billets"));
     };
+
     document.getElementById("rapportRefreshBtn").onclick = renderRapports;
     document.getElementById("rapportDateStart").onchange = renderRapports;
     document.getElementById("rapportDateEnd").onchange = renderRapports;
+
+    document.getElementById("rapportPrintBtn").onclick = function(){
+      var now = new Date();
+      var NL = "\\n";
+
+      function row(label, value){
+        var left = "| " + String(label || "").padEnd(12, " ");
+        var right = String(value || "").padStart(12, " ") + " |";
+        return left + right;
+      }
+
+      var text = "";
+      text += "       NUMBER ONE LOTO" + NL;
+      text += "            RAPPORT" + NL;
+      text += "            " + sellerName + NL;
+      text += "   " + fr(startValue) + " / " + fr(endValue) + NL;
+      text += "     [ " + now.toLocaleDateString("fr-FR") + " " + now.toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      }) + " ]" + NL;
+      text += "------------------------------" + NL;
+      text += row("Ventes", fm(vente)) + NL;
+      text += row("Prix", fm(prime)) + NL;
+      text += row("Commission", fm(commission)) + NL;
+      text += row("Resultat", fm(resultat)) + NL;
+      text += "------------------------------" + NL;
+
+      if(window.AndroidPrinter && typeof AndroidPrinter.printTicket === "function"){
+        AndroidPrinter.printTicket(text);
+      }else{
+        alert(text);
+      }
+    };
   });
 }
-
 
 
 

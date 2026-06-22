@@ -1754,6 +1754,11 @@ router.post("/api/sorteos/save", async (req, res) => {
       );
     }
 
+await runCheckTickets(
+  date,
+  rows.map(r => String(r.loteria || "").trim().toUpperCase())
+);
+
 res.json({ ok: true, date: date });
 
 fetch("https://number-one-loto-2.onrender.com/api/sorteos-sync", {
@@ -1764,13 +1769,6 @@ fetch("https://number-one-loto-2.onrender.com/api/sorteos-sync", {
     rows: rows
   })
 }).catch(err => console.error("Erreur sync NBL2:", err.message));
-
-setImmediate(() => {
-  runCheckTickets(
-    date,
-    rows.map(r => String(r.loteria || "").trim().toUpperCase())
-  ).catch(err => console.error(err));
-});
 
   } catch (err) {
     console.error("Erreur save sorteos Mongo:", err);

@@ -3310,7 +3310,7 @@ tbody tr:nth-child(even){background:#313652;}
         </div>
         <div class="field-group">
           <div class="field-label">Balance actual</div>
-          
+          <input id="vd_balance" class="field-input" value="0" /> 
         </div>
       </div>
 
@@ -5309,7 +5309,7 @@ function fillVendorForm(v){
   setValue("vd_zona", v.zona || v.groupe);
   setValue("vd_venta", parseAmount(v.venta));
   setValue("vd_premiosMonto", parseAmount(v.premiosMonto));
-  setValue("vd_balance", parseAmount(v.balance));
+  setValue("vd_balance", "");
 
   setValue("cfg_limite_diario", cfg.limiteDiario || "0");
   setValue("cfg_credito", cfg.credito || "0");
@@ -5393,7 +5393,7 @@ zona: getValue("vd_zona").trim(),
 groupe: getValue("vd_zona").trim(),
     venta: parseAmount(getValue("vd_venta", "0")),
     premiosMonto: parseAmount(getValue("vd_premiosMonto", "0")),
-    balance: parseAmount(getValue("vd_balance", "0")),
+    balance: current ? parseAmount(current.balance) : 0,
 
     config:{
       limiteDiario: getValue("cfg_limite_diario", "0"),

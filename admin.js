@@ -4026,10 +4026,28 @@ function renderTicketsReport(){
   var oldVendor = safe(byId("ticketFilterVendor") ? byId("ticketFilterVendor").value : "");
   var oldStatus = safe(byId("ticketFilterStatus") ? byId("ticketFilterStatus").value : "");
 
-  var vendorOptions = '<option value="">-</option>';
-  vendors.forEach(function(v){
-    vendorOptions += '<option value="' + safe(v.id) + '">' + safe(v.nombre || v.nom || v.id) + '</option>';
-  });
+ var vendorOptions = '<option value="">-</option>';
+
+var vendorsAlphabetiques = vendors.slice().sort(function(a, b){
+  var nomA = String(a.nombre || a.nom || a.id || "").trim();
+  var nomB = String(b.nombre || b.nom || b.id || "").trim();
+
+  return nomA.localeCompare(
+    nomB,
+    undefined,
+    {
+      sensitivity: "base",
+      numeric: true
+    }
+  );
+});
+
+vendorsAlphabetiques.forEach(function(v){
+  vendorOptions +=
+    '<option value="' + safe(v.id) + '">' +
+    safe(v.nombre || v.nom || v.id) +
+    '</option>';
+});
 
   filters.innerHTML =
     '<label>ID</label>' +

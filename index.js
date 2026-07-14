@@ -1777,21 +1777,230 @@ function getLimit(limites, type){
   return 0;
 }
 
-const vendorLimites = vendor.limites || vendor.limits || {};
+const vendorLimites =
+  vendor.limites ||
+  vendor.limits ||
+  {};
 
-for (const j of safeJeux) {
+function normalizeLimitNumber(value, type) {
+  let numero = String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "");
 
-  const type = String(j.type || "").trim().toUpperCase();
+  /*
+    Pou Mariage:
+    23*25 ak 25*23 dwe konsidere kòm menm mariage la.
+  */
+  if (normGameType(type) === "MAR") {
+    const parts = numero
+      .replace(/[X×]/g, "*")
+      .split("*")
+      .filter(Boolean);
 
-  const vendorLimit = getLimit(vendorLimites, type);
+    if (parts.length === 2) {
+      const a = parts[0].padStart(2, "0");
+      const b = parts[1].padStart(2, "0");
 
-  if (vendorLimit > 0 && Number(j.montant || 0) > vendorLimit) {
+      return [a, b]
+        .sort(function(x, y) {
+          return Number(x) - Number(y);
+        })
+        .join("*");
+    }
+  }
 
+  return numero;
+}
+
+/*
+  Kalkile kantite vandè a deja vann jodi a,
+  separe pa LOTRI + TIP JWÈT + NIMEWO.
+*/
+const oldTotals = await Ticket.aggregate([
+  {
+    $match: {
+      vendeur: sellerId,
+      dateLabel: todayLabel,
+      status: { $ne: "ANILE" }
+    }
+  },
+  {
+    $unwind: "$jeux"
+  },
+  {
+    $project: {
+      type: {
+        $toUpper: {
+          $trim: {
+            input: {
+              $ifNull: ["$jeux.type", ""]
+            }
+          }
+        }
+      },
+
+      loterie: {
+        $toUpper: {
+          $trim: {
+            input: {
+              $ifNull: ["$jeux.loterie", ""]
+            }
+          }
+        }
+      },
+
+      numero: {
+        $toUpper: {
+          $trim: {
+            input: {
+              $ifNull: ["$jeux.numero", ""]
+            }
+          }
+        }
+      },
+
+      montant: {
+        $convert: {
+          input: "$jeux.montant",
+          to: "double",
+          onError: 0,
+          onNull: 0
+        }
+      }
+    }
+  },
+  {
+    $group: {
+      _id: {
+        type: "$type",
+        loterie: "$loterie",
+        numero: "$numero"
+      },
+
+      total: {
+        $sum: "$montant"
+      }
+    }
+  }
+]);
+
+const dejaVannPaJeu = {};
+
+oldTotals.forEach(function(row) {
+  const type = normGameType(
+    row &&
+    row._id &&
+    row._id.type
+  );
+
+  const loterie = String(
+    row &&
+    row._id &&
+    row._id.loterie ||
+    ""
+  )
+    .trim()
+    .toUpperCase();
+
+ const numero = normalizeLimitNumber(
+  row &&
+  row._id &&
+  row._id.numero,
+  type
+);
+
+  const key =
+    loterie + "|" +
+    type + "|" +
+    numero;
+
+  dejaVannPaJeu[key] =
+    Number(dejaVannPaJeu[key] || 0) +
+    Number(row.total || 0);
+});
+
+/*
+  Kalkile kantite chak nimewo ki nan nouvo tikè a.
+*/
+const nouvoMontanPaJeu = {};
+
+safeJeux.forEach(function(game) {
+  const type =
+    normGameType(game.type);
+
+  const loterie =
+    String(game.loterie || "")
+      .trim()
+      .toUpperCase();
+
+  const numero =
+  normalizeLimitNumber(game.numero, type);
+
+  const key =
+    loterie + "|" +
+    type + "|" +
+    numero;
+
+  if (!nouvoMontanPaJeu[key]) {
+    nouvoMontanPaJeu[key] = {
+      type: type,
+      loterie: loterie,
+      numero: numero,
+      montant: 0
+    };
+  }
+
+  nouvoMontanPaJeu[key].montant +=
+    Number(game.montant || 0);
+});
+
+/*
+  Verifye limit la separeman pou chak:
+  LOTRI + TIP JWÈT + NIMEWO.
+*/
+for (const key of Object.keys(nouvoMontanPaJeu)) {
+  const row =
+    nouvoMontanPaJeu[key];
+
+  const vendorLimit =
+    getLimit(vendorLimites, row.type);
+
+  if (vendorLimit <= 0) {
+    continue;
+  }
+
+  const dejaVann =
+    Number(dejaVannPaJeu[key] || 0);
+
+  const nouvoMontan =
+    Number(row.montant || 0);
+
+  const totalApreTikè =
+    dejaVann + nouvoMontan;
+
+  const reste =
+    vendorLimit - dejaVann;
+
+  if (totalApreTikè > vendorLimit) {
     return res.status(403).json({
-      ok:false,
-      message:"Limit vandè a se " + vendorLimit.toFixed(2)
-    });
+      ok: false,
 
+      message:
+        row.loterie + "\n" +
+        row.type + " " + row.numero + "\n" +
+        "Limit vandè a se " +
+        vendorLimit.toFixed(2) + "\n" +
+
+        "Deja vann: " +
+        dejaVann.toFixed(2) + "\n" +
+
+        "Rès disponib: " +
+        Math.max(0, reste).toFixed(2) + "\n" +
+
+        "Nouvo montan: " +
+        nouvoMontan.toFixed(2)
+    });
   }
 }
 

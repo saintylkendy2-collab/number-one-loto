@@ -2072,7 +2072,7 @@ for(const j of safeJeux){
   }
 }
 
-    const now = clientCreatedAt ? new Date(clientCreatedAt) : new Date();
+
 
     const total = safeJeux.reduce((sum, j) => sum + Number(j.montant || 0), 0);
     const tirages = [...new Set(

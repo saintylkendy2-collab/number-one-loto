@@ -1411,9 +1411,12 @@ app.post("/api/tickets", async (req, res) => {
     const jeux = Array.isArray(req.body.jeux) ? req.body.jeux : [];
     const channel = String(req.body.channel || "MANUEL").trim().toUpperCase();
 
-    const clientCreatedAt = String(req.body.clientCreatedAt || "");
-    const clientDateLabel = String(req.body.clientDateLabel || "");
-    const clientTimeLabel = String(req.body.clientTimeLabel || "");
+   const clientCreatedAt = String(req.body.clientCreatedAt || "");
+
+/*
+  Dat ak lè kliyan an pa dwe sèvi pou anrejistre tikè.
+  Se server la sèlman ki kontwole dat ak lè tikè yo.
+*/
 
     const clientRequestId = String(req.body.clientRequestId || "").trim();
 
@@ -1475,7 +1478,12 @@ const bloques = Array.isArray(limites.bloqueoNumeros)
   ? limites.bloqueoNumeros
   : [];
 
-const todayLabel = clientDateLabel || new Date().toLocaleDateString("fr-FR");
+const now = new Date();
+
+const todayLabel = now.toLocaleDateString("fr-FR", {
+  timeZone: "America/New_York"
+});
+
 
 const lotNamesLimit = [...new Set(
   safeJeux.map(j => String(j.loterie || "").trim().toUpperCase())
@@ -2105,16 +2113,21 @@ const finalJeux = jeux
       vendeurConfig: vendor.config || {},
 
       createdAt: now,
-      createdAtLabel: clientDateLabel && clientTimeLabel
-        ? clientDateLabel + " " + clientTimeLabel
-        : now.toLocaleString("fr-FR"),
 
-      dateLabel: clientDateLabel || now.toLocaleDateString("fr-FR"),
-      timeLabel: clientTimeLabel || now.toLocaleTimeString("fr-FR", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-      }),
+createdAtLabel: now.toLocaleString("fr-FR", {
+  timeZone: "America/New_York"
+}),
+
+dateLabel: now.toLocaleDateString("fr-FR", {
+  timeZone: "America/New_York"
+}),
+
+timeLabel: now.toLocaleTimeString("fr-FR", {
+  timeZone: "America/New_York",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit"
+}),
 
       // ✅ Tikè toujou ANATAN lè li fèt
       status: "ANATAN",
@@ -2407,6 +2420,34 @@ app.get("/dashboard", async (req, res) => {
   const sellerId = String(req.query.id || "").trim().toUpperCase();
 
   const vendeur = await Vendor.findOne({ id: sellerId }).lean() || {};
+
+   const serverDateParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+
+  const serverYear =
+    serverDateParts.find(function(p){
+      return p.type === "year";
+    }).value;
+
+  const serverMonth =
+    serverDateParts.find(function(p){
+      return p.type === "month";
+    }).value;
+
+  const serverDay =
+    serverDateParts.find(function(p){
+      return p.type === "day";
+    }).value;
+
+  const serverTodayISO =
+    serverYear + "-" +
+    serverMonth + "-" +
+    serverDay;
+
 
   const sellerName = String(
     vendeur.nom || vendeur.nombre || sellerId || "VENDEUR"
@@ -3184,6 +3225,9 @@ stroke-width="2.2">
 </div>
 
 <script>
+
+var SERVER_TODAY_ISO = "${serverTodayISO}";
+
 var sellerId = ${JSON.stringify(sellerId)};
 var sellerName = ${JSON.stringify(sellerName)};
 var sellerConfig = ${JSON.stringify(vendeur?.config || {})};
@@ -5088,9 +5132,8 @@ function renderRapports(){
   if(!box) return;
 
   function todayISO(){
-    var d = new Date();
-    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
-  }
+  return SERVER_TODAY_ISO;
+}
 
   function fr(iso){
     var p = String(iso || "").split("-");

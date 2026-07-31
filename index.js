@@ -2223,7 +2223,127 @@ if(specialRule){
   }
 }
 
+/* =========================================================
+   EGZIJE BOR POU MAR / L3 / L4 / L5
 
+   Règ:
+   - Dwe gen omwen yon BOR nan menm lotri a.
+   - Chak MAR oswa Loto separeman pa ka depase
+     pi gwo montan BOR ki nan menm lotri a.
+========================================================= */
+
+const controleBorPaLoterie = {};
+
+safeJeux.forEach(function(game){
+
+  const type = normGameType(game.type);
+
+  const loterie = String(
+    game.loterie ||
+    game.loteria ||
+    game.lottery ||
+    game.tirage ||
+    game.sorteo ||
+    ""
+  )
+  .trim()
+  .toUpperCase();
+
+  const montant = Number(game.montant || 0);
+
+  if(!controleBorPaLoterie[loterie]){
+    controleBorPaLoterie[loterie] = {
+      plusGwoBor: 0,
+      jeuxSpeciaux: []
+    };
+  }
+
+  /*
+    Kenbe pi gwo montan BOR la
+    pou lotri sa a.
+  */
+  if(type === "BOR"){
+
+    if(montant > controleBorPaLoterie[loterie].plusGwoBor){
+      controleBorPaLoterie[loterie].plusGwoBor = montant;
+    }
+
+    return;
+  }
+
+  /*
+    Mete chak Mariage/Loto apa nan lis la.
+    Nou pap ajoute montan yo ansanm.
+  */
+  if(
+    type === "MAR" ||
+    type === "L3" ||
+    String(type).startsWith("L4") ||
+    String(type).startsWith("L5")
+  ){
+    controleBorPaLoterie[loterie].jeuxSpeciaux.push({
+      type: type,
+      numero: String(game.numero || ""),
+      montant: montant
+    });
+  }
+});
+
+
+for(const loterie of Object.keys(controleBorPaLoterie)){
+
+  const data = controleBorPaLoterie[loterie];
+
+  const plusGwoBor =
+    Number(data.plusGwoBor || 0);
+
+  const jeuxSpeciaux =
+    Array.isArray(data.jeuxSpeciaux)
+      ? data.jeuxSpeciaux
+      : [];
+
+  /*
+    Gen Mariage/Loto, men pa gen okenn BOR.
+  */
+  if(jeuxSpeciaux.length > 0 && plusGwoBor <= 0){
+
+    return res.status(403).json({
+      ok: false,
+      message:
+        "❌ " + (loterie || "LOTERIA") + "\n\n" +
+        "Ou pa ka vann Mariage oswa Loto san Borlette " +
+        "nan menm lotri a."
+    });
+  }
+
+  /*
+    Verifye chak Mariage/Loto separeman.
+  */
+  for(const jeu of jeuxSpeciaux){
+
+    const montantJeu =
+      Number(jeu.montant || 0);
+
+    if(montantJeu > plusGwoBor){
+
+      return res.status(403).json({
+        ok: false,
+        message:
+          "❌ " + (loterie || "LOTERIA") + "\n\n" +
+
+          jeu.type + " " +
+          jeu.numero + ": " +
+          montantJeu.toFixed(2) + "\n" +
+
+          "Pi gwo Borlette: " +
+          plusGwoBor.toFixed(2) + "\n\n" +
+
+          "Montan Mariage oswa Loto a pa ka depase " +
+          "pi gwo montan Borlette la."
+      });
+    }
+  }
+}
 
 const lotNames = [...new Set(safeJeux.map(j => String(j.loterie || "").trim().toUpperCase()))];
 

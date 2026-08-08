@@ -2806,6 +2806,7 @@ background:#efeff4;
 }
 body{color:#111;}
 .app{
+  height:100vh;
   height:100dvh;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top, 0px);

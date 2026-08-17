@@ -3574,6 +3574,17 @@ var numero = "";
 var montant = "";
 var jeux = [];
 var selectedLoteries = [];
+
+try{
+  var saved = JSON.parse(
+    localStorage.getItem("selectedLoteries_" + sellerId) || "[]"
+  );
+
+  if(Array.isArray(saved)){
+    selectedLoteries = saved;
+  }
+}catch(e){}
+
 var cursorNumero = 0;
 var cursorMontant = 0;
 var pendingChoiceNumber = "";
@@ -3582,6 +3593,16 @@ var savedTickets = [];
 var currentPageName = "salePage";
 
 var loteries = [];
+
+try{
+  var savedLoteries = JSON.parse(
+    localStorage.getItem("vendorLoteries_" + sellerId) || "[]"
+  );
+
+  if(Array.isArray(savedLoteries) && savedLoteries.length){
+    loteries = savedLoteries;
+  }
+}catch(e){}
 
 function getSelectedLoteriesText(){
  return selectedLoteries.length ? selectedLoteries.join(", ") : "";
@@ -4952,6 +4973,11 @@ function shareWhatsApp(){
     var url = "https://wa.me/?text=" + encodeURIComponent(text);
 
     window.location.href = url;
+
+    localStorage.setItem(
+  "selectedLoteries_" + sellerId,
+  JSON.stringify(selectedLoteries)
+);
 
     loadBillets();
     resetAfterSend();
@@ -7089,6 +7115,11 @@ async function loadVendorLoteries(){
           estatus: l.estatus || "Activo"
         };
       });
+
+      localStorage.setItem(
+        "vendorLoteries_" + sellerId,
+        JSON.stringify(loteries)
+      );
     }
   }catch(err){
     console.error("Erreur load loteries:", err);

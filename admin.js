@@ -3960,31 +3960,19 @@ function toggleSubmenu(id){
 let ticketsRows = [];
 let ticketsTab = "tickets";
 
-let ticketsReportRequest = 0;
-let ticketsReportController = null;
 async function loadTicketsReport(){
-  const request = ++ticketsReportRequest;
-  if(ticketsReportController) ticketsReportController.abort();
-  const controller = new AbortController();
-  ticketsReportController = controller;
   const date = getValue("ticketFilterDate") || todayISO();
-  try {
-    const res = await fetch("/api/reportes/tickets?date=" + encodeURIComponent(date) +
-      "&reload=" + Date.now(), { signal: controller.signal });
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    if(request !== ticketsReportRequest) return;
-    ticketsRows = Array.isArray(data) ? data : [];
-    renderTicketsReport();
-  } catch(err) {
-    if(err.name === "AbortError" || request !== ticketsReportRequest) return;
-    console.error("Erreur tickets:", err);
-    const body = byId("ticketsBody");
-    if(body) body.innerHTML = '<tr><td colspan="8">Erè chajman. Eseye ankò.</td></tr>';
-  } finally {
-    if(request === ticketsReportRequest) ticketsReportController = null;
-  }
+  const res = await fetch("/api/reportes/tickets?date=" + encodeURIComponent(date) + "&reload=" + Date.now());
+  const data = await res.json();
+  ticketsRows = Array.isArray(data) ? data : [];
+  renderTicketsReport();
 }
+
+window.addEventListener("focus", function(){
+  if (currentPage === "tickets") {
+    loadTicketsReport();
+  }
+});
 
 function showTicketsTab(tab){
   ticketsTab = tab;
@@ -7012,10 +7000,17 @@ async function openVentasDetalle(mode){
   if(!page) return;
 
   showMasterPage("ventasDetallePage");
-  
+ 
 
-  ventasResumenCache = null;
-  ventasResumenGeneration++;
+  try{
+    const today = todayISO();
+const res = await fetch("/api/reportes/tickets?date=" + encodeURIComponent(today) + "&reload=" + Date.now());
+    const data = await res.json();
+    ticketsRows = Array.isArray(data) ? data : [];
+  }catch(err){
+    console.error(err);
+    ticketsRows = [];
+  }
 
   let title = "Ventas por Número";
   if(currentVentasMode === "loteria") title = "Ventas por Lotería";
@@ -7181,11 +7176,7 @@ function labelType(type){
   return type;
 }
 
-let ventasResumenCache = null;
-let ventasResumenGeneration = 0;
-let ventasDetalleRequest = 0;
-
-async function renderVentasDetalle(){
+function renderVentasDetalle(){
   const body = byId("detBody");
   const foot = byId("detFoot");
 
@@ -7201,60 +7192,78 @@ async function renderVentasDetalle(){
 
   const map = {};
 
-  const request = ++ventasDetalleRequest;
-  const mode = currentVentasMode;
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-  const key = [ventasResumenGeneration, start, end, timezone].join("|");
-  body.innerHTML = '<tr><td colspan="3" class="empty-state">Ap chaje...</td></tr>';
-  foot.innerHTML = "";
-  let summary;
-  try {
-    if(!ventasResumenCache || ventasResumenCache.key !== key){
-      const params = new URLSearchParams({ start: start, end: end, timezone: timezone });
-      const promise = fetch("/api/reportes/jugadas-resumen?" + params.toString())
-        .then(function(res){
-          if(!res.ok) throw new Error("HTTP " + res.status);
-          return res.json();
-        }).then(function(data){
-          if(!Array.isArray(data)) throw new Error("RapÃ² pa valid");
-          return data;
-        });
-      ventasResumenCache = { key: key, promise: promise };
-    }
-    summary = await ventasResumenCache.promise;
-  } catch(err) {
-    if(ventasResumenCache && ventasResumenCache.key === key) ventasResumenCache = null;
-    if(request !== ventasDetalleRequest) return;
-    console.error("Erreur ventas detalle:", err);
-    body.innerHTML = '<tr><td colspan="3" class="empty-state">ErÃ¨ chajman. Eseye ankÃ².</td></tr>';
-    return;
-  }
-  if(request !== ventasDetalleRequest || mode !== currentVentasMode || !body.isConnected) return;
+  ticketsRows.forEach(function(t){
+    const vendorId = safe(t.vendeur).toUpperCase();
 
-  const vendorMap = new Map();
-  vendors.forEach(function(v){
-    const id = safe(v.id).toUpperCase();
-    if(!vendorMap.has(id)) vendorMap.set(id, v);
-  });
-  summary.forEach(function(r){
-    const vendorId = safe(r.vendeur).toUpperCase();
-    const vendor = vendorMap.get(vendorId) || {};
-    if(zonaFilter && safe(vendor.zona || vendor.groupe) !== zonaFilter) return;
+    const vendor = vendors.find(function(v){
+      return safe(v.id).toUpperCase() === vendorId;
+    }) || {};
+
+    const vendorZona = safe(vendor.zona || vendor.groupe);
+
+    if(zonaFilter && vendorZona !== zonaFilter) return;
     if(vendorFilter && vendorId !== vendorFilter) return;
-    const lot = safe(r.loteria);
-    const type = safe(r.type);
-    const numero = safe(r.numero);
-    if(loteriaFilter && lot !== loteriaFilter) return;
-    if(jugadaFilter && type !== jugadaFilter) return;
-    if(numeroFilter && numero !== numeroFilter) return;
-    let key = "";
-    if(mode === "numero") key = type + "|" + numero;
-    if(mode === "jugada") key = type;
-    if(mode === "loteria") key = lot;
-    if(!key) return;
-    if(!map[key]) map[key] = { type: type, numero: numero, loteria: lot, count: 0, venta: 0 };
-    map[key].count += Number(r.count || 0);
-    map[key].venta += parseAmount(r.venta);
+
+    let d = "";
+
+    if(t.dateLabel){
+      const p = String(t.dateLabel).split("/");
+      if(p.length === 3){
+        d = p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+      }
+    }
+
+    if(!d && t.createdAt){
+      const dt = new Date(t.createdAt);
+      d =
+        dt.getFullYear() + "-" +
+        String(dt.getMonth() + 1).padStart(2,"0") + "-" +
+        String(dt.getDate()).padStart(2,"0");
+    }
+
+    if(start && d < start) return;
+    if(end && d > end) return;
+
+    if(String(t.status || "").toUpperCase() === "ANILE") return;
+
+    (t.jeux || []).forEach(function(j){
+      const lot = safe(j.loterie).toUpperCase();
+      const type = safe(j.type).toUpperCase();
+      const numero = safe(j.numero).trim();
+
+      if(loteriaFilter && lot !== loteriaFilter) return;
+      if(jugadaFilter && type !== jugadaFilter) return;
+      if(numeroFilter && numero !== numeroFilter) return;
+
+      let key = "";
+
+      if(currentVentasMode === "numero"){
+        key = type + "|" + numero;
+      }
+
+      if(currentVentasMode === "jugada"){
+        key = type;
+      }
+
+      if(currentVentasMode === "loteria"){
+        key = lot;
+      }
+
+      if(!key) return;
+
+      if(!map[key]){
+        map[key] = {
+          type: type,
+          numero: numero,
+          loteria: lot,
+          count: 0,
+          venta: 0
+        };
+      }
+
+      map[key].count += 1;
+      map[key].venta += parseAmount(j.montant);
+    });
   });
 
   const rows = Object.values(map).sort(function(a,b){
@@ -7316,7 +7325,6 @@ body.innerHTML = html;
       '<td style="text-align:right;padding:14px;">' + formatAmount(totalVenta) + '</td>' +
     '</tr>';
 }
-
 
 async function openVentasGlobalPage(){
 

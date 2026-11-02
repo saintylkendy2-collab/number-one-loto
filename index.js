@@ -3594,6 +3594,36 @@ var currentPageName = "salePage";
 
 var loteries = [];
 
+function advanceSelectedLoteries() {
+  if (!loteries.length || !selectedLoteries.length) return;
+
+  var kantite = selectedLoteries.length;
+
+  var ouvè = loteries
+    .filter(function(l) { return getLoteriaState(l).open; })
+    .sort(function(a, b) {
+      return getLoteriaState(a).minutesLeft -
+             getLoteriaState(b).minutesLeft;
+    });
+
+  var chwa = selectedLoteries.filter(function(name) {
+    return ouvè.some(function(l) { return l.name === name; });
+  });
+
+  ouvè.forEach(function(l) {
+    if (chwa.length < kantite && chwa.indexOf(l.name) < 0) {
+      chwa.push(l.name);
+    }
+  });
+
+  selectedLoteries = chwa;
+  localStorage.setItem(
+    "selectedLoteries_" + sellerId,
+    JSON.stringify(selectedLoteries)
+  );
+  updateFields();
+}
+
 function getSelectedLoteriesText(){
  return selectedLoteries.length ? selectedLoteries.join(", ") : "";
 }
@@ -4808,6 +4838,7 @@ return code + "\\n" + lines.join("\\n") + "\\n" + code;
 let currentTicketRequestId = null;
 
 function resetAfterSend(){
+localStorage.setItem("selectedLoteries_" + sellerId, JSON.stringify(selectedLoteries));
  jeux = [];
  numero = "";
  montant = "";
@@ -7106,20 +7137,7 @@ async function loadVendorLoteries(){
         };
       });
 
-      selectedLoteries = selectedLoteries.filter(function(name){
-        var lot = loteries.find(function(l){
-          return l.name === name;
-        });
-
-        return lot && getLoteriaState(lot).open;
-      });
-
-      localStorage.setItem(
-        "selectedLoteries_" + sellerId,
-        JSON.stringify(selectedLoteries)
-      );
-
-      updateFields();
+     advanceSelectedLoteries();
     }
 
   }catch(err){

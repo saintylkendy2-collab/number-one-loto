@@ -910,6 +910,30 @@ function money(v){
   });
 }
 
+function limitForLoterie(limites, loterie, type, globalLimit){
+  const rows = Array.isArray(limites.limitesPorLoteria)
+    ? limites.limitesPorLoteria : [];
+
+  const row = rows.find(x =>
+    String(x.loterie || "").trim().toUpperCase() ===
+    String(loterie || "").trim().toUpperCase()
+  );
+
+  const campo =
+    type === "BOR" ? "borlette" :
+    type === "MAR" ? "mariage" :
+    type === "L3" ? "loto3" :
+    String(type).startsWith("L4") ? "loto4" :
+    String(type).startsWith("L5") ? "loto5" : "";
+
+  if(!row || !campo ||
+     !Object.prototype.hasOwnProperty.call(row, campo)){
+    return globalLimit;
+  }
+
+  return Number(row[campo]);
+}
+
 app.post("/api/check-limit-game", async (req, res) => {
   try {
     const sellerId = String(req.body.sellerId || "").trim().toUpperCase();
@@ -958,6 +982,8 @@ type + " " + j.numero + "\n\n" +
     else if (type === "L3") limit = Number(limites.loto3 || 0);
    else if (type === "L41" || type === "L42" || type === "L43") limit = Number(limites.loto4 || 0);
 else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0);
+
+limit = limitForLoterie(limites, loterie, type, limit);
 
 const special = (limites.limiteNumeros || []).find(x =>
   sameLimitGameType(x.type, type) &&
@@ -1032,6 +1058,7 @@ let limitesAjustes = {
   loto3: 0,
   loto4: 0,
   loto5: 0,
+  limitesPorLoteria: [],
   limiteNumeros: [],
   bloqueoNumeros: []
 };
@@ -1048,6 +1075,9 @@ async function loadLimites(){
         loto3: Number(saved.loto3 || 0),
         loto4: Number(saved.loto4 || 0),
         loto5: Number(saved.loto5 || 0),
+
+                limitesPorLoteria: Array.isArray(saved.limitesPorLoteria)
+          ? saved.limitesPorLoteria : [],
 
         limiteNumeros: Array.isArray(saved.limiteNumeros)
           ? saved.limiteNumeros
@@ -1074,6 +1104,9 @@ app.post("/api/limites-ajustes", async (req,res)=>{
   loto3: Number(req.body.loto3 || 0),
   loto4: Number(req.body.loto4 || 0),
   loto5: Number(req.body.loto5 || 0),
+
+    limitesPorLoteria: Array.isArray(req.body.limitesPorLoteria)
+    ? req.body.limitesPorLoteria : [],
 
   limiteNumeros: Array.isArray(req.body.limiteNumeros)
     ? req.body.limiteNumeros
@@ -1120,6 +1153,7 @@ app.get("/api/limites-ajustes", async (req,res)=>{
         loto3:0,
         loto4:0,
         loto5:0,
+        limitesPorLoteria: [],
         limiteNumeros:[],
         bloqueoNumeros:[]
       };
@@ -1687,6 +1721,9 @@ for (const j of safeJeux) {
   else if (type === "L3") limit = Number(limites.loto3 || 0);
   else if (type === "L41" || type === "L42" || type === "L43") limit = Number(limites.loto4 || 0);
   else if (type === "L51" || type === "L52" || type === "L53") limit = Number(limites.loto5 || 0);
+
+limit = limitForLoterie(limites, lot, type, limit);
+
 
   const special = (limites.limiteNumeros || []).find(x =>
     sameLimitGameType(x.type, type) &&

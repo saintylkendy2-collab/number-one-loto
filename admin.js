@@ -4855,6 +4855,7 @@ async function openHomeDashboard(){
   const map = {};
   let totalVenta = 0;
   let totalPremios = 0;
+  let totalComision = 0;
   let totalResultado = 0;
 
   let evaluados = 0;
@@ -4862,6 +4863,26 @@ async function openHomeDashboard(){
   let ganadores = 0;
 
 const today = todayISO();
+
+const commissionRates = {};
+
+ventasRows.forEach(function(r){
+  const id = safe(r.id).trim().toUpperCase();
+  const venta = parseAmount(r.venta);
+  if(id && venta > 0){
+    commissionRates[id] = parseAmount(r.comision) / venta;
+  }
+});
+
+vendors.forEach(function(v){
+  const id = safe(v.id).trim().toUpperCase();
+  if(!id || Object.prototype.hasOwnProperty.call(commissionRates, id)) return;
+
+  const com = v.comision || {};
+  commissionRates[id] = parseAmount(
+    com.general ?? v.comisionGeneral ?? v.com_general ?? 0
+  ) / 100;
+});
 
 ticketsRows.forEach(function(t){
 
@@ -4894,6 +4915,9 @@ ticketsRows.forEach(function(t){
 
   if(status === "GANYE") ganadores++;
 
+  const sellerId = safe(t.vendeur).trim().toUpperCase();
+const commissionRate = commissionRates[sellerId] || 0;
+
   (t.jeux || []).forEach(function(j){
 
     const lot = safe(j.loterie).toUpperCase().trim();
@@ -4903,6 +4927,7 @@ ticketsRows.forEach(function(t){
 
     const venta = parseAmount(j.montant || j.monto || j.amount || 0);
     const premio = parseAmount(j.gain || 0);
+    const comision = venta * commissionRate;
 
     // ✅ si loterie pa vann jodi a, pa monte
     if(venta <= 0 && premio <= 0) return;
@@ -4911,26 +4936,26 @@ ticketsRows.forEach(function(t){
       map[lot] = {
         loteria: lot,
         venta: 0,
+        comision: 0,
         premio: 0,
         resultado: 0,
         sorteo: ""
       };
     }
 
-    map[lot].venta += venta;
-    map[lot].premio += premio;
-    map[lot].resultado += venta - premio;
+   map[lot].venta += venta;
+map[lot].comision += comision;
+map[lot].premio += premio;
+map[lot].resultado += venta - comision - premio;
 
-    totalVenta += venta;
-    totalPremios += premio;
-    totalResultado += venta - premio;
+totalVenta += venta;
+totalComision += comision;
+totalPremios += premio;
+totalResultado += venta - comision - premio;
   });
 
 });
 
-  const totalComision = ventasRows.reduce(function(a,b){
-    return a + parseAmount(b.comision);
-  },0);
 
   const rows = Object.values(map).sort(function(a,b){
     return b.venta - a.venta;
@@ -4953,6 +4978,7 @@ ticketsRows.forEach(function(t){
               '<tr>' +
                 '<th>LOTERIA</th>' +
                 '<th>VENTA</th>' +
+                '<th>COMISIÓN</th>' +
                 '<th>PREMIO</th>' +
                 '<th>RESULTADO</th>' +
                 '<th>SORTEO</th>' +
@@ -4966,6 +4992,7 @@ ticketsRows.forEach(function(t){
                 return '<tr>' +
                   '<td>● ' + safe(r.loteria).slice(0,12) + '...</td>' +
                   '<td>' + formatAmount(r.venta) + '</td>' +
+                  '<td>' + formatAmount(r.comision) + '</td>' +
                   '<td>' + formatAmount(r.premio) + '</td>' +
                   '<td class="' + cls + '">' + formatAmount(r.resultado) + '</td>' +
                   '<td style="color:#00d2ff;">' + safe(r.sorteo) + '</td>' +
@@ -4977,6 +5004,7 @@ ticketsRows.forEach(function(t){
   '<tr style="transform:translateX(8px);">' +
                 '<td style="transform:translateX(24px);"><b>TOTAL</b></td>' +
                 '<td><b>' + formatAmount(totalVenta) + '</b></td>' +
+                '<td><b>' + formatAmount(totalComision) + '</b></td>' +
                 '<td style="transform:translateX(6px);"><b>' + formatAmount(totalPremios) + '</b></td>' +
                 '<td class="' + (totalResultado >= 0 ? "result-ok" : "result-bad") + '"><b>' + formatAmount(totalResultado) + '</b></td>' +
                 '<td></td>' +
